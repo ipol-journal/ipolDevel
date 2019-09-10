@@ -144,7 +144,6 @@ class DemoRunner():
         Initialize DemoRunner
         """
         self.lock_run = Lock()
-        self.lock_construct = Lock()
 
         base_dir = os.path.dirname(os.path.realpath(__file__))
         self.share_running_dir = cherrypy.config['share.running.dir']
@@ -314,9 +313,9 @@ class DemoRunner():
         bin_dir = os.path.join(compilation_path, 'bin/')
         log_file = os.path.join(compilation_path, 'build.log')
         try:
-            while self.construct_locked(compilation_path):
+            while self.construct_is_locked(compilation_path):
                 time.sleep(1)
-            self.create_construct_lock(compilation_path)
+            self.acquire_construct_lock(compilation_path)
             
             # Ensure needed compilation folders do exist
             self.mkdir_p(dl_dir)
@@ -411,18 +410,19 @@ class DemoRunner():
             os.remove(os.path.join(compilation_path, 'ipol_construct.lock'))
 
     @staticmethod
-    def construct_locked(compilation_path):
+    def construct_is_locked(compilation_path):
         lock_filepath = os.path.join(compilation_path, 'ipol_construct.lock')
         if os.path.isfile(lock_filepath):
             current_time = time.time()
             creation_time = os.path.getctime(lock_filepath)
-            if (current_time - creation_time) // 3600 >= 1:
+            if current_time - creation_time >= 3600:
                 os.remove(lock_filepath)
                 return False
             return True
+        return False
 
     @staticmethod
-    def create_construct_lock(compilation_path):
+    def acquire_construct_lock(compilation_path):
         lock_file = open(os.path.join(compilation_path,'ipol_construct.lock'),'w+')
         lock_file.close()
 
@@ -630,7 +630,7 @@ format(str(ex), str(ddl_build))
         """
         the core algo runner
         """
-        while self.construct_locked(bin_path):
+        while self.construct_is_locked(bin_path):
             time.sleep(1)
         rd = run_demo_base.RunDemoBase(bin_path, work_dir, self.logger, timeout)
         rd.set_algo_params(params)
