@@ -7,6 +7,7 @@ IPOL Conversion module, services to convert blobs.
 import base64
 import binascii
 import configparser
+import errno
 import glob
 import json
 import logging
@@ -14,14 +15,12 @@ import math
 import mimetypes
 import os
 import re
-import errno
 import sys
 
 import cherrypy
 import numpy as np
-
 from errors import IPOLConvertInputError, IPOLCropInputError
-from ipolutils.errors import IPOLTypeError
+from ipolutils.errors import IPOLImageReadError
 from ipolutils.evaluator.evaluator import evaluate
 from ipolutils.image.Image import Image
 from ipolutils.video.Video import Video
@@ -231,7 +230,7 @@ class Conversion():
             self.logger.exception(ex)
             message = "Input #{}. {}".format(i, str(ex))
             return self.make_KO_response(message, work_dir)
-        except IPOLTypeError as ex:
+        except (IPOLImageReadError) as ex:
             message = "Input #{}. {}".format(i, str(ex))
             return self.make_KO_response(message, work_dir)
         except OSError as ex:

@@ -8,8 +8,8 @@ class IPOLConvertInputError(Exception):
     """
     pass
 
-class IPOLTypeError(Exception):
+class IPOLImageReadError(Exception):
     """
-    IPOLTypeError
+    IPOLImageReadError
     """
     pass

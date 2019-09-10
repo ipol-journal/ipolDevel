@@ -19,9 +19,12 @@ Image operations wrapper.
 import errno
 import mimetypes
 import os
-import numpy as np
+
 import cv2
+import numpy as np
 import tifffile
+from ipolutils.errors import IPOLImageReadError
+
 
 class Image(object):
     '''
@@ -60,6 +63,8 @@ class Image(object):
             else:
                 self.data = cv2.imread(src, cv2.IMREAD_UNCHANGED)
 
+        if self.data is None:
+            raise IPOLImageReadError(f'Image read error, data={data} buf={buf}, src={src}')
         self.ensure_data_shape()
 
     def is_tiff_image(self):
