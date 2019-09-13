@@ -319,7 +319,8 @@ class DemoRunner():
             
             # Ensure needed compilation folders do exist
             self.mkdir_p(dl_dir)
-            if self.any_extraction_needed(ddl_builds, dl_dir):
+            extract_needed = self.any_extraction_needed(ddl_builds, dl_dir)
+            if extract_needed:
                 if os.path.isdir(bin_dir):
                     shutil.rmtree(bin_dir)
             self.mkdir_p(bin_dir)
@@ -334,11 +335,6 @@ class DemoRunner():
                 if not files_to_move:
                     raise IPOLMissingBuildItem("move")
 
-                # These are optional
-                construct = build_item.get('construct')
-                username = build_item.get('username')
-                password = build_item.get('password')
-
                 zip_filename = urllib.parse.urlsplit(url).path.split('/')[-1]
                 tgz_file = os.path.join(dl_dir, zip_filename)
 
@@ -346,9 +342,6 @@ class DemoRunner():
                 files_path = []
                 for f in files_to_move.split(","):
                     files_path.append(os.path.join(bin_dir, os.path.basename(f.strip())))
-
-                # Download
-                extract_needed = build.download(url, tgz_file, username, password)
 
                 # Check if a rebuild is needed
                 if extract_needed or not self.all_files_exist(files_path):
@@ -365,6 +358,7 @@ class DemoRunner():
                     if "virtualenv" in build_item:
                         self.create_venv(build_item, bin_dir, src_dir)
 
+                    construct = build_item.get('construct')
                     if construct:
                         # Execute the construct
                         build.run(construct, log_file, cwd=src_dir)
@@ -373,7 +367,6 @@ class DemoRunner():
                     for file_to_move in files_to_move.split(","):
                         # Remove possible white spaces
                         file_to_move = file_to_move.strip()
-                        #
 
                         path_from = os.path.realpath(os.path.join(src_dir, file_to_move))
                         path_to = os.path.realpath(os.path.join(bin_dir, os.path.basename(file_to_move)))
@@ -432,6 +425,7 @@ class DemoRunner():
         """
         Check if binaries should be extracted
         """
+        extract_needed = False
         for build_item in list(ddl_builds.values()):
             url = build_item.get('url')
             if not url:
@@ -441,8 +435,8 @@ class DemoRunner():
             zip_filename = urllib.parse.urlsplit(url).path.split('/')[-1]
             tgz_file = os.path.join(dl_dir, zip_filename)
             if build.download(url, tgz_file, username, password):
-                return True
-        return False
+                extract_needed = True
+        return extract_needed
 
     @staticmethod
     def all_files_exist(files):
