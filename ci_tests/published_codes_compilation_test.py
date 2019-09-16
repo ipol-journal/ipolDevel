@@ -1,12 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import socket
-import xml.etree.ElementTree as ET
 import errno
-import requests
 import json
 import os
 import shutil
+import socket
+import xml.etree.ElementTree as ET
+
+import requests
 
 HOST = socket.gethostbyname(socket.gethostname())
 user = 'ipol'
@@ -93,7 +94,7 @@ def build(demo_id, build_section, requirements, demorunners):
     suitable_demorunners = get_suitable_demorunners(requirements, demorunners)
     for demorunner in suitable_demorunners.keys():
         demorunner_host = demorunners[demorunner].get('server')
-        params = {'ddl_build': json.dumps(build_section), 'path_for_the_compilation': get_compilation_path(demo_id)}
+        params = {'ddl_build': json.dumps(build_section), 'compilation_path': get_compilation_path(demo_id)}
         response = post(demorunner_host, 'demorunner', 'test_compilation', params)
         json_response = response.json()
         if json_response.get('status') != 'OK':
