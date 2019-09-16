@@ -42,12 +42,11 @@ def authenticate(func):
         """
         Invokes the wrapped function if authenticated
         """
-        if not is_authorized_ip(cherrypy.request.remote.ip) \
-                and not ("X-Real-IP" in cherrypy.request.headers
-                         and is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
-            error = {"status": "KO", "error": "Authentication Failed"}
-            return json.dumps(error).encode()
-        return func(*args, **kwargs)
+        if "X-Real-IP" in cherrypy.request.headers \
+                and is_authorized_ip(cherrypy.request.headers["X-Real-IP"]):
+            return func(*args, **kwargs)
+        error = {"status": "KO", "error": "Authentication Failed"}
+        return json.dumps(error).encode()
 
     def is_authorized_ip(ip):
         """
@@ -57,7 +56,8 @@ def authenticate(func):
         patterns = []
         # Creates the patterns  with regular expresions
         for authorized_pattern in archive.authorized_patterns:
-            patterns.append(re.compile(authorized_pattern.replace(".", "\\.").replace("*", "[0-9]*")))
+            patterns.append(re.compile(authorized_pattern.replace(
+                ".", "\\.").replace("*", "[0-9a-zA-Z]+")))
         # Compare the IP with the patterns
         for pattern in patterns:
             if pattern.match(ip) is not None:
