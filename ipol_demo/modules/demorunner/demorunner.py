@@ -73,7 +73,7 @@ def authenticate(func):
         """
         demorunner = DemoRunner.get_instance()
         patterns = []
-        # Creates the patterns  with regular expresions
+        # Creates the patterns  with regular expressions
         for authorized_pattern in demorunner.authorized_patterns:
             patterns.append(re.compile(authorized_pattern.replace(
                 ".", "\\.").replace("*", "[0-9a-zA-Z]+")))
