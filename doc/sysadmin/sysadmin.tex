@@ -104,11 +104,11 @@ To modify the crontab configuration, the command is {\tt crontab -e}. The format
 \begin{itemize}
     \item \textbf{Backups}: they are done by this script: {\tt ipolDevel/sysadmin/backup.sh}. See Sec.~\ref{sec:backups}.
     
-    \item \textbf{Rsync}: the script {\tt ipolDevel/sysadmin/rsync.sh} synchronizes backups from ipolcore to DR1. See Sec.~\ref{sec:backups}.
+    \item \textbf{Backup sync}: the script {\tt ipolDevel/sysadmin/backup\_sync.sh} synchronizes backups from ipolcore to DR1. See Sec.~\ref{sec:backups}.
 
 We use the following line to run the backup script once per week after a backup has been done at 3:00h:
 
-    {\tt 0 3 * * 2 /home/ipol/ipolDevel/sysadmin/rsync.sh}
+    {\tt 0 3 * * 2 /home/ipol/ipolDevel/sysadmin/backup\_sync.sh}
     
     \item \textbf{Cleanup}: the script {\tt ipolDevel/sysadmin/cleanup.sh} does a cleanup of all temporary files older than one month.
 
@@ -600,7 +600,7 @@ To restore a backup, pipe a {\tt cat} command with all {\tt.tgz} files to the ex
 {\tt cat *.tgz | tar xvfz - -g /dev/null --ignore-zeros -C restore\_folder}
 
 
-While making backups is a good way to be able to recover in case of data loss, it is even better to distribute copies of said backups to other servers to improve backup redundancy. Just as data can be corrupt or lost, servers have downtime and there is always the possibility of a server malfunction. Thus, in order to improve backups reliability we synchronize our backup folder with another server just in case of a catastrophe. Along with the backups script there is an rsync script that automatically synchronizes the backup folder form one server to another thus making backups redundant.
+While making backups is a good way to be able to recover in case of data loss, it is even better to distribute copies of said backups to other servers to improve backup redundancy. Just as data can be corrupt or lost, servers have downtime and there is always the possibility of a server malfunction. Thus, in order to improve backups reliability we synchronize our backup folder with another server just in case of a catastrophe. Along with the backups script there is another script that automatically synchronizes the backup folder form one server to another thus making backups redundant.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
