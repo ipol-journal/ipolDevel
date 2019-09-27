@@ -27,10 +27,13 @@ def create_thumbnail(src_file):
     thumb_name = thumb_name.lower() + '_thumbnail.jpeg'
     thumb_file = os.path.join(os.path.dirname(src_file), thumb_name)
     try:
-        thumbnail(src_file, thumb_height, thumb_file)
+        result = thumbnail(src_file, thumb_height, thumb_file)
+        if result:
+            return thumb_file
+        else:
+            return False
     except Exception:
         return False
-    return thumb_file
 
 def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name):
     """
@@ -61,7 +64,6 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
                     file_label = file_name
                 value = {file_label: src_file}
                 try: # to get a thumbnail
-                    print(src_file)
                     thumb_file = create_thumbnail(src_file)
                 except Exception:
                     print(traceback.format_exc())

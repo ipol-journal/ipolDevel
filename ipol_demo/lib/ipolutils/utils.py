@@ -31,7 +31,7 @@ def thumbnail(src_file, height, dst_file):
         raise OSError(errno.ENOENT, "ipolutils.thumbnail(), file not found", src_file)
     mime_type, _ = mimetypes.guess_type(src_file)
     if not mime_type:
-        return
+        return False
     media_type, _ = mime_type.split('/')
     if media_type not in ('image', 'video') or mime_type == 'image/svg+xml':
         raise OSError(errno.EINVAL, "ipolutils.thumbnail(), format {} not yet supported.".format(mime_type), src_file)
@@ -44,6 +44,7 @@ def thumbnail(src_file, height, dst_file):
     else:
         im.resize(height=height)
     im.write(dst_file)
+    return True
 
 def rmdir_contents(target):
     for entry in os.listdir(target):
