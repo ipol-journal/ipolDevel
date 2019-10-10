@@ -597,7 +597,7 @@ We use the following line to run the backup script once per week at 3:00h:
 
 To restore a backup, pipe a {\tt cat} command with all {\tt.tgz} files to the extract command and specify a destination path, ``restore\_forlder". For example:
 
-{\tt cat *.tgz | tar xvfz - -g /dev/null --ignore-zeros -C restore\_folder}
+{\tt find tar xvfz backup_file.tgz -g /dev/null --ignore-zeros -C restore\_folder}
 
 
 While making backups is a good way to be able to recover in case of data loss, it is even better to distribute copies of said backups to other servers to improve backup redundancy. Just as data can be corrupt or lost, servers have downtime and there is always the possibility of a server malfunction. Thus, in order to improve backups reliability we synchronize our backup folder with another server just in case of a catastrophe. Along with the backups script there is another script that automatically synchronizes the backup folder form one server to another thus making backups redundant.
