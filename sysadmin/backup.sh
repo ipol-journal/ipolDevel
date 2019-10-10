@@ -4,20 +4,31 @@
 # Miguel Colom, 2016
 
 backupsFolder="/home/ipol/backups"
-folderToBackup="/home/ipol/ipolDevel"
-snapshot=$(date +"snapshot_%Y-%q")
+ipolDevelCopyPath=${backupsFolder}/ipolDevelCopy
 yearPeriod=$(date +"%Y-%q")
 
+# Backup modules databases
+modulesWithDB=("archive" "blobs" "demoinfo")
+modulesPath="/home/ipol/ipolDevel/ipol_demo/modules/"
+for module in ${modulesWithDB[@]}; do
+  sqlite3 $modulesPath"$module"/db/$module.db ".backup '${modulesPath}${module}/db/${module}_backup.db'"
+done
+echo "Databases backed up"
+
+
+mkdir -p ${ipolDevelCopyPath}
+rsync -azuP --delete /home/ipol/ipolDevel ${ipolDevelCopyPath}
+echo "ipolDevel cloned to ${ipolDevelCopyPath}"
+
+snapshot=$(date +"snapshot_%Y-%q")
 snapshotName=${backupsFolder}/${yearPeriod}/${snapshot}
 
 backupFilename=$(date +"backup_%m-%d-%Y.tgz")
 fullFilename=${backupsFolder}/${yearPeriod}/${backupFilename}
 
-demo_binaries=${folderToBackup}"/ipol_demo/modules/demorunner/binaries"
-shared_folder=${folderToBackup}"/shared_folder"
-
 mkdir -p $backupsFolder/$yearPeriod
-tar -g $snapshotName -czf $fullFilename --exclude=\"$shared_folder\" --exclude=\"$demo_binaries\" $folderToBackup
+tar -g $snapshotName -czf $fullFilename $ipolDevelCopyPath
+echo "ipolDevel clone compressed into: $fullFilename"
 
 ##############
 # To restore a backup pipe a cat with all .tgz files into tar extract 
