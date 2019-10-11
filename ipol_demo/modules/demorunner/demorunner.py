@@ -26,9 +26,9 @@ from subprocess import PIPE, Popen
 from threading import Lock
 
 import cherrypy
+import virtualenv
 import Tools.build as build
 import Tools.run_demo_base as run_demo_base
-import virtualenv
 from Tools.run_demo_base import IPOLTimeoutError
 
 
@@ -144,6 +144,7 @@ class DemoRunner():
         Initialize DemoRunner
         """
         self.lock_run = Lock()
+        self.compilation_lock_filename = cherrypy.config['compilation_lock_filename']
 
         base_dir = os.path.dirname(os.path.realpath(__file__))
         self.share_running_dir = cherrypy.config['share.running.dir']
@@ -314,10 +315,11 @@ class DemoRunner():
         log_file = os.path.join(compilation_path, 'build.log')
         try:
             self.mkdir_p(compilation_path)
-            while self.construct_is_locked(compilation_path):
+            lock_path = os.path.join(compilation_path, self.compilation_lock_filename)
+            while self.construct_is_locked(lock_path):
                 time.sleep(1)
-            self.acquire_construct_lock(compilation_path)
-            
+            self.acquire_construct_lock(lock_path)
+
             # Ensure needed compilation folders do exist
             self.mkdir_p(dl_dir)
             extract_needed = self.any_extraction_needed(ddl_builds, dl_dir)
@@ -391,7 +393,7 @@ class DemoRunner():
                             # Do move
                             shutil.move(path_from, path_to)
                         except (IOError, OSError):
-                            os.remove(os.path.join(compilation_path, 'ipol_construct.lock'))
+                            os.remove(os.path.join(compilation_path, self.compilation_lock_filename))
                             self.write_log("construct", "Can't move file {} --> {}".format(path_from, path_to))
                             # If can't move, write in the log file, so
                             # the user can see it
@@ -401,24 +403,29 @@ class DemoRunner():
                             f.close()
                             raise
         finally:
-            os.remove(os.path.join(compilation_path, 'ipol_construct.lock'))
+            os.remove(os.path.join(compilation_path, self.compilation_lock_filename))
 
     @staticmethod
-    def construct_is_locked(compilation_path):
-        lock_filepath = os.path.join(compilation_path, 'ipol_construct.lock')
-        if os.path.isfile(lock_filepath):
+    def construct_is_locked(lock_path):
+        """
+        Check if compilation path is locked
+        """
+        if os.path.isfile(lock_path):
             current_time = time.time()
-            creation_time = os.path.getctime(lock_filepath)
-            if current_time - creation_time >= 3600:
-                os.remove(lock_filepath)
+            creation_time = os.path.getctime(lock_path)
+            # In case of error it might leave dangling lockfiles, remove it if it's old.
+            if current_time - creation_time >= 20*60:
+                os.remove(lock_path)
                 return False
             return True
         return False
 
     @staticmethod
-    def acquire_construct_lock(compilation_path):
-        lock_file = open(os.path.join(compilation_path,'ipol_construct.lock'),'w+')
-        lock_file.close()
+    def acquire_construct_lock(lock_path):
+        """
+        Create compilation path lock in order to protect against simultaneous compilations
+        """
+        open(lock_path, 'w+').close()
 
 
     @staticmethod
@@ -625,7 +632,8 @@ format(str(ex), str(ddl_build))
         """
         the core algo runner
         """
-        while self.construct_is_locked(bin_path):
+        lock_path = os.path.join(bin_path, self.compilation_lock_filename)
+        while self.construct_is_locked(lock_path):
             time.sleep(1)
         rd = run_demo_base.RunDemoBase(bin_path, work_dir, self.logger, timeout)
         rd.set_algo_params(params)
