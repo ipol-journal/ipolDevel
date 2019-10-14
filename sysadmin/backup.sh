@@ -17,7 +17,7 @@ echo "Databases backed up"
 
 
 mkdir -p ${ipolDevelCopyPath}
-rsync -azuP --delete /home/ipol/ipolDevel ${ipolDevelCopyPath}
+rsync -azuP --delete --exclude 'shared_folder' /home/ipol/ipolDevel ${ipolDevelCopyPath}
 echo "ipolDevel cloned to ${ipolDevelCopyPath}"
 
 snapshot=$(date +"snapshot_%Y-%q")
