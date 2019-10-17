@@ -33,27 +33,43 @@ window.onpopstate = function() {
   }
 } 
 
-function getBlobSets() {
-  helpers.getFromAPI("/api/blobs/get_blobs?demo_id=" + demo_id, function(blobs) {
-    console.log("Blobs", blobs);
-    if (blobs.status != "OK") showWrongDemoIdError();
-    
-    helpers.addToStorage("blobs", blobs.sets);
-    input.printSets(blobs.sets);
-    if (getParameterFromURL('key')) loadExecution("/api/core/load_execution?demo_id=" + demo_id + '&key=' + getParameterFromURL('key'));
-    if (getParameterFromURL('archive')) loadExecution("/api/archive/get_experiment?experiment_id=" + getParameterFromURL('archive'));
-  });
+async function getBlobSets() {
+  const response = await fetch(`/api/blobs/get_blobs?demo_id=${demo_id}`)
+    .then(handleErrors)
+    .catch(error => {
+      alert(error, 'Network error. Cannot reach Blobs service.');
+      window.location = '/demo';
+    });
+  const blobs = await response.json();
+  console.log('Blobs', blobs);
+  if (blobs.status != 'OK') showWrongDemoIdError();
+
+  helpers.addToStorage('blobs', blobs.sets);
+  input.printSets(blobs.sets);
+  if (getParameterFromURL('key')) loadExecution(`/api/core/load_execution?demo_id=${demo_id}&key=${getParameterFromURL('key')}`);
+  if (getParameterFromURL('archive')) loadExecution(`/api/archive/get_experiment?experiment_id=${getParameterFromURL('archive')}`);
 }
 
-function getDDL() {
-  helpers.getFromAPI("/api/demoinfo/get_interface_ddl?demo_id=" + demo_id, function(payload) {
-    if (payload.status != "OK") showWrongDemoIdError();
-    ddl = payload.last_demodescription.ddl;
-    loadDemoPage();
-    if (ddl.general.custom_js) loadDemoExtrasJS();
-    if (getParameterFromURL('key')) loadExecution("/api/core/load_execution?demo_id=" + demo_id + '&key=' + getParameterFromURL('key'));
-    if (getParameterFromURL('archive')) loadExecution("/api/archive/get_experiment?experiment_id=" + getParameterFromURL('archive'));
-  });
+async function getDDL() {
+  const response = await fetch(`/api/demoinfo/get_interface_ddl?demo_id=${demo_id}`)
+    .then(handleErrors)
+    .catch(error => {
+      alert(error, 'Network error. Cannot reach Demoinfo service.');
+      window.location = '/demo';
+    });
+  const jsonResponse = await response.json();
+  if (jsonResponse.status != 'OK') showWrongDemoIdError();
+
+  ddl = jsonResponse.last_demodescription.ddl;
+  loadDemoPage();
+  if (ddl.general.custom_js) loadDemoExtrasJS();
+  if (getParameterFromURL('key')) loadExecution(`/api/core/load_execution?demo_id=${demo_id}&key=${getParameterFromURL('key')}`);
+  if (getParameterFromURL('archive')) loadExecution(`/api/archive/get_experiment?experiment_id=${getParameterFromURL('archive')}`);
+}
+
+function handleErrors(response) {
+  if (!response.ok) throw Error(response.statusText);
+  return response;
 }
 
 function loadDemoPage(){
@@ -99,24 +115,23 @@ function getParameterFromURL(name) {
 /* 
 This implements the mechanism that allows to reconstruct an experiment from the temporal folder or archive, depending on the url.
 */
-function loadExecution(url){
-  if (ddl != null && helpers.getFromStorage("blobs") != null) { 
-    $.getJSON(url, function(data) {
-      if (data.status === "OK") {
-        if(getParameterFromURL("archive")){ //Archive reconstruction
-          experiment = data.experiment;
-          var execution = JSON.parse(experiment.execution);
-        }else{ //KEY reconstruction
-          experiment = JSON.parse(data.experiment);
-          var execution = experiment;
-        }
+async function loadExecution(url){
+  if (ddl == null && helpers.getFromStorage("blobs") == null) return;
+  const response = await fetch(url);
+  const data = await response.json();
+  if (data.status === "OK") {
+    if(getParameterFromURL("archive")){ //Archive reconstruction
+      experiment = data.experiment;
+      var execution = JSON.parse(experiment.execution);
+    }else{ //KEY reconstruction
+      experiment = JSON.parse(data.experiment);
+      var execution = experiment;
+    }
 
-        renderExperiment(execution.request, execution.response);
-      } else {
-        alert(data.error);
-        window.location.href = "demo.html?id=" + demo_id;
-      }
-    });
+    renderExperiment(execution.request, execution.response);
+  } else {
+    alert(data.error);
+    window.location.href = "demo.html?id=" + demo_id;
   }
 }
 

@@ -4,10 +4,6 @@ var clientApp = clientApp || {};
 var helpers = helpers || {};
 clientApp.helpers = helpers;
 
-clientApp.helpers.getFromAPI = function(url, funct){
-    $.getJSON(url).done(funct);
-};
-
 clientApp.helpers.getJSON = function(json){
     return jQuery.parseJSON(json);
 };
