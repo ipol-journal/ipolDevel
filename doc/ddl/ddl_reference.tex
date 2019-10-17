@@ -150,7 +150,7 @@ The \emph{range} type is used as an horizontal slider constrained by a minimum a
                       \\ \hline
  visible    & Javascript expression evaluated as a boolean. & no \\ \hline
  values & Sets min, max, step and default values using a key/value 
-scheme \{ 'min':val, 'max':val, 'step':val, 'default':val \}. 
+scheme \{ "min":val, "max":val, "step":val, "default":val \}. 
 Ex: to select a value included in (-1, -0.5, 0, 0.5, 1) write \texttt{"values": \{"min": -5, "max": 5, "step": 0.5, "default": 0\}}  & yes
                       \\ \hline
 \caption{Fields for the properties of the \emph{range} type.}
@@ -438,7 +438,7 @@ The results specifies what to display as a result of an experiment. It is an arr
 %------ gallery  ------
 \subsection{The \emph{gallery} type}
 
-The results \emph{gallery} type displays images. These ones can be displayed in different rows and columns. The example of this section shows the Demo Description Lines required for the visualization showed in the figure~\ref{fig:image_gallery_example}. Notice that each row implies an array for each image. In the case that you only want to display one image, the DDL only required an expresion like:  \texttt{``label'':\{ ``img'': ``name\_of\_file.extension''\}}
+The results \emph{gallery} type displays images. These ones can be displayed in different rows and columns. The example of this section shows the Demo Description Lines required for the visualization showed in the figure~\ref{fig:image_gallery_example}. Notice that each row implies an array for each image. In the case that you only want to display one image, the DDL only required an expresion like:  \texttt{"label":\{ "img": "name\_of\_file.extension"\}}
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
 \hline
