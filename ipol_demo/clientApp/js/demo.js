@@ -14,9 +14,7 @@ $(document).ready(function() {
     sessionStorage.clear();
     
     $('#archiveTab').attr('href', 'archive.html?id=' + demo_id);
-    
-    getBlobSets();
-    getDDL();
+    fetchData();
   } else
     showWrongDemoIdError();
 })
@@ -33,38 +31,44 @@ window.onpopstate = function() {
   }
 } 
 
-async function getBlobSets() {
-  const response = await fetch(`/api/blobs/get_blobs?demo_id=${demo_id}`)
-    .then(handleErrors)
-    .catch(error => {
-      alert(error, 'Network error. Cannot reach Blobs service.');
-      window.location = '/demo';
-    });
-  const blobs = await response.json();
-  console.log('Blobs', blobs);
-  if (blobs.status != 'OK') showWrongDemoIdError();
-
-  helpers.addToStorage('blobs', blobs.sets);
-  input.printSets(blobs.sets);
+async function fetchData() {
+  await getDDL();
+  await getBlobSets();
   if (getParameterFromURL('key')) loadExecution(`/api/core/load_execution?demo_id=${demo_id}&key=${getParameterFromURL('key')}`);
   if (getParameterFromURL('archive')) loadExecution(`/api/archive/get_experiment?experiment_id=${getParameterFromURL('archive')}`);
 }
 
-async function getDDL() {
-  const response = await fetch(`/api/demoinfo/get_interface_ddl?demo_id=${demo_id}`)
+function getBlobSets() {
+  return fetch(`/api/blobs/get_blobs?demo_id=${demo_id}`)
     .then(handleErrors)
+    .then(response => response.json())
+    .then(blobs => {
+      console.log('Blobs', blobs);
+      if (blobs.status != 'OK') showWrongDemoIdError();
+      helpers.addToStorage('blobs', blobs.sets);
+      input.printSets(blobs.sets);
+    })
     .catch(error => {
-      alert(error, 'Network error. Cannot reach Demoinfo service.');
+      alert(error, 'Network error. Cannot reach Blobs service.');
       window.location = '/demo';
     });
-  const jsonResponse = await response.json();
-  if (jsonResponse.status != 'OK') showWrongDemoIdError();
+}
 
-  ddl = jsonResponse.last_demodescription.ddl;
-  loadDemoPage();
-  if (ddl.general.custom_js) loadDemoExtrasJS();
-  if (getParameterFromURL('key')) loadExecution(`/api/core/load_execution?demo_id=${demo_id}&key=${getParameterFromURL('key')}`);
-  if (getParameterFromURL('archive')) loadExecution(`/api/archive/get_experiment?experiment_id=${getParameterFromURL('archive')}`);
+function getDDL() {
+  return fetch(`/api/demoinfo/get_interface_ddl?demo_id=${demo_id}`)
+  .then(handleErrors)
+  .then(response => response.json())
+  .then(responseJSON => {
+    if (responseJSON.status != 'OK') showWrongDemoIdError();
+    ddl = responseJSON.last_demodescription.ddl;
+    loadDemoPage();
+    if (ddl.general.custom_js) loadDemoExtrasJS();
+
+  })
+  .catch(error => {
+    alert(error, 'Network error. Cannot reach Demoinfo service.');
+    window.location = '/demo';
+  });
 }
 
 function handleErrors(response) {
