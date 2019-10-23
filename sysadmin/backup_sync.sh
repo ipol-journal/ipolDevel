@@ -3,7 +3,7 @@
 # This script is ment to run in a cronjob. 
 # It will synchronize ipolcore backups to dr1 server
 
-backupsLocation="~/backups/"
-dst="~/backups"
+backupsLocation=$HOME"/backups/"
+dst=$HOME"/backups"
 
 rsync -azP --delete ${backupsLocation} ipol@ipol_dr1:${dst}
