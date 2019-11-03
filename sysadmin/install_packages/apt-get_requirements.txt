@@ -85,13 +85,6 @@ libdevil-dev
 # The following packages are needed in our private projects on satellite imaging
 libgeos-dev
 
-# Virtualbox. Not really needed by IPOL, but useful to make the most of the machines by sharing them with other lab computations
-virtualbox
-virtualbox-dkms
-virtualbox-guest-dkms
-linux-headers-amd64
-linux-image-amd64
-
 # Machine learning workshops
 caffe-cpu
 caffe-tools-cpu
