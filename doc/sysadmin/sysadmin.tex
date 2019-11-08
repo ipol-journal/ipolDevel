@@ -604,6 +604,7 @@ While making backups is a good way to be able to recover in case of data loss, i
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\begin{comment}
 \section{Virtual Machines}
 \label{sec:virtual_machines}
 In order to allow members of the lab use the IPOL infrastructure for their computational research need, we create virtual machines (VM) with VirtualBox.
@@ -671,6 +672,7 @@ It can be done easily by running the virtual machine (with ssh -X ...) and in th
 When the virtualbox service is running, the update script of the virtualbox Debian package does not stop, update, and restart. Thus, when upgrading all the packages of the distribution (say, with {\tt apt dist-upgrade} or via {\tt apt-listchanges}, it simply tries to update the running service and then it fails, breaking the update of all other packages.
 
 Thus, a workaround is to put the virtualbox packages on hold. First check which packages belong to virtualbox with {\tt dpkg-query -l |grep virtualbox} and put then on hold with {\tt apt-mark}. For example: {\tt apt-mark hold virtualbox-5.1 virtualbox-guest-utils}.
+\end{comment}
 
 \section{Unattended Upgrades}
 
