@@ -594,13 +594,14 @@ We use the following line to run the backup script once per week at 3:00h:
 
 {\tt 0 3 * * 1 /home/ipol/ipolDevel/sysadmin/backup.sh}
 
+There are problems with the extraction of incremental {\tt tar} backups when extracting all backup files on the same extraction folder. When extracting backups on the same folder using {\tt tar} some files will throw file substitution errors, most probably this happens because of an undocumented bug in the {\tt tar} command. In order to minimize extraction errors, the only way we've found which results in no errors consists of extracting every backup needed in a different folder and then mergin every folder with the first backup of the semester with the help of the {\tt rsync} command. This last step should be done in order of backup creation. Merging files with rsync also has its caveats, after merging backup extracted files we end up with more files than orignally on the backup. Some removed files will still be there and won't be removed, this is not specially dangerous as we end up with more files than needed. This might happen because of a file permission problem or a bug in the {\tt rsync} command.
 
-To restore a backup, pipe a {\tt cat} command with all {\tt.tgz} files to the extract command and specify a destination path, ``restore\_forlder". For example:
+To restore an incremental backup it's important to remember to tell the extract command a destination path, ``restore\_forlder" or else it will overwrite the original path for the backed up files. For example:
 
-{\tt find tar xvfz backup\_file.tgz -g /dev/null --ignore-zeros -C restore\_folder}
+{\tt tar xvfz backup\_file.tgz -g /dev/null --ignore-zeros -C restore\_folder}
 
 
-While making backups is a good way to be able to recover in case of data loss, it is even better to distribute copies of said backups to other servers to improve backup redundancy. Just as data can be corrupt or lost, servers have downtime and there is always the possibility of a server malfunction. Thus, in order to improve backups reliability we synchronize our backup folder with another server just in case of a catastrophe. Along with the backups script there is another script that automatically synchronizes the backup folder form one server to another thus making backups redundant.
+While making backups is a good way to be able to recover in case of data loss, it is even better to distribute copies of said backups to other servers to improve backup redundancy. Just as data can be corrupt or lost, servers have downtime and there is always the possibility of a server malfunction. Thus, in order to improve backups reliability we synchronize our backup folder with another server just in case of a catastrophe. Along with the backups script there is a script called backup\_sync.sh that automatically synchronizes the backup folder form one server to another thus making backups redundant.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
