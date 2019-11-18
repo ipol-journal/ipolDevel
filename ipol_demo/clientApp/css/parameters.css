@@ -127,6 +127,7 @@ input::-moz-focus-inner, input::-moz-focus-outer {
 .label-param {
   width: 100%;
   padding: 13px 4%;
+
   background-color: rgb(233, 233, 233);
 }
 
@@ -163,7 +164,7 @@ input::-moz-focus-inner, input::-moz-focus-outer {
 .maxmin span {
   font-size: 10px;
 
-  color: rgb(121, 121, 121);
+  color: rgb(118, 117, 117);
 }
 
 .param-info-img {
@@ -200,7 +201,7 @@ input::-moz-focus-inner, input::-moz-focus-outer {
 
   text-align: right;
 
-  color: rgb(164, 164, 164);
+  color: rgb(118, 117, 117);
 }
 
 .select-param {
@@ -232,15 +233,18 @@ input::-moz-focus-inner, input::-moz-focus-outer {
   max-height: 2000px;
 }
 
-div[class^="radio-option-"] {
+div[class^='radio-option-'] {
   display: inline-block;
+
   padding: 10px 15px 10px 0;
 }
 
 .parameters-description {
   display: block;
-  border: 1px solid #bcbcbc;
-  border-radius: 3px;
-  padding: 5px 10px;
+
   margin-bottom: 5px;
+  padding: 5px 10px;
+
+  border: 1px solid #BCBCBC;
+  border-radius: 3px;
 }

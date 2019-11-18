@@ -20,17 +20,21 @@ input.printSets = function(sets) {
 
     addSetClickEvent(blobSet, i);
 
-    blobSetArray += "<img src=" + set[blobs[0]].thumbnail + " onError=setBrokenImage(this)>"; // first photo
+    blobSetTitle = set[blobs[0]].title.length > 0 ? set[blobs[0]].title : "No title";
+    blobSetArray += `<img src=${set[blobs[0]].thumbnail} alt="${blobSetTitle}" onError=${setBrokenImage(this)}>`; // first photo
     if (blobs.length == 3) { // Middle photo (3 photos)
-      blobSetArray += "<img src=" + set[blobs[1]].thumbnail + " onError=setBrokenImage(this)>";
+      blobSetTitle = set[blobs[1]].title.length > 0 ? set[blobs[1]].title : "No title";
+      blobSetArray += `<img src=${set[blobs[1]].thumbnail} alt="${blobSetTitle}" onError=${setBrokenImage(this)}>`;
     }
     if (blobs.length >= 4) { // +3 photo set. ···
       blobSetArray += "<span>···</span>";
     }
     if (blobs.length > 1) { // +1 photo. last photo.
-      blobSetArray += "<img src=" + set[blobs[blobs.length - 1]].thumbnail + " onError=setBrokenImage(this)>";
+      blobSetTitle = set[blobs[blobs.length - 1]].title.length > 0 ? set[blobs[blobs.length - 1]].title : "No title";
+      blobSetArray += `<img src=${set[blobs[blobs.length - 1]].thumbnail} alt="${blobSetTitle}" onError=${setBrokenImage(this)}>`;
     }
     blobSet.html(blobSetArray);
+    
     $(".blobSet_" + i).append($(".blobSet-body-" + i));
     if (blobs.length == 1) {
       $(".blobSet_" + i).append("<span class=blobTitle>" + set[blobs].title + "</span>");
