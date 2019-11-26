@@ -1,9 +1,10 @@
 "use strict"
 
-var demo_id = getParameterFromURL('id');
+let demo_id = getParameterFromURL('id');
 // global, the requested page, null if undefined
-var page = +getParameterFromURL('page');
-var ddl;
+let page = +getParameterFromURL('page');
+if (page == null) page = -1;
+let ddl;
 /**
  * document.onload, global populate page
  */
@@ -12,54 +13,43 @@ $(document).ready(function() {
   $("#footer").load("footer.html");
 
   // Read DDL and populate page
-  var url = "/api/demoinfo/get_interface_ddl?demo_id=" + demo_id + "&sections=archive,general";
-  $.getJSON(url, function(data) {
+  fetchDDLInfo();
+  fetchArchiveInfo();
+});
+
+async function fetchDDLInfo() {
+  try {
+    const demoinfoResponse = await fetch("/api/demoinfo/get_interface_ddl?demo_id=" + demo_id + "&sections=archive,general");
+    const data = await demoinfoResponse.json();
     if (data.status != "OK") returnToDemoList("Wrong demo id: " + demo_id);
 
     ddl = data.last_demodescription.ddl;
     $("#pageTitle").html(ddl.general.demo_title);
-
-    $(".citation").html('<span>Please cite <a id="citation-link">the reference article</a> if you publish results obtained with this online demo.</span>');
     $("#citation-link").attr('href', ddl.general.xlink_article);
     $("#articleTab").attr('href', ddl.general.xlink_article);
     $("#demoTab")[0].href = 'demo.html?id=' + demo_id;
-
-    if ( page == null ) page = -1;
-    var url = '/api/archive/get_page?page=' + page + '&demo_id=' + demo_id;
-    $.getJSON(url, function(data) {
-      // default page should be last one
-      if (page < 0) page = data.meta.number_of_pages;
-      var html = '';
-      html += '\n<header>';
-      html += '\n<h3>' + data.meta.number_of_experiments + ' public experiments since ' + data.meta.first_date_of_an_experiment.substr(0, 10) + '</h3>';
-      html += '\n<p class="p">This archive is not moderated. In case you uploaded images that you don’t want that appear in the archive, please contact the editor in charge. In case of copyright infringement or similar problems, please <a href="https://tools.ipol.im/wiki/ref/demo_input/#archive-cleanup">contact us</a> to request the removal of some images. Some archived content may be deleted by the editorial board for size matters, inadequate content, user requests, or other reasons.</p>';
-      html += '\n</header>';
-      html += paging(data.meta);
-      var max = data.experiments.length;
-      for (var i=0; i < max; i++) 
-        html += record(data.experiments[i]);
-
-      html += paging(data.meta);
-      $("#results").html(html);
-
-      var reconstruct_buttons = $('.reconstruct-btn');
-      for (let i = 0; i < reconstruct_buttons.length; i++) 
-        $(reconstruct_buttons[i]).addClickEvent();
-
-    })
-    .fail(function() {
-      returnToDemoList("Failed to obtain the experiment page " + page + " for the demo " + demo_id);
-    });
-  })
-  .fail(function() {
+  } catch {
     returnToDemoList("Failed to obtain the ddl: " + demo_id);
-  });
-});
+  }
+}
 
-$.fn.addClickEvent = function() {
-  $(this).click(function(){
-      window.location = "/demo/clientApp/demo.html?id=" + demo_id + "&archive=" + $(this)[0].getAttribute('data-experiment-id');
-  });
+async function fetchArchiveInfo() {
+  try {
+    const archiveResponse = await fetch('/api/archive/get_page?page=' + page + '&demo_id=' + demo_id);
+    const archiveData = await archiveResponse.json();
+    // default page should be last one
+    if (page < 0) page = archiveData.meta.number_of_pages;
+    $('header > p').before(`<h3>${archiveData.meta.number_of_experiments} public experiments since ${archiveData.meta.first_date_of_an_experiment.substr(0, 10)}</h3>`);
+    let html = paging(archiveData.meta);
+    for (const experiment in archiveData.experiments) {
+      html += record(archiveData.experiments[experiment]);
+    }
+    html += paging(archiveData.meta);
+    $("#results").append(html);
+  } catch (e) {
+    console.log(e);
+    returnToDemoList("Failed to obtain the experiment page " + page + " for the demo " + demo_id);
+  }
 }
 
 function returnToDemoList(errorMsg) {
@@ -71,39 +61,26 @@ function returnToDemoList(errorMsg) {
  * Page slider
  */
 function paging(data) {
+  console.log(data);
   if (page < 1 || page > data.number_of_pages) page = data.number_of_pages;
-  var diff = 5;
-  var from = page - diff; 
-  from = (from < 1) ? 1 : from;
-  var to = page + diff; 
+  let diff = page - 5;
+  let from = (diff < 1) ? 1 : diff;
+  let to = page + 5;
   to = (to > data.number_of_pages) ? data.number_of_pages : to;
 
-  var html = '';
-  html += '\n<nav class="paging">';
-  if (from > 1) 
-    html += '\n<a href="?id=' + demo_id + '&page=' + (from-1) + '">◀◀</a>';
+  let html = '';
+  html += '<nav class="paging">';
+  if (page != 1) html += `<a href="?id=${demo_id}&page=1">◄◄ First</a>`;
+  // if (page != 1) html += `<a href="?id=${demo_id}&page=1">◄ Previous</a>`;
   
-  for (var i=from; i<=to; i++) {
-    if (i == page) {
-      html += '\n<form class="page">';
-      html += '\n  <input name="id" type="hidden" value="' + demo_id + '"/>';
-      html += '\n  <select name="page" onchange="this.form.submit()">';
-      for (var j=1; j <= data.number_of_pages; j++) {
-        html += '\n    <option';
-        if (j == page) html += ' selected="selected"';
-        html += '>' + j + '</option>';
-      }
-      html += '\n  </select>';
-      html += '\n</form>';
-    }
-    else 
-      html += '\n<a href="?id=' + demo_id + '&page=' + i + '">'+i+'</a>';
+  for (let i = from; i<=to; i++) {
+      html += `<a href="?id=${demo_id}&page=${i}">${i}</a>`;
   }
 
-  if (to < data.number_of_pages) 
-    html += '\n<a href="?id=' + demo_id + '&page=' + (to+1) + '">▶▶</a>';
+  // if (page != data.number_of_pages) html += `<a href="?id=${demo_id}&page=${(page + 1)}">Next ▶</a>`;
+  if (page != data.number_of_pages) html += `<a href="?id=${demo_id}&page=${(data.number_of_pages)}">Last ▶▶</a>`;
   
-  html += '\n</nav>';
+  html += '</nav>';
   return html;
 }
 
@@ -111,54 +88,50 @@ function paging(data) {
  * Display a record, an experiment with meta and images
  */
 function record(data) {
-  var html = '';
-  html += '\n<hr class="separator"/>';
-  html += '\n<div class="record">';
-  html += '\n<header>';
-  html += '\n<div class="legend" id=' + data.id + '>Experiment <b class="id">#'+data.id+'</b>.<br/>'+data.date;
+  let html = '<hr class="separator"/>';
+  html += '<div class="record">';
+  html += '<header>';
+  html += `<div class="legend" id=${data.id}>Experiment <p id="experiment-id">#${data.id}</p>.<br/>${data.date}`;
 
   var runtime = +data.parameters['run time'];
   if (runtime) html += ' (done in '+runtime.toFixed(3)+' s)';
   
-  html += '.</div>';
-  html += '\n</header>';
-  html += '\n<div class="middle">';
+  html += '</div>';
+  html += '</header>';
 
   if (data.parameters) {
     var pars = "";
-    for (var key in data.parameters) {
-      if (key == 'run time') continue;
-      pars += '\n<tr>';
-      pars += '<th>' + key + '</th>'
-      pars += '<td>' + data.parameters[key] + '</td>'
+    if (pars) console.log("JAJA"); 
+    for (var paramName in data.parameters) {
+      if (paramName == 'run time') continue;
+      pars += '<tr>';
+      pars += '<th>' + paramName + '</th>'
+      pars += '<td>' + data.parameters[paramName] + '</td>'
       pars += '</tr>';
     }
-    if (pars) { // maybe no parameters
-      html += '\n<div>'; // the flex container
-      html += '\n<div class="pars">';
-      html += '\n<table class="pars">';
-      html += '\n<caption>Parameters</caption>';
+    if (pars) {
+      html += '<div class="pars">';
+      html += '<table class="pars">';
+      html += '<caption>Parameters</caption>';
       html += pars;
-      html += '\n</table>';
-      html += '\n</div>';
-      html += '\n</div>';
+      html += '</table>';
+      html += '</div>'; // params
     }
   }
 
-  html += '\n<div class="thumbs">';
+  html += '<div class="thumbs">';
   var files_count = data.files.length;
   for (var i = 0; i < files_count; i++) {
     let isHiddenFile = ddl.archive.hidden_files ? Object.values(ddl.archive.hidden_files).includes(data.files[i].name) : false;
     if (!data.files[i].url_thumb || isHiddenFile) continue;
-    html += '\n<a href="' + data.files[i].url + '" target="_blank" class="thumb">';
-    html += '\n<img class="thumb" src="' + data.files[i].url_thumb + '"/>';
-    html += '\n' + data.files[i].name;
-    html += '\n</a>';
+    html += '<a href="' + data.files[i].url + '" target="_blank" class="thumb">';
+    html += '<img class="thumb" src="' + data.files[i].url_thumb + '"/>';
+    html += '' + data.files[i].name;
+    html += '</a>';
   }
-  html += '\n</div>'; // thumbs
-  html += '\n</div>'; // middle
+  html += '</div>'; // thumbs
 
-  // other files, below thumbnails
+  // files
   var files = "";
   for (var i = 0; i < files_count; i++) {
     let isHiddenFile = ddl.archive.hidden_files ? Object.values(ddl.archive.hidden_files).includes(data.files[i].name) : false;
@@ -171,15 +144,17 @@ function record(data) {
   }
 
   if (files) { 
-    html += "\n<div class=files-footer ><b>Files</b>: "; 
+    html += "<div class=files ><p id=files-text>Files</p>: "; 
     html += files; 
     html += '.</div>';
   }
 
-  if (ddl.archive.enable_reconstruct && data.execution)
-    html += '\n<button class="reconstruct-btn btn" data-experiment-id=' + data.id + '>Reconstruct</button>';
+  if (ddl.archive.enable_reconstruct && data.execution) {
+    let link = `/demo/clientApp/demo.html?id=${demo_id}&archive=${data.id}`
+    html += `<button class="reconstruct-btn btn" onclick="window.location.href ='${link}'">Reconstruct</button>`;
+  }
 
-  html += '\n</div>\n';
+  html += '</div>';
   return html;
 }
 

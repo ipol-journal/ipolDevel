@@ -1,8 +1,3 @@
-/* highlight color */
-.paging a, .record footer b, .record b.id {
-  color: #5952A6;
-}
-
 /* soft color */
 a.thumb, table.pars, table.pars caption {
   color: #484848;
@@ -19,10 +14,16 @@ table.pars tr:hover, table.pars caption {
   background-color: #D1CAE8;
 }
 
-p.p {
-  max-width: 80ex;
-
+.archive-description {
   text-align: justify;
+}
+
+#experiment-id {
+  font-weight: bold;
+
+  display: inline;
+
+  color: #5952A6;
 }
 
 #results, #results p {
@@ -34,31 +35,32 @@ p.p {
 }
 
 .record {
+  display: grid;
+
   margin-top: 2rem;
   margin-bottom: 2rem;
+
+  grid-auto-rows: 30px auto auto 1fr;
+  grid-template-areas: 'info images'
+  'params images'
+  'files files'
+  'reconstruct reconstruct';
+  grid-template-columns: 1fr 4fr;
 }
 
 .record header {
-  clear: both;
-
-  margin-bottom: 10px;
+  grid-area: info;
 }
 
 .record footer {
   margin-top: 5px;
 }
 
-.record .legend {
-  display: inline-block;
-}
-
-.record .middle {
-  display: flex;
-}
-
 .thumbs {
   display: flex;
   flex-wrap: wrap;
+
+  grid-area: images;
 }
 
 div.pars, a.thumb {
@@ -92,8 +94,10 @@ img.thumb {
 }
 
 div.pars {
-  margin-right: 1rem;
+  max-width: 115px;
   padding: 3px 3px 0 3px;
+
+  grid-area: params;
 }
 
 table.pars th {
@@ -119,8 +123,12 @@ table.pars tr:hover {
 }
 
 .paging {
-  padding: 2px;
+  display: flex;
+  justify-content: center;
 
+  padding: 7px;
+
+  border-radius: 3px;
   background-color: #EEE;
 }
 
@@ -128,10 +136,14 @@ table.pars tr:hover {
   font-size: 12px;
   font-weight: bold;
 
-  padding: 1px 3px;
+  margin: 0 3px;
+  padding: 3px;
 
+  color: #5952A6;
   border: 1px solid transparent;
+  border-radius: 3px;
   background-color: #FFF;
+  box-shadow: 1px 1px 2px #C8C6DD;
 }
 
 .paging a:hover {
@@ -148,7 +160,10 @@ form.page {
 }
 
 .reconstruct-btn {
+  max-width: fit-content;
   margin: 0;
+
+  grid-area: reconstruct;
 }
 
 
@@ -195,11 +210,20 @@ a.video:before, a.mpg:before, a.mpeg:before, a.avi:before {
 }
 
 
-.files-footer {
+.files {
   margin: 10px 0;
+
+  grid-area: files;
 }
 
-
-.files-footer a {
+.files a {
   margin: 0 5px;
+}
+
+#files-text {
+  font-weight: bold;
+
+  display: inline;
+
+  color: black;
 }
