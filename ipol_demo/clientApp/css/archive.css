@@ -15,6 +15,8 @@ table.pars tr:hover, table.pars caption {
 }
 
 .archive-description {
+  max-width: 550px;
+
   text-align: justify;
 }
 
@@ -45,22 +47,47 @@ table.pars tr:hover, table.pars caption {
   'params images'
   'files files'
   'reconstruct reconstruct';
-  grid-template-columns: 1fr 4fr;
+  grid-template-columns: 200px auto;
 }
 
 .record header {
   grid-area: info;
 }
 
-.record footer {
-  margin-top: 5px;
-}
-
-.thumbs {
-  display: flex;
-  flex-wrap: wrap;
+.images-container {
+  display: grid;
+  justify-content: start;
 
   grid-area: images;
+  grid-gap: 5px;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+}
+
+.images-container > a {
+  display: grid;
+  justify-content: center;
+
+  margin: 5px;
+  padding: 5px;
+
+  border: 1px solid #D1CAE8;
+  border-radius: 3px;
+  background-color: #EEE;
+
+  grid-auto-flow: row;
+}
+
+.images-container > a:hover {
+  border: 1px solid #7D75DA;
+  background-color: #D1CAE8;
+}
+
+.image-name {
+  max-width: 128px;
+
+  text-align: center;
+
+  justify-self: center;
 }
 
 div.pars, a.thumb {
@@ -95,7 +122,8 @@ img.thumb {
 
 div.pars {
   max-width: 115px;
-  padding: 3px 3px 0 3px;
+  height: fit-content;
+  padding: 3px;
 
   grid-area: params;
 }
@@ -139,6 +167,8 @@ table.pars tr:hover {
   margin: 0 3px;
   padding: 3px;
 
+  transition: .2s ease-out;
+
   color: #5952A6;
   border: 1px solid transparent;
   border-radius: 3px;
@@ -147,16 +177,49 @@ table.pars tr:hover {
 }
 
 .paging a:hover {
-  color: #000;
+  transform: translateY(2px);
+
+  border: 1px solid;
 }
 
-.paging .this {
-  color: #000;
-  border-color: #000;
+.paging .active-page {
+  border: 1px solid;
 }
 
-form.page {
-  display: inline;
+.paging > input[type='submit'] {
+  transition: .2s ease-out;
+
+  background-color: #FFF;
+}
+
+.paging > input[type='submit']:hover {
+  transform: translateY(2px);
+
+  border: 1px solid;
+}
+
+form.paging {
+  display: inherit;
+
+  padding: 0 10px;
+}
+
+form.paging p {
+  font-weight: bold;
+
+  margin: 5px auto;
+
+  color: #5952A6;
+}
+
+form.paging input {
+  font-weight: bold;
+
+  height: 22px;
+  margin: auto 5px;
+
+  color: #5952A6;
+  border-radius: 3px;
 }
 
 .reconstruct-btn {

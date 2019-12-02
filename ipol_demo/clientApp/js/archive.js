@@ -71,16 +71,22 @@ function paging(data) {
   let html = '';
   html += '<nav class="paging">';
   if (page != 1) html += `<a href="?id=${demo_id}&page=1">◄◄ First</a>`;
-  // if (page != 1) html += `<a href="?id=${demo_id}&page=1">◄ Previous</a>`;
+  if (page != 1) html += `<a href="?id=${demo_id}&page=1">◄ Previous</a>`;
   
   for (let i = from; i<=to; i++) {
-      html += `<a href="?id=${demo_id}&page=${i}">${i}</a>`;
+    if (i == page) html += `<a href="?id=${demo_id}&page=${i}" class="active-page">${i}</a>`;
+    else html += `<a href="?id=${demo_id}&page=${i}">${i}</a>`;
   }
 
-  // if (page != data.number_of_pages) html += `<a href="?id=${demo_id}&page=${(page + 1)}">Next ▶</a>`;
+  if (page != data.number_of_pages) html += `<a href="?id=${demo_id}&page=${(page + 1)}">Next ▶</a>`;
   if (page != data.number_of_pages) html += `<a href="?id=${demo_id}&page=${(data.number_of_pages)}">Last ▶▶</a>`;
   
+  html += `<form class="paging">`;
+  html += `<p>Go to page(${data.number_of_pages}):</p>`;
+  html += `<input type="number" min="1" max="${data.number_of_pages}">`;
+  html += `<input type="submit" value="Go"></form>`;
   html += '</nav>';
+
   return html;
 }
 
@@ -101,7 +107,6 @@ function record(data) {
 
   if (data.parameters) {
     var pars = "";
-    if (pars) console.log("JAJA"); 
     for (var paramName in data.parameters) {
       if (paramName == 'run time') continue;
       pars += '<tr>';
@@ -119,17 +124,15 @@ function record(data) {
     }
   }
 
-  html += '<div class="thumbs">';
+  html += '<div class="images-container">';
   var files_count = data.files.length;
   for (var i = 0; i < files_count; i++) {
     let isHiddenFile = ddl.archive.hidden_files ? Object.values(ddl.archive.hidden_files).includes(data.files[i].name) : false;
     if (!data.files[i].url_thumb || isHiddenFile) continue;
-    html += '<a href="' + data.files[i].url + '" target="_blank" class="thumb">';
-    html += '<img class="thumb" src="' + data.files[i].url_thumb + '"/>';
-    html += '' + data.files[i].name;
-    html += '</a>';
+    html += `<a href="${data.files[i].url}"><img src="${data.files[i].url_thumb}" class="thumbnail">`;
+    html += `<p class="image-name">${data.files[i].name}</p></a>`;
   }
-  html += '</div>'; // thumbs
+  html += '</div>'; // images
 
   // files
   var files = "";
