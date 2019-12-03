@@ -70,7 +70,7 @@ function paging(data) {
   let html = '';
   html += '<nav class="paging">';
   if (page != 1) html += `<a href="?id=${demo_id}&page=1">◄◄ First</a>`;
-  if (page != 1) html += `<a href="?id=${demo_id}&page=1">◄ Previous</a>`;
+  if (page != 1) html += `<a href="?id=${demo_id}&page=${page - 1}">◄ Previous</a>`;
   
   for (let i = firstPageShown; i <= lastPageShown; i++) {
     if (i == page) html += `<a href="?id=${demo_id}&page=${i}" class="active-page">${i}</a>`;
