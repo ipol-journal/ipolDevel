@@ -5,7 +5,7 @@ a.thumb, table.pars, table.pars caption {
 
 
 /* border color */
-div.pars, a.thumb, .paging a:hover {
+div.parameters, .paging a:hover {
   border: 1px solid #D1CAE8;
 }
 
@@ -65,21 +65,27 @@ table.pars tr:hover, table.pars caption {
 
 .images-container > a {
   display: grid;
-  justify-content: center;
 
-  margin: 5px;
   padding: 5px;
+
+  transition: .3s cubic-bezier(.63, .1, .17, .77);
 
   border: 1px solid #D1CAE8;
   border-radius: 3px;
   background-color: #EEE;
 
-  grid-auto-flow: row;
+  grid-template-columns: 1fr;
+  grid-template-rows: 4fr min-content;
+  justify-items: center;
 }
 
 .images-container > a:hover {
   border: 1px solid #7D75DA;
   background-color: #D1CAE8;
+}
+
+.thumbnail {
+  width: 100%;
 }
 
 .image-name {
@@ -90,7 +96,7 @@ table.pars tr:hover, table.pars caption {
   justify-self: center;
 }
 
-div.pars, a.thumb {
+div.parameters, a.thumb {
   margin: 0 10px 5px 0;
 
   border-style: solid;
@@ -98,34 +104,14 @@ div.pars, a.thumb {
   background-color: #EEE;
 }
 
-a.thumb {
-  flex-basis: -webkit-min-content;
-  flex-basis:    -moz-min-content;
-  flex-basis:         min-content;
-
-  padding: 3px 3px 0 3px;
-
-  text-align: center;
-}
-
-a.thumb:hover {
-  color: #000;
-  background-color: #D1CAE8;
-}
-
-img.thumb {
-  display: block;
-
-  max-width: 384px;
-  max-height: 128px;
-}
-
-div.pars {
-  max-width: 115px;
-  height: fit-content;
-  padding: 3px;
-
+.parameters-container {
   grid-area: params;
+}
+
+div.parameters {
+  max-width: 115px;
+  height: min-content;
+  padding: 3px;
 }
 
 table.pars th {
@@ -178,16 +164,16 @@ table.pars tr:hover {
 
 .paging a:hover {
   transform: translateY(2px);
-
-  border: 1px solid;
 }
 
 .paging .active-page {
-  border: 1px solid;
+  color: #FFF;
+  border: 1px solid #D1CAE8;
+  background-color: #5952A6;
 }
 
 .paging > input[type='submit'] {
-  transition: .2s ease-out;
+  transition: .2s cubic-bezier(.63, .1, .17, .77);
 
   background-color: #FFF;
 }
@@ -223,8 +209,10 @@ form.paging input {
 }
 
 .reconstruct-btn {
-  max-width: fit-content;
+  max-width: min-content;
   margin: 0;
+
+  transition: all .3s cubic-bezier(.63, .1, .17, .77);
 
   grid-area: reconstruct;
 }
@@ -238,13 +226,13 @@ a.file:before {
   padding: 1px 3px;
 
   content: '\f016';
+  transition: all .3s cubic-bezier(.63, .1, .17, .77);
   vertical-align: middle;
-
-  color: #5B4BA6;
 }
 
 a.file:hover:before {
   color: #FFF;
+  border-radius: 3px;
   background-color: #5B4BA6;
 }
 

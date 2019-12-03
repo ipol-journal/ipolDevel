@@ -61,19 +61,18 @@ function returnToDemoList(errorMsg) {
  * Page slider
  */
 function paging(data) {
-  console.log(data);
   if (page < 1 || page > data.number_of_pages) page = data.number_of_pages;
-  let diff = page - 5;
-  let from = (diff < 1) ? 1 : diff;
-  let to = page + 5;
-  to = (to > data.number_of_pages) ? data.number_of_pages : to;
+  const firstPageLink = page - 5;
+  const lastPageLink = page + 5;
+  let firstPageShown = (firstPageLink < 1) ? 1 : firstPageLink;
+  let lastPageShown = (lastPageLink > data.number_of_pages) ? data.number_of_pages : lastPageLink;
 
   let html = '';
   html += '<nav class="paging">';
   if (page != 1) html += `<a href="?id=${demo_id}&page=1">◄◄ First</a>`;
   if (page != 1) html += `<a href="?id=${demo_id}&page=1">◄ Previous</a>`;
   
-  for (let i = from; i<=to; i++) {
+  for (let i = firstPageShown; i <= lastPageShown; i++) {
     if (i == page) html += `<a href="?id=${demo_id}&page=${i}" class="active-page">${i}</a>`;
     else html += `<a href="?id=${demo_id}&page=${i}">${i}</a>`;
   }
@@ -83,10 +82,10 @@ function paging(data) {
   
   html += `<form class="paging">`;
   html += `<p>Go to page(${data.number_of_pages}):</p>`;
-  html += `<input type="number" min="1" max="${data.number_of_pages}">`;
+  html += `<input type="number" name="page" min="1" max="${data.number_of_pages}">`;
+  html += `<input type="hidden" name="id" value="${demo_id}">`;
   html += `<input type="submit" value="Go"></form>`;
   html += '</nav>';
-
   return html;
 }
 
@@ -115,11 +114,13 @@ function record(data) {
       pars += '</tr>';
     }
     if (pars) {
-      html += '<div class="pars">';
+      html += '<div class="parameters-container">';
+      html += '<div class="parameters">';
       html += '<table class="pars">';
       html += '<caption>Parameters</caption>';
       html += pars;
       html += '</table>';
+      html += '</div>'; // params
       html += '</div>'; // params
     }
   }
@@ -149,7 +150,7 @@ function record(data) {
   if (files) { 
     html += "<div class=files ><p id=files-text>Files</p>: "; 
     html += files; 
-    html += '.</div>';
+    html += '</div>';
   }
 
   if (ddl.archive.enable_reconstruct && data.execution) {
