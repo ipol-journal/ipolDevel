@@ -590,14 +590,34 @@ We use the following line to run the backup script once per week at 3:00h:
 
 {\tt 0 3 * * 1 /home/ipol/ipolDevel/sysadmin/backup.sh}
 
-There are problems with the extraction of incremental {\tt tar} backups when extracting all backup files on the same extraction folder. When extracting backups on the same folder using {\tt tar} some files will throw file substitution errors, most probably this happens because of an undocumented bug in the {\tt tar} command. In order to minimize extraction errors, the only way we've found which results in no errors consists of extracting every backup needed in a different folder and then mergin every folder with the first backup of the semester with the help of the {\tt rsync} command. This last step should be done in order of backup creation. Merging files with rsync also has its caveats, after merging backup extracted files we end up with more files than orignally on the backup. Some removed files will still be there and won't be removed, this is not specially dangerous as we end up with more files than needed. This might happen because of a file permission problem or a bug in the {\tt rsync} command.
+There are problems with the extraction of incremental {\tt tar} backups when extracting all backup files on the same extraction folder. When extracting backups on the same folder using {\tt tar} some files will throw file substitution errors, most probably this happens because of an undocumented bug in the {\tt tar} command. In order to minimize extraction errors, the only way we have found which results in no errors consists of extracting every backup needed in a different folder and then mixing every folder with the first backup of the semester with the help of the {\tt rsync} command. This last step should be done in order of backup creation. Mixing files with rsync also has its caveats, after mixing the extracted files we occasionally end up with more files than orignally on the backup. Some removed files will still be there and will not be removed, this is not especially dangerous as we end up with more files than needed. This might happen because of a file permission problem or a bug in the {\tt rsync} command.
 
-To restore an incremental backup it's important to remember to tell the extract command a destination path, ``restore\_forlder" or else it will overwrite the original path for the backed up files. For example:
+It is important to notice that backups are located at the home directory of the ipol user under the backups folder and are separated by yearly semesters folders, for example: 
+
+{\tt /home/ipol/backups/<YEAR>-<SEMESTER>/backup\_<DATE>.tar.gz}
+
+For every semester there will be several backup files, one for every week of the semester because of the current configuration of the cronjob at the time of writing. There will also be a snapshot file, this file is used by the tar command to keep a log of the files that have changed from one backup to another so it can backup files that change between one backup and the next. This snapshot is only used during the backup process, it will not be of any use during extraction but in case of corruption or if it is removed the tar command will not find it and will therefore create a level 0 backup. 
+
+When restoring an incremental backup the destination path for the backups needs to be specified as a parameter or else it will overwrite the original path for the backed up files. For example:
 
 {\tt tar xvfz backup\_file.tgz -g /dev/null --ignore-zeros -C restore\_folder}
 
+The procedure for extraction we apply is the following:
 
-While making backups is a good way to be able to recover in case of data loss, it is even better to distribute copies of said backups to other servers to improve backup redundancy. Just as data can be corrupt or lost, servers have downtime and there is always the possibility of a server malfunction. Thus, in order to improve backups reliability we synchronize our backup folder with another server just in case of a catastrophe. Along with the backups script there is a script called backup\_sync.sh that automatically synchronizes the backup folder form one server to another thus making backups redundant.
+\begin{enumerate}
+  \item Locate the semester folder needed to restore For example: 2020-2.
+  \item For a given date, extract every backup in the semester until the needed date to be restored. As previously stated, extract each backup on a separate folder. For each backup addapt the following example:
+
+  {\tt tar xvfz backup\_file\_<DATE>.tgz -g /dev/null --ignore-zeros -C restore\_folder\_<DATE>}
+  \item Once we have all the needed backups extracted, we will merge extracted folders against the first backup of the semester which is the level 0 backup containing a full backup. This has to be done in order of date, from older to newer. For example:
+  
+  {\tt rsync -av restore\_folder\_<DATE>/ restore\_folder\_<DATE\_OF\_THE\_FIRST\_BACKUP>/ 2>> errors.log}
+
+  As we can see in the example we first put the source of the rsync (data to be copied to another folder) and then the folder of the level 0 backup. Note that trailing slashes are importante when using rsync command.
+  \item When all backups are merged with the level 0 backup we will have a complete snapshot of the ipolDevel folder for a given date.
+\end{enumerate}
+
+While making backups is a good way to be able to recover in case of data loss, it is even better to distribute copies of said backups to other servers to improve backup redundancy. Just as data can be corrupt or lost, servers have downtime and there is always the possibility of a server malfunction. Thus, in order to improve backups reliability we synchronize our backup folder with another server just in case of a catastrophe. Along with the backups script there is a script called backup\_sync.sh that automatically synchronizes the backup folder form one server to another thus making backups redundant. This is accomplished using rsync over ssh credentials.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
