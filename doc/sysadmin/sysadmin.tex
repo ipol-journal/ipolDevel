@@ -832,6 +832,17 @@ The following message is shown when starting a module or a test:
 
 The reason is likely to be an incompatibility with a recently updated python version or other distribution packages. To solve it simply remove and recreate the corresponding virtual environments.
 
+\textbf{DemoExtras executing ffmpeg blocks access to file when redirecting output}
+
+When redirecting all standard output of the {\tt ffmpeg} command, the resulting file might stay blocked for a short period of time where the python script that run the {\tt ffmpeg} command might continue its execution. This might be a problem as the file continues blocked but the execution of the script continues and might need access to the file.
+
+Example of the problem:
+
+{\tt ffmpeg -i file.mp3 \&> output.txt}
+
+Everything seems to work fine when only redirecting errors to a file instead of everything:
+
+{\tt ffmpeg -i file.mp3 2> output.txt}
 
 \bibliographystyle{plain}
 \bibliography{biblio}
