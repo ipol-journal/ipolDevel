@@ -80,6 +80,10 @@ apt-listchanges
 libcairo2
 libdevil-dev
 
+# Needed by the PythonTools of the DRs
+python3-tk
+
+
 ###################################################################
 
 # The following packages are needed in our private projects on satellite imaging
