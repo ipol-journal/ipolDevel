@@ -34,6 +34,8 @@
 \usepackage{tabularx}
 \usepackage{listings}
 \usepackage{xcolor}
+\usepackage{parskip} % Avoid automatic indentation of every paragraph
+
 
 
 % Definitions and commands
@@ -582,23 +584,23 @@ In order to remove an image. The id or name provided will be available doing "do
 The backups are done by this script: {\tt ipolDevel/sysadmin/backup.sh}
 We execute the backup script as root (use {\tt sudo crontab -e}) to avoid eventual read permission problems.
 
-This script creates incremental backups and copies them to other servers, allowing to recover the data in the system in case of a fatal disk failure (say, the contents of the Archive). An incremental backup is a kind of backup that will only add new changes with respect to the last backup, resulting in smaller sized backups and faster archiving.
+This script creates incremental backups and copies them to other servers, allowing to recover the data in the system in case of a fatal disk failure (say, the database of the Archive or others). An incremental backup is a kind of backup that will only add changes which are new with respect to the last backup. This results backups of a smaller size as well as faster archiving.
 
-Every quarter of the year a level-0 backup (all the stored data, including temporary files) is performed. A level-1 backup is done every week (until the next quarter, when a new full level-0 backup will start), that will only contain the incremental changes with respect to the last week.
+Every quarter of the year all the stored data, including temporary files are backuped. This is known as a \emph{level-0} backup. Every week and until the next quarter (when a new full level-0 backup will start) it is performed  a different backup with only the incremental changes with respect to the last week. It is known as a \emph{level-1} backup
 
 We use the following line to run the backup script once per week at 3:00h:
 
 {\tt 0 3 * * 1 /home/ipol/ipolDevel/sysadmin/backup.sh}
 
-There are problems with the extraction of incremental {\tt tar} backups when extracting all backup files on the same extraction folder. When extracting backups on the same folder using {\tt tar} some files will throw file substitution errors, most probably this happens because of an undocumented bug in the {\tt tar} command. In order to minimize extraction errors, the only way we have found which results in no errors consists of extracting every backup needed in a different folder and then mixing every folder with the first backup of the semester with the help of the {\tt rsync} command. This last step should be done in order of backup creation. Mixing files with rsync also has its caveats, after mixing the extracted files we occasionally end up with more files than orignally on the backup. Some removed files will still be there and will not be removed, this is not especially dangerous as we end up with more files than needed. This might happen because of a file permission problem or a bug in the {\tt rsync} command.
+We have identified problems with the extraction of incremental {\tt tar} backups in the same folder. When using {\tt tar} some files will give file substitution errors. This most probably this happens because of an undocumented bug in the {\tt tar} command. In order to minimize extraction errors, the only way we have found which results in no errors consists in extracting every needed backup in a different folder and then mixing every folder with the first backup of the semester with the {\tt rsync} command. This last step must be done in order of backup creation. Mixing files with rsync has also its own caveats: after mixing the extracted files we occasionally end up with more files than originally in the backup. Some removed files that actually were removed at some incremental copy anyway exist in mixed backup and will not be removed. However, this is not especially dangerous as we end up with more files than needed. This might happen because of a file permission problem or a bug in the {\tt rsync} command.
 
-It is important to notice that backups are located at the home directory of the ipol user under the backups folder and are separated by yearly semesters folders, for example: 
+The backups are organized by yearly semesters folders:
 
 {\tt /home/ipol/backups/<YEAR>-<SEMESTER>/backup\_<DATE>.tar.gz}
 
-For every semester there will be several backup files, one for every week of the semester because of the current configuration of the cronjob at the time of writing. There will also be a snapshot file, this file is used by the tar command to keep a log of the files that have changed from one backup to another so it can backup files that change between one backup and the next. This snapshot is only used during the backup process, it will not be of any use during extraction but in case of corruption or if it is removed the tar command will not find it and will therefore create a level 0 backup. 
+For every semester there will be one backup file or every week according to the configuration of the cronjob. There will also be a snapshot file that is used by the tar command to keep a log of the files that have changed from one backup to another. This way it can backup files that change between one backup and the next. This snapshot is only used during the backup process, it will not be of any use during extraction but in case of corruption or if it is removed. In that case, tar would not find it and would therefore create a level-0 backup. 
 
-When restoring an incremental backup the destination path for the backups needs to be specified as a parameter or else it will overwrite the original path for the backed up files. For example:
+When restoring an incremental backup the destination path needs to be specified as a parameter or otherwise it will overwrite the original path for the backed up files. For example:
 
 {\tt tar xvfz backup\_file.tgz -g /dev/null --ignore-zeros -C restore\_folder}
 
@@ -606,10 +608,10 @@ The procedure for extraction we apply is the following:
 
 \begin{enumerate}
   \item Locate the semester folder needed to restore For example: 2020-2.
-  \item For a given date, extract every backup in the semester until the needed date to be restored. As previously stated, extract each backup on a separate folder. For each backup addapt the following example:
+  \item For a given date, extract every backup in the semester until the needed date to be restored. As previously stated, extract each backup on a separate folder. For each backup adapt the following example:
 
   {\tt tar xvfz backup\_file\_<DATE>.tgz -g /dev/null --ignore-zeros -C restore\_folder\_<DATE>}
-  \item Once we have all the needed backups extracted, we will merge extracted folders against the first backup of the semester which is the level 0 backup containing a full backup. This has to be done in order of date, from older to newer. For example:
+  \item Once we have all the needed backups extracted, we will merge extracted folders against the first backup of the semester which is the level-0 backup containing a full backup. This has to be done in order of date, from older to newer. For example:
   
   {\tt rsync -av restore\_folder\_<DATE>/ restore\_folder\_<DATE\_OF\_THE\_FIRST\_BACKUP>/ 2>> errors.log}
 
@@ -617,79 +619,9 @@ The procedure for extraction we apply is the following:
   \item When all backups are merged with the level 0 backup we will have a complete snapshot of the ipolDevel folder for a given date.
 \end{enumerate}
 
-While making backups is a good way to be able to recover in case of data loss, it is even better to distribute copies of said backups to other servers to improve backup redundancy. Just as data can be corrupt or lost, servers have downtime and there is always the possibility of a server malfunction. Thus, in order to improve backups reliability we synchronize our backup folder with another server just in case of a catastrophe. Along with the backups script there is a script called backup\_sync.sh that automatically synchronizes the backup folder form one server to another thus making backups redundant. This is accomplished using rsync over ssh credentials.
+While making backups is a good way to be able to recover in case of data loss, it is even better to copy redundant files to other servers. Just as data can be corrupt or lost, servers have downtime and there is always the possibility of a server malfunction. Thus, in order to improve backups reliability we synchronize our backup folder with another server just in case of rare catastrophic event. Along with the backups script there is a script called backup\_sync.sh that automatically synchronizes with rsync the backup folder from one server to another thus making our backups redundant.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\begin{comment}
-\section{Virtual Machines}
-\label{sec:virtual_machines}
-In order to allow members of the lab use the IPOL infrastructure for their computational research need, we create virtual machines (VM) with VirtualBox.
-
-The VirtualBox package needs to be installed from the VirtualBox's repositories. First, add the GPG key:
-
-{\tt sudo su -c 'wget -q -O- http://download.virtualbox.org/virtualbox/\
-debian/oracle\_vbox\_2016.asc | apt-key add -'}
-
-Then add the following line to {\tt /etc/apt/sources.list} (change \emph{stretch} to the codename of the current stable distribution):
-
-{\tt deb http://download.virtualbox.org/virtualbox/debian stretch contrib}
-
-The CPU priorities need to be added /etc/security/limits.conf:
-\begin{verbatim}
-*               soft     priority            19
-ipol            soft     priority            0
-\end{verbatim}
-
-
-The following packages need to be installed with: sudo apt-get install virtualbox virtualbox-dkms virtualbox-guest-dkms virtualbox-guest-utils vde2 virtualbox-guest-additions-iso xfonts-100dpi xfonts-75dpi linux-headers-amd64 linux-image-amd64
-
-Then the ``nosmap" kernel option need to be added to the kernel options: sudo nano /etc/default/grub
-
-\begin{verbatim}
-GRUB_CMDLINE_LINUX_DEFAULT="nosmap"
-GRUB_CMDLINE_LINUX="nosmap"
-\end{verbatim}
-
-Running {\tt update-grub} is needed to update the boot entries. For example:
-
-\begin{verbatim}
-Found linux image: /boot/bzImage-3.14.32-xxxx-grs-ipv6-64
-Found linux image: /boot/vmlinuz-3.16.0-4-amd64
-Found initrd image: /boot/initrd.img-3.16.0-4-amd64
-\end{verbatim}
-
-In {\tt /etc/default/grub} we should configure {\tt GRUB\_DEFAULT=2} (index begins at 0) before.
-
-Finally, reboot the machine.
-
-To start and stop the virtual machine called ``VM":
-
-{\tt VBoxManage startvm VM --type headless}
-
-{\tt vboxmanage controlvm VM poweroff soft}
-
-In case the VM is not stopped, the VirtualBox processes can be terminated: {\tt killall VBoxXPCOMIPCD VBoxSVC VBoxHeadless}
-
-To avoid that the VM is not started after an eventual machine reboot, it is convenient to call a script to start the virtual machine. The following line needs to be added to the crontab (execute {\tt crontab -e}):
-
-{\tt @reboot /home/vm/start\_vm.sh}
-
-This script contains the instructions to start again the VM:
-
-\begin{verbatim}
-#!/bin/bash
-VBoxManage startvm VM --type headless
-\end{verbatim}
-
-To allow the external users to access the virtual machine, we need to configure a port forwarding rule.
-It can be done easily by running the virtual machine (with ssh -X ...) and in the VirtualBox: Settings / Network / Port Forwarding: protocol TCP, Host Post 2222, Guest Port 22.
-
-\vspace{0.25cm}
-When the virtualbox service is running, the update script of the virtualbox Debian package does not stop, update, and restart. Thus, when upgrading all the packages of the distribution (say, with {\tt apt dist-upgrade} or via {\tt apt-listchanges}, it simply tries to update the running service and then it fails, breaking the update of all other packages.
-
-Thus, a workaround is to put the virtualbox packages on hold. First check which packages belong to virtualbox with {\tt dpkg-query -l |grep virtualbox} and put then on hold with {\tt apt-mark}. For example: {\tt apt-mark hold virtualbox-5.1 virtualbox-guest-utils}.
-\end{comment}
 
 \section{Unattended Upgrades}
 
