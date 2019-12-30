@@ -17,10 +17,10 @@ function send_email () {
 
 # Executes all the tests for integration and production
 if [ $host == "integration" ] || [ $host == "ipolcore" ];then
+    source ci_tests/venv/bin/activate
     out=$(python /home/${user}/ipolDevel/ci_tests/all.py)
     if [ $? -ne 0 ];then
         send_email "$out"
     fi
+    deactivate
 fi
-
-
