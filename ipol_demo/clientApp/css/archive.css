@@ -109,7 +109,7 @@ div.parameters, a.thumb {
 }
 
 div.parameters {
-  max-width: 115px;
+  max-width: max-content;
   height: min-content;
   padding: 3px;
 }
@@ -151,12 +151,12 @@ table.pars tr:hover {
   font-weight: bold;
 
   margin: 0 3px;
-  padding: 3px;
+  padding: 6px;
 
   transition: .2s ease-out;
 
   color: #5952A6;
-  border: 1px solid transparent;
+  border: 1px solid lightgray;
   border-radius: 3px;
   background-color: #FFF;
   box-shadow: 1px 1px 2px #C8C6DD;
@@ -164,6 +164,8 @@ table.pars tr:hover {
 
 .paging a:hover {
   transform: translateY(2px);
+
+  border: 1px solid #5952A6;
 }
 
 .paging .active-page {
@@ -192,6 +194,7 @@ form.paging {
 
 form.paging p {
   font-weight: bold;
+  line-height: normal;
 
   margin: 5px auto;
 
@@ -201,11 +204,29 @@ form.paging p {
 form.paging input {
   font-weight: bold;
 
-  height: 22px;
-  margin: auto 5px;
+  margin: 0 5px;
+
+  text-align: center;
 
   color: #5952A6;
+  border: 1px solid lightgray;
   border-radius: 3px;
+}
+
+form.paging input[type=number] {
+  min-width: 60px;
+}
+
+/* Chrome/Safari number input arrow hide */
+form.paging input::-webkit-outer-spin-button, form.paging input::-webkit-inner-spin-button {
+  margin: 0;
+
+  -webkit-appearance: none;
+}
+
+/* Firefox number input arrow hide */
+form.paging input[type=number] {
+  -moz-appearance: textfield;
 }
 
 .reconstruct-btn {

@@ -61,6 +61,7 @@ function returnToDemoList(errorMsg) {
  * Page slider
  */
 function paging(data) {
+  if (data.number_of_pages <= 1) return "";
   if (page < 1 || page > data.number_of_pages) page = data.number_of_pages;
   const firstPageLink = page - 5;
   const lastPageLink = page + 5;
@@ -69,20 +70,20 @@ function paging(data) {
 
   let html = '';
   html += '<nav class="paging">';
-  if (page != 1) html += `<a href="?id=${demo_id}&page=1">◄◄ First</a>`;
-  if (page != 1) html += `<a href="?id=${demo_id}&page=${page - 1}">◄ Previous</a>`;
+  if (page != 1) html += `<a href="?id=${demo_id}&page=1">First</a>`;
+  if (page != 1) html += `<a href="?id=${demo_id}&page=${page - 1}">Previous</a>`;
   
   for (let i = firstPageShown; i <= lastPageShown; i++) {
     if (i == page) html += `<a href="?id=${demo_id}&page=${i}" class="active-page">${i}</a>`;
     else html += `<a href="?id=${demo_id}&page=${i}">${i}</a>`;
   }
 
-  if (page != data.number_of_pages) html += `<a href="?id=${demo_id}&page=${(page + 1)}">Next ▶</a>`;
-  if (page != data.number_of_pages) html += `<a href="?id=${demo_id}&page=${(data.number_of_pages)}">Last ▶▶</a>`;
+  if (page != data.number_of_pages) html += `<a href="?id=${demo_id}&page=${(page + 1)}">Next</a>`;
+  if (page != data.number_of_pages) html += `<a href="?id=${demo_id}&page=${(data.number_of_pages)}">Last</a>`;
   
   html += `<form class="paging">`;
-  html += `<p>Go to page(${data.number_of_pages}):</p>`;
-  html += `<input type="number" name="page" min="1" max="${data.number_of_pages}">`;
+  html += `<p>Go to page:</p>`;
+  html += `<input type="number" name="page" placeholder="(1 ... ${data.number_of_pages})" min="1" max="${data.number_of_pages}">`;
   html += `<input type="hidden" name="id" value="${demo_id}">`;
   html += `<input type="submit" value="Go"></form>`;
   html += '</nav>';
