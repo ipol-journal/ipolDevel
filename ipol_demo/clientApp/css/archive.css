@@ -42,12 +42,13 @@ table.pars tr:hover, table.pars caption {
   margin-top: 2rem;
   margin-bottom: 2rem;
 
-  grid-auto-rows: 30px auto auto 1fr;
+  grid-auto-rows: 50px auto auto 1fr;
+  grid-gap: 5px;
   grid-template-areas: 'info images'
   'params images'
   'files files'
   'reconstruct reconstruct';
-  grid-template-columns: 200px auto;
+  grid-template-columns: max-content auto;
 }
 
 .record header {
@@ -109,7 +110,6 @@ div.parameters, a.thumb {
 }
 
 div.parameters {
-  max-width: max-content;
   height: min-content;
   padding: 3px;
 }
