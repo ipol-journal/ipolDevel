@@ -42,7 +42,7 @@ table.pars tr:hover, table.pars caption {
   margin-top: 2rem;
   margin-bottom: 2rem;
 
-  grid-auto-rows: 50px auto auto 1fr;
+  grid-auto-rows: max-content auto auto 1fr;
   grid-gap: 5px;
   grid-template-areas: 'info images'
   'params images'
@@ -110,6 +110,7 @@ div.parameters, a.thumb {
 }
 
 div.parameters {
+  width: max-content;
   height: min-content;
   padding: 3px;
 }
