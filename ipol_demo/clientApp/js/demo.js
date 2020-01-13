@@ -13,7 +13,6 @@ $(document).ready(function() {
     $("#footer").load("footer.html");
     sessionStorage.clear();
     
-    $('#archiveTab').attr('href', 'archive.html?id=' + demo_id);
     fetchData();
   } else
     showWrongDemoIdError();
@@ -61,6 +60,11 @@ function getDDL() {
   .then(responseJSON => {
     if (responseJSON.status != 'OK') showWrongDemoIdError();
     ddl = responseJSON.last_demodescription.ddl;
+    if (ddl.hasOwnProperty('archive')) {
+      $('#archiveTab').attr('href', 'archive.html?id=' + demo_id);
+    } else {
+      $("#archiveTab").css({'display': 'none'});
+    }
     loadDemoPage();
     if (ddl.general.custom_js) loadDemoExtrasJS();
 
