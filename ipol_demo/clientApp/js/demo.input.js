@@ -21,17 +21,17 @@ input.printSets = function(sets) {
     addSetClickEvent(blobSet, i);
 
     blobSetTitle = set[blobs[0]].title.length > 0 ? set[blobs[0]].title : "No title";
-    blobSetArray += `<img src=${set[blobs[0]].thumbnail} alt="${blobSetTitle}" onError=${setBrokenImage(this)}>`; // first photo
+    blobSetArray += `<img src=${set[blobs[0]].thumbnail} alt="${blobSetTitle}"}>`; // first photo
     if (blobs.length == 3) { // Middle photo (3 photos)
       blobSetTitle = set[blobs[1]].title.length > 0 ? set[blobs[1]].title : "No title";
-      blobSetArray += `<img src=${set[blobs[1]].thumbnail} alt="${blobSetTitle}" onError=${setBrokenImage(this)}>`;
+      blobSetArray += `<img src=${set[blobs[1]].thumbnail} alt="${blobSetTitle}"}>`;
     }
     if (blobs.length >= 4) { // +3 photo set. ···
       blobSetArray += "<span>···</span>";
     }
     if (blobs.length > 1) { // +1 photo. last photo.
       blobSetTitle = set[blobs[blobs.length - 1]].title.length > 0 ? set[blobs[blobs.length - 1]].title : "No title";
-      blobSetArray += `<img src=${set[blobs[blobs.length - 1]].thumbnail} alt="${blobSetTitle}" onError=${setBrokenImage(this)}>`;
+      blobSetArray += `<img src=${set[blobs[blobs.length - 1]].thumbnail} alt="${blobSetTitle}"}>`;
     }
     blobSet.html(blobSetArray);
     
@@ -42,6 +42,13 @@ input.printSets = function(sets) {
       $(".blobSet_" + i).append("<span class=blobTitle>" + sets[i].name + "</span>");
     }
     $(".blobSet_" + i).addClass("text-center");
+    
+    $(`.blobSet_${i} img`).each(function() {
+      $(this).on('error', function() {
+        $(this)[0].onerror = "";
+        $(this)[0].src = "./assets/non_viewable_inputs.png";
+      });
+    });
   }
 
   var setsContainer = document.getElementById("sets");
@@ -49,12 +56,6 @@ input.printSets = function(sets) {
   if (isFirefox) {
     setsContainer.addEventListener("DOMMouseScroll", scrollHorizontally, false);
   }
-}
-
-function setBrokenImage(image) {
-  image.onerror = "";
-  image.src = "./assets/non_viewable_inputs.png";
-  return true;
 }
 
 input.displayInputInformationIcon = function() {
