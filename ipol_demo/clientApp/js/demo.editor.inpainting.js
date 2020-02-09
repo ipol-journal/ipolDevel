@@ -101,7 +101,7 @@ tools.mask = function () {
   this.started = false;
   this.lastX = 0;
   this.lastY = 0;
-  let state = [$('#editor-blob-left')[0].toDataURL()];
+  let state = [];
   let idx = 0;
 
   this.mousedown = (ev) => {
@@ -163,6 +163,7 @@ tools.mask = function () {
   }
 
   this.draw = () => {
+    if (!this.started) state.push($('#editor-blob-left')[0].toDataURL());
     var canvasPic = new Image();
     canvasPic.src = state[idx];
     canvasPic.onload = function() {
