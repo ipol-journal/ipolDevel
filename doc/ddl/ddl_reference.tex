@@ -391,15 +391,15 @@ The execution is then passed to the \emph{run.sh} script, provided in the option
   "run": "${demoextras}/run.sh input_0.png $width"
 \end{lstlisting}
 
-In adition to all of the above there are a bunch of different variables for editors to use in this section. These variables will be substituted before execution in the run command and will allow for shorter DDL run strings. As shown in the previus example, to use a variable just insert the name of the variable between curly brackets and add a dollar sign before it.
+In adition, there are other variables that will be substituted before execution (run section). As shown before, to use a variable just insert the name of the variable between curly brackets preceded by a dollar sign.
 
-In the previous example the demoextras path will be replaced so the run command executes a script inside the demoextras folder. Only the variable will be replaced, the rest of the string will remain the same. Here is a list of all variables available to use in the run section:
+In the previous example the demoExtras path will be replaced in order that the run section executes a script inside the demoExtras folder. It follows a list of all available variables for the run section:
 
 \begin{itemize}
-  \item "demoextras": will be replaced by the demoextras path to the current demo.
-  \item "matlab\_path": will be replaced by the path to the current matlab binary.
-  \item "bin": will be replaced by the path of the directory where the demo source code has been compiled. 
-  \item "virtualenv": will be replaced by the path to the virtualenv a demo might have. Under this folder there are the necesary scripts to activate a virtualenv.
+  \item \textbf{demoextras}: will be replaced by the demoExtras' path of the current demo,
+  \item \textbf{matlab\_path}: will be replaced by the path to the current MATLAB installation,
+  \item \textbf{bin}: will be replaced by the directory with the compiled code, or any moved element,
+  \item \textbf{virtualenv}: will be replaced by the path to the virtualenv, if any. This folder contains the scripts needed to activate the virtualenv.
 \end{itemize}
 
 
