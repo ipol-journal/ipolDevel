@@ -26,9 +26,9 @@ from subprocess import PIPE, Popen
 from threading import Lock
 
 import cherrypy
-import virtualenv
 import Tools.build as build
 import Tools.run_demo_base as run_demo_base
+import virtualenv
 from Tools.run_demo_base import IPOLTimeoutError
 
 
@@ -367,7 +367,7 @@ class DemoRunner():
                         build.run(construct, log_file, cwd=src_dir)
 
                     # Move files
-                    for file_to_move in files_to_move.split(","):
+                    for file_to_move in files_to_move.strip(",").split(","):
                         # Remove possible white spaces
                         file_to_move = file_to_move.strip()
 
