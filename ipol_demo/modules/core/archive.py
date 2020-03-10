@@ -28,10 +28,7 @@ def create_thumbnail(src_file):
     thumb_file = os.path.join(os.path.dirname(src_file), thumb_name)
     try:
         result = thumbnail(src_file, thumb_height, thumb_file)
-        if result:
-            return thumb_file
-        else:
-            return False
+        return thumb_file if result else False
     except Exception:
         return False
 

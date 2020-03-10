@@ -811,7 +811,7 @@ class Blobs():
                 elif dest["dest"] == "template":
                     template_name = dest["name"]
                     blob_data = database.get_blob_data_from_template(conn, template_name, blob_set, pos_set)
-                    
+
                     if blob_data:
                         blob_id = blob_data.get('id')
                         num_refs = database.get_blob_refcount(conn, blob_id)

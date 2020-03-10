@@ -1068,7 +1068,7 @@ attached the failed experiment data.". \
         try:
             demoinfo_response = demoinfo_resp.json()
         except Exception as ex:
-            error_message = "Couldn't get DDL for demo {}".format(demo_id)
+            error_message = f"Couldn't get DDL for demo {demo_id}, {ex}"
             raise IPOLReadDDLError(error_message)
 
         if demoinfo_response['status'] != 'OK':

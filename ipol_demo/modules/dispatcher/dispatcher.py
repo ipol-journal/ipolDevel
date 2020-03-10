@@ -15,9 +15,8 @@ import random
 import re
 import sys
 import xml.etree.ElementTree as ET
-
-import cherrypy
 import requests
+import cherrypy
 
 
 def authenticate(func):
