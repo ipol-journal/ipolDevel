@@ -1050,11 +1050,10 @@ attached the failed experiment data.". \
         else:
             raise IPOLDecodeInterfaceRequestError("Wrong origin value from the interface.")
 
-        j = 0
-        while 'inpainting_data_{0}'.format(j) in interface_arguments:
-            fname = 'inpainting_data_{0}'.format(j)
-            blobs[fname] = interface_arguments[fname]
-            j += 1
+        for key, value in interface_arguments.items():
+            if key.startswith('inpainting_data_'):
+                fname = key
+                blobs[fname] = value
 
         return clientdata['demo_id'], origin, clientdata.get('params', None), \
                   clientdata.get('crop_info', None), clientdata.get('private_mode', None), blobs, blobset_id
