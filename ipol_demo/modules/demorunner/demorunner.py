@@ -370,6 +370,8 @@ class DemoRunner():
                     for file_to_move in files_to_move.strip(",").split(","):
                         # Remove possible white spaces
                         file_to_move = file_to_move.strip()
+                        if not file_to_move:
+                            continue
 
                         path_from = os.path.realpath(os.path.join(src_dir, file_to_move))
                         path_to = os.path.realpath(os.path.join(bin_dir, os.path.basename(file_to_move)))
