@@ -367,7 +367,7 @@ class DemoRunner():
                         build.run(construct, log_file, cwd=src_dir)
 
                     # Move files
-                    for file_to_move in files_to_move.strip(",").split(","):
+                    for file_to_move in files_to_move.split(","):
                         # Remove possible white spaces
                         file_to_move = file_to_move.strip()
                         if not file_to_move:
