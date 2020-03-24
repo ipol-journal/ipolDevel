@@ -65,6 +65,8 @@ octave-statistics
 libgdal-dev
 gdal-bin
 python-gdal
+libsuitesparse-dev
+swig
 libavformat-dev
 libavcodec-dev
 libavdevice-dev
