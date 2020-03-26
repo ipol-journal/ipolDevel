@@ -305,6 +305,7 @@ $.fn.loadInputEvents = function(index, side) {
   var container = $("#" + side + "-container");
 
   $(this).on("mouseover", function() {
+    ddl.inputs[index].control ? $('#inpaintingControls').toggle(true) : $('#inpaintingControls').toggle(false);
     container.printEditorBlob(index, side);
     zoomSync(editorBlobs[index], side);
   });
@@ -327,6 +328,7 @@ $.fn.loadInputsContainerEvent = function(side) {
       return;
     }
     var inputName = helpers.getFromStorage("selectedInput-" + side);
+    ddl.inputs[parseInt(inputName.src)].control ? $('#inpaintingControls').toggle(true) : $('#inpaintingControls').toggle(false);
     container.printEditorBlob(inputName.src, side);
     zoomSync(editorBlobs[inputName.src], side);
   });
