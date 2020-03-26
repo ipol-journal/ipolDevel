@@ -88,6 +88,7 @@ sudo
 vim
 tree
 nginx
+bc
 sqlite3
 openssh-server
 bash-completion
