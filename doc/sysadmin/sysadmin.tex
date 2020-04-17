@@ -780,6 +780,11 @@ Everything seems to work fine when only redirecting errors to a file instead of 
 
 Check with {\tt gdal-config --version} the version installed in the server and then specify that version in the requirements.txt.
 
+\textbf{Bash script virtualenv activation fails while using set -u}
+
+When a demo has a virtualenv in order to execute python code it needs to activate said virtualenv from a bash script inside DemoExtras. If the bash script uses set -u it will fail when activating virtualenv because of a bug in the activation script throwing 'PS1: unbound variable'. This bug has been known for years and the solution still hasn't reached production versions of the package in some linux distributions. To fix this we can simply define the following variable as a patch while the official virtualenv fix reaches production:
+
+{\tt VIRTUAL\_ENV\_DISABLE\_PROMPT=true}
 
 \bibliographystyle{plain}
 \bibliography{biblio}
