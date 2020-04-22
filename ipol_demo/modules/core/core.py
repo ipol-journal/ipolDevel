@@ -1185,7 +1185,7 @@ attached the failed experiment data.". \
                     error_message = "Input #{}. {}".format(input_key, error)
                     raise IPOLConversionError(error_message)
                 if conversion_info[input_key]['code'] == 2:# Conversion forbidden
-                    error_message = "Input #{} size too large but conversion forbidden".format(input_key)
+                    error_message = "Input #{} needs to be pre-processed, but this is forbidden in this demo.".format(input_key)
                     raise IPOLConversionError(error_message)
                 if conversion_info[input_key]['code'] == 1:# Conversion done
                     modifications_str = ', '.join(conversion_info[input_key]['modifications'])
