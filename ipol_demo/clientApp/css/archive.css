@@ -252,11 +252,11 @@ a.file:before {
   vertical-align: middle;
 }
 
-a.file:hover:before {
+/* a.file:hover:before {
   color: #FFF;
   border-radius: 3px;
   background-color: #5B4BA6;
-}
+} */
 
 a.pdf:before {
   content: '\f1c1';
@@ -290,7 +290,22 @@ a.video:before, a.mpg:before, a.mpeg:before, a.avi:before {
 }
 
 .files a {
+  display: inline-block;
+
   margin: 0 5px;
+  padding: 5px;
+
+  transition: .3s cubic-bezier(.63, .1, .17, .77);
+
+  border: 1px solid #D1CAE8;
+  border-radius: 3px;
+  background-color: #EEE;
+}
+
+.files a:hover {
+  color: #544E88;
+  border: 1px solid #544E88;
+  background-color: #D8D5E4;
 }
 
 #files-text {
