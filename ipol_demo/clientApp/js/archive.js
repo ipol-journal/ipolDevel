@@ -143,8 +143,8 @@ function record(data) {
     if (data.files[i].url_thumb || isHiddenFile) continue;
     let url = data.files[i].url;
     let ext = url.substr(url.lastIndexOf('.')+1);
-    let downloadName = data.files[i].name;
-    files += '<a class="file ' + ext + '" target="_blank" href="' + url + '" download="' + downloadName + '">' + downloadName + '</a>';
+    let downloadName = data.files[i].name + '.' + ext;
+    files += '<a class="file ' + ext + '" target="_blank" href="' + url + '" download="' + downloadName + '">' + data.files[i].name + '</a>';
   }
 
   if (files) { 
