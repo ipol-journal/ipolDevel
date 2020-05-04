@@ -1071,7 +1071,9 @@ attached the failed experiment data.". \
             raise IPOLReadDDLError(error_message)
 
         if demoinfo_response['status'] != 'OK':
-            raise IPOLReadDDLError("Demoinfo answered KO.")
+            error_message = "Demoinfo answered KO."
+            error_code = demoinfo_response['error_code']
+            raise IPOLReadDDLError(error_message, error_code)
 
         last_demodescription = demoinfo_response['last_demodescription']
         ddl = json.loads(last_demodescription['ddl'], object_pairs_hook=OrderedDict)
@@ -1378,9 +1380,11 @@ attached the failed experiment data.". \
             self.logger.exception(internal_error_message)
             return json.dumps({'error': error_message, 'status': 'KO'}).encode()
         except (IPOLReadDDLError) as ex:
-            error_message = "{} Demo #{}".format(str(ex), demo_id)
+            error_message = "{} Demo #{}".format(
+                str(ex.error_message), demo_id)
             self.logger.exception(error_message)
-            self.send_internal_error_email(error_message)
+            if not ex.error_code:
+                self.send_internal_error_email(error_message)
             return json.dumps({'error': error_message, 'status': 'KO'}).encode()
         except (IPOLCheckDDLError) as ex:
             error_message = "{} Demo #{}".format(str(ex), demo_id)

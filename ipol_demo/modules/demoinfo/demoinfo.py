@@ -1751,6 +1751,8 @@ class DemoInfo():
         """
         Reads the current DDL of the demo
         """
+        # Error code description:
+        # -1: There isn't any DDL for a given demo id. Response KO
         try:
             # Validate demo_id
             try:
@@ -1761,7 +1763,7 @@ class DemoInfo():
             ddl = self.get_stored_ddl(demo_id)
             if not ddl:
                 error = "There isn't any DDL for demo {}".format(demo_id)
-                return json.dumps({'status': 'KO', 'error': error}).encode()
+                return json.dumps({'status': 'KO', 'error': error, 'error_code': -1}).encode()
             if sections:
                 ddl = json.loads(ddl.get("ddl"), object_pairs_hook=OrderedDict)
                 ddl_sections = self.get_ddl_sections(ddl, sections)
