@@ -1380,10 +1380,12 @@ attached the failed experiment data.". \
             self.logger.exception(internal_error_message)
             return json.dumps({'error': error_message, 'status': 'KO'}).encode()
         except (IPOLReadDDLError) as ex:
+            # code -1: the DDL of the requested ID doesn't exist
+            # code -2: Invalid demo_id
             error_message = "{} Demo #{}".format(
                 str(ex.error_message), demo_id)
             self.logger.exception(error_message)
-            if not ex.error_code:
+            if not ex.error_code or ex.error_code not in (-1, -2):
                 self.send_internal_error_email(error_message)
             return json.dumps({'error': error_message, 'status': 'KO'}).encode()
         except (IPOLCheckDDLError) as ex:

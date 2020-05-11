@@ -1752,13 +1752,14 @@ class DemoInfo():
         Reads the current DDL of the demo
         """
         # Error code description:
-        # -1: There isn't any DDL for a given demo id. Response KO
+        # code -1: the DDL of the requested ID doesn't exist
+        # code -2: Invalid demo_id
         try:
             # Validate demo_id
             try:
                 demo_id = int(demo_id)
             except(TypeError, ValueError) as ex:
-                return json.dumps({'status': 'KO', 'error': "Invalid demo_id: {}".format(demo_id)}).encode()
+                return json.dumps({'status': 'KO', 'error': "Invalid demo_id: {}".format(demo_id), 'error_code': -2}).encode()
 
             ddl = self.get_stored_ddl(demo_id)
             if not ddl:
