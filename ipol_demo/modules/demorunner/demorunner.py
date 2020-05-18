@@ -395,7 +395,7 @@ class DemoRunner():
                             # Do move
                             shutil.move(path_from, path_to)
                         except (IOError, OSError):
-                            os.remove(os.path.join(compilation_path, self.compilation_lock_filename))
+                            os.remove(lock_path)
                             self.write_log("construct", "Can't move file {} --> {}".format(path_from, path_to))
                             # If can't move, write in the log file, so
                             # the user can see it
@@ -405,7 +405,7 @@ class DemoRunner():
                             f.close()
                             raise
         finally:
-            os.remove(os.path.join(compilation_path, self.compilation_lock_filename))
+            os.remove(lock_path)
 
     @staticmethod
     def construct_is_locked(lock_path):
