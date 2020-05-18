@@ -108,6 +108,7 @@ function checkPostData() {
 
 function checkPostInputs()  {
   let inputs = ddl.inputs;
+  if (!inputs) return true;
   let optionalInputs = inputs.filter(input => input.required === false);
   let inputsAreOptional = optionalInputs.length === inputs.length;
   if (inputs && inputs.length != 0 && !helpers.getFromStorage('origin') && !inputsAreOptional) {
