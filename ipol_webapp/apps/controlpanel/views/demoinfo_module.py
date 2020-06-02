@@ -2,6 +2,7 @@
 # from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 import json
 import os
+from urllib import unquote
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from apps.controlpanel.forms import DDLform, CreateDemoform, UpdateDemoform, Authorform, DemoAuthorform, ChooseAuthorForDemoform, Editorform, \
         DemoEditorform, ChooseEditorForDemoform
@@ -1674,7 +1675,7 @@ class DemoinfoGetDemoExtrasView(NavbarReusableMixinMF,TemplateView):
             data['registered'] = has_permission(demo_id, self.request.user)
             if json_result.get('url') is not None:
                 data['url'] = json_result.get('url')
-                data['name'] = os.path.basename(json_result.get('url'))
+                data['name'] = unquote(os.path.basename(json_result.get('url')))
             data['status'] = json_result.get('status')
 
         except Exception as e:
