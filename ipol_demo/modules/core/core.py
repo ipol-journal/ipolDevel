@@ -698,16 +698,16 @@ class Core():
 
             demoextras_file = glob.glob(demoextras_compress_dir+"/*")
 
-            #no demoExtras in the shared folder
+            # No demoExtras in the shared folder
             if not demoextras_file:
                 if 'url' not in demoinfo_resp:
                     return
 
                 # There is a new demoExtras in demoinfo
                 demoextras_name = os.path.basename(demoinfo_resp['url'])
-                demoextras_file = os.path.join(demoextras_compress_dir, demoextras_name)
-                self.download(demoinfo_resp['url'], demoextras_file)
-                self.extract_demo_extras(demo_id, demoextras_file)
+                demoextras_filename = os.path.join(demoextras_compress_dir, demoextras_name)
+                self.download(demoinfo_resp['url'], demoextras_filename)
+                self.extract_demo_extras(demo_id, demoextras_filename)
             else:
                 demoextras_file = demoextras_file[0]
 
