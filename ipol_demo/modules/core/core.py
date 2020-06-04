@@ -612,6 +612,13 @@ class Core():
         """
         urllib.request.urlretrieve(url_file, filename)
 
+    @staticmethod
+    def set_dl_extras_date(filepath, date):
+        """
+        Sets the modification time
+        """
+        os.utime(filepath, (date, date))
+        return
 
     @staticmethod
     def walk_demoextras_files(filename):
@@ -694,28 +701,20 @@ class Core():
                 raise IPOLDemoExtrasError("Failed to obtain demoExtras info")
 
             demoextras_compress_dir = os.path.join(self.dl_extras_dir, str(demo_id))
+            if 'url' not in demoinfo_resp:
+                if os.path.exists(demoextras_compress_dir):
+                    shutil.rmtree(demoextras_compress_dir)
+                if os.path.exists(os.path.join(self.demo_extras_main_dir, str(demo_id))):
+                    shutil.rmtree(os.path.join(self.demo_extras_main_dir, str(demo_id)))
+                return
+
             self.mkdir_p(demoextras_compress_dir)
 
             demoextras_file = glob.glob(demoextras_compress_dir+"/*")
 
-            # No demoExtras in the shared folder
-            if not demoextras_file:
-                if 'url' not in demoinfo_resp:
-                    return
-
-                # There is a new demoExtras in demoinfo
-                demoextras_name = os.path.basename(demoinfo_resp['url'])
-                demoextras_filename = os.path.join(demoextras_compress_dir, demoextras_name)
-                self.download(demoinfo_resp['url'], demoextras_filename)
-                self.extract_demo_extras(demo_id, demoextras_filename)
-            else:
+            # Check if demoinfo has a newer demoextras
+            if demoextras_file:
                 demoextras_file = demoextras_file[0]
-
-                # DemoExtras was removed from demoInfo
-                if 'url' not in demoinfo_resp:
-                    shutil.rmtree(demoextras_compress_dir)
-                    shutil.rmtree(os.path.join(self.demo_extras_main_dir, str(demo_id)))
-                    return
 
                 demoinfo_demoextras_date = demoinfo_resp['date']
                 demoinfo_demoextras_size = demoinfo_resp['size']
@@ -724,9 +723,17 @@ class Core():
                 core_demoextras_size = extras_stat.st_size
                 if (core_demoextras_date <= demoinfo_demoextras_date or
                         core_demoextras_size != demoinfo_demoextras_size):
-                    # DemoExtras needs an update
-                    self.download(demoinfo_resp['url'], demoextras_file)
-                    self.extract_demo_extras(demo_id, demoextras_file)
+                    shutil.rmtree(demoextras_compress_dir)
+                    self.mkdir_p(demoextras_compress_dir)
+                else:
+                    return
+
+            # Download new demoextras
+            demoextras_name = os.path.basename(demoinfo_resp['url'])
+            demoextras_filename = urllib.parse.unquote(os.path.join(demoextras_compress_dir, demoextras_name))
+            self.download(demoinfo_resp['url'], demoextras_filename)
+            self.set_dl_extras_date(demoextras_filename, demoinfo_resp['date'])
+            self.extract_demo_extras(demo_id, demoextras_filename)
 
         except Exception as ex:
             error_message = "Error processing the demoExtras of demo #{}: {}".format(demo_id, ex)
