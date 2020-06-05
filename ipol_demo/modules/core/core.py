@@ -722,7 +722,7 @@ class Core():
                 core_demoextras_size = extras_stat.st_size
 
                 # If it is already up to date finish
-                if (core_demoextras_date > demoinfo_demoextras_date or
+                if (core_demoextras_date > demoinfo_demoextras_date and
                         core_demoextras_size == demoinfo_demoextras_size):
                     return
                 # Remove old extras file to download a new version
