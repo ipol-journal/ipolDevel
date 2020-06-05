@@ -618,7 +618,6 @@ class Core():
         Sets the modification time
         """
         os.utime(filepath, (date, date))
-        return
 
     @staticmethod
     def walk_demoextras_files(filename):
@@ -721,12 +720,14 @@ class Core():
                 extras_stat = os.stat(demoextras_file)
                 core_demoextras_date = extras_stat.st_ctime
                 core_demoextras_size = extras_stat.st_size
-                if (core_demoextras_date <= demoinfo_demoextras_date or
-                        core_demoextras_size != demoinfo_demoextras_size):
-                    shutil.rmtree(demoextras_compress_dir)
-                    self.mkdir_p(demoextras_compress_dir)
-                else:
+
+                # If it is already up to date finish
+                if (core_demoextras_date > demoinfo_demoextras_date or
+                        core_demoextras_size == demoinfo_demoextras_size):
                     return
+                # Remove old extras file to download a new version
+                shutil.rmtree(demoextras_compress_dir)
+                self.mkdir_p(demoextras_compress_dir)
 
             # Download new demoextras
             demoextras_name = os.path.basename(demoinfo_resp['url'])
