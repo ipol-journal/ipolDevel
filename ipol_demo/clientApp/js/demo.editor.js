@@ -100,7 +100,7 @@ function printBlobSetList(blobs) {
 // Single blob sets controls
 function loadSingleBlobControls($img) {
   checkImageLoad($img[0].src).then(() => {
-    if (ddl.inputs[0].type == "image") displayCrop($img)
+    if (ddl.inputs[0].type == "image" && !ddl.inputs[0].forbid_preprocess) displayCrop($img)
     zoomController.singleBlob();
   })
   .catch(() => {
