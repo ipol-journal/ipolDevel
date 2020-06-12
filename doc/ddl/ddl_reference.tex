@@ -103,9 +103,9 @@ The inputs section describes the characteristics of the input data for the algor
 \end{itemize} 
  & yes \\ \hline
  ext          & input extension (ie. file format) & yes \\ \hline
-forbid\_preprocess & Forbids any pre-processing of the input data. 
+forbid\_preprocess & Must be a boolean value. Forbids any pre-processing of the input data.
 Submitted image is kept as-is. Used by algorithms like noise estimation or modification detection, where re-sampling will affect results. 
-If a processing is needed according to the expected properties, an error message will be displayed to the user.
+If a processing is needed according to the expected properties, an error message will be displayed to the user. This will also remove the crop feature from the interface.
 & no \\ \hline
  control & String to include an interactive control. Possible values are "mask", "dots" and "lines" each for a different kind of mask drawing behaviour. & no \\ \hline
 \caption{Fields for an \emph{image} as input.}
