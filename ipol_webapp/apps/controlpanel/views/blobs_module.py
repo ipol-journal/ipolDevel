@@ -144,7 +144,6 @@ class DemoBlobSaveInfo(NavbarReusableMixinMF, TemplateView):
             dict_response = dict(response.iterlists())
 
             id = dict_response['demo'][0]
-            tags = dict_response['tags'][0]
             set = dict_response['set'][0]
             new_set = dict_response['new_set'][0]
 
@@ -157,7 +156,7 @@ class DemoBlobSaveInfo(NavbarReusableMixinMF, TemplateView):
             credit = dict_response['credit'][0]
 
             if has_permission(id, self.request.user):
-                ipolservices.edit_blob_from_demo(request,id,tags,set,new_set,pos,new_pos,title,credit)
+                ipolservices.edit_blob_from_demo(request,id,set,new_set,pos,new_pos,title,credit)
         except Exception as ex:
             msg = "DemoBlobSaveInfo. Error %s " % ex
             logger.error(msg)
@@ -237,13 +236,12 @@ class AddBlobToDemo(NavbarReusableMixinMF,TemplateView):
             response = self.request.POST
             dict_response = dict(response.iterlists())
             id = dict_response['demo'][0]
-            tags = dict_response['tags'][0]
             set = dict_response['set'][0]
             pos = dict_response['pos'][0]
             title = dict_response['title'][0]
             credit = dict_response['credit'][0]
             if has_permission(id, self.request.user):
-                ipolservices.add_blob_to_demo(request, id, tags, set, pos, title, credit)
+                ipolservices.add_blob_to_demo(request, id, set, pos, title, credit)
         except Exception as ex:
             msg = "AddBlobToDemo. Error %s " % ex
             logger.error(msg)
@@ -311,12 +309,11 @@ class AddBlobToTemplate(NavbarReusableMixinMF,TemplateView):
             response = self.request.POST
             dict_response = dict(response.iterlists())
             name = dict_response['name'][0]
-            tags = dict_response['tags'][0]
             set = dict_response['set'][0]
             pos = dict_response['pos'][0]
             title = dict_response['title'][0]
             credit = dict_response['credit'][0]
-            ipolservices.add_blob_to_template(request, name, tags, set, pos, title, credit)
+            ipolservices.add_blob_to_template(request, name, set, pos, title, credit)
         except Exception as ex:
             msg = "AddBlobToTemplate Error %s " % ex
             logger.error(msg)
@@ -395,7 +392,6 @@ class SaveBlobInfoFromTemplate(NavbarReusableMixinMF,TemplateView):
             dict_response = dict(response.iterlists())
 
             name = dict_response['name'][0]
-            tags = dict_response['tags'][0]
             set = dict_response['set'][0]
             new_set = dict_response['new_set'][0]
 
@@ -406,7 +402,7 @@ class SaveBlobInfoFromTemplate(NavbarReusableMixinMF,TemplateView):
             new_pos = dict_response['new_pos'][0]
             title = dict_response['title'][0]
             credit = dict_response['credit'][0]
-            ipolservices.edit_blob_from_template(request,name,tags,set,new_set,pos,new_pos,title,credit)
+            ipolservices.edit_blob_from_template(request,name,set,new_set,pos,new_pos,title,credit)
         except Exception as ex:
             msg = "SaveBlobInfoFromTemplate Error %s " % ex
             logger.error(msg)

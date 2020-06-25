@@ -609,7 +609,7 @@ def get_demo_templates(demo_id):
     return http_request(path, METHOD='GET', params=serviceparams, json=servicejson)
 
 
-def edit_blob_from_demo(request, demo_id, tags, blob_set, new_blob_set, pos_set, new_pos_set, title, credit):
+def edit_blob_from_demo(request, demo_id, blob_set, new_blob_set, pos_set, new_pos_set, title, credit):
     """
     Get the demo owned blobs
     """
@@ -622,7 +622,7 @@ def edit_blob_from_demo(request, demo_id, tags, blob_set, new_blob_set, pos_set,
     except Exception as ex:
         print ex
 
-    serviceparams = {'demo_id': demo_id, 'tags': tags, 'blob_set': blob_set, 'new_blob_set': new_blob_set,
+    serviceparams = {'demo_id': demo_id, 'blob_set': blob_set, 'new_blob_set': new_blob_set,
                      'pos_set': pos_set, 'new_pos_set': new_pos_set, 'title': title, 'credit': credit}
 
     return http_request(path, METHOD='POST', params=serviceparams, files=files)
@@ -661,13 +661,13 @@ def add_template_to_demo(demo_id, template):
     return http_request(path, METHOD='GET', params=serviceparams)
 
 
-def add_blob_to_demo(request, demo_id, tags, blob_set, pos_set, title, credit):
+def add_blob_to_demo(request, demo_id, blob_set, pos_set, title, credit):
     """
     Add a new blob to the demo
     """
     path = "/api/blobs/add_blob_to_demo"
 
-    params = {'demo_id': demo_id, 'tags': tags, 'title': title, 'credit': credit}
+    params = {'demo_id': demo_id, 'title': title, 'credit': credit}
 
     if blob_set != "":
         params['blob_set'] = blob_set
@@ -712,13 +712,13 @@ def get_template_blobs(name):
     return http_request(path, METHOD='GET', params=serviceparams)
 
 
-def add_blob_to_template(request, name, tags, blob_set, pos_set, title, credit):
+def add_blob_to_template(request, name, blob_set, pos_set, title, credit):
     """
     Add a new blob to the template
     """
     path = "/api/blobs/add_blob_to_template"
 
-    params = {'template_name': name, 'tags': tags, 'title': title, 'credit': credit}
+    params = {'template_name': name, 'title': title, 'credit': credit}
 
     if blob_set != "":
         params['blob_set'] = blob_set
@@ -744,7 +744,7 @@ def remove_blob_from_template(name, blob_set, pos_set):
     return http_request(path, METHOD='GET', params=serviceparams)
 
 
-def edit_blob_from_template(request, name, tags, blob_set, new_blob_set, pos_set, new_pos_set, title, credit):
+def edit_blob_from_template(request, name, blob_set, new_blob_set, pos_set, new_pos_set, title, credit):
     """
     Edit blob info from template
     """
@@ -757,7 +757,7 @@ def edit_blob_from_template(request, name, tags, blob_set, new_blob_set, pos_set
     except Exception as ex:
         print ex
 
-    serviceparams = {'template_name': name, 'tags': tags, 'blob_set': blob_set, 'new_blob_set': new_blob_set,
+    serviceparams = {'template_name': name, 'blob_set': blob_set, 'new_blob_set': new_blob_set,
                      'pos_set': pos_set, 'new_pos_set': new_pos_set, 'title': title, 'credit': credit}
 
     return http_request(path, METHOD='POST', params=serviceparams, files=files)
