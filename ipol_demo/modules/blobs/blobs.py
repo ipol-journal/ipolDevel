@@ -246,7 +246,7 @@ class Blobs():
             sys.exit(1)
         return json.dumps(data).encode()
 
-    def add_blob(self, blob, tags, blob_set, pos_set, title, credit, dest, blob_vr):
+    def add_blob(self, blob, blob_set, pos_set, title, credit, dest, blob_vr):
         """
         Copies the blob and store it in the DB
         """
@@ -280,8 +280,6 @@ class Blobs():
                 # An error in the creation of the thumbnail doesn't stop the execution of the method
                 self.logger.exception("Error creating the thumbnail")
                 print("Couldn't create the thumbnail. Error: {}".format(ex))
-
-            self.associate_tags_to_blob(conn, blob_id, tags)
 
             # If the set is empty the module generates an unique set name
             if not blob_set:
@@ -328,27 +326,27 @@ class Blobs():
 
     @cherrypy.expose
     @authenticate
-    def add_blob_to_demo(self, blob=None, demo_id=None, tags=None, blob_set=None, pos_set=None, title=None,
+    def add_blob_to_demo(self, blob=None, demo_id=None, blob_set=None, pos_set=None, title=None,
                          credit=None, blob_vr=None):
         """
         Adds a new blob to a demo
         """
         dest = {"dest": "demo", "demo_id": demo_id}
-        if self.add_blob(blob, tags, blob_set, pos_set, title, credit, dest, blob_vr):
+        if self.add_blob(blob, blob_set, pos_set, title, credit, dest, blob_vr):
             return json.dumps({"status": "OK"}).encode()
 
         return json.dumps({"status": "KO"}).encode()
 
     @cherrypy.expose
     @authenticate
-    def add_blob_to_template(self, blob=None, template_name=None, tags=None, blob_set=None, pos_set=None, title=None,
+    def add_blob_to_template(self, blob=None, template_name=None, blob_set=None, pos_set=None, title=None,
                              credit=None, blob_vr=None):
         """
         Adds a new blob to a template
         """
         dest = {"dest": "template", "name": template_name}
 
-        if self.add_blob(blob, tags, blob_set, pos_set, title, credit, dest, blob_vr):
+        if self.add_blob(blob, blob_set, pos_set, title, credit, dest, blob_vr):
             return json.dumps({"status": "OK"}).encode()
         return json.dumps({"status": "KO"}).encode()
 
@@ -463,20 +461,6 @@ class Blobs():
             thumbnail(src_file, height=thumb_height, dst_file=dst_file)
         except Exception as ex:
             raise IPOLBlobsThumbnailError("File '{}', thumbnail error. {}".format(src_file, ex))
-
-    def associate_tags_to_blob(self, conn, blob_id, tags):
-        """
-        Creates the tags and associate them to the blob
-        """
-        tag_list = set(map(str.strip, str(tags).split(",")))
-        try:
-            with self.lock:
-                database.create_tags(conn, tag_list)
-            database.add_tags_to_blob(conn, tag_list, blob_id)
-            conn.commit()
-        except IPOLBlobsDataBaseError:
-            conn.rollback()
-            raise
 
     @cherrypy.expose
     @authenticate
@@ -709,7 +693,6 @@ class Blobs():
                      'blob': os.path.join(blob_url, blob['hash'] + blob['extension']),
                      'format': blob['format'],
                      'credit': blob['credit'],
-                     'tags': blob['tags'],
                      'pos_set': blob['pos_set']}
 
         if self.blob_has_thumbnail(blob['hash']):
@@ -759,31 +742,6 @@ class Blobs():
                                   .format(demo_id))
             print("*** Unhandled exception while obtaining the owned templates from demo #{}. Error: {}" \
                 .format(demo_id, ex))
-        finally:
-            if conn is not None:
-                conn.close()
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @authenticate
-    def add_tags_to_blob(self, tags, blob_id):
-        """
-        Add a new to tag to the blob
-        """
-        data = {'status': 'KO'}
-        conn = None
-        try:
-            conn = lite.connect(self.database_file)
-            self.associate_tags_to_blob(conn, blob_id, tags)
-            data['status'] = 'OK'
-
-        except IPOLBlobsDataBaseError as ex:
-            self.logger.exception("Failed to add the tags to blob")
-            print("Failed to add the tags to blob. DB Error: {}".format(ex))
-        except Exception as ex:
-            self.logger.exception("*** Unhandled exception while adding the tags to blob")
-            print("*** Unhandled exception while adding the tags to blob. Error: {}" \
-                .format(ex))
         finally:
             if conn is not None:
                 conn.close()
@@ -981,33 +939,6 @@ class Blobs():
                 conn.close()
         return json.dumps(data).encode()
 
-    @cherrypy.expose
-    @authenticate
-    def remove_tag_from_blob(self, tag, blob_id):
-        """
-        Remove the tag from the blob
-        """
-        data = {'status': 'KO'}
-        conn = None
-        try:
-            conn = lite.connect(self.database_file)
-            database.remove_tag_from_blob(conn, tag, blob_id)
-            conn.commit()
-            data['status'] = 'OK'
-
-        except IPOLBlobsDataBaseError as ex:
-            conn.rollback()
-            self.logger.exception("DB error while removing the demo/template")
-            print("Failed to remove the demo/template. Error: {}".format(ex))
-        except Exception as ex:
-            conn.rollback()
-            self.logger.exception("*** Unhandled exception while removing the demo/template")
-            print("*** Unhandled exception while removing the demo/template. Error: {}".format(ex))
-        finally:
-            if conn is not None:
-                conn.close()
-        return json.dumps(data).encode()
-
     def remove_files_associated_to_a_blob(self, blob_hash):
         """
         This function removes the blob, the thumbnail and
@@ -1058,29 +989,29 @@ class Blobs():
 
     @cherrypy.expose
     @authenticate
-    def edit_blob_from_demo(self, demo_id=None, tags=None, blob_set=None, new_blob_set=None, pos_set=None,
+    def edit_blob_from_demo(self, demo_id=None, blob_set=None, new_blob_set=None, pos_set=None,
                             new_pos_set=None, title=None, credit=None, vr=None):
         """
         Edit blob information in a demo
         """
         dest = {"dest": "demo", "demo_id": demo_id}
-        if self.edit_blob(tags, blob_set, new_blob_set, pos_set, new_pos_set, title, credit, vr, dest):
+        if self.edit_blob(blob_set, new_blob_set, pos_set, new_pos_set, title, credit, vr, dest):
             return json.dumps({"status": "OK"}).encode()
         return json.dumps({"status": "KO"}).encode()
 
     @cherrypy.expose
     @authenticate
-    def edit_blob_from_template(self, template_name=None, tags=None, blob_set=None, new_blob_set=None, pos_set=None,
+    def edit_blob_from_template(self, template_name=None, blob_set=None, new_blob_set=None, pos_set=None,
                                 new_pos_set=None, title=None, credit=None, vr=None):
         """
         Edit blob information in a template
         """
         dest = {"dest": "template", "name": template_name}
-        if self.edit_blob(tags, blob_set, new_blob_set, pos_set, new_pos_set, title, credit, vr, dest):
+        if self.edit_blob(blob_set, new_blob_set, pos_set, new_pos_set, title, credit, vr, dest):
             return json.dumps({"status": "OK"}).encode()
         return json.dumps({"status": "KO"}).encode()
 
-    def edit_blob(self, tags, blob_set, new_blob_set, pos_set, new_pos_set, title, credit, blob_vr, dest):
+    def edit_blob(self, blob_set, new_blob_set, pos_set, new_pos_set, title, credit, blob_vr, dest):
         """
         Edit blob information
         """
@@ -1118,7 +1049,6 @@ class Blobs():
 
             blob_hash = blob_data.get('hash')
             blob_id = blob_data.get('id')
-            self.set_tags(conn, blob_id, tags)
 
             if blob_vr:
                 self.delete_vr_from_blob(blob_id)
@@ -1146,15 +1076,6 @@ class Blobs():
             if conn is not None:
                 conn.close()
         return res
-
-    def set_tags(self, conn, blob_id, tags):
-        """
-        Remove old tags and add the new ones
-        """
-        for tag in database.get_blob_tags(conn, blob_id):
-            database.remove_tag(conn, tag)
-
-        self.associate_tags_to_blob(conn, blob_id, tags)
 
     @cherrypy.expose
     def get_all_templates(self):
@@ -1296,7 +1217,6 @@ class Blobs():
             conn = lite.connect(self.database_file)
             data['nb_templates'] = len(database.get_all_templates(conn))
             data['nb_blobs'] = database.get_nb_of_blobs(conn)
-            data['nb_tags'] = database.get_nb_of_tags(conn)
             data['status'] = 'OK'
         except Exception as ex:
             self.logger.exception("*** Unhandled exception while getting the blobs stats")
@@ -1369,7 +1289,6 @@ class Blobs():
             for blob in element[1]:
                 dic = {
                     'credit': blob['credit'],
-                    'tag': ','.join(blob['tags']),
                     'hash': blob['hash'],
                     'extension': blob['extension'],
                     'pos_in_set': blob['pos_set'],
@@ -1398,7 +1317,6 @@ class Blobs():
                      'extension': blob['extension'],
                      'format': blob['format'],
                      'credit': blob['credit'],
-                     'tags': blob['tags'],
                      'subdir': subdir + "/",
                      'id': blob['id'],
                      'pos_set': blob['pos_set']}

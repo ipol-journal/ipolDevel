@@ -4,24 +4,6 @@ Blobs database
 from errors import IPOLBlobsDataBaseError
 
 
-def get_blob_tags(conn, blob_id):
-    """
-    returns the list of tags for the blob
-    """
-    cursor = conn.cursor()
-    cursor.execute("""
-    SELECT name
-    FROM tags,blobs_tags
-    WHERE tag_id = tags.id
-    AND blob_id = ?
-    """, (blob_id,))
-    tags = []
-    for tag in cursor.fetchall():
-        tags.append(tag[0])
-
-    return tags
-
-
 def store_blob(conn, blob_hash, blob_format, extension, credit):
     """
     Store the blob in the Blobs table and returns the blob id
@@ -142,64 +124,6 @@ def add_blob_to_template(conn, template_name, blob_id, pos_set, blob_set, blob_t
         raise IPOLBlobsDataBaseError(ex)
 
 
-def create_tags(conn, tags):
-    """
-    Creates the tags
-    """
-    try:
-        cursor = conn.cursor()
-        for tag in tags:
-            if tag == "":
-                continue
-
-            # Check if the tag already exists
-            cursor.execute("""
-                        SELECT EXISTS(SELECT *
-                                    FROM tags
-                                    WHERE name=?);
-                        """, (tag,))
-
-            if cursor.fetchone()[0] == 1:
-                continue
-
-            cursor.execute("""
-                        INSERT INTO tags (name)
-                        VALUES (?)
-                        """, (tag,))
-    except Exception as ex:
-        raise IPOLBlobsDataBaseError(ex)
-
-
-def add_tags_to_blob(conn, tags, blob_id):
-    """
-    Associates all the tags to a blob in tags_blobs table
-    """
-    try:
-        cursor = conn.cursor()
-        for tag in tags:
-            cursor.execute("""
-                    SELECT EXISTS(SELECT *
-                                FROM blobs_tags
-                                WHERE tag_id=(SELECT id
-                                            FROM tags
-                                            WHERE name=?)
-                                AND blob_id=?);
-                    """, (tag, blob_id))
-
-            # If the blob already have the tag continue with the next tag
-            if cursor.fetchone()[0] == 1:
-                continue
-
-            cursor.execute("""
-                INSERT INTO blobs_tags (blob_id, tag_id)
-                VALUES (?,(SELECT id
-                           FROM tags
-                           WHERE name = ?))
-                """, (blob_id, tag))
-    except Exception as ex:
-        raise IPOLBlobsDataBaseError(ex)
-
-
 def add_templates_to_demo(conn, template_names, editor_demo_id):
     """
     Associates all the templates to the demo in demos_templates table
@@ -249,8 +173,7 @@ def get_demo_owned_blobs(conn, editor_demo_id):
         blobs = []
         for row in cursor.fetchall():
             blobs.append({"id": row[0], "hash": row[1], "format": row[2], "extension": row[3], "title": row[4],
-                          "credit": row[5], "blob_set": row[6], "pos_set": row[7],
-                          "tags": get_blob_tags(conn, row[0])})
+                          "credit": row[5], "blob_set": row[6], "pos_set": row[7]})
 
         return blobs
     except Exception as ex:
@@ -273,8 +196,7 @@ def get_template_blobs(conn, name):
         blobs = []
         for row in cursor.fetchall():
             blobs.append({"id": row[0], "hash": row[1], "format": row[2], "extension": row[3], "title": row[4],
-                          "credit": row[5], "blob_set": row[6], "pos_set": row[7],
-                          "tags": get_blob_tags(conn, row[0])})
+                          "credit": row[5], "blob_set": row[6], "pos_set": row[7]})
 
         return blobs
     except Exception as ex:
@@ -441,11 +363,10 @@ def get_blob_refcount(conn, blob_id):
 
 def remove_blob(conn, blob_id):
     """
-    Remove the blob from the DB and its tags
+    Remove the blob from the DB
     """
     try:
         cursor = conn.cursor()
-        tags = get_blob_tags(conn, blob_id)
 
         cursor.execute("""PRAGMA foreign_keys = ON""")
         cursor.execute("""
@@ -453,10 +374,6 @@ def remove_blob(conn, blob_id):
             FROM blobs
             WHERE id = ?
             """, (blob_id,))
-
-        for tag in tags:
-            if not tag_is_used(conn, tag):
-                remove_tag(conn, tag)
 
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
@@ -553,61 +470,6 @@ def remove_template_from_demo(conn, editor_demo_id, template_name):
             """, (editor_demo_id, template_name))
         return cursor.rowcount > 0
 
-    except Exception as ex:
-        raise IPOLBlobsDataBaseError(ex)
-
-
-def remove_tag_from_blob(conn, tag, blob_id):
-    """
-    Remove tag from demo
-    """
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""PRAGMA FOREIGN_KEYS = ON""")
-        cursor.execute("""
-            DELETE
-            FROM blobs_tags
-            WHERE  tag_id = (SELECT id
-                            FROM tags
-                            WHERE name = ?)
-            AND blob_id = ?
-            """, (tag, blob_id))
-        if not tag_is_used(conn, (tag,)):
-            remove_tag(conn, (tag,))
-    except Exception as ex:
-        raise IPOLBlobsDataBaseError(ex)
-
-
-def tag_is_used(conn, tag):
-    """
-    Check if the tag is being used in any blob
-    """
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT COUNT(*)
-            FROM tags
-            WHERE tags.name = ?
-            AND id IN (SELECT tag_id
-                       FROM blobs_tags)
-            """, (tag,))
-        return cursor.fetchone()[0] >= 1
-
-    except Exception as ex:
-        raise IPOLBlobsDataBaseError(ex)
-
-
-def remove_tag(conn, tag):
-    """
-    Remove the tag
-    """
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""
-            DELETE
-            FROM tags
-            WHERE name = ?
-            """, (tag,))
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -860,24 +722,6 @@ def get_nb_of_blobs(conn):
         cursor.execute("""
                SELECT COUNT(*)
                FROM blobs
-               """)
-        data = cursor.fetchone()
-        if data is None:
-            return 0
-        return data[0]
-    except Exception as ex:
-        raise IPOLBlobsDataBaseError(ex)
-
-
-def get_nb_of_tags(conn):
-    """
-    Return the number of blobs in the DB
-    """
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""
-               SELECT COUNT(*)
-               FROM tags
                """)
         data = cursor.fetchone()
         if data is None:
