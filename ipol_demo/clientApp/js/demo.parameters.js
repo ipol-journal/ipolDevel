@@ -51,11 +51,14 @@ parameters.setParametersValues = function(params_values){
         if(param.values[values_keys[j]] == params_values[param.id])
           $('#' + param.id + '_' + j).prop('checked', true);
     }
-    if(param.type == "selection_collapsed" || param.type == "text"){
+    if(param.type == "selection_collapsed"){
       $('#select-' + param.id).val(params_values[param.id]);
     }
     if(param.type == "checkbox"){
       $('#' + param.id).prop('checked', (params_values[param.id]));
+    }
+    if(param.type == "text"){
+      $('#text-' + param.id).val(params_values[param.id]);
     }
   }
 }

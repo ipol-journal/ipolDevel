@@ -90,11 +90,11 @@ $.fn.text = function(param, index) {
   var values = param.values;
 
   $('.param-' + index).prepend('<span class=param-label >' + param.label + '</span>');
-  $('<input id=text_' + param.id + ' class=range-slider__value type=text />').appendTo(this).addClass('input-text-param');
-  if(values && values.default) $("#text_" + param.id).val(values.default);
+  $('<input id=text-' + param.id + ' class=range-slider__value type=text />').appendTo(this).addClass('input-text-param');
+  if(values && values.default) $("#text-" + param.id).val(values.default);
 
-  $('#text_' + param.id).change(function(event) {
-    updateParamsArrayValue(param.id, $('#text_' + param.id).val());
+  $('#text-' + param.id).change(function(event) {
+    updateParamsArrayValue(param.id, $('#text-' + param.id).val());
   });
 }
 
