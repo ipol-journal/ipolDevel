@@ -459,8 +459,19 @@ class Core():
             file_save = open(os.path.join(work_dir, 'input_%i' % i + ext_of_uploaded_blob), 'wb')
 
             # Read and save the file
-            max_size = evaluate(inputs_desc[i]['max_weight'])
-            Core.write_data_to_file(file_up, file_save, max_size=max_size, input_index=i)
+            size = 0
+            file_up.file.seek(0)
+            while True:
+                data = file_up.file.read(128)
+                if not data:
+                    break
+                size += len(data)
+                if 'max_weight' in inputs_desc[i] and size > evaluate(inputs_desc[i]['max_weight']):
+                    # file too heavy
+                    raise IPOLInputUploadTooLargeError(i, evaluate(inputs_desc[i]['max_weight']))
+
+                file_save.write(data)
+            file_save.close()
 
     def copy_blobset_from_physical_location(self, demo_id, work_dir, blobset_id):
         """
@@ -512,33 +523,31 @@ class Core():
         Copy the existing input inpainting data to the execution folder.
         """
         for i, ddl_input in enumerate(ddl_inputs):
-            if not 'inpainting_data_' + str(i) in blobs:
-                continue
-            blob_data = blobs['inpainting_data_' + str(i)]
-            if ddl_input['control'] == 'mask':
-                filename = 'mask_{}.png'.format(i)
-                file_path = open(os.path.join(work_dir, filename), 'wb')
-                Core.write_data_to_file(blob_data, file_path)
-            else:
-                filepath = '{}/inpainting_data_{}.txt'.format(work_dir, i)
-                with open(filepath, 'w') as f:
-                    for point in json.loads(blob_data):
-                        f.write("%s\n" % point)
+            if 'inpainting_data_' + str(i) in blobs:
+                Core.copy_data(work_dir, blobs['inpainting_data_' + str(i)], i, ddl_input)
 
     @staticmethod
-    def write_data_to_file(data, file_path, max_size=None, input_index=None):
-        size = 0
-        data.file.seek(0)
-        while True:
-            datas = data.file.read(128)
-            if not datas:
-                break
-            size += len(datas)
-            if max_size is not None and size > max_size:
-                # file too heavy
-                raise IPOLInputUploadTooLargeError(input_index, max_size)
-            file_path.write(datas)
-        file_path.close()
+    def copy_data(work_dir, blob_data, input_index, ddl_input):
+        """
+        Copy data to work directory
+        """
+        if ddl_input['control'] == 'mask':
+            filename = 'mask_{}.png'.format(input_index)
+            file_path = open(os.path.join(work_dir, filename), 'wb')
+            size = 0
+            blob_data.file.seek(0)
+            while True:
+                data = blob_data.file.read(128)
+                if not data:
+                    break
+                size += len(data)
+                file_path.write(data)
+            file_path.close()
+        else:
+            filepath = '{}/inpainting_data_{}.txt'.format(work_dir, input_index)
+            with open(filepath, 'w') as f:
+                for point in json.loads(blob_data):
+                    f.write("%s\n" % point)
 
     @staticmethod
     def check_ddl(ddl):
@@ -1168,7 +1177,6 @@ attached the failed experiment data.". \
         # Copy input blobs
         try:
             self.copy_blobs(work_dir, demo_id, origin, blobs, blobset_id, ddl_inputs)
-            print(ddl_inputs)
             self.copy_inpainting_data(work_dir, blobs, ddl_inputs)
             params_conv = {'work_dir': work_dir}
             params_conv['inputs_description'] = json.dumps(ddl_inputs)
