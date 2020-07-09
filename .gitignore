@@ -97,7 +97,11 @@ demorunners.xml
 # ClientApp configs
 .csscomb.json
 
+# History
+tools/terminal/history.txt
+
 # other
 changes*.txt
 ipol_demo/app_new/
 ipol_webapp/apps/controlpanel/migrations/*_auto_*.py
+
