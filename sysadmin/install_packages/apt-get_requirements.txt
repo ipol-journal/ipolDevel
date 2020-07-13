@@ -10,6 +10,7 @@ bash-completion
 mailutils
 cron-apt
 git
+gunicorn
 python2.7
 wget
 cmake

@@ -12,6 +12,7 @@
     <module>demorunner</module>
     <server>ns6659661.ip-5-196-85.eu</server>
     <capability>DEBIAN_STABLE</capability>
+    <capability>DR1</capability>
     <serverSSH>ipol_dr1</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
   </demorunner>
@@ -20,6 +21,7 @@
     <module>demorunner</module>
     <server>ipolcore.ipol.im</server>
     <capability>DEBIAN_STABLE</capability>
+    <capability>CORE</capability>
     <serverSSH>ipol_core</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
   </demorunner>
@@ -29,6 +31,7 @@
     <server>green.hw.ipol.im</server>
     <capability>Matlab</capability>
     <capability>GPU</capability>
+    <capability>GREEN</capability>
     <serverSSH>ipol_green_dr</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
   </demorunner>

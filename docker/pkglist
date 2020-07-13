@@ -97,6 +97,8 @@ cron-apt
 bind9
 ipython
 net-tools
+gunicorn
+screen
 wget
 zip
 zsh

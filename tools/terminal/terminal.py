@@ -22,6 +22,12 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
+
+# Prompt
+from prompt_toolkit import prompt
+from prompt_toolkit.history import FileHistory
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+
 import sys
 
 class Terminal(object):
@@ -47,7 +53,7 @@ class Terminal(object):
         '''
         link = self.get_modules_xml_filename()
         if not os.path.islink(link):
-            print("ERROR: file is not link! - {}".format(link))
+            print("ERROR: file is not a link! - {}".format(link))
             sys.exit(0)
         filename = os.path.normpath(os.path.realpath(link))
         
@@ -198,7 +204,9 @@ class Terminal(object):
         Print a list of the active modules.
         """
         modules_up = False
-        print("IPOL Control Terminal")
+        print("Welcome to the IPOL Control Terminal")
+        print("Cursor up to repeat a line")
+        print("Cursor right to autocomplete from the history")
         environment = self.get_ipol_environment()
         print("Environment: \033[96m{}\033[0m".format(environment))
         print()
@@ -381,7 +389,7 @@ class Terminal(object):
         """
         Execution loop of the terminal.
         """
-        str_input = str()
+        user_input = ""
         entry_buffer = {
             "startall": self.start_all,
             "start": self.start_module,
@@ -402,15 +410,22 @@ class Terminal(object):
         self.get_active_modules()
 
         try:
-            while str_input != "exit":
-                str_input = input(">")
-                tab_input = str_input.split(" ", -1)
+            while user_input != 'exit':
+
+                user_input = prompt('IPOL> ',
+                        history=FileHistory('history.txt'),
+                        auto_suggest=AutoSuggestFromHistory()
+                        )
+                user_input = user_input.strip()
+
+                tab_input = user_input.split(" ", -1)
 
                 if tab_input[0] in list(entry_buffer.keys()):
                     entry_buffer[tab_input[0]](tab_input[1:])
                 else:
-                    print("Invalid command.")
-
+                    print(f"\033[0;31mInvalid command: {tab_input[0]}\033[0m")
+                
+                print()
         except (EOFError, KeyboardInterrupt):
             print("\nexit")
 

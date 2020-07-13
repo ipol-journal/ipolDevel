@@ -38,10 +38,6 @@ CREATE TABLE "demos_templates" (
         FOREIGN KEY('template_id') REFERENCES "templates"('id') ON DELETE CASCADE ON UPDATE CASCADE
         UNIQUE('demo_id', 'template_id')
 );
-CREATE TABLE "tags" (
-	'id'	INTEGER PRIMARY KEY AUTOINCREMENT,
-	'name'	VARCHAR(70) NOT NULL UNIQUE
-);
 CREATE TABLE "templates" (
         'id' INTEGER PRIMARY KEY AUTOINCREMENT,
         'name' VARCHAR (70) NOT NULL UNIQUE

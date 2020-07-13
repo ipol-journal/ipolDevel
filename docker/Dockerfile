@@ -11,8 +11,7 @@ WORKDIR /home/ipol
 COPY ./docker/pkglist /home/ipol/pkglist
 RUN apt update && apt install -y $(cat pkglist)
 
-COPY ./ipol_webapp/requirements.txt /home/ipol/cp_requirements.txt
-RUN pip install -r cp_requirements.txt && pip3 install requests virtualenv ipython
+RUN pip install virtualenv && pip3 install requests virtualenv ipython
 
 COPY ./docker/zsh_conf /home/ipol/zsh_conf
 
