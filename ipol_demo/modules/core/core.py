@@ -459,7 +459,9 @@ class Core():
             file_save = os.path.join(work_dir, 'input_%i' % i + ext_of_uploaded_blob)
 
             # Read and save the file
-            max_size = evaluate(inputs_desc[i]['max_weight'])
+            max_size = None
+            if 'max_weight' in inputs_desc[i]:
+                max_size = evaluate(inputs_desc[i]['max_weight'])
             Core.write_data_to_file(file_up, file_save, max_size=max_size, input_index=i)
 
     def copy_blobset_from_physical_location(self, demo_id, work_dir, blobset_id):
@@ -512,9 +514,9 @@ class Core():
         Copy the existing input inpainting data to the execution folder.
         """
         for i, ddl_input in enumerate(ddl_inputs):
-            if not 'inpainting_data_' + str(i) in blobs:
+            if not f"inpainting_data_{str(i)}" in blobs:
                 continue
-            blob_data = blobs['inpainting_data_' + str(i)]
+            blob_data = blobs[f"inpainting_data_{str(i)}"]
             if ddl_input['control'] == 'mask':
                 filepath = os.path.join(work_dir, f"mask_{i}.png")
                 Core.write_data_to_file(blob_data, filepath)
@@ -526,6 +528,9 @@ class Core():
 
     @staticmethod
     def write_data_to_file(blob_data, filepath, max_size=None, input_index=None):
+        """
+        Write input data to a given file destination.
+        """
         size = 0
         with open(filepath, 'wb') as file:
             blob_data.file.seek(0)
