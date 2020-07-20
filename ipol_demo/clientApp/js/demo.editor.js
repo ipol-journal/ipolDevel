@@ -53,7 +53,7 @@ function displayImagesControls(blobs, blob) {
 function saveSelectedInput(side, index) {
   blobsKeys = Object.keys(editorBlobs);
   helpers.addToStorage("selectedInput-" + side, {
-    text: "editor-input-" + side + "-" + index,
+    text: `editor-input-${side}-${index}`,
     src: blobsKeys[blobsKeys.indexOf(index)],
     format: editorBlobs[index].format
   });
@@ -67,31 +67,18 @@ function isTiff(blob){
 
 // Print the chosen set blob list
 function printBlobSetList(blobs) {
-  for (let i of Object.values(blobs)) {
+  for (const i in blobs) {
+    if (!ddl.inputs[i]) continue;
     $(".inputListContainerLeft").append(
-      "<span class=editor-input-left-" +
-        i +
-        ">" +
-        ddl.inputs[i].description +
-        "</span>"
+      `<span class=editor-input-left-${i}>${ddl.inputs[i].description}</span>`
     );
-    $(".editor-input-left-" + i).addClass("editor-input");
-    $(".editor-input-left-" + i).loadInputEvents(
-      i,
-      "left"
-    );
+    $(`.editor-input-left-${i}`).addClass("editor-input");
+    $(`.editor-input-left-${i}`).loadInputEvents(i, "left");
     $(".inputListContainerRight").append(
-      "<span class=editor-input-right-" +
-        i +
-        ">" +
-        ddl.inputs[i].description +
-        "</span>"
+      `<span class=editor-input-right-${i}>${ddl.inputs[i].description}</span>`
     );
-    $(".editor-input-right-" + i).addClass("editor-input");
-    $(".editor-input-right-" + i).loadInputEvents(
-      i,
-      "right"
-    );
+    $(`.editor-input-right-${i}`).addClass("editor-input");
+    $(`.editor-input-right-${i}`).loadInputEvents(i, "right");
   }
   $(".inputListContainerLeft").loadInputsContainerEvent("left");
   $(".inputListContainerRight").loadInputsContainerEvent("right");
