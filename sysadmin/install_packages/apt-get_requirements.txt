@@ -52,6 +52,7 @@ libblas-dev
 libblas3
 libopencv-dev
 libflann-dev
+libpcl-dev
 python-opencv
 ffmpeg
 liblapack-dev
