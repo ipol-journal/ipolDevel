@@ -25,6 +25,7 @@ libtiff-tools
 libjpeg-dev
 libpng-dev
 libfftw3-dev
+libnfft3-dev
 libeigen3-dev
 liblapack-dev
 libblas-dev
