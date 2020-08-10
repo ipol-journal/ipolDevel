@@ -86,7 +86,7 @@ table.pars tr:hover, table.pars caption {
 }
 
 .thumbnail {
-  width: 100%;
+  max-width: 100%;
 }
 
 .image-name {
@@ -95,6 +95,7 @@ table.pars tr:hover, table.pars caption {
   text-align: center;
 
   justify-self: center;
+  line-break: anywhere;
 }
 
 div.parameters, a.thumb {
