@@ -25,6 +25,7 @@ libtiff-tools
 libjpeg-dev
 libpng-dev
 libfftw3-dev
+libnfft3-dev
 libeigen3-dev
 liblapack-dev
 libblas-dev
@@ -51,6 +52,8 @@ libgsl-dbg
 libblas-dev
 libblas3
 libopencv-dev
+libflann-dev
+libpcl-dev
 python-opencv
 ffmpeg
 liblapack-dev
