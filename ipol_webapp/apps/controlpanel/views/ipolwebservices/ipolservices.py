@@ -220,8 +220,10 @@ def demoinfo_delete_demo(demo_id):
     demoinfo_resp = http_request(demoinfo_path, METHOD='POST', params={'demo_id': demo_id})
     if json.loads(demoinfo_resp)['status'] == 'KO':
         return demoinfo_resp
-    blobs_path = "/api/blobs/delete_demo"
-    demoinfo_resp = http_request(blobs_path, METHOD='POST', params={'demo_id': demo_id})
+    http_request("/api/blobs/delete_demo", METHOD='POST', params={'demo_id': demo_id})
+    http_request("/api/demoinfo/delete_demoextras", METHOD='POST', params={'demo_id': demo_id})
+    http_request("/api/archive/delete_demo", METHOD='POST', params={'demo_id': demo_id})
+    http_request("/api/demorunner/delete_compilation", METHOD='GET', params={'demo_id': demo_id})
     return demoinfo_resp
 
 
