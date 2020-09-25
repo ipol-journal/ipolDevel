@@ -17,7 +17,10 @@
 #
 
 """
-This script clones a demo from a source environment
+This script creates a template from the blobs of a demo.
+
+It needs to be executed within the server.
+Example: ./demo2template.py 271 Clouds_Pushbroom
 """
 
 import argparse
