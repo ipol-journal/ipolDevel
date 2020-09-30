@@ -97,10 +97,10 @@ function record(data) {
   let html = '<hr class="separator"/>';
   html += '<div class="record">';
   html += '<header>';
-  html += `<div class="legend" id=${data.id}>Experiment <p id="experiment-id">#${data.id}</p>.<br/>${data.date}`;
+  html += `<div class="legend" id=${data.id}><p>Experiment <strong id="experiment-id">#${data.id}</strong>.</p><p>${data.date}</p>`;
 
   var runtime = +data.parameters['run time'];
-  if (runtime) html += ' (done in '+runtime.toFixed(3)+' s)';
+  if (runtime) html += '<p>(done in '+runtime.toFixed(3)+' s)</p>';
   
   html += '</div>';
   html += '</header>';

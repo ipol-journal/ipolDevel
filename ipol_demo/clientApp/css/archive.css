@@ -43,7 +43,7 @@ table.pars tr:hover, table.pars caption {
   margin-bottom: 2rem;
 
   grid-auto-rows: max-content auto auto 1fr;
-  grid-gap: 5px;
+  grid-gap: 1rem;
   grid-template-areas: 'info images'
   'params images'
   'files files'
@@ -53,6 +53,10 @@ table.pars tr:hover, table.pars caption {
 
 .record header {
   grid-area: info;
+}
+
+.legend p {
+  margin: .5rem .2rem 0 0;
 }
 
 .images-container {
@@ -86,6 +90,8 @@ table.pars tr:hover, table.pars caption {
 }
 
 .thumbnail {
+  align-self: center;
+
   max-width: 100%;
 }
 
