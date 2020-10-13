@@ -109,7 +109,7 @@ def extract(fname, target):
     # no .. in file name
     for f in content:
         if ".." in f:
-            return 1 # Error code 1 means zip file contains files trying to decompress on a parent folder
+            return 1 # Error code 1 means compressed file contains files trying to decompress on a parent folder
 
     # cleanup/create the target dir
     if os.path.isdir(target):
