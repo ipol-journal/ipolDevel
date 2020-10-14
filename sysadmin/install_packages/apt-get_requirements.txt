@@ -84,6 +84,7 @@ unattended-upgrades
 apt-listchanges
 
 libcairo2
+libcairo2-dev
 libdevil-dev
 
 # Needed by the PythonTools of the DRs
