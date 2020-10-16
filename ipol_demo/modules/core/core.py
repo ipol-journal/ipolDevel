@@ -1096,8 +1096,11 @@ attached the failed experiment data.". \
         if resp['status'] != 'OK':
             if 'unresponsive_dr' in resp:
                 self.send_demorunner_unresponsive_email(resp['unresponsive_dr'])
-            error_message = "No DR satisfies the requirements: {}".format(
-                general_info['requirements'])
+            if 'requirements' in general_info:
+                requirement_names = general_info['requirements']
+                error_message = f'No DR satisfies the requirements: {requirement_names}'
+            else:
+                error_message = f'No DR available'
             raise IPOLFindSuitableDR(error_message)
 
         server_name = resp['dr_name']
