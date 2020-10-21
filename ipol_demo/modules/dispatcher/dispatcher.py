@@ -281,12 +281,11 @@ class Dispatcher():
         dr_workloads = self.demorunners_workload()
         chosen_dr = self.policy.execute(self.demorunners, dr_workloads, requirements)
         if not chosen_dr:
-            if requirements is None:
-                self.error_log("get_suitable_demorunner",
-                            f'No DR available with requirement {requirements}')
+            if requirements:
+                self.error_log("get_suitable_demorunner", f'No DR available')
             else:
                 self.error_log("get_suitable_demorunner",
-                            f'No DR available')
+                            f'No DR available with requirement {requirements}')
             return json.dumps(data).encode()
 
         dr_name = chosen_dr.name
