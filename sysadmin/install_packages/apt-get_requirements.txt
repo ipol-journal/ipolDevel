@@ -45,6 +45,7 @@ python3-pip
 python-yaml
 libpq-dev
 texlive-full
+cimg-dev
 libmagic-dev
 libgsl23
 libgsl-dev
