@@ -8,7 +8,6 @@ Helper functions for core, related to the archive module.
 import gzip
 import json
 import os
-import traceback
 from collections import OrderedDict
 
 import requests
@@ -60,7 +59,7 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
                 if not file_label: # if no label given, use filename
                     file_label = file_name
                 value = {file_label: src_file}
-                
+
                 thumb_file = create_thumbnail(src_file)
                 if thumb_file:
                     value[os.path.basename(thumb_file)] = thumb_file
