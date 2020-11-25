@@ -874,6 +874,10 @@ When a demo has a virtualenv in order to execute python code it needs to activat
 
 Every GNU/Linux distribution manages packages shipped differently, a new release will most probably come with a version of Python which is not the latest. Since the virtualenv package is independent from the Python language release cycle most probably the version of pip installed within a virtualenv is outdated. This will cause a warning on every installation within a virtualenv, just because the Python version comes by default with an outdated pip version. Even if the system has an up-to-date version of pip, virtualenvs will still be created with a different (outdated) one.
 
+\textbf{A commit was made directly to the master branch by mistake and now the merge is not automatic}
+
+Execute the following in the devel branch to re-synchronize the two branches: {\tt git rebase master}
+
 \bibliographystyle{plain}
 \bibliography{biblio}
 
