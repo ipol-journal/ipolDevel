@@ -507,29 +507,34 @@ container before actually running the server. For this purpose there is a script
 
 
 \paragraph{Docker build}:\\
+
+Run this command inside the ipolDevel repository you previously cloned.
+
 \begin{lstlisting}[firstnumber=1,breaklines]
-  $ docker build ~/ipolDevel -t ipol -f ~/ipolDevel/docker/Dockerfile
+  $ docker build . -t ipol -f ./docker/Dockerfile
 \end{lstlisting}
 
 With this command we will have docker create an image from the Dockerfile in the root of the project. It will go through the creation and configuration of the development envirorment. This command has to be executed from inside the project root folder. Explanation:
 \begin{itemize}
   \item docker build: command to build an image
-  \item {\tt \~{}/ipolDevel} : The context of the image. Should always be the root of the project IPOL.
+  \item {\tt .} : The context of the image. Here, the current folder is ipolDevel's repository root.
   \item -t ipol: Tag the image with the name ipol to reference it later.
   \item -f: flag to specify a Dockerfile
-  \item {\tt \~{}/ipolDevel/docker/Dockerfile}: Location of the Dockerfile defining the image.
+  \item {\tt ./docker/Dockerfile}: Location of the Dockerfile defining the image. Given that we are located in ipolDevel's repository root.
 \end{itemize}
 
 \paragraph{Docker run}:\\
 \begin{lstlisting}[firstnumber=1,breaklines]
-  $ docker run -it -v ./ipolDevel:/home/ipol/ipolDevel -p 80:80 -h docker --add-host docker:127.0.0.1 --name ipol ipol
+  $ docker run -it -v $(pwd):/home/ipol/ipolDevel -p 80:80 -h docker --add-host docker:127.0.0.1 --name ipol ipol
 \end{lstlisting}
 
 This command will create a container and log us in the terminal. Explanation:
 \begin{itemize}
   \item docker run: command to create a container
   \item -it: makes the container interactive and attaches to a tty or terminal.
-  \item -v ./ipolDevel:/home/ipol/ipolDevel: Creates a volume to share the project folder between the container and the host machine.
+  \item -v \$(pwd):/home/ipol/ipolDevel: Creates a volume to share the project folder between the container and the host machine.
+  As docker run does not accept relative paths, we use \$(pwd) to get back the currect directory: ipolDevel's repository root as always. If you are one
+  Windows, you can use \%cd\% to get back the current path. 
   \item -p 80:80: exposes port 80 in the container and links it to port 80 in the host machine.
   \item -h docker: defines the container's hostname
   \item --add-host docker:127.0.0.1: adds an entry to /etc/hosts mapping 127.0.0.1 to the host
@@ -576,6 +581,85 @@ In order to remove an image. The id or name provided will be available doing "do
   $ docker rmi 'docker_image_id'
 \end{lstlisting}
 
+\paragraph{Once you are on the container's terminal}:\\
+
+Which means you ran the \textbf{docker run} or the \textbf{docker start} command above.  
+
+Switch to the ipol user :
+\begin{lstlisting}[firstnumber=1,breaklines]
+  $ su ipol
+\end{lstlisting}
+
+Create an \emph{authorized\_patterns.conf} file by copying the sample one.
+\begin{lstlisting}[firstnumber=1,breaklines]
+  $ cd ~/ipolDevel/ipol_demo/modules/config_common/
+  $ cp authorized_patterns.conf.sample authorized_patterns.conf
+\end{lstlisting}
+
+Open IPOL's terminal:
+\begin{lstlisting}[firstnumber=1,breaklines]
+  $ terminal
+\end{lstlisting}
+
+You should be in a new terminal now, like this one:
+\begin{lstlisting}[firstnumber=1,breaklines]
+  IPOL>
+\end{lstlisting}
+
+Switch all modules to local
+\begin{lstlisting}[firstnumber=1,breaklines]
+  IPOL> env local0
+\end{lstlisting}
+
+Start all modules
+\begin{lstlisting}[firstnumber=1,breaklines]
+  IPOL> startall
+\end{lstlisting}
+
+When you ping them all, they should be marked "OK"
+\begin{lstlisting}[firstnumber=1,breaklines]
+  IPOL> pingall
+\end{lstlisting}
+
+You can now leave the terminal, cd to ipol\_webapp, create its venv, activate it, install its 
+requirements and make its migrations.
+\begin{lstlisting}[firstnumber=1,breaklines]
+  IPOL> exit
+  $ cd ~/ipolDevel/ipol_webapp/
+  $ python -m virtualenv venv
+  $ source venv/bin/activate
+  (venv) $ pip install -r requirements.txt
+  (venv) $ ~/ipolDevel/docker/migrations_cp.sh
+\end{lstlisting}
+
+Note: Don't worry if you see an error about a distribution not found for Django. It is about \textbf{cp2}
+which is not of use today.
+
+Now, we want to create a super user for cpanel. still with the \emph{venv} we just created, and
+still in \emph{\~/ipolDevel/ipol\_webapp} :
+\begin{lstlisting}[firstnumber=1,breaklines]
+  (venv) $ python manage.py createsuperuser
+\end{lstlisting}
+
+Pick a username, an email address and a password as you wish.
+
+\textbf{Important} : The only ling left to do is to download the staticData and db folders for the demoInfo
+and blobs modules. For that, you will have to ask someone in the team.  
+Then extract the content of these folders respectively in \emph{$./ipol\_demo/modules/blobs$}
+and in \emph{$./ipol\_demo/modules/demoInfo$} so that both of them have a staticData and db folders
+filled with the new files. Paths are relative to ipolDevel's repository root.
+
+\textbf{That is it!}
+
+You can now run cpanel with :
+\begin{lstlisting}[firstnumber=1,breaklines]
+  $ cpanel
+\end{lstlisting}
+And access it at \emph{http://127.0.0.1/cp/login/}. Use the credentials of the super user you created
+above. You can of course start cpanel in the backgroud if you want with : cpanel \&.  
+
+You can also access the demos at \emph{http://127.0.0.1/demo/} (no need to have cpanel running for
+that).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

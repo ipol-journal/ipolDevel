@@ -32,6 +32,11 @@ import virtualenv
 from Tools.run_demo_base import IPOLTimeoutError
 
 
+class IPOLInvalidPath(Exception):
+    """
+    IPOLInvalidPath
+    """
+
 class IPOLMissingBuildItem(Exception):
     """
     IPOLMissingBuildItem
@@ -355,8 +360,9 @@ class DemoRunner():
                     # instructions in the move directive have changed it
                     os.chdir(src_dir)
                     # Extract source code
-                    build.extract(tgz_file, src_dir)
-
+                    extraction_code = build.extract(tgz_file, src_dir)
+                    if extraction_code == 1: # Compressed file contains files trying to decompress on a parent folder
+                        raise IPOLInvalidPath
                     # Create virtualenv if specified by DDL
                     if "virtualenv" in build_item:
                         self.create_venv(build_item, bin_dir, src_dir)
@@ -488,6 +494,10 @@ Build: {}".format(str(ddl_build))
 GitLab, or Dropbox as a file server.\nddl_build: {}".\
 format(str(ex), str(ddl_build))
 
+        except IPOLInvalidPath as ex:
+            data = {}
+            data['status'] = 'KO'
+            data['message'] = 'Build Zip contains forbidden paths. It can not extract on/from a parent directory like "../".'
         except IPOLMissingBuildItem as ex:
             data = {}
             data['status'] = 'KO'

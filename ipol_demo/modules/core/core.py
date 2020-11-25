@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# -*- coding:utf-8 -*-
+
 """
 IPOL Core module
 """
@@ -1096,8 +1098,11 @@ attached the failed experiment data.". \
         if resp['status'] != 'OK':
             if 'unresponsive_dr' in resp:
                 self.send_demorunner_unresponsive_email(resp['unresponsive_dr'])
-            error_message = "No DR satisfies the requirements: {}".format(
-                general_info['requirements'])
+            if 'requirements' in general_info:
+                requirement_names = general_info['requirements']
+                error_message = f'No DR satisfies the requirements: {requirement_names}'
+            else:
+                error_message = f'No DR available'
             raise IPOLFindSuitableDR(error_message)
 
         server_name = resp['dr_name']
@@ -1236,6 +1241,14 @@ attached the failed experiment data.". \
             userdata['timeout'] = ddl_general['timeout']
 
         resp = self.post('api/demorunner/exec_and_wait', data=userdata, host=dr_server)
+        if resp.status_code is not 200:
+            demo_state = self.get_demo_metadata(demo_id)["state"].lower()
+
+            error = f'IPOLDemorunnerUnresponsive'
+
+            website_message = f'Demorunner {dr_name} not responding'
+
+            raise IPOLDemoRunnerResponseError(website_message, demo_state, key, error)
         try:
             demorunner_response = resp.json()
         except Exception as ex:

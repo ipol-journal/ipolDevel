@@ -107,7 +107,9 @@ def extract(fname, target):
     # no absolute file name
     assert not any([os.path.isabs(f) for f in content])
     # no .. in file name
-    assert not any([(".." in f) for f in content])
+    for f in content:
+        if ".." in f:
+            return 1 # Error code 1 means compressed file contains files trying to decompress on a parent folder
 
     # cleanup/create the target dir
     if os.path.isdir(target):

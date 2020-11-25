@@ -45,6 +45,7 @@ python3-pip
 python-yaml
 libpq-dev
 texlive-full
+cimg-dev
 libmagic-dev
 libgsl23
 libgsl-dev
@@ -84,6 +85,7 @@ unattended-upgrades
 apt-listchanges
 
 libcairo2
+libcairo2-dev
 libdevil-dev
 
 # Needed by the PythonTools of the DRs
