@@ -494,7 +494,7 @@ Build: {}".format(str(ddl_build))
 GitLab, or Dropbox as a file server.\nddl_build: {}".\
 format(str(ex), str(ddl_build))
 
-        except IPOLInvalidPath as ex:
+        except IPOLInvalidPath:
             data = {}
             data['status'] = 'KO'
             data['message'] = 'Build Zip contains forbidden paths. It can not extract on/from a parent directory like "../".'

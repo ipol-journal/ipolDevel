@@ -1241,7 +1241,7 @@ attached the failed experiment data.". \
             userdata['timeout'] = ddl_general['timeout']
 
         resp = self.post('api/demorunner/exec_and_wait', data=userdata, host=dr_server)
-        if resp.status_code is not 200:
+        if resp.status_code != 200:
             demo_state = self.get_demo_metadata(demo_id)["state"].lower()
 
             error = f'IPOLDemorunnerUnresponsive'
