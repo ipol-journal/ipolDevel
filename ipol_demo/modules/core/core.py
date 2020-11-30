@@ -1521,12 +1521,7 @@ attached the failed experiment data.". \
         """
         Make a POST request via the IPOL API
         """
-        try:
-            if host is None:
-                host = socket.getfqdn()
-            url = 'http://{0}/{1}'.format(host, api_url)
-            return requests.post(url, data=data)
-        except Exception as ex:
-            error_message = "Failure in the post function of the CORE using: URL={}, exception={}".format(url, ex)
-            print(error_message)
-            self.logger.exception(error_message)
+        if host is None:
+            host = socket.getfqdn()
+        url = 'http://{0}/{1}'.format(host, api_url)
+        return requests.post(url, data=data)
