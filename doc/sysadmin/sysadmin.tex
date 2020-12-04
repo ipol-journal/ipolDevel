@@ -525,16 +525,19 @@ With this command we will have docker create an image from the Dockerfile in the
 
 \paragraph{Docker run}:\\
 \begin{lstlisting}[firstnumber=1,breaklines]
-  $ docker run -it -v $(pwd):/home/ipol/ipolDevel -p 80:80 -h docker --add-host docker:127.0.0.1 --name ipol ipol
+  $ docker run -it -v $(pwd):/home/ipol/ipolDevel -v $(pwd)/ipolDevel/ipol_demo/modules/config_common/authorized_patterns.conf.sample:/home/ipol/ipolDevel/ipol_demo/modules/config_common/authorized_patterns.conf -p 80:80 -h docker --add-host docker:127.0.0.1 --name ipol hmaciasc/ipol
 \end{lstlisting}
 
 This command will create a container and log us in the terminal. Explanation:
 \begin{itemize}
   \item docker run: command to create a container
   \item -it: makes the container interactive and attaches to a tty or terminal.
-  \item -v \$(pwd):/home/ipol/ipolDevel: Creates a volume to share the project folder between the container and the host machine.
+  \item ipolDevel volume (-v): first -v parameter creates a volume to share the project folder between the container and the host machine.
   As docker run does not accept relative paths, we use \$(pwd) to get back the currect directory: ipolDevel's repository root as always. If you are one
   Windows, you can use \%cd\% to get back the current path. 
+  \item authorized\_patterns.conf volume (-v): this second -v parameter adds a volume which essentially creates the authorized\_patterns.conf file at the 
+  needed location on container creation. 
+  This will overwrite the default values but since this container is for development purposes only there is no need to modify the default values.
   \item -p 80:80: exposes port 80 in the container and links it to port 80 in the host machine.
   \item -h docker: defines the container's hostname
   \item --add-host docker:127.0.0.1: adds an entry to /etc/hosts mapping 127.0.0.1 to the host
@@ -583,17 +586,11 @@ In order to remove an image. The id or name provided will be available doing "do
 
 \paragraph{Once you are on the container's terminal}:\\
 
-Which means you ran the \textbf{docker run} or the \textbf{docker start} command above.  
+Which means you executed the \textbf{docker run} or the \textbf{docker start} command above.
 
 Switch to the ipol user :
 \begin{lstlisting}[firstnumber=1,breaklines]
   $ su ipol
-\end{lstlisting}
-
-Create an \emph{authorized\_patterns.conf} file by copying the sample one.
-\begin{lstlisting}[firstnumber=1,breaklines]
-  $ cd ~/ipolDevel/ipol_demo/modules/config_common/
-  $ cp authorized_patterns.conf.sample authorized_patterns.conf
 \end{lstlisting}
 
 Open IPOL's terminal:
