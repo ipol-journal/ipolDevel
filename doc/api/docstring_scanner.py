@@ -1,5 +1,5 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+# -*- coding:utf-8 -*-
 
 # GNU General Public Licence (GPL)
 #
@@ -19,6 +19,7 @@
 import optparse
 import re
 import time
+from sys import exit
 
 def start_scann(module):
     # Open and read file
@@ -76,7 +77,7 @@ def print_latex(content):
                                         .replace("{", "\{")
                                         .replace("}", "\}"))
         result += "\\end{itemize} \n"
-    print result.replace("\\\\\\","\\")
+    print(result.replace("\\\\\\","\\"))
 
 
 # Parse program arguments
@@ -84,8 +85,8 @@ parser = optparse.OptionParser()
 (opts, args) = parser.parse_args()
 
 if len(args) > 1:
-    print "Wrong number of arguments"
-    exit(0)
+    print("Wrong number of arguments")
+    exit(-1)
 
 module = args[0].lower() if len(args) == 1 else None
 acepted_modules = ["core", "dispatcher", "demorunner", "demoinfo", "blobs", "archive", "conversion"]
@@ -97,7 +98,7 @@ if module in acepted_modules:
 elif module is None:
     modules = acepted_modules
 else:
-    print "Unknown module '{}'".format(module)
+    print(f"Unknown module '{module}'")
     exit(-1)
 
 content = {}
