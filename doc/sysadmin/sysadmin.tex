@@ -525,7 +525,7 @@ With this command we will have docker create an image from the Dockerfile in the
 
 \paragraph{Docker run}:\\
 \begin{lstlisting}[firstnumber=1,breaklines]
-  $ docker run -it -v $(pwd):/home/ipol/ipolDevel -v $(pwd)/ipolDevel/ipol_demo/modules/config_common/authorized_patterns.conf.sample:/home/ipol/ipolDevel/ipol_demo/modules/config_common/authorized_patterns.conf -p 80:80 -h docker --add-host docker:127.0.0.1 --name ipol hmaciasc/ipol
+  $ docker run -it -v $(pwd):/home/ipol/ipolDevel -v $(pwd)/ipolDevel/ipol_demo/modules/config_common/authorized_patterns.conf.sample:/home/ipol/ipolDevel/ipol_demo/modules/config_common/authorized_patterns.conf -p 80:80 -h docker --add-host docker:127.0.0.1 --name ipol ipol
 \end{lstlisting}
 
 This command will create a container and log us in the terminal. Explanation:
