@@ -533,7 +533,7 @@ This command will create a container and log us in the terminal. Explanation:
   \item docker run: command to create a container
   \item -it: makes the container interactive and attaches to a tty or terminal.
   \item ipolDevel volume (-v): first -v parameter creates a volume to share the project folder between the container and the host machine.
-  As docker run does not accept relative paths, we use \$(pwd) to get back the currect directory: ipolDevel's repository root as always. If you are one
+  As docker run does not accept relative paths, we use \$(pwd) to get back the currect directory: ipolDevel's repository root as always. If you are on
   Windows, you can use \%cd\% to get back the current path. 
   \item authorized\_patterns.conf volume (-v): this second -v parameter adds a volume which essentially creates the authorized\_patterns.conf file at the 
   needed location on container creation. 
@@ -629,22 +629,21 @@ requirements and make its migrations.
   (venv) $ ~/ipolDevel/docker/migrations_cp.sh
 \end{lstlisting}
 
-Note: Don't worry if you see an error about a distribution not found for Django. It is about \textbf{cp2}
-which is not of use today.
+Note: An error about a missing distribution for Django might be displayed, but you can safely ignore it.
 
-Now, we want to create a super user for cpanel. still with the \emph{venv} we just created, and
+The next step is to create a super user for cpanel. Still with the \emph{venv} we just created, and
 still in \emph{\~/ipolDevel/ipol\_webapp} :
 \begin{lstlisting}[firstnumber=1,breaklines]
   (venv) $ python manage.py createsuperuser
 \end{lstlisting}
 
-Pick a username, an email address and a password as you wish.
+Choose a username, email address, and a password of your choice.
 
 \textbf{Important} : The only thing left to do is to download the staticData and db folders for the demoInfo
-and blobs modules. For that, you will have to ask someone in the team.  
+and blobs modules. 
 Then extract the content of these folders respectively in \emph{$./ipol\_demo/modules/blobs$}
 and in \emph{$./ipol\_demo/modules/demoInfo$} so that both of them have a staticData and db folders
-filled with the new files. Paths are relative to ipolDevel's repository root.
+with the new files. Paths are relative to ipolDevel's repository root.
 
 \textbf{That is it!}
 
@@ -653,7 +652,7 @@ You can now run cpanel with :
   $ cpanel
 \end{lstlisting}
 And access it at \emph{http://127.0.0.1/cp/login/}. Use the credentials of the super user you created
-above. You can of course start cpanel in the backgroud if you want with : cpanel \&.  
+above. You can start cpanel in the backgroud if you want with : cpanel \&.  
 
 You can also access the demos at \emph{http://127.0.0.1/demo/} (no need to have cpanel running for
 that).
