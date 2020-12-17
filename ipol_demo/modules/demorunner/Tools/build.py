@@ -104,11 +104,8 @@ def extract(fname, target):
         ar = zipfile.ZipFile(fname)
         content = ar.namelist()
 
-    # no absolute file name
-    assert not any([os.path.isabs(f) for f in content])
-    # no .. in file name or is a relative path
-    for f in content:
-        if ".." in f or f.startswith('/'):
+        # Report bad path in case of starting with "/" or containing ".."
+        if any([os.path.isabs(f) or ".." in f for f in content]):
             return 1 # Error code 1 means compressed file contains invalid decompressing paths
 
     # cleanup/create the target dir
