@@ -122,7 +122,7 @@ def extract(fname, target):
     # extract into the target dir
     try:
         ar.extractall(target)
-    except IOError as AttributeError:
+    except IOError:
         # DUE TO SOME ODD BEHAVIOR OF extractall IN Pthon 2.6.1 (OSX 10.6.8)
         # BEFORE TGZ EXTRACT FAILS INSIDE THE TARGET DIRECTORY A FILE
         # IS CREATED, ONE WITH THE NAME OF THE PACKAGE
