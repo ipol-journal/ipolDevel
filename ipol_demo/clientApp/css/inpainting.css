@@ -1,14 +1,10 @@
-#inpaintingControls {
-  display: grid;
-
-  grid-gap: 5px;
-}
-
 #inpainting-buttons {
   display: grid;
 
   grid-gap: 5px;
   grid-template-columns: repeat(2, 1fr);
+
+  padding-bottom: 5px;
 }
 
 #inpainting-buttons > button {
@@ -87,4 +83,9 @@
 
 #size-selector-container > label {
   padding-right: 5px;
+}
+
+#size-selector {
+  min-width: 50%;
+  width: 100%;
 }
