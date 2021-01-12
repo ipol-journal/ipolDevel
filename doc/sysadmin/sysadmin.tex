@@ -478,7 +478,7 @@ Open the script and configure the parameters:
 To access the Control Panel the users need to go to \url{http://ipolcore.ipol.im/cp/} and log in with their username and password.
 
 \section{Docker}
-A docker image is available to develop and run the IPOL demo system in any enviroment (say, Mac OS and others).
+A docker image is available to develop and run the IPOL demo system in any enviroment (say, MacOS and others).
 
 \paragraph{Usage}:
 The necessary commands in order to work with docker will be described in the next section. The first thing you should do is
@@ -486,7 +486,7 @@ build the Docker image, then you will be able to create as many containers as yo
 will have a terminal inside so you will be able to execute the terminal.py and bring up all modules. Nginx and ssh will be already
 configured and running.
 
-Once inside the container tty there will be a user called "ipol" wich should be used to execute any task related to modules, ipol terminal, 
+Once inside the container tty there will be a user called ``ipol" wich should be used to execute any task related to modules, ipol terminal, 
 cp or django. For sysadmin tasks that result in a change in the system imply that a change in the dockerfile is needed.
  
 In order to run the Django server for the control panel you will have to make the migrations once per
@@ -517,7 +517,7 @@ Run this command inside the ipolDevel repository you previously cloned.
 With this command we will have docker create an image from the Dockerfile in the root of the project. It will go through the creation and configuration of the development envirorment. This command has to be executed from inside the project root folder. Explanation:
 \begin{itemize}
   \item docker build: command to build an image
-  \item {\tt .} : The context of the image. Here, the current folder is ipolDevel's repository root.
+  \item {\tt .}: The context of the image. Here, the current folder is ipolDevel's repository root.
   \item -t ipol: Tag the image with the name ipol to reference it later.
   \item -f: flag to specify a Dockerfile
   \item {\tt ./docker/Dockerfile}: Location of the Dockerfile defining the image. Given that we are located in ipolDevel's repository root.
@@ -588,7 +588,7 @@ In order to remove an image. The id or name provided will be available doing "do
 
 Which means you executed the \textbf{docker run} or the \textbf{docker start} command above.
 
-Switch to the ipol user :
+Switch to the ipol user:
 \begin{lstlisting}[firstnumber=1,breaklines]
   $ su ipol
 \end{lstlisting}
@@ -632,27 +632,25 @@ requirements and make its migrations.
 Note: An error about a missing distribution for Django might be displayed, but you can safely ignore it.
 
 The next step is to create a super user for cpanel. Still with the \emph{venv} we just created, and
-still in \emph{\~/ipolDevel/ipol\_webapp} :
+still in \emph{\~/ipolDevel/ipol\_webapp}:
 \begin{lstlisting}[firstnumber=1,breaklines]
   (venv) $ python manage.py createsuperuser
 \end{lstlisting}
 
 Choose a username, email address, and a password of your choice.
 
-\textbf{Important} : The only thing left to do is to download the staticData and db folders for the demoInfo
+\textbf{Important}: the only thing left to do is to download the staticData and db folders for the demoInfo
 and blobs modules. 
 Then extract the content of these folders respectively in \emph{$./ipol\_demo/modules/blobs$}
 and in \emph{$./ipol\_demo/modules/demoInfo$} so that both of them have a staticData and db folders
 with the new files. Paths are relative to ipolDevel's repository root.
 
-\textbf{That is it!}
-
-You can now run cpanel with :
+You can now run cpanel with:
 \begin{lstlisting}[firstnumber=1,breaklines]
   $ cpanel
 \end{lstlisting}
 And access it at \emph{http://127.0.0.1/cp/login/}. Use the credentials of the super user you created
-above. You can start cpanel in the backgroud if you want with : cpanel \&.  
+above. You can start cpanel in the backgroud if you want with: cpanel \&.  
 
 You can also access the demos at \emph{http://127.0.0.1/demo/} (no need to have cpanel running for
 that).
