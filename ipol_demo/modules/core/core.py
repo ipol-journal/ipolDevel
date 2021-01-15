@@ -1517,7 +1517,8 @@ attached the failed experiment data.". \
         open_file.close()
         return dic
 
-    def post(self, api_url, data=None, host=None):
+    @staticmethod
+    def post(api_url, data=None, host=None):
         """
         Make a POST request via the IPOL API
         """
