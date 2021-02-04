@@ -256,7 +256,7 @@ class DemoInfo():
         if not demoextras_file:
             return None
         demoextras_name = pathname2url(os.path.basename(demoextras_file[0]))
-        return "http://{}/api/demoinfo/{}{}/{}".format(
+        return "https://{}/api/demoinfo/{}{}/{}".format(
             socket.getfqdn(),
             self.dl_extras_dir,
             demo_id,
