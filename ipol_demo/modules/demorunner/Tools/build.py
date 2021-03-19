@@ -21,6 +21,11 @@ from .error import VirtualEnvError
 
 TIME_FMT = "%a, %d %b %Y %H:%M:%S %Z"
 
+class IPOLInvalidPath(Exception):
+    """
+    IPOLInvalidPath
+    """
+    pass
 
 class IPOLHTTPMissingHeader(Exception):
     """
@@ -95,18 +100,18 @@ def extract(fname, target):
 
     @return: the archive content
     """
-    try:
-        # start with tar
-        ar = tarfile.open(fname)
-        content = ar.getnames()
-    except tarfile.ReadError:
-        # retry with zip
+    extension = os.path.splitext(fname)[1]
+    if extension == '.zip':
         ar = zipfile.ZipFile(fname)
         content = ar.namelist()
 
         # Report bad path in case of starting with "/" or containing ".."
         if any([os.path.isabs(f) or ".." in f for f in content]):
-            return 1 # Error code 1 means compressed file contains invalid decompressing paths
+            raise IPOLInvalidPath
+    else:
+        # tar files
+        ar = tarfile.open(fname)
+        content = ar.getnames()
 
     # cleanup/create the target dir
     if os.path.isdir(target):

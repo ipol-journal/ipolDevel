@@ -107,7 +107,14 @@ class DemoInfo():
         self.mkdir_p(self.dl_extras_dir)
         self.config_common_dir = cherrypy.config.get("config_common_dir")
 
-
+        # Get the server environment (integration or production)
+        hostname = socket.gethostname()
+        if hostname == 'ipolcore':
+            self.server_environment = 'production'
+        elif hostname == 'integration':
+            self.server_environment = 'integration'
+        else:
+            self.server_environment = '<unknown>'
 
         # Security: authorized IPs
         self.authorized_patterns = self.read_authorized_patterns()
@@ -256,7 +263,10 @@ class DemoInfo():
         if not demoextras_file:
             return None
         demoextras_name = pathname2url(os.path.basename(demoextras_file[0]))
-        return "https://{}/api/demoinfo/{}{}/{}".format(
+        env = self.server_environment
+        protocol = 'https' if env == 'production' or env == 'integration' else 'http'
+        return "{}://{}/api/demoinfo/{}{}/{}".format(
+            protocol,
             socket.getfqdn(),
             self.dl_extras_dir,
             demo_id,

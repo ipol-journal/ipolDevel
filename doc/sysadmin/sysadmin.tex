@@ -318,6 +318,42 @@ To configure the reverse proxy, we will use the sites-enabled, sites-available d
 As a good practice we enable Nginx gzip compression for static files. An example of this configuration part is located at the project repository 
 in the nginx.conf file under the sysadmin folder.
 
+\subsubsection{SSL on Integration servers}
+For the integration server we use certbot to generate and automatically renew SSL certificates.
+
+\begin{enumerate}
+  \item Install certbot and its dependencies
+  \begin{lstlisting}[language=Bash]
+  sudo apt update
+  sudo apt install python3-acme python3-certbot python3-mock \
+  python3-openssl python3-pkg-resources python3-pyparsing \
+  python3-zope.interface
+  sudo apt install python3-certbot-nginx
+  \end{lstlisting}
+  \item Generate certificate
+  \begin{lstlisting}[language=Bash]
+  sudo certbot certonly --nginx -d integration.ipol.im
+  \end{lstlisting}
+  \item Configure Nginx. Add to default configuration file.
+  \begin{lstlisting}[language=Bash]
+  # Enable SSL
+  listen *:443 ssl http2 default_server;
+  listen [::]:443 ssl http2 default_server;
+  include snippets/certificate.conf;
+  include snippets/ssl-params.conf;
+  include /etc/letsencrypt/options-ssl-nginx.conf;
+  \end{lstlisting}
+  \item Validate configuration and restart Nginx
+  \begin{lstlisting}[language=Bash]
+  sudo nginx -t && sudo nginx -s reload
+  \end{lstlisting}
+  \item Create cronjob to renew the certificate periodically. This should be done on the sudo user crontab.
+  \begin{lstlisting}[language=Bash]
+  0 12 * * * /usr/bin/certbot renew --quiet
+  \end{lstlisting}
+
+\end{enumerate}
+
 \subsubsection{Private demos}
 \begin{enumerate}
     \item Add authentication for demos. Only in the machine which serves the static files of the demo, of course.
