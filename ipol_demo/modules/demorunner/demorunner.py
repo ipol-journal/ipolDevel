@@ -345,7 +345,7 @@ class DemoRunner():
                 # Get files to move path
                 files_path = []
                 for f in files_to_move.split(","):
-                    files_path.append(os.path.join(bin_dir, os.path.basename(f.strip())))
+                    files_path.append(os.path.join(bin_dir, os.path.basename(f.strip('/ '))))
 
                 # Check if a rebuild is needed
                 if extract_needed or not self.all_files_exist(files_path):
@@ -369,13 +369,12 @@ class DemoRunner():
                     # Move files
                     for file_to_move in files_to_move.split(","):
                         # Remove possible white spaces
-                        file_to_move = file_to_move.strip()
+                        file_to_move = file_to_move.strip('/ ')
                         if not file_to_move:
                             continue
 
                         path_from = os.path.realpath(os.path.join(src_dir, file_to_move))
                         path_to = os.path.realpath(os.path.join(bin_dir, os.path.basename(file_to_move)))
-
                         src_path = os.path.realpath(src_dir)
                         bin_path = os.path.realpath(bin_dir)
 
@@ -385,9 +384,8 @@ class DemoRunner():
 
                         # Check origin
                         if not os.path.exists(path_from):
-                            raise IPOLConstructFileNotFound(\
-    "Construct can't move file since it doesn't exist: {}".\
-    format(path_from))
+                            raise IPOLConstructFileNotFound(
+                                f"Construct can't move file since it doesn't exist: {path_from}")
 
                         try:
                             # Remove path_to if it exists
@@ -396,12 +394,11 @@ class DemoRunner():
                             shutil.move(path_from, path_to)
                         except (IOError, OSError):
                             os.remove(lock_path)
-                            self.write_log("construct", "Can't move file {} --> {}".format(path_from, path_to))
+                            self.write_log("construct", f"Can't move file {path_from} --> {path_to}")
                             # If can't move, write in the log file, so
                             # the user can see it
                             f = open(log_file, 'w')
-                            f.write("Failed to move {} --> {}".\
-                                format(path_from, path_to))
+                            f.write(f"Failed to move {path_from} --> {path_to}")
                             f.close()
                             raise
         finally:
