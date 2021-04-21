@@ -40,7 +40,7 @@ function send_delete_experiment_request(wsurl, experiment_id) {
             success: function(data) {
                 if(data.status != 'OK')
                     alert('Failed to delete the experiment ' + experiment_id );
-                window.location.reload(true);
+                window.location.reload();
             },
             error: function(data){
                 alert('Failed to delete the experiment ' + experiment_id )

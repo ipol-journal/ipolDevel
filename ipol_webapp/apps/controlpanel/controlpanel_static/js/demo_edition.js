@@ -353,7 +353,7 @@ function submitDemoformAJAX(){
 
                 // check if demo id has changed, and redirect to the new URL, if it is the case
                 if($new_demo_id == $old_demo_id){
-                    window.location.reload(true);
+                    window.location.reload();
                 }else{
                     $current_demo_URL = window.location.href;
                     $new_demo_URL = $current_demo_URL.replace($old_demo_id, $new_demo_id);

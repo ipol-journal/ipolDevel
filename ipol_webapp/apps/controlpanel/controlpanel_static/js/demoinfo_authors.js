@@ -63,7 +63,7 @@ function send_delete_author_request(wsurl,author_id) {
                 var okhtml="<p class=\"ststsok\">Author deleted</p>";
                 $('#author_info_'+ author_id).html(okhtml);
                 //todo better to only reload part of list, but shoul change django pagination for js pagination
-                window.location.reload(true);
+                window.location.reload();
             },
             error: function(data){
                 console.error(data.status);
@@ -178,7 +178,7 @@ function submitAuthorformAJAX(){
                 $($modal_author_msg_div).html('Author saved').show();
                 $authorform.hide();
                 //todo better to only reload part of list, but shoul change django pagination for js pagination
-                window.location.reload(true);
+                window.location.reload();
             }
             else {
 
