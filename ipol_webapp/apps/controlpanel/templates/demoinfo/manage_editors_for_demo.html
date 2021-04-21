@@ -272,7 +272,7 @@
                         var okhtml="<p class=\"ststsok\">Editor succesfully removed from demo.</p>";
                         $('#editor_info_'+ editor_id).html(okhtml);
                         //todo better to only reload part of list, but should change django pagination for js pagination
-                        window.location.reload(true);
+                        window.location.reload();
 
                     },
                     error: function(data){
@@ -390,7 +390,7 @@
                         $($modal_editor_msg_div).html('Editor saved').show();
                         $editorform.hide();
                         //todo better to only reload part of list, but shoul change django pagination for js pagination
-                        window.location.reload(true);
+                        window.location.reload();
                     }
                     else {
 
@@ -502,7 +502,7 @@
                         $($modal_choosedemoeditor_msg_div).html('Changes saved.').show();
                         $choosedemoeditorform.hide();
                         //todo better to only reload part of list, but should change django pagination for js pagination
-                        window.location.reload(true);
+                        window.location.reload();
                     }
                     else {
 
@@ -600,7 +600,7 @@
                         $($modal_demoeditor_msg_div).html('choosedemoEditor saved').show();
                         $editorform.hide();
                         //todo better to only reload part of list, but should change django pagination for js pagination
-                        window.location.reload(true);
+                        window.location.reload();
                     }
                     else {
 
