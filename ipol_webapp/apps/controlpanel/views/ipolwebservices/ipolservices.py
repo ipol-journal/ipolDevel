@@ -42,16 +42,9 @@ def http_request(path, METHOD=None, params=None, json=None, files=None):
         if not METHOD or METHOD == 'GET':
             response = requests.get(url, params=params)
         elif METHOD == 'POST':
-            if json is not None:
-                if files is not None:
-                    response = requests.post(url, params=params, data=json, files=files)
-                else:
-                    response = requests.post(url, params=params, data=json)
-            else:
-                if files is not None:
-                    response = requests.post(url, params=params, files=files)
-                else:
-                    response = requests.post(url, params=params)
+            response = requests.post(url, params=params, data=json, files=files)
+        elif METHOD == 'DELETE':
+            response = requests.delete(url, params=params)  
         else:
             msg = "http_request: Not valid METHOD: %s" % result
             logger.error(msg)
@@ -641,24 +634,24 @@ def remove_blob_from_demo(demo_id, blob_set, pos_set):
     return http_request(path, METHOD='GET', params=serviceparams)
 
 
-def remove_template_from_demo(demo_id, template):
+def remove_template_from_demo(demo_id, template_id):
     """
     Remove blob from demo
     """
     path = "/api/blobs/remove_template_from_demo"
 
-    serviceparams = {'demo_id': demo_id, 'template_name': template}
+    serviceparams = {'demo_id': demo_id, 'template_id': template_id}
 
-    return http_request(path, METHOD='GET', params=serviceparams)
+    return http_request(path, METHOD='DELETE', params=serviceparams)
 
 
-def add_template_to_demo(demo_id, template):
+def add_template_to_demo(demo_id, template_id):
     """
     Remove blob from demo
     """
     path = "/api/blobs/add_templates_to_demo"
 
-    serviceparams = {'demo_id': demo_id, 'template_names': template}
+    serviceparams = {'demo_id': demo_id, 'template_id': template_id}
 
     return http_request(path, METHOD='GET', params=serviceparams)
 
@@ -704,23 +697,23 @@ def get_all_templates():
     return http_request(path, METHOD='GET')
 
 
-def get_template_blobs(name):
+def get_template_blobs(id):
     """
     Get template blobs
     """
     path = "/api/blobs/get_template_blobs"
 
-    serviceparams = {'template_name': name}
+    serviceparams = {'template_id': id}
     return http_request(path, METHOD='GET', params=serviceparams)
 
 
-def add_blob_to_template(request, name, blob_set, pos_set, title, credit):
+def add_blob_to_template(request, template_id, blob_set, pos_set, title, credit):
     """
     Add a new blob to the template
     """
     path = "/api/blobs/add_blob_to_template"
 
-    params = {'template_name': name, 'title': title, 'credit': credit}
+    params = {'template_id': template_id, 'title': title, 'credit': credit}
 
     if blob_set != "":
         params['blob_set'] = blob_set
@@ -736,17 +729,17 @@ def add_blob_to_template(request, name, blob_set, pos_set, title, credit):
     return http_request(path, METHOD='POST', params=params, files=files)
 
 
-def remove_blob_from_template(name, blob_set, pos_set):
+def remove_blob_from_template(template_id, blob_set, pos_set):
     """
     Remove blob from template
     """
     path = "/api/blobs/remove_blob_from_template"
 
-    serviceparams = {'template_name': name, 'blob_set': blob_set, 'pos_set': pos_set}
+    serviceparams = {'template_id': template_id, 'blob_set': blob_set, 'pos_set': pos_set}
     return http_request(path, METHOD='GET', params=serviceparams)
 
 
-def edit_blob_from_template(request, name, blob_set, new_blob_set, pos_set, new_pos_set, title, credit):
+def edit_blob_from_template(request, id, blob_set, new_blob_set, pos_set, new_pos_set, title, credit):
     """
     Edit blob info from template
     """
@@ -759,7 +752,7 @@ def edit_blob_from_template(request, name, blob_set, new_blob_set, pos_set, new_
     except Exception as ex:
         print ex
 
-    serviceparams = {'template_name': name, 'blob_set': blob_set, 'new_blob_set': new_blob_set,
+    serviceparams = {'template_id': id, 'blob_set': blob_set, 'new_blob_set': new_blob_set,
                      'pos_set': pos_set, 'new_pos_set': new_pos_set, 'title': title, 'credit': credit}
 
     return http_request(path, METHOD='POST', params=serviceparams, files=files)
@@ -774,14 +767,14 @@ def get_all_templates():
     return http_request(path, METHOD='GET')
 
 
-def delete_template(name):
+def delete_template(template_id):
     """
     Get all the templates
     """
-    path = "/api/blobs/delete_template"
+    path = "/api/blobs/delete_template/"
 
-    serviceparams = {'template_name': name}
-    return http_request(path, METHOD='GET', params=serviceparams)
+    serviceparams = {'template_id': template_id}
+    return http_request(path, METHOD='DELETE', params=serviceparams)
 
 
 def create_template(name):
@@ -791,16 +784,16 @@ def create_template(name):
     path = "/api/blobs/create_template"
 
     serviceparams = {'template_name': name}
-    return http_request(path, METHOD='GET', params=serviceparams)
+    return http_request(path, METHOD='POST', params=serviceparams)
 
 
-def get_demos_using_the_template(template_name):
+def get_demos_using_the_template(template_id):
     """
     Get the list of demos that uses the given template
     """
     path = "/api/blobs/get_demos_using_the_template"
 
-    serviceparams = {'template_name': template_name}
+    serviceparams = {'template_id': template_id}
     return http_request(path, METHOD='GET', params=serviceparams)
 
 def get_blobs_stats():

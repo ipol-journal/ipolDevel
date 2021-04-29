@@ -196,13 +196,13 @@ class RemoveTemplateFromDemo(NavbarReusableMixinMF, TemplateView):
             response = self.request.POST
             dict_response = dict(response.iterlists())
             if has_permission(dict_response['demo_id'], self.request.user):
-                ipolservices.remove_template_from_demo(dict_response['demo_id'], dict_response['template'])
+                ipolservices.remove_template_from_demo(dict_response['demo_id'], dict_response['template_id'])
         except Exception as ex:
             msg = "RemoveTemplateFromDemo. Error %s " % ex
             logger.error(msg)
             print(msg)
 
-        return HttpResponseRedirect('')
+        return HttpResponse('200')
 
 class AddTemplateToDemo(NavbarReusableMixinMF,TemplateView):
 
@@ -215,14 +215,16 @@ class AddTemplateToDemo(NavbarReusableMixinMF,TemplateView):
         try:
             response = self.request.POST
             dict_response = dict(response.iterlists())
-            if has_permission(dict_response['demo_id'], self.request.user):
-                ipolservices.add_template_to_demo(dict_response['demo_id'], dict_response['template'])
+            demo_id = dict_response['demo_id']
+            template_id = dict_response['template_id']
+            if has_permission(demo_id, self.request.user):
+                ipolservices.add_template_to_demo(demo_id, template_id)
         except Exception as ex:
             msg = "AddTemplateToDemo. Error %s " % ex
             logger.error(msg)
             print(msg)
 
-        return HttpResponseRedirect('')
+        return HttpResponseRedirect('/cp/blob_demo/'+ demo_id)
 
 class AddBlobToDemo(NavbarReusableMixinMF,TemplateView):
 
@@ -260,13 +262,18 @@ class TemplatePageView(NavbarReusableMixinMF, TemplateView):
     def get_context_data(self, **kwargs):
         self.request.session['menu'] = 'menu-templates'
         context = super(TemplatePageView, self).get_context_data(**kwargs)
-        name = self.kwargs['name']
+        template_id = self.kwargs['id']
 
         try:
-
-            page_json = ipolservices.get_template_blobs(name)
+            templates_json = ipolservices.get_all_templates()
+            templates = json.loads(templates_json)['templates']
+            for template in templates:
+                if template['id'] == int(template_id):
+                    context['template_name'] = template['name']
+                    context['template_id'] = template['id']
+            page_json = ipolservices.get_template_blobs(template_id)
             response_sets = json.loads(page_json, object_pairs_hook=collections.OrderedDict)
-            response = ipolservices.get_demos_using_the_template(name)
+            response = ipolservices.get_demos_using_the_template(template_id)
             demos = json.loads(response)
 
             demo_list = []
@@ -295,6 +302,13 @@ class AddBlobTemplateView(NavbarReusableMixinMF, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(AddBlobTemplateView, self).get_context_data(**kwargs)
+        template_id = self.kwargs['id']
+        templates_json = ipolservices.get_all_templates()
+        templates = json.loads(templates_json)['templates']
+        for template in templates:
+            if template['id'] == int(template_id):
+                context['template_name'] = template['name']
+                context['template_id'] = template['id']
         return context
 
 class AddBlobToTemplate(NavbarReusableMixinMF,TemplateView):
@@ -305,21 +319,21 @@ class AddBlobToTemplate(NavbarReusableMixinMF,TemplateView):
 
 
     def post(self, request, *args, **kwargs):
+        template_id = self.kwargs['id']
         try:
             response = self.request.POST
             dict_response = dict(response.iterlists())
-            name = dict_response['name'][0]
             set = dict_response['set'][0]
             pos = dict_response['pos'][0]
             title = dict_response['title'][0]
             credit = dict_response['credit'][0]
-            ipolservices.add_blob_to_template(request, name, set, pos, title, credit)
+            ipolservices.add_blob_to_template(request, template_id, set, pos, title, credit)
         except Exception as ex:
             msg = "AddBlobToTemplate Error %s " % ex
             logger.error(msg)
             print(msg)
 
-        return HttpResponseRedirect('/cp/blob_template/'+name)
+        return HttpResponseRedirect('/cp/blob_template/' + template_id)
 
 
 class EditBlobFromTemplate(NavbarReusableMixinMF, TemplateView):
@@ -334,15 +348,16 @@ class EditBlobFromTemplate(NavbarReusableMixinMF, TemplateView):
         context = super(EditBlobFromTemplate, self).get_context_data(**kwargs)
 
         try:
-            name = self.request.GET.get('name')
+            template_id = self.request.GET.get('template_id')
+
             set = self.request.GET.get('set')
             pos = self.request.GET.get('pos')
+            context['template_id'] = template_id
             context['status'] = 'OK'
-            context['name'] = name
             context['set'] = set
             context['pos'] = pos
 
-            page_json = ipolservices.get_template_blobs(name)
+            page_json = ipolservices.get_template_blobs(template_id)
             response = json.loads(page_json)
 
             context['status'] = response['status']
@@ -353,7 +368,7 @@ class EditBlobFromTemplate(NavbarReusableMixinMF, TemplateView):
 
 
         except Exception as e:
-            print "error:",e
+            print("error:",e)
             context['status'] = 'KO'
             msg = "EditBlobFromTemplate error: %s" % e
             logger.error(msg)
@@ -391,7 +406,7 @@ class SaveBlobInfoFromTemplate(NavbarReusableMixinMF,TemplateView):
             response = self.request.POST
             dict_response = dict(response.iterlists())
 
-            name = dict_response['name'][0]
+            template_id = dict_response['template_id'][0]
             set = dict_response['set'][0]
             new_set = dict_response['new_set'][0]
 
@@ -402,13 +417,13 @@ class SaveBlobInfoFromTemplate(NavbarReusableMixinMF,TemplateView):
             new_pos = dict_response['new_pos'][0]
             title = dict_response['title'][0]
             credit = dict_response['credit'][0]
-            ipolservices.edit_blob_from_template(request,name,set,new_set,pos,new_pos,title,credit)
+            ipolservices.edit_blob_from_template(request,template_id,set,new_set,pos,new_pos,title,credit)
         except Exception as ex:
             msg = "SaveBlobInfoFromTemplate Error %s " % ex
             logger.error(msg)
             print(msg)
 
-        return HttpResponseRedirect('/cp/blob_template/'+name)
+        return HttpResponseRedirect('/cp/blob_template/'+template_id)
 
 class RemoveBlobFromTemplate(NavbarReusableMixinMF,TemplateView):
 
@@ -421,7 +436,7 @@ class RemoveBlobFromTemplate(NavbarReusableMixinMF,TemplateView):
         try:
             response = self.request.POST
             dict_response = dict(response.iterlists())
-            ipolservices.remove_blob_from_template(dict_response['name'][0], dict_response['set'][0], dict_response['pos'][0])
+            ipolservices.remove_blob_from_template(dict_response['template_id'][0], dict_response['set'][0], dict_response['pos'][0])
         except Exception as ex:
             msg = "RemoveBlobFromTemplate Error %s " % ex
             logger.error(msg)
@@ -451,7 +466,7 @@ class TemplateListView(NavbarReusableMixinMF, TemplateView):
             self.request.session['menu'] = 'menu-templates'
 
         except Exception as e:
-            print "TemplateListView Error:",e
+            print("TemplateListView Error:",e)
             logger.error(e)
 
         return context
@@ -467,7 +482,8 @@ class DeleteTemplate(NavbarReusableMixinMF,TemplateView):
         try:
             response = self.request.POST
             dict_response = dict(response.iterlists())
-            ipolservices.delete_template(dict_response['name'][0])
+            ipolservices.delete_template(dict_response['template_id'][0])
+            return HttpResponse('200')
         except Exception as ex:
             msg = "DeleteTemplate Error %s " % ex
             logger.error(msg)
@@ -485,6 +501,7 @@ class CreateTemplate(NavbarReusableMixinMF,TemplateView):
             response = self.request.POST
             dict_response = dict(response.iterlists())
             ipolservices.create_template(dict_response['name'][0])
+            return HttpResponse('200')
         except Exception as ex:
             msg = "CreateTemplate Error %s " % ex
             logger.error(msg)
