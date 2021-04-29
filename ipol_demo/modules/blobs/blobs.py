@@ -296,13 +296,12 @@ class Blobs():
                 self.do_add_blob_to_demo(conn, demo_id, blob_id, blob_set, pos_set, title)
                 res = True
             elif dest["dest"] == "template":
-                template_name = dest["name"]
+                template_id = dest["template_id"]
                 # Check if the pos is empty
-                if database.is_pos_occupied_in_template_set(conn, template_name, blob_set, pos_set):
-                    template_id = database.get_template_id(conn, template_name)
+                if database.is_pos_occupied_in_template_set(conn, template_id, blob_set, pos_set):
                     pos_set = database.get_available_pos_in_template_set(conn, template_id, blob_set)
 
-                self.do_add_blob_to_template(conn, template_name, blob_id, blob_set, pos_set, title)
+                self.do_add_blob_to_template(conn, template_id, blob_id, blob_set, pos_set, title)
                 res = True
             else:
                 self.logger.error("Failed to add the blob in add_blob. Unknown dest: {}".format(dest["dest"]))
@@ -339,12 +338,12 @@ class Blobs():
 
     @cherrypy.expose
     @authenticate
-    def add_blob_to_template(self, blob=None, template_name=None, blob_set=None, pos_set=None, title=None,
+    def add_blob_to_template(self, blob=None, template_id=None, blob_set=None, pos_set=None, title=None,
                              credit=None, blob_vr=None):
         """
         Adds a new blob to a template
         """
-        dest = {"dest": "template", "name": template_name}
+        dest = {"dest": "template", "template_id": template_id}
 
         if self.add_blob(blob, blob_set, pos_set, title, credit, dest, blob_vr):
             return json.dumps({"status": "OK"}).encode()
@@ -433,15 +432,15 @@ class Blobs():
             raise
 
     @staticmethod
-    def do_add_blob_to_template(conn, template_name, blob_id, blob_set, pos_set, blob_title):
+    def do_add_blob_to_template(conn, template_id, blob_id, blob_set, pos_set, blob_title):
         """
         Associates the template to a demo in the DB
         """
         try:
-            if not database.template_exist(conn, template_name):
+            if not database.template_exist(conn, template_id):
                 raise IPOLBlobsTemplateError("Template doesn't exist")
 
-            database.add_blob_to_template(conn, template_name, blob_id, pos_set, blob_set, blob_title)
+            database.add_blob_to_template(conn, template_id, blob_id, pos_set, blob_set, blob_title)
             conn.commit()
         except IPOLBlobsDataBaseError:
             conn.rollback()
@@ -473,9 +472,12 @@ class Blobs():
         conn = None
         try:
             conn = lite.connect(self.database_file)
-            database.create_template(conn, template_name)
+            template_id = database.create_template(conn, template_name)
             conn.commit()
-            status = {"status": "OK"}
+            status = {
+                "status": "OK",
+                "template_id": template_id
+            }
 
         except IPOLBlobsDataBaseError as ex:
             if conn is not None:
@@ -495,42 +497,42 @@ class Blobs():
 
     @cherrypy.expose
     @authenticate
-    def add_templates_to_demo(self, demo_id, template_names):
+    def add_templates_to_demo(self, demo_id, template_id):
         """
         Associates the demo to the list of templates
         """
-        template_names_list = set(map(str.strip, str(template_names).split(",")))
+        template_id_list = set(map(str.strip, str(template_id).split(",")))
         status = {"status": "KO"}
         conn = None
         try:
             conn = lite.connect(self.database_file)
 
-            if not database.all_templates_exist(conn, template_names_list):
+            if not database.all_templates_exist(conn, template_id_list):
                 raise IPOLBlobsTemplateError("Not all the templates exist")
 
             if not database.demo_exist(conn, demo_id):
                 database.create_demo(conn, demo_id)
 
-            database.add_templates_to_demo(conn, template_names_list, demo_id)
+            database.add_templates_to_demo(conn, template_id_list, demo_id)
             conn.commit()
             status = {"status": "OK"}
 
         except IPOLBlobsDataBaseError as ex:
             if conn is not None:
                 conn.rollback()
-            self.logger.exception("Fails linking templates {} to the demo #{}".format(template_names, demo_id))
-            print("Couldn't link templates {} to the demo #{}. Error: {}".format(template_names, demo_id, ex))
+            self.logger.exception("Fails linking templates {} to the demo #{}".format(template_id, demo_id))
+            print("Couldn't link templates {} to the demo #{}. Error: {}".format(template_id, demo_id, ex))
         except IPOLBlobsTemplateError as ex:
             if conn is not None:
                 conn.rollback()
-            print("Some of the templates {} does not exist. Error: {}".format(template_names, ex))
+            print("Some of the templates {} does not exist. Error: {}".format(template_id, ex))
         except Exception as ex:
             if conn is not None:
                 conn.rollback()
             self.logger.exception("*** Unhandled exception while linking the templates {} to the demo #{}"
-                                  .format(template_names, demo_id))
+                                  .format(template_id, demo_id))
             print("*** Unhandled exception while linking the templates {} to the demo #{}. Error:{}" \
-                .format(template_names, demo_id, ex))
+                .format(template_id, demo_id, ex))
         finally:
             if conn is not None:
                 conn.close()
@@ -556,7 +558,7 @@ class Blobs():
             templates = database.get_demo_templates(conn, demo_id)
             sets = self.prepare_list(demo_blobs)
             for template in templates:
-                sets += self.prepare_list(database.get_template_blobs(conn, template))
+                sets += self.prepare_list(database.get_template_blobs(conn, template['id']))
 
             data["sets"] = sets
             data["status"] = "OK"
@@ -599,7 +601,7 @@ class Blobs():
         return result
 
     @cherrypy.expose
-    def get_template_blobs(self, template_name):
+    def get_template_blobs(self, template_id):
         """
         Get the list of blobs in the given template
         """
@@ -608,18 +610,17 @@ class Blobs():
         try:
             conn = lite.connect(self.database_file)
 
-            if not database.template_exist(conn, template_name):
+            if not database.template_exist(conn, template_id):
                 # If the requested template doesn't exist the method will return a KO
                 return json.dumps(data).encode()
-
-            sets = self.prepare_list(database.get_template_blobs(conn, template_name))
+            sets = self.prepare_list(database.get_template_blobs(conn, template_id))
 
             data["sets"] = sets
             data["status"] = "OK"
 
         except IPOLBlobsDataBaseError as ex:
-            self.logger.exception("Fails obtaining the owned blobs from template '{}'".format(template_name))
-            print("Couldn't obtain owned blobs from template '{}'. Error: {}".format(template_name, ex))
+            self.logger.exception("Fails obtaining the owned blobs from template '{}'".format(template_id))
+            print("Couldn't obtain owned blobs from template '{}'. Error: {}".format(template_id, ex))
         except Exception as ex:
             self.logger.exception("*** Unhandled exception while obtaining the owned blobs from template '{}'"
                                   .format(template_name))
@@ -767,14 +768,14 @@ class Blobs():
 
                         database.remove_blob_from_demo(conn, demo_id, blob_set, pos_set)
                 elif dest["dest"] == "template":
-                    template_name = dest["name"]
-                    blob_data = database.get_blob_data_from_template(conn, template_name, blob_set, pos_set)
+                    template_id = dest["template_id"]
+                    blob_data = database.get_blob_data_from_template(conn, template_id, blob_set, pos_set)
 
                     if blob_data:
                         blob_id = blob_data.get('id')
                         num_refs = database.get_blob_refcount(conn, blob_id)
 
-                        database.remove_blob_from_template(conn, template_name, blob_set, pos_set)
+                        database.remove_blob_from_template(conn, template_id, blob_set, pos_set)
                 else:
                     self.logger.error("Failed to remove blob. Unknown dest: {}".format(dest["dest"]))
                     return res
@@ -822,11 +823,11 @@ class Blobs():
 
     @cherrypy.expose
     @authenticate
-    def remove_blob_from_template(self, template_name, blob_set, pos_set):
+    def remove_blob_from_template(self, template_id, blob_set, pos_set):
         """
         Remove a blob from the template
         """
-        dest = {"dest": "template", "name": template_name}
+        dest = {"dest": "template", "template_id": template_id}
         if self.remove_blob(blob_set, pos_set, dest):
             return json.dumps({"status": "OK"}).encode()
         return json.dumps({"status": "KO"}).encode()
@@ -851,14 +852,14 @@ class Blobs():
                     database.remove_demo_blobs_association(conn, demo_id)
                     database.remove_demo(conn, demo_id)
                 elif dest["dest"] == "template":
-                    template_name = dest["name"]
-                    blobs = database.get_template_blobs(conn, template_name)
+                    template_id = dest["id"]
+                    blobs = database.get_template_blobs(conn, template_id)
 
                     for blob in blobs:
                         ref_count[blob["id"]] = database.get_blob_refcount(conn, blob["id"])
 
-                    database.remove_template_blobs_association(conn, template_name)
-                    database.remove_template(conn, template_name)
+                    database.remove_template_blobs_association(conn, template_id)
+                    database.remove_template(conn, template_id)
                 else:
                     self.logger.error("Failed to remove blob. Unknown dest: {}".format(dest["dest"]))
                     return res
@@ -904,18 +905,18 @@ class Blobs():
 
     @cherrypy.expose
     @authenticate
-    def delete_template(self, template_name):
+    def delete_template(self, template_id):
         """
         Remove the template
         """
-        dest = {"dest": "template", "name": template_name}
+        dest = {"dest": "template", "id": template_id}
         if self.delete_blob_container(dest):
             return json.dumps({"status": "OK"}).encode()
         return json.dumps({"status": "KO"}).encode()
 
     @cherrypy.expose
     @authenticate
-    def remove_template_from_demo(self, demo_id, template_name):
+    def remove_template_from_demo(self, demo_id, template_id):
         """
         Remove the template from the demo
         """
@@ -923,7 +924,7 @@ class Blobs():
         conn = None
         try:
             conn = lite.connect(self.database_file)
-            if database.remove_template_from_demo(conn, demo_id, template_name):
+            if database.remove_template_from_demo(conn, demo_id, template_id):
                 conn.commit()
                 data['status'] = 'OK'
         except IPOLBlobsDataBaseError as ex:
@@ -1001,12 +1002,12 @@ class Blobs():
 
     @cherrypy.expose
     @authenticate
-    def edit_blob_from_template(self, template_name=None, blob_set=None, new_blob_set=None, pos_set=None,
+    def edit_blob_from_template(self, template_id=None, blob_set=None, new_blob_set=None, pos_set=None,
                                 new_pos_set=None, title=None, credit=None, vr=None):
         """
         Edit blob information in a template
         """
-        dest = {"dest": "template", "name": template_name}
+        dest = {"dest": "template", "id": template_id}
         if self.edit_blob(blob_set, new_blob_set, pos_set, new_pos_set, title, credit, vr, dest):
             return json.dumps({"status": "OK"}).encode()
         return json.dumps({"status": "KO"}).encode()
@@ -1030,16 +1031,15 @@ class Blobs():
                 database.edit_blob_from_demo(conn, demo_id, blob_set, new_blob_set, pos_set, new_pos_set, title, credit)
                 blob_data = database.get_blob_data_from_demo(conn, demo_id, new_blob_set, new_pos_set)
             elif dest["dest"] == "template":
-                template_name = dest["name"]
+                template_id = dest["id"]
 
                 if new_blob_set != blob_set or new_pos_set != pos_set:
-                    if database.is_pos_occupied_in_template_set(conn, template_name, blob_set, new_pos_set):
-                        template_id = database.get_template_id(conn, template_name)
+                    if database.is_pos_occupied_in_template_set(conn, template_id, blob_set, new_pos_set):
                         new_pos_set = database.get_available_pos_in_template_set(conn, template_id, blob_set)
 
-                database.edit_blob_from_template(conn, template_name, blob_set, new_blob_set, pos_set, new_pos_set,
+                database.edit_blob_from_template(conn, template_id, blob_set, new_blob_set, pos_set, new_pos_set,
                                                  title, credit)
-                blob_data = database.get_blob_data_from_template(conn, template_name, new_blob_set, new_pos_set)
+                blob_data = database.get_blob_data_from_template(conn, template_id, new_blob_set, new_pos_set)
             else:
                 self.logger.error("Failed to edit blob. Unknown dest: {}".format(dest["dest"]))
                 return res
@@ -1184,7 +1184,7 @@ class Blobs():
         return json.dumps(data).encode()
 
     @cherrypy.expose
-    def get_demos_using_the_template(self, template_name):
+    def get_demos_using_the_template(self, template_id):
         """
         Return the list of demos that use the given template
         """
@@ -1192,7 +1192,7 @@ class Blobs():
         data = {'status': 'KO'}
         try:
             conn = lite.connect(self.database_file)
-            data['demos'] = database.get_demos_using_the_template(conn, template_name)
+            data['demos'] = database.get_demos_using_the_template(conn, template_id)
             data['status'] = 'OK'
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("DB operation failed while getting the list of demos that uses the template")
