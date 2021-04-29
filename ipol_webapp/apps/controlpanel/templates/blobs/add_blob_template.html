@@ -15,12 +15,12 @@
 {% block content %}
     {% with data=view.get_context_data %}
         <div class="container">
-            <h2> Add Blob to Template: {{ name }}</h2>
+            <h2> Add Blob to Template: {{ template_name }}</h2>
             <div class="blob_file">
 
-                <form id="form" action="{% url 'ipol.cp.blobs.add_blob_to_template' %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+                <form id="form" action="{% url 'ipol.cp.blobs.add_blob_to_template' template_id %}" method="post" enctype="multipart/form-data">{% csrf_token %}
 
-                    <input name="name"  style="display: none;" value="{{name}}"/>
+                    <input name="name"  style="display: none;" value="{{template_id}}"/>
 
                     <!--Thumbnail-->
                     <div class="image_files">
@@ -80,7 +80,7 @@
                 </form>
             </div>
 
-            <a class="btn btn-info" href="/cp/blob_template/{{name}}/">Go to previous page</a>
+            <a class="btn btn-info" href="/cp/blob_template/{{template_id}}/">Go to previous page</a>
 
         </div>
     {% endwith %}

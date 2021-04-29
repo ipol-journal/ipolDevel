@@ -16,7 +16,7 @@
 {% block content %}
 
 	<div class="container">
-		<h2>  Template: {{ name }}</h2>
+        <h2>  Template: {{ template_name }}</h2>
 
 		{% with data=view.get_context_data %}
 
@@ -27,8 +27,8 @@
             {% if data.status == "OK" %}
                 <h3>Blobs list</h3>
                 <div class="container">
-                    <a class="btn btn-info" href="{% url 'ipol.cp.add_blob_to_template.page' name%}">Add new Blob</a>
-                    <a class="btn btn-danger" onclick="deleteTemplate('{% url 'ipol.cp.blobs.delete_template'%}','{{name}}')">Delete Template</a>
+                    <a class="btn btn-info" href="{% url 'ipol.cp.add_blob_to_template.page' template_id%}">Add new Blob</a>
+                    <a class="btn btn-danger" onclick="deleteTemplate('{% url 'ipol.cp.blobs.delete_template'%}','{{template_id}}')">Delete Template</a>
                 </div>
                 <div class="blocks">
                     {% for set in data.sets %}
@@ -38,7 +38,7 @@
                                 <h4 >Title: {{ blob.title }}</h4>
                                 <p>Blob:</p>
                                 <div class="image_files">
-                                    <a href="{% url 'ipol.cp.blobs.edit_blob_template.page'%}?name={{ name }}&set={{ set.name }}&pos={{ pos }}">
+                                    <a href="{% url 'ipol.cp.blobs.edit_blob_template.page'%}?template_id={{ template_id }}&set={{ set.name }}&pos={{ pos }}">
                                         {% if blob.thumbnail %}
                                             <img src="{{ blob.thumbnail }}" alt="{{ blob.title }}" title="{{ blob.title }}" />
                                         {% else %}
@@ -50,7 +50,7 @@
 
                                 {# Delete blob button#}
                                 <div align="right">
-                                    <a class="btn btn-primary" onclick="deleteBlob('{% url 'ipol.cp.blobs.remove_blob_from_template' %}','{{ name }}','{{ set.name }}','{{ pos }}')">Delete blob</a>
+                                    <a class="btn btn-primary" onclick="deleteBlob('{% url 'ipol.cp.blobs.remove_blob_from_template' %}','{{ template_id }}','{{ set.name }}','{{ pos }}')">Delete blob</a>
                                 </div>
                             </div>
                             {% endfor %}
@@ -60,7 +60,7 @@
                                 <p>Blobs:</p>
                                 <div class="image_files">
                                     {% for pos, blob in set.blobs.items %}
-                                        <a href="{% url 'ipol.cp.blobs.edit_blob_template.page'%}?name={{ name }}&set={{ set.name }}&pos={{ pos }}">
+                                        <a href="{% url 'ipol.cp.blobs.edit_blob_template.page'%}?template_id={{ template_id }}&set={{ set.name }}&pos={{ pos }}">
                                             {% if blob.thumbnail %}
                                                 <img src="{{ blob.thumbnail }}" alt="{{ blob.title }}" title="{{ blob.title }}" />
                                             {% else %}

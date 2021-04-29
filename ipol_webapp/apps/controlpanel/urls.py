@@ -145,9 +145,9 @@ urlpatterns = [
     url(r'^ajax_add_blob_to_demo/$', AddBlobToDemo.as_view(), name="ipol.cp.blobs.add_blob_to_demo"),
 
     #Templates
-    url(r'^blob_template/(?P<name>[\-\d\w]+)/$', TemplatePageView.as_view(), name="ipol.cp.template.page"),
-    url(r'^add_blob_to_template/(?P<name>[\-\d\w]+)/$', AddBlobTemplateView.as_view(), name="ipol.cp.add_blob_to_template.page"),
-    url(r'^ajax_add_blob_to_template/$', AddBlobToTemplate.as_view(), name="ipol.cp.blobs.add_blob_to_template"),
+    url(r'^blob_template/(?P<id>[\-\d\w]+)/$', TemplatePageView.as_view(), name="ipol.cp.template.page"),
+    url(r'^add_blob_to_template/(?P<id>[\-\d\w]+)/$', AddBlobTemplateView.as_view(), name="ipol.cp.add_blob_to_template.page"),
+    url(r'^ajax_add_blob_to_template/(?P<id>[\-\d\w]+)/$', AddBlobToTemplate.as_view(), name="ipol.cp.blobs.add_blob_to_template"),
     url(r'^ajax_remove_blob_from_template/$', RemoveBlobFromTemplate.as_view(), name="ipol.cp.blobs.remove_blob_from_template"),
     url(r'^blob_template/$', EditBlobFromTemplate.as_view(), name="ipol.cp.blobs.edit_blob_template.page"),
     url(r'^ajax_delete_vr_from_blob/$', DeleteVRFromBlob.as_view(), name="ipol.cp.blobs.delete_vr_from_blob"),
