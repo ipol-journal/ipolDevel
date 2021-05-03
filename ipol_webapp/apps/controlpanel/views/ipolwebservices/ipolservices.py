@@ -649,7 +649,7 @@ def add_template_to_demo(demo_id, template_id):
     """
     Remove blob from demo
     """
-    path = "/api/blobs/add_templates_to_demo"
+    path = "/api/blobs/add_template_to_demo"
 
     serviceparams = {'demo_id': demo_id, 'template_id': template_id}
 
