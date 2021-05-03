@@ -123,25 +123,22 @@ def add_blob_to_template(conn, template_id, blob_id, pos_set, blob_set, blob_tit
         raise IPOLBlobsDataBaseError(ex)
 
 
-def add_templates_to_demo(conn, template_ids, editor_demo_id):
+def add_template_to_demo(conn, template_id, editor_demo_id):
     """
-    Associates all the templates to the demo in demos_templates table
+    Associates a template to the demo in demos_templates table
     """
     try:
         cursor = conn.cursor()
-        for template_id in template_ids:
-            cursor.execute("""
-                SELECT EXISTS(SELECT *
-                            FROM demos_templates
-                            WHERE demo_id=(SELECT id
-                                        FROM demos
-                                        WHERE editor_demo_id=?)
-                            AND template_id=?);
-                """, (editor_demo_id, template_id))
+        cursor.execute("""
+            SELECT EXISTS(SELECT *
+                        FROM demos_templates
+                        WHERE demo_id=(SELECT id
+                                    FROM demos
+                                    WHERE editor_demo_id=?)
+                        AND template_id=?);
+            """, (editor_demo_id, template_id))
 
-            if cursor.fetchone()[0] == 1:
-                continue
-
+        if cursor.fetchone()[0] != 1:
             cursor.execute("""
                 INSERT INTO demos_templates (demo_id, template_id)
                 VALUES ((SELECT id

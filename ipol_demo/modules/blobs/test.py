@@ -352,7 +352,7 @@ class BlobsTests(unittest.TestCase):
 
             _, template_id = self.create_template(self.template_name)
 
-            self.add_templates_to_demo(self.demo_id, template_id)
+            self.add_template_to_demo(self.demo_id, template_id)
 
             response = self.get_demo_templates(self.demo_id)
             status = response.get('status')
@@ -378,7 +378,7 @@ class BlobsTests(unittest.TestCase):
                 self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set, pos_set=self.pos_in_set,
                                       title=self.title)
 
-            response = self.add_templates_to_demo(self.demo_id, self.template_id)
+            response = self.add_template_to_demo(self.demo_id, self.template_id)
             status = response.get('status')
 
             self.delete_demo(self.demo_id)
@@ -395,7 +395,7 @@ class BlobsTests(unittest.TestCase):
 
             _, template_id = self.create_template(self.template_name)
 
-            response = self.add_templates_to_demo(self.demo_id, template_id)
+            response = self.add_template_to_demo(self.demo_id, template_id)
             status = response.get('status')
 
             self.delete_template(template_id)
@@ -416,7 +416,7 @@ class BlobsTests(unittest.TestCase):
                                       pos_set=self.pos_in_set, title=self.title)
 
             _, template_id = self.create_template(self.template_name)
-            self.add_templates_to_demo(self.demo_id, template_id)
+            self.add_template_to_demo(self.demo_id, template_id)
 
             response = self.remove_template_from_demo(self.demo_id, template_id)
             status = response.get('status')
@@ -458,7 +458,7 @@ class BlobsTests(unittest.TestCase):
         try:
 
             _, template_id = self.create_template(self.template_name)
-            self.add_templates_to_demo(self.demo_id, template_id)
+            self.add_template_to_demo(self.demo_id, template_id)
 
             response = self.remove_template_from_demo(self.demo_id, template_id)
             status = response.get('status')
@@ -769,12 +769,12 @@ class BlobsTests(unittest.TestCase):
         response = self.post(self.module, 'remove_blob_from_template', params=params)
         return response.json()
 
-    def add_templates_to_demo(self, demo_id, template_ids):
+    def add_template_to_demo(self, demo_id, template_ids):
         """
         add templates to demo
         """
         params = {'demo_id': demo_id, 'template_id': template_ids}
-        response = self.post(self.module, 'add_templates_to_demo', params=params)
+        response = self.post(self.module, 'add_template_to_demo', params=params)
         return response.json()
 
     def get_demo_templates(self, demo_id):

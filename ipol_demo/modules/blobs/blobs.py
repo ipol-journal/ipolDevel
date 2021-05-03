@@ -497,23 +497,22 @@ class Blobs():
 
     @cherrypy.expose
     @authenticate
-    def add_templates_to_demo(self, demo_id, template_id):
+    def add_template_to_demo(self, demo_id, template_id):
         """
         Associates the demo to the list of templates
         """
-        template_id_list = set(map(str.strip, str(template_id).split(",")))
         status = {"status": "KO"}
         conn = None
         try:
             conn = lite.connect(self.database_file)
 
-            if not database.all_templates_exist(conn, template_id_list):
+            if not database.template_exist(conn, template_id):
                 raise IPOLBlobsTemplateError("Not all the templates exist")
 
             if not database.demo_exist(conn, demo_id):
                 database.create_demo(conn, demo_id)
 
-            database.add_templates_to_demo(conn, template_id_list, demo_id)
+            database.add_template_to_demo(conn, template_id, demo_id)
             conn.commit()
             status = {"status": "OK"}
 
