@@ -7,7 +7,7 @@ function deleteBlob(url,template_id,set,pos){
 
 function deleteTemplate(url, template_id){
     var delvr = confirm('Deleting template will afect other demos.\nAre you sure you want to continue?');
-    if (delvr == true) {
+    if (delvr) {
        var values = {
             'template_id': template_id,
         }
