@@ -108,13 +108,7 @@ class DemoInfo():
         self.config_common_dir = cherrypy.config.get("config_common_dir")
 
         # Get the server environment (integration or production)
-        hostname = socket.gethostname()
-        if hostname == 'ipolcore':
-            self.server_environment = 'production'
-        elif hostname == 'integration':
-            self.server_environment = 'integration'
-        else:
-            self.server_environment = '<unknown>'
+        self.server_environment = cherrypy.config.get("env")
 
         # Security: authorized IPs
         self.authorized_patterns = self.read_authorized_patterns()

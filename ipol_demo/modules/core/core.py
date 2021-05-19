@@ -127,14 +127,7 @@ class Core():
         try:
             ### Read the configuration file
 
-            # Get the server environment (integration or production)
-            hostname = socket.gethostname()
-            if hostname == 'ipolcore':
-                self.server_environment = 'production'
-            elif hostname == 'integration':
-                self.server_environment = 'integration'
-            else:
-                self.server_environment = '<unknown>'
+            self.server_environment = cherrypy.config.get('env')
 
             self.logger = self.init_logging()
             self.project_folder = cherrypy.config.get("project_folder")
