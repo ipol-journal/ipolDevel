@@ -33,7 +33,7 @@
                 Add Template
                 <span class="caret"></span>
                 </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                <ul id="templateDropdown" class="dropdown-menu" aria-labelledby="dropdownMenu1">
                   {%for template in data.unused_templates%}
                         <li><a onclick="addTemplateToDemo('{% url 'ipol.cp.blobs.add_template_to_demo'%}','{{id}}','{{template.id}}')">{{template.name}}</a></li>
                   {% endfor %}
