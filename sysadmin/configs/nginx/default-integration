@@ -56,6 +56,8 @@ server {
 
 	# DemoExtras static resources
 	location ~ ^/demo/clientApp/static/(?<demo>\d+)/(?<resource>.+) {
+		add_header 'Access-Control-Allow-Origin' '*';
+		add_header 'Access-Control-Allow-Methods' 'GET';
 		expires 1d;
 		alias /home/ipol/ipolDevel/shared_folder/demoExtras/$demo/http/$resource;
 	}
@@ -67,6 +69,8 @@ server {
 				return 418;
 		}
 
+		add_header 'Content-Security-Policy' "default-src 'self' data: https: ; script-src 'unsafe-inline' 'unsafe-eval' https: code.jquery.com cdnjs.cloudflare.com";
+		add_header 'Access-Control-Allow-Origin' '*';
 		expires 1m;
 		auth_basic "Restricted";
 		auth_basic_user_file /etc/nginx/.passwd/integration;
