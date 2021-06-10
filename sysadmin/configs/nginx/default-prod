@@ -103,7 +103,7 @@ server {
             error_page 418 = @CompanyNamePasswd;
             return 418;
         }
-        add_header 'Content-Security-Policy' "default-src 'self' data: https: ; script-src 'unsafe-inline' 'unsafe-eval' https: code.jquery.com cdnjs.cloudflare.com";
+        add_header 'Content-Security-Policy' "default-src 'self' data: https: blob: 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval' https: code.jquery.com cdnjs.cloudflare.com;";
 		add_header 'Access-Control-Allow-Origin' '*';
         alias  /home/ipol/ipolDevel/ipol_demo/clientApp/;
     }
