@@ -137,7 +137,8 @@ class IntegrationTests(unittest.TestCase):
 
             # Run the demo with the uploaded image
             with open(self.test_image_file, 'rb') as blob:
-                width, height = blob.size
+                with Image.open(self.test_image_file) as blob_image:
+                    width, height = blob.size
                 response = self.run_demo_with_uploaded_blob(self.demo_id, blob, width, height)
             run_status = response.get('status')
 
