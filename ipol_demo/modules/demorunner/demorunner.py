@@ -393,7 +393,7 @@ class DemoRunner():
                             # Do move
                             shutil.move(path_from, path_to)
                         except (IOError, OSError):
-                            os.remove(lock_path)
+                            self.release_lock(lock_path)
                             self.write_log("construct", f"Can't move file {path_from} --> {path_to}")
                             # If can't move, write in the log file, so
                             # the user can see it
@@ -402,7 +402,7 @@ class DemoRunner():
                             f.close()
                             raise
         finally:
-            os.remove(lock_path)
+            self.release_lock(lock_path)
 
     @staticmethod
     def construct_is_locked(lock_path):
@@ -414,7 +414,8 @@ class DemoRunner():
             creation_time = os.path.getctime(lock_path)
             # In case of error it might leave dangling lockfiles, remove it if it's old.
             if current_time - creation_time >= 20*60:
-                os.remove(lock_path)
+                print("COSA")
+                self.release_lock(lock_path)
                 return False
             return True
         return False
@@ -426,6 +427,15 @@ class DemoRunner():
         """
         open(lock_path, 'w+').close()
 
+    @staticmethod
+    def release_lock(lock_path):
+        """
+        Releases (removes) a lock given its path
+        """
+        if os.path.isfile(lock_path):
+            os.remove(lock_path)
+        else:
+            pass
 
     @staticmethod
     def any_extraction_needed(ddl_builds, dl_dir):
