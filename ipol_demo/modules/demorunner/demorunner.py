@@ -414,7 +414,6 @@ class DemoRunner():
             creation_time = os.path.getctime(lock_path)
             # In case of error it might leave dangling lockfiles, remove it if it's old.
             if current_time - creation_time >= 20*60:
-                print("COSA")
                 self.release_lock(lock_path)
                 return False
             return True
