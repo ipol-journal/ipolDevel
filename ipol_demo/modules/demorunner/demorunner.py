@@ -52,6 +52,10 @@ class IPOLConstructVirtualenvError(Exception):
     """
     IPOLConstructVirtualenvError
     """
+class FileNotFoundError(Exception):
+    """
+    FileNotFoundError
+    """
 
 def authenticate(func):
     '''
@@ -393,7 +397,6 @@ class DemoRunner():
                             # Do move
                             shutil.move(path_from, path_to)
                         except (IOError, OSError):
-                            self.release_lock(lock_path)
                             self.write_log("construct", f"Can't move file {path_from} --> {path_to}")
                             # If can't move, write in the log file, so
                             # the user can see it
@@ -431,9 +434,9 @@ class DemoRunner():
         """
         Releases (removes) a lock given its path
         """
-        if os.path.isfile(lock_path):
+        try:
             os.remove(lock_path)
-        else:
+        except FileNotFoundError:
             pass
 
     @staticmethod
