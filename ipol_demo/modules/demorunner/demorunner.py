@@ -52,10 +52,6 @@ class IPOLConstructVirtualenvError(Exception):
     """
     IPOLConstructVirtualenvError
     """
-class FileNotFoundError(Exception):
-    """
-    FileNotFoundError
-    """
 
 def authenticate(func):
     '''
@@ -407,8 +403,7 @@ class DemoRunner():
         finally:
             self.release_lock(lock_path)
 
-    @staticmethod
-    def construct_is_locked(lock_path):
+    def construct_is_locked(self, lock_path):
         """
         Check if compilation path is locked
         """
