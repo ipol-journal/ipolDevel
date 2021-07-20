@@ -15,6 +15,7 @@ parameters.printParameters = function() {
     var ddlParams = ddl.params;
     addResetButton();
     $('.param-container').remove();
+    $("#parameters-container").append('<form id="params-form"></form>');
     for (var i = 0; i < ddlParams.length; i++) {
       var param = ddlParams[i];
       var functionName = $.fn[param.type];
@@ -25,6 +26,27 @@ parameters.printParameters = function() {
         printParameter(param, i);
       } else console.error(param.type + ' param type is not correct');
     }
+  }
+}
+
+parameters.resetValues = () => {
+  for (const parameter of ddl.params) {
+    if (parameter.type == 'label') continue;
+    const defaults = {
+      'textarea': "",
+      'text': "",
+      'checkbox': false,
+      'numeric': 0
+    }
+    const parameterSelector = `#${parameter.type}_${parameter.id}`;
+    let defaultValue = "";
+    if (parameter.hasOwnProperty('default_value')) {
+      defaultValue = parameter.default_value;
+    } else {
+      defaultValue = parameter.values?.default || defaults[parameter.type];
+    }
+    $(parameterSelector).val(defaultValue);
+    updateParamsArrayValue(parameter.id, defaultValue);
   }
 }
 
@@ -64,7 +86,7 @@ parameters.setParametersValues = function(params_values){
 }
 
 function printParameter(param, index) {
-  $('<div class=param-' + index + '></div>').appendTo('#parameters-container').addClass('param-container');
+  $('<div class="param-' + index + ' param-container"></div>').appendTo('#params-form');
   $('<div class=param-content-' + index + ' ></div>').appendTo('.param-' + index).addClass("param-content");
 
   $('.param-content-' + index)[param.type](param, index);
@@ -106,10 +128,11 @@ function checkParamsVisibility() {
 function addResetButton() {
   $('.params-buttons').remove();
   $('.params-header').append('<div class=params-buttons ></div>');
-  $('.params-buttons').append('<button class=param-reset-btn >Reset</button>');
+  $('.params-buttons').append('<input type="reset" class=param-reset-btn >');
   $('.param-reset-btn').addClass('btn');
   $('.param-reset-btn').click(function(event) {
-    parameters.printParameters();
+    document.getElementById('params-form').reset();
+    parameters.resetValues();
   });
 }
 
