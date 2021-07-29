@@ -28,7 +28,7 @@ from threading import Lock
 import cherrypy
 import Tools.build as build
 import Tools.run_demo_base as run_demo_base
-import virtualenv
+import virtualenv.run as virtualenv
 from Tools.run_demo_base import IPOLTimeoutError
 
 
@@ -625,7 +625,7 @@ format(str(ex), str(ddl_build))
         packages_file = build_item["virtualenv"]
         venv_path = os.path.join(bin_dir, "venv")
         pip_bin = os.path.join(venv_path, "bin/pip")
-        virtualenv.create_environment(venv_path)
+        virtualenv.cli_run([venv_path])
 
         cmd = [pip_bin, "install", "-r", os.path.join(src_dir, packages_file)]
         cmd = shlex.split(" ".join(cmd))
