@@ -42,8 +42,10 @@ parameters.resetValues = () => {
     let defaultValue = "";
     if (parameter.hasOwnProperty('default_value')) {
       defaultValue = parameter.default_value;
+    } else if (parameter.hasOwnProperty('values')) {
+      defaultValue = parameter.values.default || defaults[parameter.type];
     } else {
-      defaultValue = parameter.values?.default || defaults[parameter.type];
+      defaultValue = defaults[parameter.type];
     }
     $(parameterSelector).val(defaultValue);
     updateParamsArrayValue(parameter.id, defaultValue);
