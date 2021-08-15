@@ -911,7 +911,8 @@ Execute the following in the devel branch to re-synchronize the two branches: {\
 \textbf{Ther command {\tt apt dist-upgrade} cannot be executed because not enough free space on disk is available. It fails with the message \emph{E: You don't have enough free space in /var/cache/apt/archives/.}}
 
 To avoid resizing the root partition, a simply solution is to move {\tt /var/cache/apt/} to the home directory.
-Create a new folder {\tt /home/system/} and copy {\tt /var/cache/apt/} inside. Then remove {\tt /var/cache/apt/} and create a soft link {\tt /var/cache/apt/ -> /home/system/apt/}
+Create a new folder {\tt /home/system/} and copy {\tt /var/cache/apt/} inside. Then remove {\tt /var/cache/apt/} and create a symlink {\tt /var/cache/apt/ -> /home/system/apt/}
+It is convenient to do the same with {\tt /usr/lib} and {\tt /usr/share} by copying these two folders to {\tt /home/system/} and creating symlinks: {\tt lib -> /home/system/lib/} and {\tt share -> /home/system/share}
 
 \bibliographystyle{plain}
 \bibliography{biblio}
