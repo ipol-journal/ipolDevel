@@ -30,11 +30,11 @@ VIRTUALENV=${DJANGODIR}/venv
 if [ ! -d $VIRTUALENV ]; then
   echo "Creating virtualenv"
   python2 -m virtualenv $VIRTUALENV
-  source $VIRTUALENV/venv/bin/activate
+  source $VIRTUALENV/bin/activate
   pip install -r $DJANGODIR/requirements.txt
-else
-  source ${DJANGODIR}/venv/bin/activate
 fi
+
+source ${DJANGODIR}/venv/bin/activate
 
 #Collect static files for app
 python manage.py collectstatic --noinput
