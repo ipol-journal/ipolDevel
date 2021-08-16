@@ -169,17 +169,15 @@ When a new machine is added to the IPOL infrastructure, the following needs to b
 
 - Create the {\tt ipol} user in a new machine: {\tt adduser ipol}
 
-- Install bash-completion {\tt apt-get install bash-completion}
+- Install bash-completion {\tt apt install bash-completion}
 
 - Configure the SSH server to allow only access with public key and not with password. Set the following in /etc/ssh/sshd\_config:
-
-{\tt RSAAuthentication yes}
 
 {\tt PubkeyAuthentication yes}
 
 And restart the SSH server with {\tt service ssh restart}
 
-- Install unattended-upgrades and apt-listchanges: {\tt apt-get install unattended-upgrades apt-listchanges}
+- Install unattended-upgrades and apt-listchanges: {\tt apt install unattended-upgrades apt-listchanges}
 
 And edit /etc/apt/apt.conf.d/50unattended-upgrades, at least uncomment the following lines:
 \begin{verbatim}
@@ -187,17 +185,13 @@ And edit /etc/apt/apt.conf.d/50unattended-upgrades, at least uncomment the follo
     "o=Debian,a=stable";
     "o=Debian,a=stable-updates";
   };
-
-  Unattended-Upgrade::Package-Blacklist {
-    "virtualbox-5.1";
-  };
 \end{verbatim}
 
 - Configuration of the email server to be able to send emails form any of the IPOL servers: configure with {\tt dpkg-reconfigure exim4-config} and be sure to choose the option to send email on the Internet, not local.
 
-Install mail with {\tt apt-get install mailutils}
+Install mail with {\tt apt install mailutils}
 
-It is important to set the hostname with the real Internet address in {\tt /etc/hosts} to send the emails outside. For example, for the ipolcore machine, the configuration is the following:
+It is important to set the hostname with the real Internet address in {\tt /etc/hosts} to send the emails outside. For example, for \emph{our} ipolcore machine, the configuration is the following (please check your actual addresses, do not simply copy those!):
 
 \begin{verbatim}
 5.196.85.84             ipolcore.ipol.im     ipolcore
@@ -219,7 +213,7 @@ host github_deploy
 
 Then, clone the repository with {\tt git clone git@github\_deploy:mcolom/ipolDevel.git}
 
-In {\tt ipolDevel/sysadmin/install\_packages/} there is a script that needs to be run with {\tt sudo ./install\_dist\_packages.sh}. It will install all required Debian packages listed in apt-get\_requirements.txt.
+In {\tt ipolDevel/sysadmin/install\_packages/} there is a script that needs to be run with {\tt sudo ./install\_dist\_packages.sh}. It will install all required Debian packages listed in apt\_requirements.txt.
 
 \subsection{External repositories}
 Some packages as for example Intel's IPP are not directly in the Debian Stable distribution and therefore they need to be added to APT manually. Normally it implies just adding the repository's \emph{.list} file to {\tt /etc/apt/sources.list.d}.
@@ -259,18 +253,14 @@ Some of the installed packages need manual changes in their configuration.
 
 \subsection{Configuration}
 
-To configure the reverse proxy, we will use the sites-enabled, sites-available directories structure, which are located at:
-\begin{lstlisting}[language=Bash]
-/etc/nginx/sites-available
-/etc/nginx/sites-enabled
-\end{lstlisting}
+Copy your configurations to {\tt /etc/nginx/sites-enabled} and leave {\tt /etc/nginx/sites-available} as a reference that will be updated by apt.
 
 \begin{enumerate}
     \item Edit the config file /etc/nginx/nginx.conf, adding the following include at the end of the http subsection:
     \begin{lstlisting}[language=Bash]
     include /etc/nginx/sites-enabled/*;
     \end{lstlisting}
-    \item Edit the site configuration file: sites-available/default, configuring the subsections:
+    \item Edit the site configuration file: sites-enabled/default, configuring the subsections:
     \begin{enumerate}
     \item Upstream
     \begin{enumerate}
@@ -315,10 +305,19 @@ To configure the reverse proxy, we will use the sites-enabled, sites-available d
     \end{enumerate}
 \end{enumerate}
 
-As a good practice we enable Nginx gzip compression for static files. An example of this configuration part is located at the project repository 
-in the nginx.conf file under the sysadmin folder.
+As a good practice we enable Nginx gzip compression for static files. An example of this configuration part is located at the project repository in the nginx.conf file under the sysadmin folder.
 
-\subsubsection{SSL on Integration servers}
+\subsubsection{SSL on production}
+The files included in the snippets will configure SSL. Test with {\tt nginx -t} that your configuration is correct. Indeed, you will have to copy the following files:
+\begin{itemize}
+    \item /etc/ssl/certs/ipolcore\_ipol\_im\_chain.crt
+    \item /etc/ssl/private/ipolcore.key
+    \item /etc/ssl/certs/dhparam.pem
+\end{itemize}
+
+
+
+\subsubsection{SSL on the integration}
 For the integration server we use certbot to generate and automatically renew SSL certificates.
 
 \begin{enumerate}
@@ -364,7 +363,7 @@ For the integration server we use certbot to generate and automatically renew SS
     \end{lstlisting}
     \item Install apache2-utils
     \begin{lstlisting}[language=Bash]
-    sudo apt-get install apache2-utils
+    sudo apt install apache2-utils
     \end{lstlisting}
     \item Create username and password with htpasswd
     \begin{lstlisting}[language=Bash]
@@ -386,12 +385,6 @@ For the integration server we use certbot to generate and automatically renew SS
     }
     \end{lstlisting}
     \end{enumerate}
-
-    \item Enable the site by creating a symbolic link to default configuration:
-    \begin{lstlisting}[language=Bash]
-    ln -s /etc/nginx/sites-available/default \
-    /etc/nginx/sites-enabled/
-    \end{lstlisting}
 
     \item Check the nginx's configuration with {\tt sudo nginx -t}
 
@@ -463,18 +456,10 @@ communicates with the NGINX through a UNIX socket. The diagram of this configura
     \label{fig:prod_int_architecture}
 \end{figure}
 
-
-\subsection{Gunicorn: installation}
-
-Install from console:
-\begin{lstlisting}[language=Bash]
-{prod} ~/ipolDevel$ pip install gunicorn
-\end{lstlisting}
-
 \subsection{Gunicorn: configuration}
 In order to manage the gunicorn service we will use a script, which is in charge of:
 \begin{itemize}
-    \item Open the virtual environment, if used. If not, comment the line with \#
+    \item Open the virtual environment, if used. If not, comment out the line with \#.
     \item Collect the static files.
     \item Start the web server.
 \end{itemize}
@@ -794,7 +779,7 @@ Probably it is because the binaries where staticly compiled againts libraries wh
 
 \textbf{It installed a package but it does not seem to be installed}
 
-It is possible that you installed a Python 3 package and you are looking for the Python 2 version, or the opposite. Pay attention to use the right package according to the Python version when installing with {\tt apt-get}. With {\tt pip} write explicitly {\tt pip2} or {\tt pip3} when installing.
+It is possible that you installed a Python 3 package and you are looking for the Python 2 version, or the opposite. Pay attention to use the right package according to the Python version when installing with {\tt apt}. With {\tt pip} write explicitly {\tt pip2} or {\tt pip3} when installing.
 \vspace{0.5cm}
 
 
@@ -836,8 +821,8 @@ If you have everything installed and it is still not working, then execute {\tt 
 If still does not work, then purge the packages and re-install:
 
 \begin{verbatim}
-apt-get purge virtualbox-dkms virtualbox-guest-dkms
-apt-get install linux-headers-amd64 virtualbox-5.1
+apt purge virtualbox-dkms virtualbox-guest-dkms
+apt install linux-headers-amd64 virtualbox-5.1
 \end{verbatim}
 \vspace{0.5cm}
 
@@ -859,7 +844,16 @@ docker cp correct_config ipol:/path_to_broken_config
 It happens sometimes is a previous version of nginx is running and the system can't stop it before installing over the new one. Try {\tt sudo nginx -s stop} or it this fails directly kill the process with {\tt sudo killall nginx}.
 \vspace{0.5cm}
 
-\textbf{I can only access the server's pages or API services using the IP in the URL, but not its domain server}
+\textbf{I can only access the server's pages or API services using the IP in the URL, but not its domain server. I have also messages in {\tt /var/log/nginx/error.log} about not being able to resolve localhost...}
+
+...such as these ones:
+\begin{verbatim}
+2021/08/15 22:53:49 [error] 1410#1410: send() failed (111: Connection refused) while resolving, resolver: 127.0.0.1:53
+2021/08/15 22:53:49 [error] 1410#1410: send() failed (111: Connection refused) while resolving, resolver: 127.0.0.1:53
+2021/08/15 22:53:54 [error] 1410#1410: *37 localhost could not be resolved (110: Operation timed out), client: ::1, server: ipolcore.ipol.im, request: "GET /api/core/ping HTTP/1.1", host: "localhost"
+\end{verbatim}
+
+
 
 Nginx checks if the FQDN specified in the URL corresponds to the current server. To do it, it needs to make a request to a DNS server (localhost by default, or specified as {\tt resolver <IP address>;}. The bind9 DNS server needs to be installed in the machine (no configuration change is needed, it should work out of the box).
 \vspace{0.5cm}
