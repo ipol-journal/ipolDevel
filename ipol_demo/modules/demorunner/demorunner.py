@@ -627,7 +627,7 @@ format(str(ex), str(ddl_build))
         pip_bin = os.path.join(venv_path, "bin/pip")
         virtualenv.cli_run([venv_path])
 
-        cmd = [pip_bin, "install", "-r", os.path.join(src_dir, packages_file)]
+        cmd = [pip_bin, "--prefer-binary", "install", "-r", os.path.join(src_dir, packages_file)]
         cmd = shlex.split(" ".join(cmd))
         install_proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
         _, stderr_data = install_proc.communicate()
