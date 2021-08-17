@@ -39,6 +39,7 @@ python3-dev
 python-cherrypy3
 python-mako
 python-jsonschema
+python3-distutils
 gnuplot
 gnuplot-nox
 python3-pip
