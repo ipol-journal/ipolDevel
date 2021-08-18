@@ -36,7 +36,8 @@ parameters.resetValues = () => {
       'textarea': "",
       'text': "",
       'checkbox': false,
-      'numeric': 0
+      'numeric': 0,
+      'range': 0
     }
     const parameterSelector = `#${parameter.type}_${parameter.id}`;
     let defaultValue = "";
