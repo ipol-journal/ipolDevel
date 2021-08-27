@@ -8,6 +8,7 @@ openssh-server
 sshfs
 bash-completion
 sqlite3
+rsync
 mailutils
 cron-apt
 git
