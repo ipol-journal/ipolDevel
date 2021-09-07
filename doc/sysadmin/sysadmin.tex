@@ -896,11 +896,11 @@ The following message is shown when starting a module or a test:
   ImportError: No module named 'encodings'
 \end{verbatim}
 
-The reason is likely to be an incompatibility with a recently updated python version or other distribution packages. To solve it simply remove and recreate the corresponding virtual environments.
+The reason is likely to be an incompatibility with a recently updated Python version or other distribution packages. To solve it simply remove and recreate the corresponding virtual environments.
 
 \textbf{DemoExtras executing ffmpeg blocks access to file when redirecting output}
 
-When redirecting all standard output of the {\tt ffmpeg} command, the resulting file might stay blocked for a short period of time where the python script that run the {\tt ffmpeg} command might continue its execution. This might be a problem as the file continues blocked but the execution of the script continues and might need access to the file.
+When redirecting all standard output of the {\tt ffmpeg} command, the resulting file might stay blocked for a short period of time where the Python script that run the {\tt ffmpeg} command might continue its execution. This might be a problem as the file continues blocked but the execution of the script continues and might need access to the file.
 
 Example of the problem:
 
@@ -916,7 +916,7 @@ Check with {\tt gdal-config --version} the version installed in the server and t
 
 \textbf{Bash script virtualenv activation fails while using set -u}
 
-When a demo has a virtualenv in order to execute python code it needs to activate said virtualenv from a bash script inside DemoExtras. If the bash script uses set -u it will fail when activating virtualenv because of a bug in the activation script throwing 'PS1: unbound variable'. This bug has been known for years and the solution still hasn't reached production versions of the package in some linux distributions. To fix this we can simply define the following variable as a patch while the official virtualenv fix reaches production:
+When a demo has a virtualenv in order to execute Python code it needs to activate said virtualenv from a bash script inside DemoExtras. If the bash script uses set -u it will fail when activating virtualenv because of a bug in the activation script throwing 'PS1: unbound variable'. This bug has been known for years and the solution still hasn't reached production versions of the package in some linux distributions. To fix this we can simply define the following variable as a patch while the official virtualenv fix reaches production:
 
 {\tt VIRTUAL\_ENV\_DISABLE\_PROMPT=true}
 
@@ -928,11 +928,19 @@ Every GNU/Linux distribution manages packages shipped differently, a new release
 
 Execute the following in the devel branch to re-synchronize the two branches: {\tt git rebase master}
 
-\textbf{Ther command {\tt apt dist-upgrade} cannot be executed because not enough free space on disk is available. It fails with the message \emph{E: You don't have enough free space in /var/cache/apt/archives/.}}
+\textbf{The command {\tt apt dist-upgrade} cannot be executed because not enough free space on disk is available. It fails with the message \emph{E: You don't have enough free space in /var/cache/apt/archives/.}}
 
 To avoid resizing the root partition, a simply solution is to move {\tt /var/cache/apt/} to the home directory.
 Create a new folder {\tt /home/system/} and copy {\tt /var/cache/apt/} inside. Then remove {\tt /var/cache/apt/} and create a symlink {\tt /var/cache/apt/ -> /home/system/apt/}
 It is convenient to do the same with {\tt /usr/lib} and {\tt /usr/share} by copying these two folders to {\tt /home/system/} and creating symlinks: {\tt lib -> /home/system/lib/} and {\tt share -> /home/system/share}
+
+\textbf{DR (or any other modules fails to install its own venv with a message similar to \emph{ERROR: Could not build wheels for scipy which use PEP 517 and cannot be installed directly}.}
+
+Most probably the {\tt setuptools} and {\tt wheel} packages are not installed or outdates. They are needed to create virtual environments, and therefore they need to be installed or updated before. Install them with
+
+{\tt pip3 install --user --upgrade pip setuptools wheel}.
+
+
 
 \bibliographystyle{plain}
 \bibliography{biblio}
