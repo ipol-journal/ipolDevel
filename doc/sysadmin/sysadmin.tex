@@ -219,11 +219,38 @@ In {\tt ipolDevel/sysadmin/install\_packages/} there is a script that needs to b
 Some packages as for example Intel's IPP are not directly in the Debian Stable distribution and therefore they need to be added to APT manually. Normally it implies just adding the repository's \emph{.list} file to {\tt /etc/apt/sources.list.d}.
 For Intel IPP, it is described in their website\footnote{\url{https://software.intel.com/en-us/articles/installing-intel-free-libs-and-python-apt-repo}}.
 
+\subsection{IPv6 in OVH}
+Some of the OS images for the dedicated servers in OVH do not include the IPv6 configuration and it needs to be added manually to {\tt /etc/network/interfaces}.
+For example, for a machine with {\tt IPv4=5.196.85.84} and {\tt IPv6=2001:41d0:a:7654::1}, the following configuration needs to be added:
 
+\begin{verbatim}
+auto eno0
+iface eno0 inet static
+    address 5.196.85.84
+    netmask 255.255.255.0
+    network 5.196.85.0
+    broadcast 5.196.85.255
+    gateway 5.196.85.254
+
+iface eno0 inet6 static
+    address 2001:41d0:a:7654::1
+    netmask 64
+    dns-nameservers 2001:41d0:3:163::1
+    post-up /sbin/ip -family inet6 route add 2001:41d0:a:76ff:ff:ff:ff:ff dev eno0
+    post-up /sbin/ip -family inet6 route add default via 2001:41d0:a:76ff:ff:ff:ff:ff
+    pre-down /sbin/ip -family inet6 route del default via 2001:41d0:a:76ff:ff:ff:ff:ff
+    pre-down /sbin/ip -family inet6 route del 2001:41d0:a:76ff:ff:ff:ff:ff dev eno0
+\end{verbatim}
+
+Note that depending on the kernel, the network interface might be named {\tt eno0}, {\tt eth0}, or any other name.
+
+
+\begin{comment}
 \subsection{Manual configurations}
 Some of the installed packages need manual changes in their configuration.
 
 - Octave: edit the file {\tt /usr/share/octave/site/m/startup/octaverc} and {\tt add pkg load image}.
+\end{comment}
 
 
 \section{Nginx}
@@ -235,19 +262,19 @@ Some of the installed packages need manual changes in their configuration.
 
 \begin{enumerate}
     \item Uninstall previous nginx version
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
 	{prod} ~/ipolDevel$ apt remove nginx-common
-    \end{lstlisting}
+    \end{verbatim}
 
     \item Update repositories
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     {prod} ~/ipolDevel$ apt update
-    \end{lstlisting}
+    \end{verbatim}
 
     \item Install nginx
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     {prod} ~/ipolDevel$ apt install nginx
-    \end{lstlisting}
+    \end{verbatim}
     \end{enumerate}    
 \end{enumerate}
 
@@ -257,9 +284,9 @@ Copy your configurations to {\tt /etc/nginx/sites-enabled} and leave {\tt /etc/n
 
 \begin{enumerate}
     \item Edit the config file /etc/nginx/nginx.conf, adding the following include at the end of the http subsection:
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     include /etc/nginx/sites-enabled/*;
-    \end{lstlisting}
+    \end{verbatim}
     \item Edit the site configuration file: sites-enabled/default, configuring the subsections:
     \begin{enumerate}
     \item Upstream
@@ -272,34 +299,34 @@ Copy your configurations to {\tt /etc/nginx/sites-enabled} and leave {\tt /etc/n
     \item Listening port. The port to serve the site with static files. E.g.: 8000
     \item Server name. E.g.: ipolcore.ipol.im
     \item A resolver, necessary to set variables in the configuration for Debian distributions.
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     resolver 213.186.33.99;
-    \end{lstlisting}
+    \end{verbatim}
     \item Increase timeout for send and receive requests.
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     proxy_send_timeout	600;
     proxy_read_timeout	600;
     send_timeout		600;
-    \end{lstlisting}
+    \end{verbatim}
     \item Access log absolute location.
     \item A location for each module.
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     location /api/<module>/ {
       rewrite ^/api/<module>/(.*) /$1 break;
       proxy_pass  http://$host:<port>;
     }
-    \end{lstlisting}
+    \end{verbatim}
     \item Static files absolute location.
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     location /cp/static/ {
       alias  /home/<user>/IPOLWEBAPP_STATIC/;
     }
-    \end{lstlisting}
+    \end{verbatim}
     \item Proxy pass, using upstream name configured previously.
     E.g.:
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     proxy_pass http://ipol_webapp_server;
-    \end{lstlisting}
+    \end{verbatim}
 
     \end{enumerate}
     \end{enumerate}
@@ -322,34 +349,34 @@ For the integration server we use certbot to generate and automatically renew SS
 
 \begin{enumerate}
   \item Install certbot and its dependencies
-  \begin{lstlisting}[language=Bash]
+  \begin{verbatim}[language=Bash]
   sudo apt update
   sudo apt install python3-acme python3-certbot python3-mock \
   python3-openssl python3-pkg-resources python3-pyparsing \
   python3-zope.interface
   sudo apt install python3-certbot-nginx
-  \end{lstlisting}
+  \end{verbatim}
   \item Generate certificate
-  \begin{lstlisting}[language=Bash]
+  \begin{verbatim}[language=Bash]
   sudo certbot certonly --nginx -d integration.ipol.im
-  \end{lstlisting}
+  \end{verbatim}
   \item Configure Nginx. Add to default configuration file.
-  \begin{lstlisting}[language=Bash]
+  \begin{verbatim}[language=Bash]
   # Enable SSL
   listen *:443 ssl http2 default_server;
   listen [::]:443 ssl http2 default_server;
   include snippets/certificate.conf;
   include snippets/ssl-params.conf;
   include /etc/letsencrypt/options-ssl-nginx.conf;
-  \end{lstlisting}
+  \end{verbatim}
   \item Validate configuration and restart Nginx
-  \begin{lstlisting}[language=Bash]
+  \begin{verbatim}[language=Bash]
   sudo nginx -t && sudo nginx -s reload
-  \end{lstlisting}
+  \end{verbatim}
   \item Create cronjob to renew the certificate periodically. This should be done on the sudo user crontab.
-  \begin{lstlisting}[language=Bash]
+  \begin{verbatim}[language=Bash]
   0 12 * * * /usr/bin/certbot renew --quiet
-  \end{lstlisting}
+  \end{verbatim}
 
 \end{enumerate}
 
@@ -358,19 +385,19 @@ For the integration server we use certbot to generate and automatically renew SS
     \item Add authentication for demos. Only in the machine which serves the static files of the demo, of course.
     \begin{enumerate}
     \item Create subfolder .passwd in /etc/nginx
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     mkdir /etc/nginx/.passwd
-    \end{lstlisting}
+    \end{verbatim}
     \item Install apache2-utils
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     sudo apt install apache2-utils
-    \end{lstlisting}
+    \end{verbatim}
     \item Create username and password with htpasswd
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
      sudo htpasswd -c /etc/nginx/.passwd/company company
-    \end{lstlisting}
+    \end{verbatim}
     \item Edit the {\tt default} file to add authentication, e.g. add authentication to all the demos which its id starts with 33333999
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     location /demo/clientApp/demo.html {
       if ($args ~ ".*id=33333999\d*") {
 	error_page 418 = @companyPasswd;
@@ -383,7 +410,7 @@ For the integration server we use certbot to generate and automatically renew SS
       auth_basic_user_file /etc/nginx/.passwd/company;
       proxy_pass  http://$host:8080;
     }
-    \end{lstlisting}
+    \end{verbatim}
     \end{enumerate}
 
     \item Check the nginx's configuration with {\tt sudo nginx -t}
@@ -395,21 +422,21 @@ For the integration server we use certbot to generate and automatically renew SS
 
 \begin{itemize}
     \item Start service:
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     {prod} ~/ipolDevel$ sudo nginx
-    \end{lstlisting}
+    \end{verbatim}
     \item Reload the configuration file:
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     {prod} ~/ipolDevel$ sudo nginx -s reload
-    \end{lstlisting}
+    \end{verbatim}
     \item Stop service:
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     {prod} ~/ipolDevel$ sudo nginx -s stop
-    \end{lstlisting}
+    \end{verbatim}
     \item Check configuration:
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     {prod} ~/ipolDevel$ sudo nginx -t
-    \end{lstlisting}
+    \end{verbatim}
 \end{itemize}
 
 
@@ -465,9 +492,9 @@ In order to manage the gunicorn service we will use a script, which is in charge
 \end{itemize}
 
 In this guide we will use the following path/name for the mentioned script:
-\begin{lstlisting}[language=Bash]
+\begin{verbatim}[language=Bash]
 ipolDevel/gunicorn_start.sh
-\end{lstlisting}
+\end{verbatim}
 
 Open the script and configure the parameters:
 \begin{itemize}
@@ -486,9 +513,9 @@ Open the script and configure the parameters:
 \subsection{Gunicorn: management}
 \begin{itemize}
     \item Start service by executing the script:
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     {prod} ~/ipolDevel$ ./gunicorn_start.sh
-    \end{lstlisting}
+    \end{verbatim}
 
     \item Stop service: Ctrl + C
 \end{itemize}
@@ -531,9 +558,9 @@ container before actually running the server. For this purpose there is a script
 
 Run this command inside the ipolDevel repository you previously cloned.
 
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ docker build . -t ipol -f ./docker/Dockerfile
-\end{lstlisting}
+\end{verbatim}
 
 With this command we will have docker create an image from the Dockerfile in the root of the project. It will go through the creation and configuration of the development envirorment. This command has to be executed from inside the project root folder. Explanation:
 \begin{itemize}
@@ -545,9 +572,9 @@ With this command we will have docker create an image from the Dockerfile in the
 \end{itemize}
 
 \paragraph{Docker run}:\\
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ docker run -it -v $(pwd):/home/ipol/ipolDevel -v $(pwd)/ipolDevel/ipol_demo/modules/config_common/authorized_patterns.conf.sample:/home/ipol/ipolDevel/ipol_demo/modules/config_common/authorized_patterns.conf -p 80:80 -h docker --add-host docker:127.0.0.1 --name ipol ipol
-\end{lstlisting}
+\end{verbatim}
 
 This command will create a container and log us in the terminal. Explanation:
 \begin{itemize}
@@ -571,92 +598,92 @@ otherwise if the container is already exists, it will have to be removed or atta
 
 \paragraph{Docker start}:\\
 In order to start the already created container.
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ docker start -i ipol
-\end{lstlisting}
+\end{verbatim}
 
 \paragraph{Docker exec}:\\
 In order to attach a new terminal to the container. Useful if you need more than one terminal access to the container.
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ docker exec -it ipol bash
-\end{lstlisting}
+\end{verbatim}
 
 \paragraph{Docker ps}:\\
 In order to get information about all the created containers.
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ docker ps -a
-\end{lstlisting}
+\end{verbatim}
 
 \paragraph{Docker images}:\\
 In order to get information about all the created images.
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ docker images
-\end{lstlisting}
+\end{verbatim}
 
 \paragraph{Docker rm}:\\
 In order to remove a container. The id or name provided will be available doing "docker ps -a"
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ docker rm 'docker_image_id'
-\end{lstlisting}
+\end{verbatim}
 
 \paragraph{Docker rmi}:\\
 In order to remove an image. The id or name provided will be available doing "docker images"
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ docker rmi 'docker_image_id'
-\end{lstlisting}
+\end{verbatim}
 
 \paragraph{Once you are on the container's terminal}:\\
 
 Which means you executed the \textbf{docker run} or the \textbf{docker start} command above.
 
 Switch to the ipol user:
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ su ipol
-\end{lstlisting}
+\end{verbatim}
 
 Open IPOL's terminal:
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ terminal
-\end{lstlisting}
+\end{verbatim}
 
 You should be in a new terminal now, like this one:
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   IPOL>
-\end{lstlisting}
+\end{verbatim}
 
 Switch all modules to local
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   IPOL> env local0
-\end{lstlisting}
+\end{verbatim}
 
 Start all modules
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   IPOL> startall
-\end{lstlisting}
+\end{verbatim}
 
 When you ping them all, they should be marked "OK"
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   IPOL> pingall
-\end{lstlisting}
+\end{verbatim}
 
 You can now leave the terminal, cd to ipol\_webapp, create its venv, activate it, install its 
 requirements and make its migrations.
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   IPOL> exit
   $ cd ~/ipolDevel/ipol_webapp/
   $ python -m virtualenv venv
   $ source venv/bin/activate
   (venv) $ pip install -r requirements.txt
   (venv) $ ~/ipolDevel/docker/migrations_cp.sh
-\end{lstlisting}
+\end{verbatim}
 
 Note: An error about a missing distribution for Django might be displayed, but you can safely ignore it.
 
 The next step is to create a super user for cpanel. Still with the \emph{venv} we just created, and
 still in \emph{\~/ipolDevel/ipol\_webapp}:
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   (venv) $ python manage.py createsuperuser
-\end{lstlisting}
+\end{verbatim}
 
 Choose a username, email address, and a password of your choice.
 
@@ -667,14 +694,13 @@ and in \emph{$./ipol\_demo/modules/demoInfo$} so that both of them have a static
 with the new files. Paths are relative to ipolDevel's repository root.
 
 You can now run cpanel with:
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ cpanel
-\end{lstlisting}
+\end{verbatim}
 And access it at \emph{http://127.0.0.1/cp/login/}. Use the credentials of the super user you created
-above. You can start cpanel in the backgroud if you want with: cpanel \&.  
+above. If you are in docker you can use the {\tt cpanel} command to start it, for development. Note that in production the Control Panel is started with the script {\tt gunicorn\_start.sh}.
 
-You can also access the demos at \emph{http://127.0.0.1/demo/} (no need to have cpanel running for
-that).
+The list of demos appear locally \emph{http://<server>/demo/}. Change {\tt <server>} to {\tt 127.0.0.1} if running locally, or change by the address of the server on the Internet.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -727,47 +753,47 @@ While making backups is a good way to be able to recover in case of data loss, i
 The system is automatically updated based on the latest stable version. To achieve this the IPOL servers use the UnattendedUpgrades package that allows a machine to download and upgrade the system according to the "Origins-Pattern" list without updating any package in the "Blacklist". These are useful commands to manage this package: 
 
 Edit the configuration: 
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ editor /etc/apt/apt.conf.d/50unattended-upgrades
-\end{lstlisting}
+\end{verbatim}
 
 Edit the downloads schedule: 
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ sudo systemctl edit apt-daily.timer
   $ sudo systemctl restart apt-daily.timer
   $ sudo systemctl status apt-daily.timer
-\end{lstlisting}
+\end{verbatim}
 
 Edit the upgrade schedule: 
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ sudo systemctl edit apt-daily-upgrade.timer
   $ sudo systemctl restart apt-daily-upgrade.timer
   $ sudo systemctl status apt-daily-upgrade.timer
-\end{lstlisting}
+\end{verbatim}
 
 Check the next execution: 
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ systemctl list-timers
-\end{lstlisting}
+\end{verbatim}
 
 View the installed packages: 
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ cat /var/log/apt/history.log
-\end{lstlisting}
+\end{verbatim}
 
 Manually execute unattended upgrade:
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ sudo unattended-upgrade -d
-\end{lstlisting}
+\end{verbatim}
 
 Some package updates require user input to decide wether to keep or renew the possible modified config files. In order to keep our older modified configurations for a package we use the following option in the unattended upgrades configuration:
 
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   Dpkg::Options {
     "--force-confdef";
     "--force-confold";
   };
-\end{lstlisting}
+\end{verbatim}
 
 
 \section{Troubleshooting}
