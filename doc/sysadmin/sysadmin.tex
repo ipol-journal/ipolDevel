@@ -934,7 +934,7 @@ To avoid resizing the root partition, a simply solution is to move {\tt /var/cac
 Create a new folder {\tt /home/system/} and copy {\tt /var/cache/apt/} inside. Then remove {\tt /var/cache/apt/} and create a symlink {\tt /var/cache/apt/ -> /home/system/apt/}
 It is convenient to do the same with {\tt /usr/lib} and {\tt /usr/share} by copying these two folders to {\tt /home/system/} and creating symlinks: {\tt lib -> /home/system/lib/} and {\tt share -> /home/system/share}
 
-\textbf{DR (or any other modules fails to install its own venv with a message similar to \emph{ERROR: Could not build wheels for scipy which use PEP 517 and cannot be installed directly}.}
+\textbf{DR (or any other modules) fails to install its own venv with a message similar to \emph{ERROR: Could not build wheels for scipy which use PEP 517 and cannot be installed directly}.}
 
 Most probably the {\tt setuptools} and {\tt wheel} packages are not installed or outdates. They are needed to create virtual environments, and therefore they need to be installed or updated before. Install them with
 
