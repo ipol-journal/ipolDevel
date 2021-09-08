@@ -4,7 +4,7 @@ ipython==7.26.0
 matplotlib==3.4.3
 numpy==1.21.2
 opencv-python==4.5.3.56
-Pillow==8.3.1
+Pillow==8.3.2
 psutil==5.8.0
 pylint==2.9.6
 requests==2.26.0
