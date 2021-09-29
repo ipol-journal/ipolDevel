@@ -43,9 +43,9 @@ $.fn.selection_radio = function(param, index) {
   $(this).append('<div id=param-' + param.id + '></div>');
   for (var i = 0; i < keys.length; i++) {
     $('#param-' + param.id).append('<div class="radio-option-' + i + '"></div>')
-    $('#param-' + param.id + " > .radio-option-" + i).append('<input class=hand type=radio name=' + param.id + ' id=selection_radio_' + param.id + '_' + i + ' value=' + values[i] + '>')
-    $('#param-' + param.id + " > .radio-option-" + i).append('<label class=hand for=' + param.id + '_' + i + ' >' + keys[i] + '</label>');
-    if (param.default_value == values[i]) $('#' + param.id + '_' + i).prop('checked', true);
+    $('#param-' + param.id + " > .radio-option-" + i).append(`<input class=hand type=radio name=${param.id} id=selection_radio_${param.id}_${i} value=${values[i]}>`)
+    $('#param-' + param.id + " > .radio-option-" + i).append(`<label class=hand for=selection_radio_${param.id}_${i}>${keys[i]}</label>`);
+    if (param.default_value == values[i]) $(`#selection_radio_${param.id}_${i}`).prop('checked', true);
   }
   $('#param-' + param.id + ' > label').addClass('m-r-10');
 
