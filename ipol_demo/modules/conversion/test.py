@@ -102,7 +102,7 @@ class ConversionImageTests(unittest.TestCase):
         data = self.data_matrix('8i')
         # gif is not supported by OpenCV, .jpg do not keep exact colors
         exts = {
-            '.bmp': 'image/x-ms-bmp',
+            '.bmp': 'image/bmp',
             '.png': 'image/png',
             '.tif': 'image/tiff',
             '.TIFF': 'image/tiff',
@@ -148,7 +148,7 @@ class ConversionImageTests(unittest.TestCase):
         code = None
         try:
             dst_ext = '.bmp'
-            dst_mime = 'image/x-ms-bmp'
+            dst_mime = 'image/bmp'
             input_dir = os.path.split(self.blob_path)[0]
             src_im = Image(src=self.blob_path) # image in resource folder should be not jpeg
             input_desc = [{'description': 'input', 'max_pixels': '1024 * 2000', 'dtype': '3x8i', 'ext': dst_ext,
