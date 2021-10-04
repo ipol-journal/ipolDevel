@@ -33,6 +33,7 @@ liblapack-dev
 libblas-dev
 libopenblas-base
 libopenblas-dev
+mutt
 parallel
 python
 python3
