@@ -28,4 +28,4 @@ USER root
 
 EXPOSE 80
 
-ENTRYPOINT service ssh start && service bind9 start && nginx && zsh
+ENTRYPOINT service ssh start && service named start && nginx && zsh

@@ -17,7 +17,6 @@ libfftw3-dev
 libeigen3-dev
 liblapack-dev
 libblas-dev
-liblas-bin
 libopenblas-base
 libopenblas-dev
 parallel
@@ -25,14 +24,13 @@ python
 python3
 python-dev
 python3-dev
-python-cherrypy3
-python-mako
-python-jsonschema
+python3-cherrypy3
+python3-mako
+python3-jsonschema
 gnuplot
 gnuplot-nox
-python-pip
 python3-pip
-python-yaml
+python3-yaml
 libpq-dev
 libmagic-dev
 libgsl-dev
@@ -40,7 +38,7 @@ libgsl-dbg
 libblas-dev
 libblas3
 libopencv-dev
-python-opencv
+python3-opencv
 liblapack-dev
 liblapacke-dev
 liblapacke
@@ -54,7 +52,7 @@ octave-statistics
 sshfs
 libgdal-dev
 gdal-bin
-python-gdal
+python3-gdal
 libavformat-dev
 libavcodec-dev
 libavdevice-dev
@@ -69,11 +67,10 @@ libconfig++-dev
 
 libgeos-dev
 
-caffe-cpu
-caffe-tools-cpu
-libcaffe-cpu-dev
-libcaffe-cpu1
-python3-caffe-cpu
+caffe
+libcaffe-dev
+libcaffe1
+python3-caffe
 
 libjpeg-progs
 
@@ -95,7 +92,7 @@ bash-completion
 mailutils
 cron-apt
 bind9
-ipython
+ipython3
 net-tools
 gunicorn
 screen
