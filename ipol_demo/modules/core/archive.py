@@ -60,9 +60,11 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
                     file_label = file_name
                 value = {file_label: src_file}
 
-                thumb_file = create_thumbnail(src_file)
-                if thumb_file:
-                    value[os.path.basename(thumb_file)] = thumb_file
+                ext = file_name.split(".")[1]
+                if ext not in ['txt', 'gz']:
+                    thumb_file = create_thumbnail(src_file)
+                    if thumb_file:
+                        value[os.path.basename(thumb_file)] = thumb_file
                 blobs.append(value)
         elif  key == 'compressed_files':
             for file_name, file_label in values.items():
