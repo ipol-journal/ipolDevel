@@ -19,6 +19,7 @@ Utils shared among IPOL modules.
 import errno
 import mimetypes
 import os
+from shutil import rmtree
 
 from .image.Image import Image
 
@@ -28,13 +29,13 @@ def thumbnail(src_file, height, dst_file):
     Return a jpeg thumbnail for the src parameter (file path relative to shared_folder/run).
     """
     if not os.path.isfile(src_file):
-        raise OSError(errno.ENOENT, "ipolutils.thumbnail(), file not found", src_file)
+        return False
     mime_type, _ = mimetypes.guess_type(src_file)
     if not mime_type:
         return False
     media_type, _ = mime_type.split('/')
     if media_type not in ('image', 'video') or mime_type == 'image/svg+xml':
-        raise OSError(errno.EINVAL, "ipolutils.thumbnail(), format {} not yet supported.".format(mime_type), src_file)
+        return False
     if media_type == "image":
         im = Image(src=src_file)
     elif media_type == "video":
@@ -52,4 +53,4 @@ def rmdir_contents(target):
         if os.path.isfile(file_path):
             os.unlink(file_path)
         else:
-            shutil.rmtree(file_path)
+            rmtree(file_path)
