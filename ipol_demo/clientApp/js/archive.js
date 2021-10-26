@@ -97,10 +97,10 @@ function record(data) {
   let html = '<hr class="separator"/>';
   html += '<div class="record">';
   html += '<header>';
-  html += `<div class="legend" id=${data.id}>Experiment <p id="experiment-id">#${data.id}</p>.<br/>${data.date}`;
+  html += `<div class="legend" id=${data.id}><p>Experiment <strong id="experiment-id">#${data.id}</strong>.</p><p>${data.date}</p>`;
 
   var runtime = +data.parameters['run time'];
-  if (runtime) html += ' (done in '+runtime.toFixed(3)+' s)';
+  if (runtime) html += '<p>(done in '+runtime.toFixed(3)+' s)</p>';
   
   html += '</div>';
   html += '</header>';
@@ -121,8 +121,8 @@ function record(data) {
       html += '<caption>Parameters</caption>';
       html += pars;
       html += '</table>';
-      html += '</div>'; // params
-      html += '</div>'; // params
+      html += '</div>'; // parameters
+      html += '</div>'; // parameters-container
     }
   }
 
@@ -137,15 +137,14 @@ function record(data) {
   html += '</div>'; // images
 
   // files
-  var files = "";
-  for (var i = 0; i < files_count; i++) {
+  let files = "";
+  for (let i = 0; i < files_count; i++) {
     let isHiddenFile = ddl.archive.hidden_files ? Object.values(ddl.archive.hidden_files).includes(data.files[i].name) : false;
     if (data.files[i].url_thumb || isHiddenFile) continue;
-    var url = data.files[i].url;
-    var ext = url.substr(url.lastIndexOf('.')+1);
-    // not empty string, add comma.
-    if (files) files += ", ";
-    files += '<a class="file ' + ext + '" target="_blank" href="' + url + '">' + data.files[i].name + '</a>';
+    let url = data.files[i].url;
+    let ext = url.substr(url.lastIndexOf('.')+1);
+    let downloadName = data.files[i].name + '.' + ext;
+    files += '<a class="file ' + ext + '" target="_blank" href="' + url + '" download="' + downloadName + '">' + data.files[i].name + '</a>';
   }
 
   if (files) { 
