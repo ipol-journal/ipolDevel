@@ -427,6 +427,16 @@ class Archive():
         """
         Add an experiment to the archive.
         """
+        print("*****demo_id:")
+        print(demo_id)
+        print()
+        print("*****blobs:")
+        print(blobs)
+        print()
+        print("*****parameters:")
+        print(parameters)
+        print()
+        
         data = {"status": "OK"}
         # initialize list of copied files, to delete them in case of exception
         copied_files_list = []
@@ -503,6 +513,8 @@ class Archive():
         # id_demo = int(demo_id)
         experiment_id = int(experiment_id)
 
+        print(f'*************Experiment id is: {experiment_id}')
+        
         data = {"status": "OK"}
         conn = None
         try:
