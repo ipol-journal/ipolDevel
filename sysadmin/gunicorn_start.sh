@@ -26,6 +26,16 @@ export PYTHONPATH=$DJANGODIR:$PYTHONPATH
 RUNDIR=$(dirname $SOCKFILE)
 test -d $RUNDIR || mkdir -p $RUNDIR
 
+VIRTUALENV=${DJANGODIR}/venv
+if [ ! -d $VIRTUALENV ]; then
+  echo "Creating virtualenv"
+  python2 -m virtualenv $VIRTUALENV
+  source $VIRTUALENV/bin/activate
+  pip install -r $DJANGODIR/requirements.txt
+fi
+
+source ${DJANGODIR}/venv/bin/activate
+
 #Collect static files for app
 python manage.py collectstatic --noinput
 

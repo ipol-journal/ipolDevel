@@ -107,7 +107,11 @@ function checkPostData() {
 }
 
 function checkPostInputs()  {
-  if (ddl.inputs && ddl.inputs.length != 0 && !helpers.getFromStorage('origin')) {
+  let inputs = ddl.inputs;
+  if (!inputs) return true;
+  let optionalInputs = inputs.filter(input => input.required === false);
+  let inputsAreOptional = optionalInputs.length === inputs.length;
+  if (inputs && inputs.length != 0 && !helpers.getFromStorage('origin') && !inputsAreOptional) {
     errorMsg = 'Input/s required.'
     return false;
   }

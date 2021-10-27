@@ -43,7 +43,7 @@ table.pars tr:hover, table.pars caption {
   margin-bottom: 2rem;
 
   grid-auto-rows: max-content auto auto 1fr;
-  grid-gap: 5px;
+  grid-gap: 1rem;
   grid-template-areas: 'info images'
   'params images'
   'files files'
@@ -53,6 +53,10 @@ table.pars tr:hover, table.pars caption {
 
 .record header {
   grid-area: info;
+}
+
+.legend p {
+  margin: .5rem .2rem 0 0;
 }
 
 .images-container {
@@ -86,7 +90,9 @@ table.pars tr:hover, table.pars caption {
 }
 
 .thumbnail {
-  width: 100%;
+  align-self: center;
+
+  max-width: 100%;
 }
 
 .image-name {
@@ -95,6 +101,7 @@ table.pars tr:hover, table.pars caption {
   text-align: center;
 
   justify-self: center;
+  line-break: anywhere;
 }
 
 div.parameters, a.thumb {
@@ -252,11 +259,11 @@ a.file:before {
   vertical-align: middle;
 }
 
-a.file:hover:before {
+/* a.file:hover:before {
   color: #FFF;
   border-radius: 3px;
   background-color: #5B4BA6;
-}
+} */
 
 a.pdf:before {
   content: '\f1c1';
@@ -290,7 +297,22 @@ a.video:before, a.mpg:before, a.mpeg:before, a.avi:before {
 }
 
 .files a {
+  display: inline-block;
+
   margin: 0 5px;
+  padding: 5px;
+
+  transition: .3s cubic-bezier(.63, .1, .17, .77);
+
+  border: 1px solid #D1CAE8;
+  border-radius: 3px;
+  background-color: #EEE;
+}
+
+.files a:hover {
+  color: #544E88;
+  border: 1px solid #544E88;
+  background-color: #D8D5E4;
 }
 
 #files-text {

@@ -53,7 +53,7 @@
 				{% if data.name %}
 					<div class="extra" id="demo_extra" >
 						<p class="griditem col-sm-7">{{ data.name }} </p>
-						<a class="btn btn-info" onclick="window.open('{{ data.url }}')" target="_self"> Download</a>
+						<a class="btn btn-info" href="{{ data.url }}"> Download</a>
 						{% if data.registered %}
                         	<a class="btn btn-primary" onclick="send_delete_demo_extra_request('{% url 'ipol.cp.demoinfo.delete_demo_extra_from_demo'  demo_id %}',{{ demo_id }} )">{% trans 'Delete' %}</a>
 						{% else %}

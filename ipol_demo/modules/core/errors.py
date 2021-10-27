@@ -69,6 +69,11 @@ class IPOLReadDDLError(Exception):
     IPOLReadDDLError
     """
 
+    def __init__(self, error_message, error_code=None):
+        super(IPOLReadDDLError, self).__init__()
+        self.error_message = error_message
+        self.error_code = error_code
+
 class IPOLCheckDDLError(Exception):
     """
     IPOLCheckDDLError

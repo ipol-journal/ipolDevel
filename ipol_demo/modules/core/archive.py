@@ -8,7 +8,6 @@ Helper functions for core, related to the archive module.
 import gzip
 import json
 import os
-import traceback
 from collections import OrderedDict
 
 import requests
@@ -28,10 +27,7 @@ def create_thumbnail(src_file):
     thumb_file = os.path.join(os.path.dirname(src_file), thumb_name)
     try:
         result = thumbnail(src_file, thumb_height, thumb_file)
-        if result:
-            return thumb_file
-        else:
-            return False
+        return thumb_file if result else False
     except Exception:
         return False
 
@@ -63,12 +59,12 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
                 if not file_label: # if no label given, use filename
                     file_label = file_name
                 value = {file_label: src_file}
-                try: # to get a thumbnail
+
+                ext = file_name.split(".")[1]
+                if ext not in ['txt', 'gz']:
                     thumb_file = create_thumbnail(src_file)
-                except Exception:
-                    print(traceback.format_exc())
-                if thumb_file:
-                    value[os.path.basename(thumb_file)] = thumb_file
+                    if thumb_file:
+                        value[os.path.basename(thumb_file)] = thumb_file
                 blobs.append(value)
         elif  key == 'compressed_files':
             for file_name, file_label in values.items():

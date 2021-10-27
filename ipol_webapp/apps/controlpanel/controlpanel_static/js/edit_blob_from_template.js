@@ -17,21 +17,21 @@ function removeFile(){
     document.getElementById("vr_name").innerHTML = "File...";
 }
 
-function deleteBlob(url, name){
+function deleteBlob(url, template_id){
     var values = {
-        'name': name,
+        'template_id': template_id,
         'set': original_set,
         'pos': original_pos
     }
-    $.post(url, values, 'json');
-    demo_url = "/cp/blob_template/" + name;
-    window.location.href = demo_url;
+    demo_url = "/cp/blob_template/" + template_id;
+    $.post(url, values, 'json')
+        .always(() => { window.location.href = demo_url });
 }
 
 function deleteVR(url, blob_id){
     var delvr = confirm('Deleting visual representation will afect other demos and templates.\nAre you sure you want to continue?');
-    if (delvr == true) {
-        $.post(url, {'blob_id':blob_id}, 'json');
-        window.location.reload();
+    if (delvr) {
+        $.post(url, {'blob_id':blob_id}, 'json')
+            .always(() => { window.location.reload() });
     }
 }

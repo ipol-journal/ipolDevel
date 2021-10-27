@@ -28,6 +28,7 @@ import sqlite3 as lite
 import sys
 from collections import OrderedDict
 from math import ceil
+from urllib.request import pathname2url
 
 import cherrypy
 import magic
@@ -106,7 +107,8 @@ class DemoInfo():
         self.mkdir_p(self.dl_extras_dir)
         self.config_common_dir = cherrypy.config.get("config_common_dir")
 
-
+        # Get the server environment (integration or production)
+        self.server_environment = cherrypy.config.get("env")
 
         # Security: authorized IPs
         self.authorized_patterns = self.read_authorized_patterns()
@@ -254,9 +256,11 @@ class DemoInfo():
 
         if not demoextras_file:
             return None
-
-        demoextras_name = os.path.basename(demoextras_file[0])
-        return "http://{}/api/demoinfo/{}/{}/{}".format(
+        demoextras_name = pathname2url(os.path.basename(demoextras_file[0]))
+        env = self.server_environment
+        protocol = 'https' if env == 'production' or env == 'integration' else 'http'
+        return "{}://{}/api/demoinfo/{}{}/{}".format(
+            protocol,
             socket.getfqdn(),
             self.dl_extras_dir,
             demo_id,
@@ -1751,17 +1755,20 @@ class DemoInfo():
         """
         Reads the current DDL of the demo
         """
+        # Error code description:
+        # code -1: the DDL of the requested ID doesn't exist
+        # code -2: Invalid demo_id
         try:
             # Validate demo_id
             try:
                 demo_id = int(demo_id)
             except(TypeError, ValueError) as ex:
-                return json.dumps({'status': 'KO', 'error': "Invalid demo_id: {}".format(demo_id)}).encode()
+                return json.dumps({'status': 'KO', 'error': "Invalid demo_id: {}".format(demo_id), 'error_code': -2}).encode()
 
             ddl = self.get_stored_ddl(demo_id)
             if not ddl:
                 error = "There isn't any DDL for demo {}".format(demo_id)
-                return json.dumps({'status': 'KO', 'error': error}).encode()
+                return json.dumps({'status': 'KO', 'error': error, 'error_code': -1}).encode()
             if sections:
                 ddl = json.loads(ddl.get("ddl"), object_pairs_hook=OrderedDict)
                 ddl_sections = self.get_ddl_sections(ddl, sections)

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import errno
 import json
@@ -26,14 +26,16 @@ def main():
         requirements = json_ddl.get('general').get('requirements')
 
         if build_section is None:
-            print "Demo #{} doesn't have build section".format(demo_id)
+            print(f"Demo #{demo_id} doesn't have build section")
             all_success = False
             continue
 
         if not build(demo_id, build_section, requirements, demorunners):
             all_success = False
 
-    if not all_success:
+    if all_success:
+        exit(0)
+    else:
         exit(-1)
 
 
@@ -66,7 +68,7 @@ def get_published_demos():
     response = resp.json()
     demos = []
     if response['status'] != 'OK':
-        print "ERROR: demo_list returned KO"
+        print("ERROR: demo_list returned KO")
         return []
     for demo in response['demo_list']:
         if demo.get('state') == "published":
@@ -81,7 +83,7 @@ def get_ddl(demo_id):
     resp = post(HOST, 'demoinfo', 'get_ddl', params={"demo_id": demo_id})
     response = resp.json()
     if response['status'] != 'OK':
-        print "ERROR: get_ddl returned KO for demo {}".format(demo_id)
+        print(f"ERROR: get_ddl returned KO for demo {demo_id}")
     last_demodescription = response.get('last_demodescription')
     return last_demodescription.get('ddl')
 
@@ -99,7 +101,7 @@ def build(demo_id, build_section, requirements, demorunners):
         json_response = response.json()
         if json_response.get('status') != 'OK':
             all_success = False
-            print "Couldn't build demo {} in {}.".format(demo_id, demorunner)
+            print(f"Couldn't build demo {demo_id} in {demorunner}.")
     return all_success
 
 
@@ -158,7 +160,7 @@ def post(host, module, service, params=None):
         )
         return requests.post(url, params=params)
     except Exception as ex:
-        print "ERROR: Failure in the post function - {}".format(str(ex))
+        print(f"ERROR: Failure in the post function - {str(ex)}")
 
 
 main()

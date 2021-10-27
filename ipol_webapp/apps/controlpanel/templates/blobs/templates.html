@@ -28,11 +28,11 @@
 
                 {% if data.templates|length > 0 %}
                     {% for template in data.templates %}
-                        <a href="{% url 'ipol.cp.template.page' template %}" title="View/edit Template {{ template }}">
+                        <a href="{% url 'ipol.cp.template.page' template.id %}" title="View/edit Template {{ template.name }}">
                             <div class="block">
-                                <h4><a href="{% url 'ipol.cp.template.page' template %}"> {{template}} </a></h4>
+                                <h4><a href="{% url 'ipol.cp.template.page' template.id %}"> {{template.name}} </a></h4>
                                 <div align="right">
-                                    <a class="btn btn-primary" onclick="deleteTemplate('{% url 'ipol.cp.blobs.delete_template'%}','{{template}}')">Delete template</a>
+                                    <a class="btn btn-primary" onclick="deleteTemplate('{% url 'ipol.cp.blobs.delete_template'%}','{{template.id}}')">Delete template</a>
                                 </div>
                             </div>
                         </a>

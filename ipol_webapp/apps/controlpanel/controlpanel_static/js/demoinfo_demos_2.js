@@ -97,7 +97,7 @@ function send_delete_demo_request(wsurl, demo_id, demo_editorsdemoid, demo_title
                     var okhtml="<p class=\"ststsok\">Demo deleted succesfully</p>";
                     $('#demo_info_'+ demo_id).html(okhtml);
                     //todo better to only reload part of list, but shoul change django pagination for js pagination
-                    window.location.reload(true);
+                    window.location.reload();
 
                 },
                 error: function(data){
@@ -178,7 +178,7 @@ function submitDemoformAJAX(){
                 $($modal_demo_msg_div).html('Demo saved').show();
                 $demoform.hide();
                 //todo better to only reload part of list, but should change django pagination for js pagination
-                window.location.reload(true);
+                window.location.reload();
             }
             else {
 

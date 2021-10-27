@@ -83,6 +83,9 @@ ipol_demo/modules/archive/logs/error.log
 # Static data in all modules
 staticData/
 
+# Module conf file
+local.conf
+
 # Authentication configuration
 ipol_demo/modules/config_common/authorized_patterns.conf
 
@@ -97,7 +100,11 @@ demorunners.xml
 # ClientApp configs
 .csscomb.json
 
+# History
+tools/terminal/history.txt
+
 # other
 changes*.txt
 ipol_demo/app_new/
 ipol_webapp/apps/controlpanel/migrations/*_auto_*.py
+

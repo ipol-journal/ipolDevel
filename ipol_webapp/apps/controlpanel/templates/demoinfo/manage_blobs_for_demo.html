@@ -33,9 +33,9 @@
                 Add Template
                 <span class="caret"></span>
                 </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                <ul id="templateDropdown" class="dropdown-menu" aria-labelledby="dropdownMenu1">
                   {%for template in data.unused_templates%}
-                        <li><a onclick="addTemplateToDemo('{% url 'ipol.cp.blobs.add_template_to_demo'%}','{{id}}','{{template}}')">{{template}}</a></li>
+                        <li><a onclick="addTemplateToDemo('{% url 'ipol.cp.blobs.add_template_to_demo'%}','{{id}}','{{template.id}}')">{{template.name}}</a></li>
                   {% endfor %}
                 </ul>
             {% endif %}
@@ -44,10 +44,10 @@
                 <h4>Used:</h4>
                 {%for template in data.templates%}
                     <div class="block">
-                        <h4><a href="{% url 'ipol.cp.template.page' template %}"> {{template}} </a></h4>
+                        <h4><a href="{% url 'ipol.cp.template.page' template.id %}"> {{template.name}} </a></h4>
                         <div align="right">
                             {% if data.registered %}
-                                <a class="btn btn-primary" onclick="removeTemplateFromDemo('{% url 'ipol.cp.blobs.remove_template_from_demo'%}','{{id}}','{{template}}')">Unlink template</a>
+                                <a class="btn btn-primary" onclick="removeTemplateFromDemo('{% url 'ipol.cp.blobs.remove_template_from_demo'%}','{{id}}','{{template.id}}')">Unlink template</a>
                             {% endif %}
                         </div>
                     </div>

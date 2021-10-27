@@ -21,6 +21,11 @@ from .error import VirtualEnvError
 
 TIME_FMT = "%a, %d %b %Y %H:%M:%S %Z"
 
+class IPOLInvalidPath(Exception):
+    """
+    IPOLInvalidPath
+    """
+    pass
 
 class IPOLHTTPMissingHeader(Exception):
     """
@@ -95,19 +100,18 @@ def extract(fname, target):
 
     @return: the archive content
     """
-    try:
-        # start with tar
-        ar = tarfile.open(fname)
-        content = ar.getnames()
-    except tarfile.ReadError:
-        # retry with zip
+    extension = os.path.splitext(fname)[1]
+    if extension == '.zip':
         ar = zipfile.ZipFile(fname)
         content = ar.namelist()
 
-    # no absolute file name
-    assert not any([os.path.isabs(f) for f in content])
-    # no .. in file name
-    assert not any([(".." in f) for f in content])
+        # Report bad path in case of starting with "/" or containing ".."
+        if any([os.path.isabs(f) or ".." in f for f in content]):
+            raise IPOLInvalidPath
+    else:
+        # tar files
+        ar = tarfile.open(fname)
+        content = ar.getnames()
 
     # cleanup/create the target dir
     if os.path.isdir(target):
@@ -123,7 +127,7 @@ def extract(fname, target):
     # extract into the target dir
     try:
         ar.extractall(target)
-    except IOError as AttributeError:
+    except IOError:
         # DUE TO SOME ODD BEHAVIOR OF extractall IN Pthon 2.6.1 (OSX 10.6.8)
         # BEFORE TGZ EXTRACT FAILS INSIDE THE TARGET DIRECTORY A FILE
         # IS CREATED, ONE WITH THE NAME OF THE PACKAGE

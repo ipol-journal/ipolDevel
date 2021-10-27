@@ -26,10 +26,11 @@ from subprocess import PIPE, Popen
 from threading import Lock
 
 import cherrypy
-import virtualenv
 import Tools.build as build
 import Tools.run_demo_base as run_demo_base
+import virtualenv.run as virtualenv
 from Tools.run_demo_base import IPOLTimeoutError
+
 
 
 class IPOLMissingBuildItem(Exception):
@@ -344,7 +345,7 @@ class DemoRunner():
                 # Get files to move path
                 files_path = []
                 for f in files_to_move.split(","):
-                    files_path.append(os.path.join(bin_dir, os.path.basename(f.strip())))
+                    files_path.append(os.path.join(bin_dir, os.path.basename(f.strip('/ '))))
 
                 # Check if a rebuild is needed
                 if extract_needed or not self.all_files_exist(files_path):
@@ -356,7 +357,6 @@ class DemoRunner():
                     os.chdir(src_dir)
                     # Extract source code
                     build.extract(tgz_file, src_dir)
-
                     # Create virtualenv if specified by DDL
                     if "virtualenv" in build_item:
                         self.create_venv(build_item, bin_dir, src_dir)
@@ -369,11 +369,12 @@ class DemoRunner():
                     # Move files
                     for file_to_move in files_to_move.split(","):
                         # Remove possible white spaces
-                        file_to_move = file_to_move.strip()
+                        file_to_move = file_to_move.strip('/ ')
+                        if not file_to_move:
+                            continue
 
                         path_from = os.path.realpath(os.path.join(src_dir, file_to_move))
                         path_to = os.path.realpath(os.path.join(bin_dir, os.path.basename(file_to_move)))
-
                         src_path = os.path.realpath(src_dir)
                         bin_path = os.path.realpath(bin_dir)
 
@@ -383,9 +384,8 @@ class DemoRunner():
 
                         # Check origin
                         if not os.path.exists(path_from):
-                            raise IPOLConstructFileNotFound(\
-    "Construct can't move file since it doesn't exist: {}".\
-    format(path_from))
+                            raise IPOLConstructFileNotFound(
+                                f"Construct can't move file since it doesn't exist: {path_from}")
 
                         try:
                             # Remove path_to if it exists
@@ -393,20 +393,17 @@ class DemoRunner():
                             # Do move
                             shutil.move(path_from, path_to)
                         except (IOError, OSError):
-                            os.remove(os.path.join(compilation_path, self.compilation_lock_filename))
-                            self.write_log("construct", "Can't move file {} --> {}".format(path_from, path_to))
+                            self.write_log("construct", f"Can't move file {path_from} --> {path_to}")
                             # If can't move, write in the log file, so
                             # the user can see it
                             f = open(log_file, 'w')
-                            f.write("Failed to move {} --> {}".\
-                                format(path_from, path_to))
+                            f.write(f"Failed to move {path_from} --> {path_to}")
                             f.close()
                             raise
         finally:
-            os.remove(os.path.join(compilation_path, self.compilation_lock_filename))
+            self.release_lock(lock_path)
 
-    @staticmethod
-    def construct_is_locked(lock_path):
+    def construct_is_locked(self, lock_path):
         """
         Check if compilation path is locked
         """
@@ -415,7 +412,7 @@ class DemoRunner():
             creation_time = os.path.getctime(lock_path)
             # In case of error it might leave dangling lockfiles, remove it if it's old.
             if current_time - creation_time >= 20*60:
-                os.remove(lock_path)
+                self.release_lock(lock_path)
                 return False
             return True
         return False
@@ -427,6 +424,15 @@ class DemoRunner():
         """
         open(lock_path, 'w+').close()
 
+    @staticmethod
+    def release_lock(lock_path):
+        """
+        Releases (removes) a lock given its path
+        """
+        try:
+            os.remove(lock_path)
+        except FileNotFoundError:
+            pass
 
     @staticmethod
     def any_extraction_needed(ddl_builds, dl_dir):
@@ -486,6 +492,10 @@ Build: {}".format(str(ddl_build))
 GitLab, or Dropbox as a file server.\nddl_build: {}".\
 format(str(ex), str(ddl_build))
 
+        except build.IPOLInvalidPath:
+            data = {}
+            data['status'] = 'KO'
+            data['message'] = 'Build Zip contains forbidden paths. It can not extract on/from a parent directory like "../".'
         except IPOLMissingBuildItem as ex:
             data = {}
             data['status'] = 'KO'
@@ -615,7 +625,7 @@ format(str(ex), str(ddl_build))
         packages_file = build_item["virtualenv"]
         venv_path = os.path.join(bin_dir, "venv")
         pip_bin = os.path.join(venv_path, "bin/pip")
-        virtualenv.create_environment(venv_path)
+        virtualenv.cli_run([venv_path])
 
         cmd = [pip_bin, "install", "-r", os.path.join(src_dir, packages_file)]
         cmd = shlex.split(" ".join(cmd))

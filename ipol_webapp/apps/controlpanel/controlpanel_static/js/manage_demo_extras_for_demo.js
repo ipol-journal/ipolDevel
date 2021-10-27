@@ -40,7 +40,7 @@ function send_delete_demo_extra_request(wsurl, demo_id) {
             url: wsurl,
             dataType: 'json',
             success: function(data) {
-                window.location.reload(true);
+                window.location.reload();
             },
             error: function(data){
                 alert("Failure with error: "+data.status)

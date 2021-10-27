@@ -100,7 +100,7 @@ function setUploadEditor(blobs, crop_info) {
     if(!blobs[i]) continue;
     uploadedFiles[i] = {
       blob: blobs[i],
-      format: "image",
+      format: ddl.inputs[i].type,
       thumbnail: ""
     };
   }

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# -*- coding:utf-8 -*-
+
 """
 IPOL Core module
 """
@@ -125,14 +127,7 @@ class Core():
         try:
             ### Read the configuration file
 
-            # Get the server environment (integration or production)
-            hostname = socket.gethostname()
-            if hostname == 'ipolcore':
-                self.server_environment = 'production'
-            elif hostname == 'integration':
-                self.server_environment = 'integration'
-            else:
-                self.server_environment = '<unknown>'
+            self.server_environment = cherrypy.config.get('env')
 
             self.logger = self.init_logging()
             self.project_folder = cherrypy.config.get("project_folder")
@@ -456,22 +451,13 @@ class Core():
             # the actual content.
             # Later Core will eventually ask the system to convert the
             # data (for example, encode in PNG).
-            file_save = open(os.path.join(work_dir, 'input_%i' % i + ext_of_uploaded_blob), 'wb')
+            file_save = os.path.join(work_dir, 'input_%i' % i + ext_of_uploaded_blob)
 
             # Read and save the file
-            size = 0
-            file_up.file.seek(0)
-            while True:
-                data = file_up.file.read(128)
-                if not data:
-                    break
-                size += len(data)
-                if 'max_weight' in inputs_desc[i] and size > evaluate(inputs_desc[i]['max_weight']):
-                    # file too heavy
-                    raise IPOLInputUploadTooLargeError(i, evaluate(inputs_desc[i]['max_weight']))
-
-                file_save.write(data)
-            file_save.close()
+            max_size = None
+            if 'max_weight' in inputs_desc[i]:
+                max_size = evaluate(inputs_desc[i]['max_weight'])
+            Core.write_data_to_file(file_up, file_save, max_size=max_size, input_index=i)
 
     def copy_blobset_from_physical_location(self, demo_id, work_dir, blobset_id):
         """
@@ -523,31 +509,35 @@ class Core():
         Copy the existing input inpainting data to the execution folder.
         """
         for i, ddl_input in enumerate(ddl_inputs):
-            if 'inpainting_data_' + str(i) in blobs:
-                Core.copy_data(work_dir, blobs['inpainting_data_' + str(i)], i, ddl_input)
+            if not f"inpainting_data_{str(i)}" in blobs:
+                continue
+            blob_data = blobs[f"inpainting_data_{str(i)}"]
+            if ddl_input['control'] == 'mask':
+                filepath = os.path.join(work_dir, f"mask_{i}.png")
+                Core.write_data_to_file(blob_data, filepath)
+            else:
+                filepath = os.path.join(work_dir, f"inpainting_data_{i}.txt")
+                with open(filepath, 'w') as file:
+                    for point in json.loads(blob_data):
+                        file.write("%s\n" % point)
 
     @staticmethod
-    def copy_data(work_dir, blob_data, input_index, ddl_input):
+    def write_data_to_file(blob_data, filepath, max_size=None, input_index=None):
         """
-        Copy data to work directory
+        Write input data to a given file destination.
         """
-        if ddl_input['control'] == 'mask':
-            filename = 'mask_{}.png'.format(input_index)
-            file_path = open(os.path.join(work_dir, filename), 'wb')
-            size = 0
+        size = 0
+        with open(filepath, 'wb') as file:
             blob_data.file.seek(0)
             while True:
                 data = blob_data.file.read(128)
                 if not data:
                     break
                 size += len(data)
-                file_path.write(data)
-            file_path.close()
-        else:
-            filepath = '{}/inpainting_data_{}.txt'.format(work_dir, input_index)
-            with open(filepath, 'w') as f:
-                for point in json.loads(blob_data):
-                    f.write("%s\n" % point)
+                if max_size is not None and size > max_size:
+                    # file too heavy
+                    raise IPOLInputUploadTooLargeError(input_index, max_size)
+                file.write(data)
 
     @staticmethod
     def check_ddl(ddl):
@@ -612,6 +602,12 @@ class Core():
         """
         urllib.request.urlretrieve(url_file, filename)
 
+    @staticmethod
+    def set_dl_extras_date(filepath, date):
+        """
+        Sets the modification time
+        """
+        os.utime(filepath, (date, date))
 
     @staticmethod
     def walk_demoextras_files(filename):
@@ -694,39 +690,41 @@ class Core():
                 raise IPOLDemoExtrasError("Failed to obtain demoExtras info")
 
             demoextras_compress_dir = os.path.join(self.dl_extras_dir, str(demo_id))
+            if 'url' not in demoinfo_resp:
+                if os.path.exists(demoextras_compress_dir):
+                    shutil.rmtree(demoextras_compress_dir)
+                if os.path.exists(os.path.join(self.demo_extras_main_dir, str(demo_id))):
+                    shutil.rmtree(os.path.join(self.demo_extras_main_dir, str(demo_id)))
+                return
+
             self.mkdir_p(demoextras_compress_dir)
 
             demoextras_file = glob.glob(demoextras_compress_dir+"/*")
 
-            #no demoExtras in the shared folder
-            if not demoextras_file:
-                if 'url' not in demoinfo_resp:
-                    return
-
-                # There is a new demoExtras in demoinfo
-                demoextras_name = os.path.basename(demoinfo_resp['url'])
-                demoextras_file = os.path.join(demoextras_compress_dir, demoextras_name)
-                self.download(demoinfo_resp['url'], demoextras_file)
-                self.extract_demo_extras(demo_id, demoextras_file)
-            else:
+            # Check if demoinfo has a newer demoextras
+            if demoextras_file:
                 demoextras_file = demoextras_file[0]
-
-                # DemoExtras was removed from demoInfo
-                if 'url' not in demoinfo_resp:
-                    shutil.rmtree(demoextras_compress_dir)
-                    shutil.rmtree(os.path.join(self.demo_extras_main_dir, str(demo_id)))
-                    return
 
                 demoinfo_demoextras_date = demoinfo_resp['date']
                 demoinfo_demoextras_size = demoinfo_resp['size']
                 extras_stat = os.stat(demoextras_file)
                 core_demoextras_date = extras_stat.st_ctime
                 core_demoextras_size = extras_stat.st_size
-                if (core_demoextras_date <= demoinfo_demoextras_date or
-                        core_demoextras_size != demoinfo_demoextras_size):
-                    # DemoExtras needs an update
-                    self.download(demoinfo_resp['url'], demoextras_file)
-                    self.extract_demo_extras(demo_id, demoextras_file)
+
+                # If it is already up to date finish
+                if (core_demoextras_date > demoinfo_demoextras_date and
+                        core_demoextras_size == demoinfo_demoextras_size):
+                    return
+                # Remove old extras file to download a new version
+                shutil.rmtree(demoextras_compress_dir)
+                self.mkdir_p(demoextras_compress_dir)
+
+            # Download new demoextras
+            demoextras_name = os.path.basename(demoinfo_resp['url'])
+            demoextras_filename = urllib.parse.unquote(os.path.join(demoextras_compress_dir, demoextras_name))
+            self.download(demoinfo_resp['url'], demoextras_filename)
+            self.set_dl_extras_date(demoextras_filename, demoinfo_resp['date'])
+            self.extract_demo_extras(demo_id, demoextras_filename)
 
         except Exception as ex:
             error_message = "Error processing the demoExtras of demo #{}: {}".format(demo_id, ex)
@@ -1050,11 +1048,10 @@ attached the failed experiment data.". \
         else:
             raise IPOLDecodeInterfaceRequestError("Wrong origin value from the interface.")
 
-        j = 0
-        while 'inpainting_data_{0}'.format(j) in interface_arguments:
-            fname = 'inpainting_data_{0}'.format(j)
-            blobs[fname] = interface_arguments[fname]
-            j += 1
+        for key, value in interface_arguments.items():
+            if key.startswith('inpainting_data_'):
+                fname = key
+                blobs[fname] = value
 
         return clientdata['demo_id'], origin, clientdata.get('params', None), \
                   clientdata.get('crop_info', None), clientdata.get('private_mode', None), blobs, blobset_id
@@ -1068,11 +1065,13 @@ attached the failed experiment data.". \
         try:
             demoinfo_response = demoinfo_resp.json()
         except Exception as ex:
-            error_message = "Couldn't get DDL for demo {}".format(demo_id)
+            error_message = f"Couldn't get DDL for demo {demo_id}, {ex}"
             raise IPOLReadDDLError(error_message)
 
         if demoinfo_response['status'] != 'OK':
-            raise IPOLReadDDLError("Demoinfo answered KO.")
+            error_message = "Demoinfo answered KO."
+            error_code = demoinfo_response['error_code']
+            raise IPOLReadDDLError(error_message, error_code)
 
         last_demodescription = demoinfo_response['last_demodescription']
         ddl = json.loads(last_demodescription['ddl'], object_pairs_hook=OrderedDict)
@@ -1092,8 +1091,11 @@ attached the failed experiment data.". \
         if resp['status'] != 'OK':
             if 'unresponsive_dr' in resp:
                 self.send_demorunner_unresponsive_email(resp['unresponsive_dr'])
-            error_message = "No DR satisfies the requirements: {}".format(
-                general_info['requirements'])
+            if 'requirements' in general_info:
+                requirement_names = general_info['requirements']
+                error_message = f'No DR satisfies the requirements: {requirement_names}'
+            else:
+                error_message = f'No DR available'
             raise IPOLFindSuitableDR(error_message)
 
         server_name = resp['dr_name']
@@ -1186,7 +1188,7 @@ attached the failed experiment data.". \
                     error_message = "Input #{}. {}".format(input_key, error)
                     raise IPOLConversionError(error_message)
                 if conversion_info[input_key]['code'] == 2:# Conversion forbidden
-                    error_message = "Input #{} size too large but conversion forbidden".format(input_key)
+                    error_message = "Input #{} needs to be pre-processed, but this is forbidden in this demo.".format(input_key)
                     raise IPOLConversionError(error_message)
                 if conversion_info[input_key]['code'] == 1:# Conversion done
                     modifications_str = ', '.join(conversion_info[input_key]['modifications'])
@@ -1232,6 +1234,14 @@ attached the failed experiment data.". \
             userdata['timeout'] = ddl_general['timeout']
 
         resp = self.post('api/demorunner/exec_and_wait', data=userdata, host=dr_server)
+        if resp.status_code != 200:
+            demo_state = self.get_demo_metadata(demo_id)["state"].lower()
+
+            error = f'IPOLDemorunnerUnresponsive'
+
+            website_message = f'Demorunner {dr_name} not responding'
+
+            raise IPOLDemoRunnerResponseError(website_message, demo_state, key, error)
         try:
             demorunner_response = resp.json()
         except Exception as ex:
@@ -1379,9 +1389,13 @@ attached the failed experiment data.". \
             self.logger.exception(internal_error_message)
             return json.dumps({'error': error_message, 'status': 'KO'}).encode()
         except (IPOLReadDDLError) as ex:
-            error_message = "{} Demo #{}".format(str(ex), demo_id)
+            # code -1: the DDL of the requested ID doesn't exist
+            # code -2: Invalid demo_id
+            error_message = "{} Demo #{}".format(
+                str(ex.error_message), demo_id)
             self.logger.exception(error_message)
-            self.send_internal_error_email(error_message)
+            if not ex.error_code or ex.error_code not in (-1, -2):
+                self.send_internal_error_email(error_message)
             return json.dumps({'error': error_message, 'status': 'KO'}).encode()
         except (IPOLCheckDDLError) as ex:
             error_message = "{} Demo #{}".format(str(ex), demo_id)
@@ -1496,16 +1510,12 @@ attached the failed experiment data.". \
         open_file.close()
         return dic
 
-    def post(self, api_url, data=None, host=None):
+    @staticmethod
+    def post(api_url, data=None, host=None):
         """
         Make a POST request via the IPOL API
         """
-        try:
-            if host is None:
-                host = socket.getfqdn()
-            url = 'http://{0}/{1}'.format(host, api_url)
-            return requests.post(url, data=data)
-        except Exception as ex:
-            error_message = "Failure in the post function of the CORE using: URL={}, exception={}".format(url, ex)
-            print(error_message)
-            self.logger.exception(error_message)
+        if host is None:
+            host = socket.getfqdn()
+        url = 'http://{0}/{1}'.format(host, api_url)
+        return requests.post(url, data=data)

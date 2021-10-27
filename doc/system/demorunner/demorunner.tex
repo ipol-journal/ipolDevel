@@ -33,15 +33,12 @@ The system will create the virtualEnv inside the {\tt bin} folder along with the
 
 
 \subsubsection{Variable substitution}
+Demos might need to run code from both the main binary and the demoExtras folder. Given that the internal paths of the bin and demoExtras directories are not known, the system offers symbolic names (variables) whose value is substituted in the run section.
 
-Some demos need to execute various scripts or programs and sometimes it is needed to be able to execute something both from the demo's own binaries folder and other times  from the demoextras folder. In order to achieve easy access to said folders demorunner interprets the DDL to analyze the run command given by the demo editors and provide easy access to specific paths usefull for the demo. This simplifies the DDL allowing to shorten what would be rather long paths to usefull folders related to a demo and in the end a cleaner DDL.
-
-In order for demorunner to interpret a run command with variables included, it needs to be able to substitute parts of the run string from the DDL. This needs to be done following a certain format and python provides string template substitution. A simple format very similar to Bash Shell scripts is used where the format is "\$\{variable\}", therefore the system provides certain stablished variables to choose from. These variables are all paths which include the demo's demoextras folder, {\tt bin} folder, virtualenv folder (if there is one on the specific demo) and the path to {\tt matlab} binary which is installed at a system level.
-
-All of these variables make for a great way to let demo editors to write cleaner DDLs and focus on executing code rather than remember what could be really long paths which they don't need to know off. It is also important to notice that by providing such variables the system is free to change or update without affecting the demos already written in case of a new path.
+This needs to be done following a certain format and Python provides string template substitution. A simple format very similar to Bash shell scripts is used where the format is {\tt \$\{variable\}}. These variables include the demoExtras' , {\tt bin/} , and virtual environment's folders (if any), as well as the path to the MATLAB installation, and others. By providing these substitution variables the system can change its internal paths without breaking demos. Of course, demos must use these variables and never rely on hardcoded paths.
 
 
-\subsection{Execute and control}
+\subsection{Execution and control}
 \noindent
 
 The second responsibility of the module is to control the execution.  It can execute directly the authors binaries or, for more complex process, support scripts provided by the demo editors in a particular demo (see more about \textit{DemoExtras} in Sec.~\ref{sec:demoextras}). Besides, the demo editors can call some generic scripts provided by the system, for example to draw 2D curves, or draw histograms, among others. These scripts in the {\tt PythonTools} directory are added to the PATH during execution.

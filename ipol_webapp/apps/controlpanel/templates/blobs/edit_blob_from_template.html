@@ -21,7 +21,7 @@
                 <div class="blob_file">
                     <form id="form" action="{% url 'ipol.cp.blobs.save_blob_info_from_template' %}" method="post" enctype="multipart/form-data">{% csrf_token %}
 
-                        <input name="name"  style="display: none;" value="{{data.name}}"/>
+                        <input name="template_id"  style="display: none;" value="{{template_id}}"/>
                         <div class="image_files">
                             <a href="{{ data.blob.blob }}">
                                 {% if blob.thumbnail %}
@@ -65,12 +65,6 @@
                             <input id="credit" name ="credit" type="text" class="form-control" value="{{ data.blob.credit }}">
                         </div>
 
-                        <!--TAGS-->
-                        <div class="input-group">
-                            <span class="input-group-addon">Tags</span>
-                            <input id="tags" name ="tags" type="text" class="form-control" value="">
-                        </div>
-
                         <!--VISUAL REPRESENTATION-->
                         <div class="input-group">
                             <span class="input-group-addon">Visual Representation</span>
@@ -88,7 +82,7 @@
 
                     </form>
                     <div style="padding-top: 15px;" align="right">
-                        <a class="btn btn-danger" onclick="deleteBlob('{% url 'ipol.cp.blobs.remove_blob_from_template' %}','{{name}}')">Delete blob</a>
+                        <a class="btn btn-danger" onclick="deleteBlob('{% url 'ipol.cp.blobs.remove_blob_from_template' %}','{{template_id}}')">Delete blob</a>
                         {% if blob.vr %}
                            <a class="btn btn-danger" onclick="deleteVR('{% url 'ipol.cp.blobs.delete_vr_from_blob'%}','{{blob.id}}')">Remove visual representation</a>
                         {% endif %}
@@ -99,7 +93,7 @@
 
             {# Return to previous page button #}
             <div class="container">
-                <a class="btn btn-info" href="/cp/blob_template/{{data.name}}/">{% blocktrans %}Go to previous page{% endblocktrans %}</a>
+                <a class="btn btn-info" href="/cp/blob_template/{{template_id}}/">{% blocktrans %}Go to previous page{% endblocktrans %}</a>
             </div>
         </div>
     {% endwith %}

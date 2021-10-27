@@ -52,15 +52,20 @@ if __name__ == '__main__':
     ## config file and location settings
 
     CONF_FILE_REL = sys.argv[1] if len(sys.argv) == 2 and os.path.isfile(sys.argv[1]) else "core.conf"
+    LOCAL_CONF_REL = "local.conf"
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     CONF_FILE_ABS = os.path.join(BASE_DIR, CONF_FILE_REL)
+    LOCAL_CONF_FILE = os.path.join(BASE_DIR, LOCAL_CONF_REL)
 
-
+    if not os.path.isfile(LOCAL_CONF_FILE):
+        print("Error: the conf file is missing, ")
+        sys.exit(-1)
     if not os.path.isfile(CONF_FILE_ABS):
         print("Error: the conf file is missing, ")
         sys.exit(-1)
     cherrypy.config.update(CONF_FILE_ABS)
+    cherrypy.config.update(LOCAL_CONF_FILE)
     cherrypy.log.error_log.setLevel('ERROR')
     cherrypy.tools.cgitb = cherrypy.Tool('before_error_response', err_tb)
     cherrypy.quickstart(Core.get_instance(), config=CONF_FILE_ABS)

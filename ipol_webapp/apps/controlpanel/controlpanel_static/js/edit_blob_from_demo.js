@@ -37,8 +37,8 @@ function deleteBlob(url, demo_id){
 
 function deleteVR(url, blob_id){
     var delvr = confirm('Deleting visual representation will afect other demos.\nAre you sure you want to continue?');
-    if (delvr == true) {
-        $.post(url, {'blob_id':blob_id}, 'json');
-        window.location.reload();
+    if (delvr) {
+        $.post(url, {'blob_id':blob_id}, 'json')
+            .always(() => window.location.reload());
     }
 }

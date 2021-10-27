@@ -15,9 +15,8 @@ import random
 import re
 import sys
 import xml.etree.ElementTree as ET
-
-import cherrypy
 import requests
+import cherrypy
 
 
 def authenticate(func):
@@ -282,9 +281,8 @@ class Dispatcher():
         dr_workloads = self.demorunners_workload()
         chosen_dr = self.policy.execute(self.demorunners, dr_workloads, requirements)
         if not chosen_dr:
-            self.error_log("get_suitable_demorunner",
-                           "No DR available with requirement {}".format(requirements))
-            print("No DR available with requirement {}".format(requirements))
+            message = f'No DR available with requirement {requirements}' if requirements else 'No DR available'
+            self.error_log("get_suitable_demorunner", message)
             return json.dumps(data).encode()
 
         dr_name = chosen_dr.name

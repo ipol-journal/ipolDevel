@@ -16,12 +16,12 @@ source $ZSH/oh-my-zsh.sh
 # IPOL Terminal 
 alias terminal="cd ~/ipolDevel/tools/terminal && ./terminal.py"
 # Control Panel
-alias cpanel="cd ~/ipolDevel/ipol_webapp && python manage.py runserver 127.0.0.1:8000"
+alias cpanel="cd ~/ipolDevel/ipol_webapp && source venv/bin/activate && python manage.py runserver 127.0.0.1:8000"
 alias cp2="cd ~/ipolDevel && ./gunicorn_start_cp2"
 alias venvcp2="cd ~/ipolDevel/cp2 && source bin/activate"
 
 # Collect all static files from CP.
-alias collectstatic="cd ~/ipolDevel/ipol_webapp && python manage.py collectstatic --noinput --clear"
+alias collectstatic="cd ~/ipolDevel/ipol_webapp && source venv/bin/activate && python manage.py collectstatic --noinput --clear"
 
 # Test all
 alias runtest="cd ~/ipolDevel/ci_tests && python3 all.py"

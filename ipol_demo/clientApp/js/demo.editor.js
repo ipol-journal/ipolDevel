@@ -53,7 +53,7 @@ function displayImagesControls(blobs, blob) {
 function saveSelectedInput(side, index) {
   blobsKeys = Object.keys(editorBlobs);
   helpers.addToStorage("selectedInput-" + side, {
-    text: "editor-input-" + side + "-" + index,
+    text: `editor-input-${side}-${index}`,
     src: blobsKeys[blobsKeys.indexOf(index)],
     format: editorBlobs[index].format
   });
@@ -67,31 +67,18 @@ function isTiff(blob){
 
 // Print the chosen set blob list
 function printBlobSetList(blobs) {
-  for (let i of Object.values(blobs)) {
+  for (const i in blobs) {
+    if (!ddl.inputs[i]) continue;
     $(".inputListContainerLeft").append(
-      "<span class=editor-input-left-" +
-        i +
-        ">" +
-        ddl.inputs[i].description +
-        "</span>"
+      `<span class=editor-input-left-${i}>${ddl.inputs[i].description}</span>`
     );
-    $(".editor-input-left-" + i).addClass("editor-input");
-    $(".editor-input-left-" + i).loadInputEvents(
-      i,
-      "left"
-    );
+    $(`.editor-input-left-${i}`).addClass("editor-input");
+    $(`.editor-input-left-${i}`).loadInputEvents(i, "left");
     $(".inputListContainerRight").append(
-      "<span class=editor-input-right-" +
-        i +
-        ">" +
-        ddl.inputs[i].description +
-        "</span>"
+      `<span class=editor-input-right-${i}>${ddl.inputs[i].description}</span>`
     );
-    $(".editor-input-right-" + i).addClass("editor-input");
-    $(".editor-input-right-" + i).loadInputEvents(
-      i,
-      "right"
-    );
+    $(`.editor-input-right-${i}`).addClass("editor-input");
+    $(`.editor-input-right-${i}`).loadInputEvents(i, "right");
   }
   $(".inputListContainerLeft").loadInputsContainerEvent("left");
   $(".inputListContainerRight").loadInputsContainerEvent("right");
@@ -100,7 +87,7 @@ function printBlobSetList(blobs) {
 // Single blob sets controls
 function loadSingleBlobControls($img) {
   checkImageLoad($img[0].src).then(() => {
-    if (ddl.inputs[0].type == "image") displayCrop($img)
+    if (ddl.inputs[0].type == "image" && !ddl.inputs[0].forbid_preprocess) displayCrop($img)
     zoomController.singleBlob();
   })
   .catch(() => {
@@ -305,6 +292,7 @@ $.fn.loadInputEvents = function(index, side) {
   var container = $("#" + side + "-container");
 
   $(this).on("mouseover", function() {
+    ddl.inputs[index].control ? $('#inpaintingControls').toggle(true) : $('#inpaintingControls').toggle(false);
     container.printEditorBlob(index, side);
     zoomSync(editorBlobs[index], side);
   });
@@ -327,6 +315,7 @@ $.fn.loadInputsContainerEvent = function(side) {
       return;
     }
     var inputName = helpers.getFromStorage("selectedInput-" + side);
+    ddl.inputs[parseInt(inputName.src)].control ? $('#inpaintingControls').toggle(true) : $('#inpaintingControls').toggle(false);
     container.printEditorBlob(inputName.src, side);
     zoomSync(editorBlobs[inputName.src], side);
   });

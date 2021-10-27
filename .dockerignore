@@ -1,6 +1,9 @@
 # Modules static folders in build phase
 ipol_demo/modules/*/venv
+# virtualenv tests
+ipol_demo/modules/*/venv2
 ipol_demo/modules/*/staticData
+ipol_demo/modules/*/logs
 ipol_demo/modules/*/static
 ipol_demo/modules/*/binaries
 

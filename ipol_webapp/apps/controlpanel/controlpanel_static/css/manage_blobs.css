@@ -1,33 +1,39 @@
-        .container{
-            margin: 20px;
-            padding: 10px;
-        }
-        .block{
-            border: 1px solid lightgray;
-            border-radius: 5px;
-            margin: 20px;
-            padding: 15px;
-        }
-        .image_files{
-            padding-left: 40px;
-            padding-top: 10px;
-            padding-bottom: 10px;
-        }
-        p{
-            margin-bottom: 0px;
-            margin-left: 20px;
-        }
-        a:hover{
-            cursor: pointer;
-        }
-        .thumbnail{
-            max-width: 100px;
-            max-height: 100px;
-            display: inline;
-            margin-bottom: 7px;
-            margin-right: 5px;
-        }
-        .thumbnail_big{
-            max-width: 245px;
-            max-height: 245px;
-        }
+.container{
+    margin: 20px;
+    padding: 10px;
+}
+.block{
+    border: 1px solid lightgray;
+    border-radius: 5px;
+    margin: 20px;
+    padding: 15px;
+}
+.image_files{
+    padding-left: 40px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+p{
+    margin-bottom: 0px;
+    margin-left: 20px;
+}
+a:hover{
+    cursor: pointer;
+}
+.thumbnail{
+    max-width: 100px;
+    max-height: 100px;
+    display: inline;
+    margin-bottom: 7px;
+    margin-right: 5px;
+}
+.thumbnail_big{
+    max-width: 245px;
+    max-height: 245px;
+}
+
+#templateDropdown {
+    height: auto;
+    max-height: 300px;
+    overflow-x: hidden;
+}

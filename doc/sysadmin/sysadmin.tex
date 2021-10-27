@@ -169,17 +169,15 @@ When a new machine is added to the IPOL infrastructure, the following needs to b
 
 - Create the {\tt ipol} user in a new machine: {\tt adduser ipol}
 
-- Install bash-completion {\tt apt-get install bash-completion}
+- Install bash-completion {\tt apt install bash-completion}
 
 - Configure the SSH server to allow only access with public key and not with password. Set the following in /etc/ssh/sshd\_config:
-
-{\tt RSAAuthentication yes}
 
 {\tt PubkeyAuthentication yes}
 
 And restart the SSH server with {\tt service ssh restart}
 
-- Install unattended-upgrades and apt-listchanges: {\tt apt-get install unattended-upgrades apt-listchanges}
+- Install unattended-upgrades and apt-listchanges: {\tt apt install unattended-upgrades apt-listchanges}
 
 And edit /etc/apt/apt.conf.d/50unattended-upgrades, at least uncomment the following lines:
 \begin{verbatim}
@@ -187,17 +185,13 @@ And edit /etc/apt/apt.conf.d/50unattended-upgrades, at least uncomment the follo
     "o=Debian,a=stable";
     "o=Debian,a=stable-updates";
   };
-
-  Unattended-Upgrade::Package-Blacklist {
-    "virtualbox-5.1";
-  };
 \end{verbatim}
 
 - Configuration of the email server to be able to send emails form any of the IPOL servers: configure with {\tt dpkg-reconfigure exim4-config} and be sure to choose the option to send email on the Internet, not local.
 
-Install mail with {\tt apt-get install mailutils}
+Install mail with {\tt apt install mailutils}
 
-It is important to set the hostname with the real Internet address in {\tt /etc/hosts} to send the emails outside. For example, for the ipolcore machine, the configuration is the following:
+It is important to set the hostname with the real Internet address in {\tt /etc/hosts} to send the emails outside. For example, for \emph{our} ipolcore machine, the configuration is the following (please check your actual addresses, do not simply copy those!):
 
 \begin{verbatim}
 5.196.85.84             ipolcore.ipol.im     ipolcore
@@ -219,17 +213,44 @@ host github_deploy
 
 Then, clone the repository with {\tt git clone git@github\_deploy:mcolom/ipolDevel.git}
 
-In {\tt ipolDevel/sysadmin/install\_packages/} there is a script that needs to be run with {\tt sudo ./install\_dist\_packages.sh}. It will install all required Debian packages listed in apt-get\_requirements.txt.
+In {\tt ipolDevel/sysadmin/install\_packages/} there is a script that needs to be run with {\tt sudo ./install\_dist\_packages.sh}. It will install all required Debian packages listed in apt\_requirements.txt.
 
 \subsection{External repositories}
 Some packages as for example Intel's IPP are not directly in the Debian Stable distribution and therefore they need to be added to APT manually. Normally it implies just adding the repository's \emph{.list} file to {\tt /etc/apt/sources.list.d}.
 For Intel IPP, it is described in their website\footnote{\url{https://software.intel.com/en-us/articles/installing-intel-free-libs-and-python-apt-repo}}.
 
+\subsection{IPv6 in OVH}
+Some of the OS images for the dedicated servers in OVH do not include the IPv6 configuration and it needs to be added manually to {\tt /etc/network/interfaces}.
+For example, for a machine with {\tt IPv4=5.196.85.84} and {\tt IPv6=2001:41d0:a:7654::1}, the following configuration needs to be added:
 
+\begin{verbatim}
+auto eno0
+iface eno0 inet static
+    address 5.196.85.84
+    netmask 255.255.255.0
+    network 5.196.85.0
+    broadcast 5.196.85.255
+    gateway 5.196.85.254
+
+iface eno0 inet6 static
+    address 2001:41d0:a:7654::1
+    netmask 64
+    dns-nameservers 2001:41d0:3:163::1
+    post-up /sbin/ip -family inet6 route add 2001:41d0:a:76ff:ff:ff:ff:ff dev eno0
+    post-up /sbin/ip -family inet6 route add default via 2001:41d0:a:76ff:ff:ff:ff:ff
+    pre-down /sbin/ip -family inet6 route del default via 2001:41d0:a:76ff:ff:ff:ff:ff
+    pre-down /sbin/ip -family inet6 route del 2001:41d0:a:76ff:ff:ff:ff:ff dev eno0
+\end{verbatim}
+
+Note that depending on the kernel, the network interface might be named {\tt eno0}, {\tt eth0}, or any other name.
+
+
+\begin{comment}
 \subsection{Manual configurations}
 Some of the installed packages need manual changes in their configuration.
 
 - Octave: edit the file {\tt /usr/share/octave/site/m/startup/octaverc} and {\tt add pkg load image}.
+\end{comment}
 
 
 \section{Nginx}
@@ -241,36 +262,32 @@ Some of the installed packages need manual changes in their configuration.
 
 \begin{enumerate}
     \item Uninstall previous nginx version
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
 	{prod} ~/ipolDevel$ apt remove nginx-common
-    \end{lstlisting}
+    \end{verbatim}
 
     \item Update repositories
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     {prod} ~/ipolDevel$ apt update
-    \end{lstlisting}
+    \end{verbatim}
 
     \item Install nginx
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     {prod} ~/ipolDevel$ apt install nginx
-    \end{lstlisting}
+    \end{verbatim}
     \end{enumerate}    
 \end{enumerate}
 
 \subsection{Configuration}
 
-To configure the reverse proxy, we will use the sites-enabled, sites-available directories structure, which are located at:
-\begin{lstlisting}[language=Bash]
-/etc/nginx/sites-available
-/etc/nginx/sites-enabled
-\end{lstlisting}
+Copy your configurations to {\tt /etc/nginx/sites-enabled} and leave {\tt /etc/nginx/sites-available} as a reference that will be updated by apt.
 
 \begin{enumerate}
     \item Edit the config file /etc/nginx/nginx.conf, adding the following include at the end of the http subsection:
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     include /etc/nginx/sites-enabled/*;
-    \end{lstlisting}
-    \item Edit the site configuration file: sites-available/default, configuring the subsections:
+    \end{verbatim}
+    \item Edit the site configuration file: sites-enabled/default, configuring the subsections:
     \begin{enumerate}
     \item Upstream
     \begin{enumerate}
@@ -282,60 +299,105 @@ To configure the reverse proxy, we will use the sites-enabled, sites-available d
     \item Listening port. The port to serve the site with static files. E.g.: 8000
     \item Server name. E.g.: ipolcore.ipol.im
     \item A resolver, necessary to set variables in the configuration for Debian distributions.
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     resolver 213.186.33.99;
-    \end{lstlisting}
+    \end{verbatim}
     \item Increase timeout for send and receive requests.
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     proxy_send_timeout	600;
     proxy_read_timeout	600;
     send_timeout		600;
-    \end{lstlisting}
+    \end{verbatim}
     \item Access log absolute location.
     \item A location for each module.
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     location /api/<module>/ {
       rewrite ^/api/<module>/(.*) /$1 break;
       proxy_pass  http://$host:<port>;
     }
-    \end{lstlisting}
+    \end{verbatim}
     \item Static files absolute location.
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     location /cp/static/ {
       alias  /home/<user>/IPOLWEBAPP_STATIC/;
     }
-    \end{lstlisting}
+    \end{verbatim}
     \item Proxy pass, using upstream name configured previously.
     E.g.:
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     proxy_pass http://ipol_webapp_server;
-    \end{lstlisting}
+    \end{verbatim}
 
     \end{enumerate}
     \end{enumerate}
 \end{enumerate}
 
-As a good practice we enable Nginx gzip compression for static files. An example of this configuration part is located at the project repository 
-in the nginx.conf file under the sysadmin folder.
+As a good practice we enable Nginx gzip compression for static files. An example of this configuration part is located at the project repository in the nginx.conf file under the sysadmin folder.
+
+\subsubsection{SSL on production}
+The files included in the snippets will configure SSL. Test with {\tt nginx -t} that your configuration is correct. Indeed, you will have to copy the following files:
+\begin{itemize}
+    \item /etc/ssl/certs/ipolcore\_ipol\_im\_chain.crt
+    \item /etc/ssl/private/ipolcore.key
+    \item /etc/ssl/certs/dhparam.pem
+\end{itemize}
+
+
+
+\subsubsection{SSL on the integration}
+For the integration server we use certbot to generate and automatically renew SSL certificates.
+
+\begin{enumerate}
+  \item Install certbot and its dependencies
+  \begin{verbatim}[language=Bash]
+  sudo apt update
+  sudo apt install python3-acme python3-certbot python3-mock \
+  python3-openssl python3-pkg-resources python3-pyparsing \
+  python3-zope.interface
+  sudo apt install python3-certbot-nginx
+  \end{verbatim}
+  \item Generate certificate
+  \begin{verbatim}[language=Bash]
+  sudo certbot certonly --nginx -d integration.ipol.im
+  \end{verbatim}
+  \item Configure Nginx. Add to default configuration file.
+  \begin{verbatim}[language=Bash]
+  # Enable SSL
+  listen *:443 ssl http2 default_server;
+  listen [::]:443 ssl http2 default_server;
+  include snippets/certificate.conf;
+  include snippets/ssl-params.conf;
+  include /etc/letsencrypt/options-ssl-nginx.conf;
+  \end{verbatim}
+  \item Validate configuration and restart Nginx
+  \begin{verbatim}[language=Bash]
+  sudo nginx -t && sudo nginx -s reload
+  \end{verbatim}
+  \item Create cronjob to renew the certificate periodically. This should be done on the sudo user crontab.
+  \begin{verbatim}[language=Bash]
+  0 12 * * * /usr/bin/certbot renew --quiet
+  \end{verbatim}
+
+\end{enumerate}
 
 \subsubsection{Private demos}
 \begin{enumerate}
     \item Add authentication for demos. Only in the machine which serves the static files of the demo, of course.
     \begin{enumerate}
     \item Create subfolder .passwd in /etc/nginx
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     mkdir /etc/nginx/.passwd
-    \end{lstlisting}
+    \end{verbatim}
     \item Install apache2-utils
-    \begin{lstlisting}[language=Bash]
-    sudo apt-get install apache2-utils
-    \end{lstlisting}
+    \begin{verbatim}[language=Bash]
+    sudo apt install apache2-utils
+    \end{verbatim}
     \item Create username and password with htpasswd
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
      sudo htpasswd -c /etc/nginx/.passwd/company company
-    \end{lstlisting}
+    \end{verbatim}
     \item Edit the {\tt default} file to add authentication, e.g. add authentication to all the demos which its id starts with 33333999
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     location /demo/clientApp/demo.html {
       if ($args ~ ".*id=33333999\d*") {
 	error_page 418 = @companyPasswd;
@@ -348,14 +410,8 @@ in the nginx.conf file under the sysadmin folder.
       auth_basic_user_file /etc/nginx/.passwd/company;
       proxy_pass  http://$host:8080;
     }
-    \end{lstlisting}
+    \end{verbatim}
     \end{enumerate}
-
-    \item Enable the site by creating a symbolic link to default configuration:
-    \begin{lstlisting}[language=Bash]
-    ln -s /etc/nginx/sites-available/default \
-    /etc/nginx/sites-enabled/
-    \end{lstlisting}
 
     \item Check the nginx's configuration with {\tt sudo nginx -t}
 
@@ -366,21 +422,21 @@ in the nginx.conf file under the sysadmin folder.
 
 \begin{itemize}
     \item Start service:
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     {prod} ~/ipolDevel$ sudo nginx
-    \end{lstlisting}
+    \end{verbatim}
     \item Reload the configuration file:
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     {prod} ~/ipolDevel$ sudo nginx -s reload
-    \end{lstlisting}
+    \end{verbatim}
     \item Stop service:
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     {prod} ~/ipolDevel$ sudo nginx -s stop
-    \end{lstlisting}
+    \end{verbatim}
     \item Check configuration:
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     {prod} ~/ipolDevel$ sudo nginx -t
-    \end{lstlisting}
+    \end{verbatim}
 \end{itemize}
 
 
@@ -427,26 +483,18 @@ communicates with the NGINX through a UNIX socket. The diagram of this configura
     \label{fig:prod_int_architecture}
 \end{figure}
 
-
-\subsection{Gunicorn: installation}
-
-Install from console:
-\begin{lstlisting}[language=Bash]
-{prod} ~/ipolDevel$ pip install gunicorn
-\end{lstlisting}
-
 \subsection{Gunicorn: configuration}
 In order to manage the gunicorn service we will use a script, which is in charge of:
 \begin{itemize}
-    \item Open the virtual environment, if used. If not, comment the line with \#
+    \item Open the virtual environment, if used. If not, comment out the line with \#.
     \item Collect the static files.
     \item Start the web server.
 \end{itemize}
 
 In this guide we will use the following path/name for the mentioned script:
-\begin{lstlisting}[language=Bash]
+\begin{verbatim}[language=Bash]
 ipolDevel/gunicorn_start.sh
-\end{lstlisting}
+\end{verbatim}
 
 Open the script and configure the parameters:
 \begin{itemize}
@@ -465,9 +513,9 @@ Open the script and configure the parameters:
 \subsection{Gunicorn: management}
 \begin{itemize}
     \item Start service by executing the script:
-    \begin{lstlisting}[language=Bash]
+    \begin{verbatim}[language=Bash]
     {prod} ~/ipolDevel$ ./gunicorn_start.sh
-    \end{lstlisting}
+    \end{verbatim}
 
     \item Stop service: Ctrl + C
 \end{itemize}
@@ -478,7 +526,7 @@ Open the script and configure the parameters:
 To access the Control Panel the users need to go to \url{http://ipolcore.ipol.im/cp/} and log in with their username and password.
 
 \section{Docker}
-A docker image is available to develop and run the IPOL demo system in any enviroment (say, Mac OS and others).
+A docker image is available to develop and run the IPOL demo system in any enviroment (say, MacOS and others).
 
 \paragraph{Usage}:
 The necessary commands in order to work with docker will be described in the next section. The first thing you should do is
@@ -486,7 +534,7 @@ build the Docker image, then you will be able to create as many containers as yo
 will have a terminal inside so you will be able to execute the terminal.py and bring up all modules. Nginx and ssh will be already
 configured and running.
 
-Once inside the container tty there will be a user called "ipol" wich should be used to execute any task related to modules, ipol terminal, 
+Once inside the container tty there will be a user called ``ipol" wich should be used to execute any task related to modules, ipol terminal, 
 cp or django. For sysadmin tasks that result in a change in the system imply that a change in the dockerfile is needed.
  
 In order to run the Django server for the control panel you will have to make the migrations once per
@@ -507,29 +555,37 @@ container before actually running the server. For this purpose there is a script
 
 
 \paragraph{Docker build}:\\
-\begin{lstlisting}[firstnumber=1,breaklines]
-  $ docker build ~/ipolDevel -t ipol -f ~/ipolDevel/docker/Dockerfile
-\end{lstlisting}
+
+Run this command inside the ipolDevel repository you previously cloned.
+
+\begin{verbatim}[firstnumber=1,breaklines]
+  $ docker build . -t ipol -f ./docker/Dockerfile
+\end{verbatim}
 
 With this command we will have docker create an image from the Dockerfile in the root of the project. It will go through the creation and configuration of the development envirorment. This command has to be executed from inside the project root folder. Explanation:
 \begin{itemize}
   \item docker build: command to build an image
-  \item {\tt \~{}/ipolDevel} : The context of the image. Should always be the root of the project IPOL.
+  \item {\tt .}: The context of the image. Here, the current folder is ipolDevel's repository root.
   \item -t ipol: Tag the image with the name ipol to reference it later.
   \item -f: flag to specify a Dockerfile
-  \item {\tt \~{}/ipolDevel/docker/Dockerfile}: Location of the Dockerfile defining the image.
+  \item {\tt ./docker/Dockerfile}: Location of the Dockerfile defining the image. Given that we are located in ipolDevel's repository root.
 \end{itemize}
 
 \paragraph{Docker run}:\\
-\begin{lstlisting}[firstnumber=1,breaklines]
-  $ docker run -it -v ./ipolDevel:/home/ipol/ipolDevel -p 80:80 -h docker --add-host docker:127.0.0.1 --name ipol ipol
-\end{lstlisting}
+\begin{verbatim}[firstnumber=1,breaklines]
+  $ docker run -it -v $(pwd):/home/ipol/ipolDevel -v $(pwd)/ipolDevel/ipol_demo/modules/config_common/authorized_patterns.conf.sample:/home/ipol/ipolDevel/ipol_demo/modules/config_common/authorized_patterns.conf -p 80:80 -h docker --add-host docker:127.0.0.1 --name ipol ipol
+\end{verbatim}
 
 This command will create a container and log us in the terminal. Explanation:
 \begin{itemize}
   \item docker run: command to create a container
   \item -it: makes the container interactive and attaches to a tty or terminal.
-  \item -v ./ipolDevel:/home/ipol/ipolDevel: Creates a volume to share the project folder between the container and the host machine.
+  \item ipolDevel volume (-v): first -v parameter creates a volume to share the project folder between the container and the host machine.
+  As docker run does not accept relative paths, we use \$(pwd) to get back the currect directory: ipolDevel's repository root as always. If you are on
+  Windows, you can use \%cd\% to get back the current path. 
+  \item authorized\_patterns.conf volume (-v): this second -v parameter adds a volume which essentially creates the authorized\_patterns.conf file at the 
+  needed location on container creation. 
+  This will overwrite the default values but since this container is for development purposes only there is no need to modify the default values.
   \item -p 80:80: exposes port 80 in the container and links it to port 80 in the host machine.
   \item -h docker: defines the container's hostname
   \item --add-host docker:127.0.0.1: adds an entry to /etc/hosts mapping 127.0.0.1 to the host
@@ -542,40 +598,109 @@ otherwise if the container is already exists, it will have to be removed or atta
 
 \paragraph{Docker start}:\\
 In order to start the already created container.
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ docker start -i ipol
-\end{lstlisting}
+\end{verbatim}
 
 \paragraph{Docker exec}:\\
 In order to attach a new terminal to the container. Useful if you need more than one terminal access to the container.
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ docker exec -it ipol bash
-\end{lstlisting}
+\end{verbatim}
 
 \paragraph{Docker ps}:\\
 In order to get information about all the created containers.
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ docker ps -a
-\end{lstlisting}
+\end{verbatim}
 
 \paragraph{Docker images}:\\
 In order to get information about all the created images.
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ docker images
-\end{lstlisting}
+\end{verbatim}
 
 \paragraph{Docker rm}:\\
 In order to remove a container. The id or name provided will be available doing "docker ps -a"
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ docker rm 'docker_image_id'
-\end{lstlisting}
+\end{verbatim}
 
 \paragraph{Docker rmi}:\\
 In order to remove an image. The id or name provided will be available doing "docker images"
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ docker rmi 'docker_image_id'
-\end{lstlisting}
+\end{verbatim}
 
+\paragraph{Once you are on the container's terminal}:\\
+
+Which means you executed the \textbf{docker run} or the \textbf{docker start} command above.
+
+Switch to the ipol user:
+\begin{verbatim}[firstnumber=1,breaklines]
+  $ su ipol
+\end{verbatim}
+
+Open IPOL's terminal:
+\begin{verbatim}[firstnumber=1,breaklines]
+  $ terminal
+\end{verbatim}
+
+You should be in a new terminal now, like this one:
+\begin{verbatim}[firstnumber=1,breaklines]
+  IPOL>
+\end{verbatim}
+
+Switch all modules to local
+\begin{verbatim}[firstnumber=1,breaklines]
+  IPOL> env local0
+\end{verbatim}
+
+Start all modules
+\begin{verbatim}[firstnumber=1,breaklines]
+  IPOL> startall
+\end{verbatim}
+
+When you ping them all, they should be marked "OK"
+\begin{verbatim}[firstnumber=1,breaklines]
+  IPOL> pingall
+\end{verbatim}
+
+You can now leave the terminal, cd to ipol\_webapp, create its venv, activate it, install its 
+requirements and make its migrations.
+\begin{verbatim}[firstnumber=1,breaklines]
+  IPOL> exit
+  $ cd ~/ipolDevel/ipol_webapp/
+  $ python -m virtualenv venv
+  $ source venv/bin/activate
+  (venv) $ pip install -r requirements.txt
+  (venv) $ ~/ipolDevel/docker/migrations_cp.sh
+\end{verbatim}
+
+Note: An error about a missing distribution for Django might be displayed, but you can safely ignore it.
+
+The next step is to create a super user for cpanel. Still with the \emph{venv} we just created, and
+still in \emph{\~/ipolDevel/ipol\_webapp}:
+\begin{verbatim}[firstnumber=1,breaklines]
+  (venv) $ python manage.py createsuperuser
+\end{verbatim}
+
+Choose a username, email address, and a password of your choice.
+
+\textbf{Important}: the only thing left to do is to download the staticData and db folders for the demoInfo
+and blobs modules. 
+Then extract the content of these folders respectively in \emph{$./ipol\_demo/modules/blobs$}
+and in \emph{$./ipol\_demo/modules/demoInfo$} so that both of them have a staticData and db folders
+with the new files. Paths are relative to ipolDevel's repository root.
+
+You can now run cpanel with:
+\begin{verbatim}[firstnumber=1,breaklines]
+  $ cpanel
+\end{verbatim}
+And access it at \emph{http://127.0.0.1/cp/login/}. Use the credentials of the super user you created
+above. If you are in docker you can use the {\tt cpanel} command to start it, for development. Note that in production the Control Panel is started with the script {\tt gunicorn\_start.sh}.
+
+The list of demos appear locally \emph{http://<server>/demo/}. Change {\tt <server>} to {\tt 127.0.0.1} if running locally, or change by the address of the server on the Internet.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -628,47 +753,47 @@ While making backups is a good way to be able to recover in case of data loss, i
 The system is automatically updated based on the latest stable version. To achieve this the IPOL servers use the UnattendedUpgrades package that allows a machine to download and upgrade the system according to the "Origins-Pattern" list without updating any package in the "Blacklist". These are useful commands to manage this package: 
 
 Edit the configuration: 
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ editor /etc/apt/apt.conf.d/50unattended-upgrades
-\end{lstlisting}
+\end{verbatim}
 
 Edit the downloads schedule: 
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ sudo systemctl edit apt-daily.timer
   $ sudo systemctl restart apt-daily.timer
   $ sudo systemctl status apt-daily.timer
-\end{lstlisting}
+\end{verbatim}
 
 Edit the upgrade schedule: 
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ sudo systemctl edit apt-daily-upgrade.timer
   $ sudo systemctl restart apt-daily-upgrade.timer
   $ sudo systemctl status apt-daily-upgrade.timer
-\end{lstlisting}
+\end{verbatim}
 
 Check the next execution: 
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ systemctl list-timers
-\end{lstlisting}
+\end{verbatim}
 
 View the installed packages: 
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ cat /var/log/apt/history.log
-\end{lstlisting}
+\end{verbatim}
 
 Manually execute unattended upgrade:
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   $ sudo unattended-upgrade -d
-\end{lstlisting}
+\end{verbatim}
 
 Some package updates require user input to decide wether to keep or renew the possible modified config files. In order to keep our older modified configurations for a package we use the following option in the unattended upgrades configuration:
 
-\begin{lstlisting}[firstnumber=1,breaklines]
+\begin{verbatim}[firstnumber=1,breaklines]
   Dpkg::Options {
     "--force-confdef";
     "--force-confold";
   };
-\end{lstlisting}
+\end{verbatim}
 
 
 \section{Troubleshooting}
@@ -680,7 +805,7 @@ Probably it is because the binaries where staticly compiled againts libraries wh
 
 \textbf{It installed a package but it does not seem to be installed}
 
-It is possible that you installed a Python 3 package and you are looking for the Python 2 version, or the opposite. Pay attention to use the right package according to the Python version when installing with {\tt apt-get}. With {\tt pip} write explicitly {\tt pip2} or {\tt pip3} when installing.
+It is possible that you installed a Python 3 package and you are looking for the Python 2 version, or the opposite. Pay attention to use the right package according to the Python version when installing with {\tt apt}. With {\tt pip} write explicitly {\tt pip2} or {\tt pip3} when installing.
 \vspace{0.5cm}
 
 
@@ -722,8 +847,8 @@ If you have everything installed and it is still not working, then execute {\tt 
 If still does not work, then purge the packages and re-install:
 
 \begin{verbatim}
-apt-get purge virtualbox-dkms virtualbox-guest-dkms
-apt-get install linux-headers-amd64 virtualbox-5.1
+apt purge virtualbox-dkms virtualbox-guest-dkms
+apt install linux-headers-amd64 virtualbox-5.1
 \end{verbatim}
 \vspace{0.5cm}
 
@@ -745,7 +870,16 @@ docker cp correct_config ipol:/path_to_broken_config
 It happens sometimes is a previous version of nginx is running and the system can't stop it before installing over the new one. Try {\tt sudo nginx -s stop} or it this fails directly kill the process with {\tt sudo killall nginx}.
 \vspace{0.5cm}
 
-\textbf{I can only access the server's pages or API services using the IP in the URL, but not its domain server}
+\textbf{I can only access the server's pages or API services using the IP in the URL, but not its domain server. I have also messages in {\tt /var/log/nginx/error.log} about not being able to resolve localhost...}
+
+...such as these ones:
+\begin{verbatim}
+2021/08/15 22:53:49 [error] 1410#1410: send() failed (111: Connection refused) while resolving, resolver: 127.0.0.1:53
+2021/08/15 22:53:49 [error] 1410#1410: send() failed (111: Connection refused) while resolving, resolver: 127.0.0.1:53
+2021/08/15 22:53:54 [error] 1410#1410: *37 localhost could not be resolved (110: Operation timed out), client: ::1, server: ipolcore.ipol.im, request: "GET /api/core/ping HTTP/1.1", host: "localhost"
+\end{verbatim}
+
+
 
 Nginx checks if the FQDN specified in the URL corresponds to the current server. To do it, it needs to make a request to a DNS server (localhost by default, or specified as {\tt resolver <IP address>;}. The bind9 DNS server needs to be installed in the machine (no configuration change is needed, it should work out of the box).
 \vspace{0.5cm}
@@ -762,11 +896,11 @@ The following message is shown when starting a module or a test:
   ImportError: No module named 'encodings'
 \end{verbatim}
 
-The reason is likely to be an incompatibility with a recently updated python version or other distribution packages. To solve it simply remove and recreate the corresponding virtual environments.
+The reason is likely to be an incompatibility with a recently updated Python version or other distribution packages. To solve it simply remove and recreate the corresponding virtual environments.
 
 \textbf{DemoExtras executing ffmpeg blocks access to file when redirecting output}
 
-When redirecting all standard output of the {\tt ffmpeg} command, the resulting file might stay blocked for a short period of time where the python script that run the {\tt ffmpeg} command might continue its execution. This might be a problem as the file continues blocked but the execution of the script continues and might need access to the file.
+When redirecting all standard output of the {\tt ffmpeg} command, the resulting file might stay blocked for a short period of time where the Python script that run the {\tt ffmpeg} command might continue its execution. This might be a problem as the file continues blocked but the execution of the script continues and might need access to the file.
 
 Example of the problem:
 
@@ -775,6 +909,38 @@ Example of the problem:
 Everything seems to work fine when only redirecting errors to a file instead of everything:
 
 {\tt ffmpeg -i file.mp3 2> output.txt}
+
+\textbf{GDAL fails to install with pip}
+
+Check with {\tt gdal-config --version} the version installed in the server and then specify that version in the requirements.txt.
+
+\textbf{Bash script virtualenv activation fails while using set -u}
+
+When a demo has a virtualenv in order to execute Python code it needs to activate said virtualenv from a bash script inside DemoExtras. If the bash script uses set -u it will fail when activating virtualenv because of a bug in the activation script throwing 'PS1: unbound variable'. This bug has been known for years and the solution still hasn't reached production versions of the package in some linux distributions. To fix this we can simply define the following variable as a patch while the official virtualenv fix reaches production:
+
+{\tt VIRTUAL\_ENV\_DISABLE\_PROMPT=true}
+
+\textbf{Virtualenv is created with old pip version}
+
+Every GNU/Linux distribution manages packages shipped differently, a new release will most probably come with a version of Python which is not the latest. Since the virtualenv package is independent from the Python language release cycle most probably the version of pip installed within a virtualenv is outdated. This will cause a warning on every installation within a virtualenv, just because the Python version comes by default with an outdated pip version. Even if the system has an up-to-date version of pip, virtualenvs will still be created with a different (outdated) one.
+
+\textbf{A commit was made directly to the master branch by mistake and now the merge is not automatic}
+
+Execute the following in the devel branch to re-synchronize the two branches: {\tt git rebase master}
+
+\textbf{The command {\tt apt dist-upgrade} cannot be executed because not enough free space on disk is available. It fails with the message \emph{E: You don't have enough free space in /var/cache/apt/archives/.}}
+
+To avoid resizing the root partition, a simply solution is to move {\tt /var/cache/apt/} to the home directory.
+Create a new folder {\tt /home/system/} and copy {\tt /var/cache/apt/} inside. Then remove {\tt /var/cache/apt/} and create a symlink {\tt /var/cache/apt/ -> /home/system/apt/}
+Do never to the same with directories containing libraries!
+
+\textbf{DR (or any other modules) fails to install its own venv with a message similar to \emph{ERROR: Could not build wheels for scipy which use PEP 517 and cannot be installed directly}.}
+
+Most probably the {\tt setuptools} and {\tt wheel} packages are not installed or outdates. They are needed to create virtual environments, and therefore they need to be installed or updated before. Install them with
+
+{\tt pip3 install --user --upgrade pip setuptools wheel}.
+
+
 
 \bibliographystyle{plain}
 \bibliography{biblio}

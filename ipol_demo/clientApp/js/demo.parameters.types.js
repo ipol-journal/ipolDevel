@@ -24,11 +24,11 @@ $.fn.checkbox = function(param, index) {
   var value = param.default_value ? "checked" : "";
 
   $('.param-' + index).prepend('<span class=param-label >' + param.label + '</span>');
-  $(this).append('<input class=checkbox-param id=' + param.id + ' type=checkbox ' + value + ' />');
+  $(this).append('<input class=checkbox-param id=checkbox_' + param.id + ' type=checkbox ' + value + ' />');
   $(param.id).prop('checked', param.default_value);
 
   $(this).change(function(event) {
-    updateParamsArrayValue(param.id, $('#' + param.id).is(":checked"));
+    updateParamsArrayValue(param.id, $('#checkbox_' + param.id).is(":checked"));
   });
 }
 
@@ -43,9 +43,9 @@ $.fn.selection_radio = function(param, index) {
   $(this).append('<div id=param-' + param.id + '></div>');
   for (var i = 0; i < keys.length; i++) {
     $('#param-' + param.id).append('<div class="radio-option-' + i + '"></div>')
-    $('#param-' + param.id + " > .radio-option-" + i).append('<input class=hand type=radio name=' + param.id + ' id=' + param.id + '_' + i + ' value=' + values[i] + '>')
-    $('#param-' + param.id + " > .radio-option-" + i).append('<label class=hand for=' + param.id + '_' + i + ' >' + keys[i] + '</label>');
-    if (param.default_value == values[i]) $('#' + param.id + '_' + i).prop('checked', true);
+    $('#param-' + param.id + " > .radio-option-" + i).append(`<input class=hand type=radio name=${param.id} id=selection_radio_${param.id}_${i} value=${values[i]}>`)
+    $('#param-' + param.id + " > .radio-option-" + i).append(`<label class=hand for=selection_radio_${param.id}_${i}>${keys[i]}</label>`);
+    if (param.default_value == values[i]) $(`#selection_radio_${param.id}_${i}`).prop('checked', true);
   }
   $('#param-' + param.id + ' > label').addClass('m-r-10');
 
@@ -63,15 +63,15 @@ $.fn.selection_collapsed = function(param, index) {
   var default_value = "";
 
   $('.param-' + index).prepend('<span class=param-label >' + param.label + '</span>');
-  $(this).append('<select id=select-' + param.id + ' class=select-param ></select>');
+  $(this).append('<select id=selection_collapsed_' + param.id + ' class=select-param ></select>');
   for (var i = 0; i < keys.length; i++) {
     if (param.default_value == values[i]) default_value = 'selected=selected';
     else default_value = "";
-    $('#select-' + param.id).append('<option value=' + values[i] + ' ' + default_value + '>' + keys[i] + '</option>');
+    $('#selection_collapsed_' + param.id).append('<option value=' + values[i] + ' ' + default_value + '>' + keys[i] + '</option>');
   }
 
-  $('#select-' + param.id).change(function() {
-    updateParamsArrayValue(param.id, $('#select-' + param.id).val());
+  $('#selection_collapsed_' + param.id).change(function() {
+    updateParamsArrayValue(param.id, $('#selection_collapsed_' + param.id).val());
   });
 }
 
@@ -79,10 +79,10 @@ $.fn.numeric = function(param, index) {
   var values = param.values;
 
   $('.param-' + index).prepend('<span class=param-label >' + param.label + '</span>');
-  $(this).append('<input id=number_' + param.id + ' class=range-slider__value type=number' + ' min=' + values.min + ' max=' + values.max + ' value=' + values.default+' step=' + values.step + ' />');
+  $(this).append('<input id=numeric_' + param.id + ' class=range-slider__value type=number' + ' min=' + values.min + ' max=' + values.max + ' value=' + values.default+' step=' + values.step + ' />');
 
-  $('#number_' + param.id).change(function(event) {
-    updateParamsArrayValue(param.id, $('#number_' + param.id).val());
+  $('#numeric_' + param.id).change(function(event) {
+    updateParamsArrayValue(param.id, $('#numeric_' + param.id).val());
   });
 }
 

@@ -21,6 +21,7 @@ import mimetypes
 import os
 
 import cv2
+import imageio
 import numpy as np
 import tifffile
 from ipolutils.errors import IPOLImageReadError
@@ -60,6 +61,11 @@ class Image(object):
                 # As a collateral effect it'll drop the alpha channel and reduce the color depth to 8 bits, which
                 # is convenient since we're encoding to JPEG.
                 self.data = cv2.imread(src, cv2.IMREAD_COLOR)
+            elif mime_type == 'image/gif':
+                im = imageio.get_reader(src, '.gif')
+                for frame in im:
+                    self.data = frame
+                    break
             else:
                 self.data = cv2.imread(src, cv2.IMREAD_UNCHANGED)
 

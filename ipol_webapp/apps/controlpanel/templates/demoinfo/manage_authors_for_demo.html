@@ -261,7 +261,7 @@
                         var okhtml="<p class=\"ststsok\">Author succesfully removed from demo.</p>";
                         $('#author_info_'+ author_id).html(okhtml);
                         //todo better to only reload part of list, but should change django pagination for js pagination
-                        window.location.reload(true);
+                        window.location.reload();
 
                     },
                     error: function(data){
@@ -379,7 +379,7 @@
                         $($modal_author_msg_div).html('Author saved').show();
                         $authorform.hide();
                         //todo better to only reload part of list, but shoul change django pagination for js pagination
-                        window.location.reload(true);
+                        window.location.reload();
                     }
                     else {
 
@@ -488,7 +488,7 @@
                         $($modal_choosedemoauthor_msg_div).html('choosedemoAuthor saved').show();
                         $choosedemoauthorform.hide();
                         //todo better to only reload part of list, but should change django pagination for js pagination
-                        window.location.reload(true);
+                        window.location.reload();
                     }
                     else {
 
@@ -586,7 +586,7 @@
                         $($modal_demoauthor_msg_div).html('choosedemoAuthor saved').show();
                         $authorform.hide();
                         //todo better to only reload part of list, but should change django pagination for js pagination
-                        window.location.reload(true);
+                        window.location.reload();
                     }
                     else {
 

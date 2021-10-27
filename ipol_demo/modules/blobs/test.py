@@ -23,7 +23,6 @@ class BlobsTests(unittest.TestCase):
     blob_path = ''
     blob_set = 'TestSet'
     pos_in_set = 0
-    tag = 'test'
     title = 'Test Image'
     credit = 'Credit Test'
 
@@ -32,6 +31,7 @@ class BlobsTests(unittest.TestCase):
 
     # Template
     template_name = 'Test Template'
+    template_id = -1
 
     #####################
     #       Tests       #
@@ -41,7 +41,7 @@ class BlobsTests(unittest.TestCase):
         Clean the DB from the tests
         """
         self.delete_demo(self.demo_id)
-        self.delete_template(self.template_name)
+        self.delete_test_template()
 
     def test_ping(self):
         """
@@ -67,8 +67,8 @@ class BlobsTests(unittest.TestCase):
         delete_demo_status = None
         try:
             with open(self.blob_path, 'rb') as blob:
-                json_response = self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, tags=self.tag,
-                                                      blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title)
+                json_response = self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set,
+                                                      pos_set=self.pos_in_set, title=self.title)
             add_blob_status = json_response.get('status')
 
             json_response = self.get_blobs(self.demo_id)
@@ -104,9 +104,8 @@ class BlobsTests(unittest.TestCase):
         delete_demo_status = None
         try:
             with open(self.blob_path, 'rb') as blob, open(self.blob_path, 'rb') as vr:
-                json_response = self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, tags=self.tag,
-                                                      blob_set=self.blob_set, pos_set=self.pos_in_set,
-                                                      title=self.title, blob_vr=vr)
+                json_response = self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set,
+                                                      pos_set=self.pos_in_set, title=self.title, blob_vr=vr)
             add_blob_status = json_response.get('status')
 
             json_response = self.get_blobs(self.demo_id)
@@ -138,10 +137,9 @@ class BlobsTests(unittest.TestCase):
         delete_status = None
         try:
 
-            response = self.create_template(self.template_name)
-            create_status = response.get('status')
+            create_status, template_id = self.create_template(self.template_name)
 
-            response = self.delete_template(self.template_name)
+            response = self.delete_template(template_id)
             delete_status = response.get('status')
 
         finally:
@@ -159,14 +157,14 @@ class BlobsTests(unittest.TestCase):
         blob_vr = None
         delete_template_status = None
         try:
-            self.create_template(self.template_name)
+            _, template_id = self.create_template(self.template_name)
 
             with open(self.blob_path, 'rb') as blob:
-                json_response = self.add_blob_to_template(blob=blob, template_name=self.template_name, tags=self.tag,
-                                                          blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title)
+                json_response = self.add_blob_to_template(blob=blob, template_id=template_id, blob_set=self.blob_set,
+                                                          pos_set=self.pos_in_set, title=self.title)
             add_blob_status = json_response.get('status')
 
-            json_response = self.get_template_blobs(self.template_name)
+            json_response = self.get_template_blobs(template_id)
             get_blob_status = json_response.get('status')
             try:
                 blob_list = json_response.get('sets')[0].get('blobs').get(str(self.pos_in_set))
@@ -176,7 +174,7 @@ class BlobsTests(unittest.TestCase):
             except Exception:
                 pass
 
-            response = self.delete_template(self.template_name)
+            response = self.delete_template(template_id)
             delete_template_status = response.get('status')
 
         finally:
@@ -198,15 +196,14 @@ class BlobsTests(unittest.TestCase):
         blob_vr = None
         delete_template_status = None
         try:
-            self.create_template(self.template_name)
+            _, template_id = self.create_template(self.template_name)
 
             with open(self.blob_path, 'rb') as blob, open(self.blob_path, 'rb') as vr:
-                json_response = self.add_blob_to_template(blob=blob, template_name=self.template_name, tags=self.tag,
-                                                          blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title,
-                                                          blob_vr=vr)
+                json_response = self.add_blob_to_template(blob=blob, template_id=template_id, blob_set=self.blob_set,
+                                                          pos_set=self.pos_in_set, title=self.title, blob_vr=vr)
             add_blob_status = json_response.get('status')
 
-            json_response = self.get_template_blobs(self.template_name)
+            json_response = self.get_template_blobs(template_id)
             get_blob_status = json_response.get('status')
             try:
                 blob_list = json_response.get('sets')[0].get('blobs').get(str(self.pos_in_set))
@@ -216,7 +213,7 @@ class BlobsTests(unittest.TestCase):
             except Exception:
                 pass
 
-            response = self.delete_template(self.template_name)
+            response = self.delete_template(template_id)
             delete_template_status = response.get('status')
 
         finally:
@@ -235,8 +232,8 @@ class BlobsTests(unittest.TestCase):
         try:
 
             with open(self.blob_path, 'rb') as blob:
-                json_response = self.add_blob_to_template(blob=blob, template_name=self.template_name, tags=self.tag,
-                                                          blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title)
+                json_response = self.add_blob_to_template(blob=blob, template_id=self.template_id, blob_set=self.blob_set,
+                                                          pos_set=self.pos_in_set, title=self.title)
             status = json_response.get('status')
 
         finally:
@@ -250,8 +247,8 @@ class BlobsTests(unittest.TestCase):
         set_list = None
         try:
             with open(self.blob_path, 'rb') as blob:
-                self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, tags=self.tag,
-                                      blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title)
+                self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set,
+                                      pos_set=self.pos_in_set, title=self.title)
 
             response = self.remove_blob_from_demo(self.demo_id, self.blob_set, self.pos_in_set)
             status = response.get('status')
@@ -271,19 +268,19 @@ class BlobsTests(unittest.TestCase):
         status = None
         set_list = None
         try:
-            self.create_template(self.template_name)
+            _, template_id = self.create_template(self.template_name)
 
             with open(self.blob_path, 'rb') as blob:
-                self.add_blob_to_template(blob=blob, template_name=self.template_name, tags=self.tag,
-                                          blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title)
+                self.add_blob_to_template(blob=blob, template_id=template_id, blob_set=self.blob_set,
+                                          pos_set=self.pos_in_set, title=self.title)
 
-            response = self.remove_blob_from_template(self.template_name, self.blob_set, self.pos_in_set)
+            response = self.remove_blob_from_template(template_id, self.blob_set, self.pos_in_set)
             status = response.get('status')
 
-            json_response = self.get_template_blobs(self.template_name)
+            json_response = self.get_template_blobs(template_id)
             set_list = json_response.get('sets')
 
-            self.delete_template(self.template_name)
+            self.delete_template(template_id)
 
         finally:
             self.assertEqual(status, 'OK')
@@ -309,7 +306,7 @@ class BlobsTests(unittest.TestCase):
         status = None
         try:
 
-            response = self.remove_blob_from_template(self.template_name, self.blob_set, self.pos_in_set)
+            response = self.remove_blob_from_template(self.template_id, self.blob_set, self.pos_in_set)
             status = response.get('status')
 
         finally:
@@ -336,7 +333,7 @@ class BlobsTests(unittest.TestCase):
         status = None
         try:
 
-            response = self.get_template_blobs(self.template_name)
+            response = self.get_template_blobs(self.template_id)
             status = response.get('status')
 
         finally:
@@ -348,29 +345,28 @@ class BlobsTests(unittest.TestCase):
         """
         status = None
         template_list = None
-        template = None
         try:
             with open(self.blob_path, 'rb') as blob:
                 self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set,
                                       pos_set=self.pos_in_set, title=self.title)
 
-            self.create_template(self.template_name)
+            _, template_id = self.create_template(self.template_name)
 
-            self.add_templates_to_demo(self.demo_id, self.template_name)
+            self.add_template_to_demo(self.demo_id, template_id)
 
             response = self.get_demo_templates(self.demo_id)
             status = response.get('status')
             template_list = response.get('templates')
-            template = template_list[0]
+            template_name = template_list[0]['name']
 
             self.delete_demo(self.demo_id)
-            self.delete_template(self.template_name)
+            self.delete_template(template_id)
 
         finally:
             self.assertEqual(status, 'OK')
             self.assertTrue(isinstance(template_list, list))
             self.assertEqual(len(template_list), 1)
-            self.assertEqual(template, self.template_name)
+            self.assertEqual(template_name, self.template_name)
 
     def test_add_non_existent_template_to_demo(self):
         """
@@ -382,7 +378,7 @@ class BlobsTests(unittest.TestCase):
                 self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set, pos_set=self.pos_in_set,
                                       title=self.title)
 
-            response = self.add_templates_to_demo(self.demo_id, self.template_name)
+            response = self.add_template_to_demo(self.demo_id, self.template_id)
             status = response.get('status')
 
             self.delete_demo(self.demo_id)
@@ -397,12 +393,12 @@ class BlobsTests(unittest.TestCase):
         status = None
         try:
 
-            self.create_template(self.template_name)
+            _, template_id = self.create_template(self.template_name)
 
-            response = self.add_templates_to_demo(self.demo_id, self.template_name)
+            response = self.add_template_to_demo(self.demo_id, template_id)
             status = response.get('status')
 
-            self.delete_template(self.template_name)
+            self.delete_template(template_id)
 
         finally:
             # This should be OK because the demo can exist in the demoinfo DB
@@ -419,16 +415,16 @@ class BlobsTests(unittest.TestCase):
                 self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set,
                                       pos_set=self.pos_in_set, title=self.title)
 
-            self.create_template(self.template_name)
-            self.add_templates_to_demo(self.demo_id, self.template_name)
+            _, template_id = self.create_template(self.template_name)
+            self.add_template_to_demo(self.demo_id, template_id)
 
-            response = self.remove_template_from_demo(self.demo_id, self.template_name)
+            response = self.remove_template_from_demo(self.demo_id, template_id)
             status = response.get('status')
 
             response = self.get_demo_templates(self.demo_id)
             template_list = response.get('templates')
 
-            self.delete_template(self.template_name)
+            self.delete_template(template_id)
             self.delete_demo(self.demo_id)
 
         finally:
@@ -446,7 +442,7 @@ class BlobsTests(unittest.TestCase):
                 self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set,
                                       pos_set=self.pos_in_set, title=self.title)
 
-            response = self.remove_template_from_demo(self.demo_id, self.template_name)
+            response = self.remove_template_from_demo(self.demo_id, self.template_id)
             status = response.get('status')
 
             self.delete_demo(self.demo_id)
@@ -461,13 +457,13 @@ class BlobsTests(unittest.TestCase):
         status = None
         try:
 
-            self.create_template(self.template_name)
-            self.add_templates_to_demo(self.demo_id, self.template_name)
+            _, template_id = self.create_template(self.template_name)
+            self.add_template_to_demo(self.demo_id, template_id)
 
-            response = self.remove_template_from_demo(self.demo_id, self.template_name)
+            response = self.remove_template_from_demo(self.demo_id, template_id)
             status = response.get('status')
 
-            self.delete_template(self.template_name)
+            self.delete_template(template_id)
 
         finally:
             # This should be OK because the demo can exist in the demoinfo DB
@@ -478,8 +474,6 @@ class BlobsTests(unittest.TestCase):
         Test edit blob from demo
         """
         status = None
-        tag_list = None
-        tag = None
         new_title = self.title + '_new'
         title = None
         new_set = self.blob_set + '_new'
@@ -490,7 +484,7 @@ class BlobsTests(unittest.TestCase):
                 self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set,
                                       pos_set=self.pos_in_set, title=self.title)
 
-            response = self.edit_blob_from_demo(demo_id=self.demo_id, tags=self.tag, blob_set=self.blob_set,
+            response = self.edit_blob_from_demo(demo_id=self.demo_id, blob_set=self.blob_set,
                                                 new_blob_set=new_set, pos_set=self.pos_in_set,
                                                 new_pos_set=new_pos_in_set, title=new_title)
             status = response.get('status')
@@ -500,8 +494,6 @@ class BlobsTests(unittest.TestCase):
                 blob_list = json_response.get('sets')[0].get('blobs').get(str(new_pos_in_set))
                 the_set = json_response.get('sets')[0].get('name')
                 title = blob_list.get('title')
-                tag_list = blob_list.get('tags')
-                tag = tag_list[0]
             except Exception:
                 pass
 
@@ -509,9 +501,6 @@ class BlobsTests(unittest.TestCase):
 
         finally:
             self.assertEqual(status, 'OK')
-            self.assertTrue(isinstance(tag_list, list))
-            self.assertEqual(len(tag_list), 1)
-            self.assertEqual(tag, self.tag)
             self.assertEqual(new_title, title)
             self.assertEqual(new_set, the_set)
 
@@ -525,8 +514,7 @@ class BlobsTests(unittest.TestCase):
         new_pos_in_set = self.pos_in_set + 1
         try:
 
-            response = self.edit_blob_from_demo(demo_id=self.demo_id, tags=self.tag, blob_set=self.blob_set,
-                                                new_blob_set=new_set,
+            response = self.edit_blob_from_demo(demo_id=self.demo_id, blob_set=self.blob_set, new_blob_set=new_set,
                                                 pos_set=self.pos_in_set, new_pos_set=new_pos_in_set, title=new_title)
             status = response.get('status')
 
@@ -538,43 +526,35 @@ class BlobsTests(unittest.TestCase):
         Test edit blob from template
         """
         status = None
-        tag_list = None
-        tag = None
         new_title = self.title + '_new'
         title = None
         new_set = self.blob_set + '_new'
         the_set = None
         new_pos_in_set = self.pos_in_set + 1
         try:
-            self.create_template(self.template_name)
+            _, template_id = self.create_template(self.template_name)
 
             with open(self.blob_path, 'rb') as blob:
-                self.add_blob_to_template(blob=blob, template_name=self.template_name,
+                self.add_blob_to_template(blob=blob, template_id=template_id,
                                           blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title)
 
-            response = self.edit_blob_from_template(template_name=self.template_name, tags=self.tag,
+            response = self.edit_blob_from_template(template_id=template_id, title=new_title,
                                                     blob_set=self.blob_set, new_blob_set=new_set,
-                                                    pos_set=self.pos_in_set, new_pos_set=new_pos_in_set,
-                                                    title=new_title)
+                                                    pos_set=self.pos_in_set, new_pos_set=new_pos_in_set)
             status = response.get('status')
 
-            json_response = self.get_template_blobs(self.template_name)
+            json_response = self.get_template_blobs(template_id)
             try:
                 blob_list = json_response.get('sets')[0].get('blobs').get(str(new_pos_in_set))
                 the_set = json_response.get('sets')[0].get('name')
                 title = blob_list.get('title')
-                tag_list = blob_list.get('tags')
-                tag = tag_list[0]
             except Exception:
                 pass
 
-            self.delete_template(self.template_name)
+            self.delete_template(template_id)
 
         finally:
             self.assertEqual(status, 'OK')
-            self.assertTrue(isinstance(tag_list, list))
-            self.assertEqual(len(tag_list), 1)
-            self.assertEqual(tag, self.tag)
             self.assertEqual(new_title, title)
             self.assertEqual(new_set, the_set)
 
@@ -588,10 +568,9 @@ class BlobsTests(unittest.TestCase):
         new_pos_in_set = self.pos_in_set + 1
         try:
 
-            response = self.edit_blob_from_template(template_name=self.template_name, tags=self.tag,
+            response = self.edit_blob_from_template(template_id=self.template_id, title=new_title,
                                                     blob_set=self.blob_set, new_blob_set=new_set,
-                                                    pos_set=self.pos_in_set, new_pos_set=new_pos_in_set,
-                                                    title=new_title)
+                                                    pos_set=self.pos_in_set, new_pos_set=new_pos_in_set)
             status = response.get('status')
 
         finally:
@@ -604,13 +583,13 @@ class BlobsTests(unittest.TestCase):
         status = None
         templates = None
         try:
-            self.create_template(self.template_name)
+            _, template_id = self.create_template(self.template_name)
 
             response = self.get_all_templates()
             status = response.get('status')
             templates = response.get('templates')
 
-            self.delete_template(self.template_name)
+            self.delete_template(template_id)
         finally:
             self.assertEqual(status, 'OK')
             self.assertTrue(isinstance(templates, list))
@@ -624,9 +603,8 @@ class BlobsTests(unittest.TestCase):
         blob_vr = None
         try:
             with open(self.blob_path, 'rb') as blob, open(self.blob_path, 'rb') as vr:
-                self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, tags=self.tag,
-                                      blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title,
-                                      blob_vr=vr)
+                self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_vr=vr,
+                                      blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title)
             json_response = self.get_blobs(self.demo_id)
             blob_id = None
             try:
@@ -673,7 +651,7 @@ class BlobsTests(unittest.TestCase):
         url = 'http://{}/api/{}/{}'.format(self.HOST, module, service)
         return requests.post(url, params=params, data=data, files=files, json=servicejson)
 
-    def add_blob_to_demo(self, blob=None, demo_id=None, tags=None, blob_set=None, pos_set=None, title=None,
+    def add_blob_to_demo(self, blob=None, demo_id=None, blob_set=None, pos_set=None, title=None,
                          credit=None, blob_vr=None):
         """
         add blob to demo
@@ -681,8 +659,6 @@ class BlobsTests(unittest.TestCase):
         params = {}
         if demo_id is not None:
             params['demo_id'] = demo_id
-        if tags is not None:
-            params['tags'] = tags
         if blob_set is not None:
             params['blob_set'] = blob_set
         if pos_set is not None:
@@ -699,16 +675,14 @@ class BlobsTests(unittest.TestCase):
         response = self.post(self.module, 'add_blob_to_demo', params=params, files=files)
         return response.json()
 
-    def add_blob_to_template(self, blob=None, template_name=None, tags=None, blob_set=None, pos_set=None, title=None,
+    def add_blob_to_template(self, blob=None, template_id=None, blob_set=None, pos_set=None, title=None,
                              credit=None, blob_vr=None):
         """
         add blob to template
         """
         params = {}
-        if template_name is not None:
-            params['template_name'] = template_name
-        if tags is not None:
-            params['tags'] = tags
+        if template_id is not None:
+            params['template_id'] = template_id
         if blob_set is not None:
             params['blob_set'] = blob_set
         if pos_set is not None:
@@ -741,11 +715,11 @@ class BlobsTests(unittest.TestCase):
         response = self.post(self.module, 'get_blobs', params=params)
         return response.json()
 
-    def get_template_blobs(self, template_name):
+    def get_template_blobs(self, template_id):
         """
         get template blobs
         """
-        params = {'template_name': template_name}
+        params = {'template_id': template_id}
         response = self.post(self.module, 'get_template_blobs', params=params)
         return response.json()
 
@@ -762,31 +736,45 @@ class BlobsTests(unittest.TestCase):
         create template
         """
         params = {'template_name': template_name}
-        response = self.post(self.module, 'create_template', params=params)
-        return response.json()
+        response = self.post(self.module, 'create_template', params=params).json()
+        status = response.get('status')
+        self.template_id = response.get('template_id')
+        template_id = response.get('template_id')
+        return status, template_id
 
-    def delete_template(self, template_name):
+    def delete_template(self, template_id):
         """
         delete template
         """
-        params = {'template_name': template_name}
+        params = {'template_id': template_id}
         response = self.post(self.module, 'delete_template', params=params)
         return response.json()
 
-    def remove_blob_from_template(self, template_name, blob_set, pos_set):
+    def delete_test_template(self):
+        """
+        delete test template
+        """
+        templates = self.post(self.module, 'get_all_templates').json()
+        for template in templates['templates']:
+            if self.template_name == template['name']:
+                params = {'template_id': template['id']}
+                self.post(self.module, 'remove_template', params=params)
+        return templates
+
+    def remove_blob_from_template(self, template_id, blob_set, pos_set):
         """
         remove blob from template
         """
-        params = {'template_name': template_name, 'blob_set': blob_set, 'pos_set': pos_set}
+        params = {'template_id': template_id, 'blob_set': blob_set, 'pos_set': pos_set}
         response = self.post(self.module, 'remove_blob_from_template', params=params)
         return response.json()
 
-    def add_templates_to_demo(self, demo_id, template_names):
+    def add_template_to_demo(self, demo_id, template_ids):
         """
         add templates to demo
         """
-        params = {'demo_id': demo_id, 'template_names': template_names}
-        response = self.post(self.module, 'add_templates_to_demo', params=params)
+        params = {'demo_id': demo_id, 'template_id': template_ids}
+        response = self.post(self.module, 'add_template_to_demo', params=params)
         return response.json()
 
     def get_demo_templates(self, demo_id):
@@ -797,15 +785,15 @@ class BlobsTests(unittest.TestCase):
         response = self.post(self.module, 'get_demo_templates', params=params)
         return response.json()
 
-    def remove_template_from_demo(self, demo_id, template_name):
+    def remove_template_from_demo(self, demo_id, template_id):
         """
         remove template from demo
         """
-        params = {'demo_id': demo_id, 'template_name': template_name}
+        params = {'demo_id': demo_id, 'template_id': template_id}
         response = self.post(self.module, 'remove_template_from_demo', params=params)
         return response.json()
 
-    def edit_blob_from_demo(self, demo_id=None, tags=None, blob_set=None, new_blob_set=None, pos_set=None,
+    def edit_blob_from_demo(self, demo_id=None, blob_set=None, new_blob_set=None, pos_set=None,
                             new_pos_set=None, title=None, credit=None, vr=None):
         """
         edit blob from demo
@@ -813,8 +801,6 @@ class BlobsTests(unittest.TestCase):
         params = {}
         if demo_id is not None:
             params['demo_id'] = demo_id
-        if tags is not None:
-            params['tags'] = tags
         if blob_set is not None:
             params['blob_set'] = blob_set
         if new_blob_set is not None:
@@ -833,16 +819,14 @@ class BlobsTests(unittest.TestCase):
         response = self.post(self.module, 'edit_blob_from_demo', params=params, files=files)
         return response.json()
 
-    def edit_blob_from_template(self, template_name=None, tags=None, blob_set=None, new_blob_set=None, pos_set=None,
+    def edit_blob_from_template(self, template_id=None, blob_set=None, new_blob_set=None, pos_set=None,
                                 new_pos_set=None, title=None, credit=None, vr=None):
         """
         edit blob from template
         """
         params = {}
-        if template_name is not None:
-            params['template_name'] = template_name
-        if tags is not None:
-            params['tags'] = tags
+        if template_id is not None:
+            params['template_id'] = template_id
         if blob_set is not None:
             params['blob_set'] = blob_set
         if new_blob_set is not None:
