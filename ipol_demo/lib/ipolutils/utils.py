@@ -27,6 +27,7 @@ from .image.Image import Image
 def thumbnail(src_file, height, dst_file):
     """
     Return a jpeg thumbnail for the src parameter (file path relative to shared_folder/run).
+    If it is not possible to create a thumbnail it will return false.
     """
     if not os.path.isfile(src_file):
         return False

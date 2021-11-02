@@ -56,15 +56,17 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
                 if not os.path.exists(src_file):
                     continue # declared file in ddl is not there
 
+                ext = file_name.split(".")[1]
+                if ext in ['txt', 'gz', 'tiff']:
+                    continue
+
                 if not file_label: # if no label given, use filename
                     file_label = file_name
                 value = {file_label: src_file}
 
-                ext = file_name.split(".")[1]
-                if ext not in ['txt', 'gz']:
-                    thumb_file = create_thumbnail(src_file)
-                    if thumb_file:
-                        value[os.path.basename(thumb_file)] = thumb_file
+                thumb_file = create_thumbnail(src_file)
+                if thumb_file:
+                    value[os.path.basename(thumb_file)] = thumb_file
                 blobs.append(value)
         elif  key == 'compressed_files':
             for file_name, file_label in values.items():
