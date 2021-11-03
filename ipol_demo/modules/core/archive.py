@@ -60,8 +60,7 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
                     file_label = file_name
                 value = {file_label: src_file}
 
-                ext = file_name.split(".")[1]
-                if ext in ['txt', 'gz', 'tiff']:
+                if non_viewable_blob(file_name):
                     blobs.append(value)
                     continue
 
@@ -115,3 +114,13 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
     }
     resp = requests.post(url, data=data)
     return resp.json()
+
+def non_viewable_blob(file_name):
+    """
+    Returns true if a file has an extension for which we can't create a thumbnail for.
+    """
+    extensions = file_name.split(".")[1:]
+    for ext in extensions:
+        if ext in ['txt', 'gz', 'tiff', 'svg']:
+            return True
+    return False
