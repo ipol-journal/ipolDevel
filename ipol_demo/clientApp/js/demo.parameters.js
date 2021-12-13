@@ -30,7 +30,7 @@ parameters.printParameters = function() {
 }
 
 parameters.resetValues = () => {
-  for (const parameter of ddl.params) {
+  for (let [index, parameter] of ddl.params.entries()) {
     if (parameter.type == 'label') continue;
     const defaults = {
       'textarea': "",
@@ -40,6 +40,11 @@ parameters.resetValues = () => {
       'range': 0
     }
     const parameterSelector = `#${parameter.type}_${parameter.id}`;
+
+    if (parameter.type == 'selection_radio'){
+      $(`#param-${parameter.id} > div > input[value="${parameter.default_value}"]`).attr('checked', true);
+    };
+
     let defaultValue = "";
     if (parameter.hasOwnProperty('default_value')) {
       defaultValue = parameter.default_value;
