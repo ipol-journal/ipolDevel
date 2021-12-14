@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # GNU General Public Licence (GPL)
@@ -19,21 +19,17 @@
 import argparse
 import requests
 import json
-from urlparse import urlparse
-
+from urllib.parse import urlparse
 
 def post(service, params=None, json=None):
     """
     Do the post to demoinfo
     """
     try:
-        url = 'http://{}/api/demoinfo/{}'.format(
-            HOST,
-            service
-        )
+        url = f'http://{HOST}/api/demoinfo/{service}'
         return requests.post(url, params=params, data=json)
     except Exception as ex:
-        print "ERROR: Failure in the post function - {}".format(str(ex))
+        print(f"ERROR: Failure in the post function - {ex}")
 
 def get_demo_list():
     """
@@ -42,7 +38,7 @@ def get_demo_list():
     resp = post('demo_list')
     response = resp.json()
     if response['status'] != 'OK':
-        print "ERROR: demo_list returned KO"
+        print("ERROR: demo_list returned KO")
         return
     return response['demo_list']
 
@@ -55,7 +51,7 @@ def read_DDL(editors_demoid):
         resp = post('get_ddl', params={"demo_id": editors_demoid})
         response = resp.json()
         if response['status'] != 'OK':
-            print "ERROR: get_ddl returned KO for demo {}".format(editors_demoid)
+            print(f"ERROR: get_ddl returned KO for demo {editors_demoid}")
             return
         if response['last_demodescription'] is None:
             return
@@ -63,7 +59,7 @@ def read_DDL(editors_demoid):
         ddl_json = last_demodescription['ddl']
         return ddl_json
     except Exception as ex:
-        print "ERROR: Failed to read DDL from {} - {}".format(editors_demoid, ex)
+        print(f"ERROR: Failed to read DDL from {editors_demoid} - {ex}")
 
 
 def check_ddl(ddl):
@@ -74,6 +70,7 @@ def check_ddl(ddl):
         return {"DDL": "This demo does not have any DDL"}
 
     ddl_json = json.loads(ddl)
+
     if len(ddl_json.keys()) == 0:
         return {"DDL": "No sections found"}
 
@@ -107,7 +104,7 @@ def check_build_in_DDL(ddl):
     
     # Check every build
     i = 1
-    build_i = 'build{}'.format(i)
+    build_i = f'build{i}'
     while build_i in ddl_build:
         construct = ddl_build[build_i].get('construct', None)
         if construct:
@@ -115,7 +112,7 @@ def check_build_in_DDL(ddl):
                 return {"Build": "Demo might be using 'pip install'"}
 
         i += 1
-        build_i = 'build{}'.format(i)
+        build_i = f'build{i}'
 
     return {}
 
@@ -126,7 +123,7 @@ def check_url_in_DDL(ddl):
     ddl_json = json.loads(ddl)
     url = json.dumps(ddl_json["build"]).split("\"url\":")[1].split("\"")[1].strip()
     if not urlparse(url).hostname == "www.ipol.im":
-        return{"URL":"This demo is using an external resource: {}".format(url)}
+        return{"URL": f"This demo is using an external resource: {url}"}
     return {}
 
 
@@ -137,7 +134,7 @@ def has_demo_extras(editors_demoid):
     resp = post('get_demo_extras_info', {"demo_id":editors_demoid})
     response = resp.json()
     if not response['status'] == 'OK':
-        print "ERROR: get_demo_extras_info returned KO"
+        print("ERROR: get_demo_extras_info returned KO")
         return
     return 'url' in response # If there is a URL in the response it means there are demoExtras
 
@@ -146,12 +143,9 @@ def check_demo_extras(editors_demoid, ddl):
     """
     Returns a dict with the errors in the demo extras
     """
-    if not ("$demoextras" in ddl or "${demoextras}" in ddl):
-        if has_demo_extras(editors_demoid):
-            return {"Demoextras":"This demo does not use demo extras, but there is a demo extras file"}
-    else:
-        if not has_demo_extras(editors_demoid):
-            return {"Demoextras":"This demo uses demo extras, but there is not any demo extras file"}
+    if not has_demo_extras(editors_demoid):
+        if "$DEMOEXTRAS" in ddl or "${DEMOEXTRAS}" in ddl or "CUSTOM_JS" in ddl.upper():
+            return {"Demoextras": "This demo uses demo extras, but there is not any demoExtras file"}
     return {}
 
 def get_editors(editors_demoid):
@@ -161,12 +155,12 @@ def get_editors(editors_demoid):
     resp = post('demo_get_editors_list', {"demo_id": editors_demoid})
     response = resp.json()
     if not response['status'] == 'OK':
-        print "ERROR: get_editors returned KO"
+        print("ERROR: get_editors returned KO")
         return
     editors_list = {}
-    # print response['editor_list'][0]['name']
+    # print(response['editor_list'][0]['name'])
     for editor in response['editor_list']:
-        editors_list[editor["mail"]]=editor["name"]
+        editors_list[editor["mail"]] = editor["name"]
 
     return editors_list
 
@@ -187,21 +181,21 @@ def print_errors(editors_demoid, state, title, errors, editors):
     if len(errors) == 0:
         return
 
-    print "Demo #{} \"{}\"".format(editors_demoid, title.encode('utf8'))
-    print "Type: {}".format(state)
+    print(f"Demo #{editors_demoid} \"{title.encode('utf8')}\"")
+    print(f"Type: {state}")
 
     # Print editors
     editors_msg = []
     for editor in editors:
-        editors_msg.append("{} <{}>".format(editors[editor].encode('utf-8'), editor))
+        editors_msg.append(f"{editors[editor].encode('utf-8')} <{editor}>")
     if len(editors_msg) > 0:
-        print "Editors: {}".format(", ".join(editors_msg))
+        print(f"Editors: {', '.join(editors_msg)}")
 
     # Print Errors
-    print "Found 1 error:" if len(errors) == 1 else "Found {} errors:".format(len(errors))
+    print("Found 1 error:" if len(errors) == 1 else f"Found {len(errors)} errors:")
     for error in errors:
-        print "    - In {} - {}".format(error, errors[error])
-    print "\n"
+        print(f"    - In {error} - {errors[error]}")
+    print("\n")
 
 
 # Parse program arguments
@@ -218,7 +212,7 @@ elif args.environment in ['production', 'prod', 'p']:
 elif args.environment in ['local', 'l']:
     HOST = "127.0.0.1"
 else:
-    print "Unknown environment '{}'".format(args.environment)
+    print(f"Unknown environment '{args.environment}'")
     exit (-1)
 
 demos = get_demo_list()
@@ -263,5 +257,5 @@ for demo in demos:
         number_of_errors += len(errors)
         number_of_wrong_demos += 1
 if number_of_wrong_demos > 0:
-    print "Number of wrong demos:  {}".format(number_of_wrong_demos)
-    print "Number of total errors: {}".format(number_of_errors)
+    print(f"Number of wrong demos:  {number_of_wrong_demos}")
+    print(f"Number of total errors: {number_of_errors}")
