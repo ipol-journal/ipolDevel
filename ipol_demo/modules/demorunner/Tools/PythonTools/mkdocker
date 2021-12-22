@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+
+# usage:
+# mkdocker <dockerimage> [requirements.txt] [packages.txt]
+#   dockerimage is mandatory; example: python:3.10
+#   'requirements.txt' is a path to a requirements file compatible with pip install -r
+#   'packages.txt' is a path to a file containing one line per packages to install using apt-get
+
+# TODO
+# - mount a volume for pip's cache
+# - force the users to pick a python version
+# - force the users to pin dependencies
+# - tell the users to use torch+cpu, or opencv-python-headless, instead of heavier ones
+# - tell the users 'libgl1' is needed for opencv-python
+
+set -u
+set -e
+
+demoid=$(basename $(dirname $(pwd)))
+dockerimage="$1"
+shift 1
+
+if [ ! -z ${1+x} ]; then
+    if [ ! -f "$1" ]; then
+        echo "mkdocker: argument 2 '$1' (for requirements): file does not exist"
+        exit 1
+    fi
+    cp "$1" requirements.txt
+    shift 1
+
+fi
+
+packages=""
+if [ ! -z ${1+x} ]; then
+    if [ ! -f "$1" ]; then
+        echo "mkdocker: argument 3 '$1' (for apt pkgs): file does not exist"
+        exit 1
+    fi
+
+    packages="$(cat "$1" | tr '\n' ' ')"
+    shift 1
+fi
+
+image=ipol-demo-$demoid
+tag=$(md5sum <(cat <(echo $dockerimage) <(echo dockerizer-v2) requirements.txt <(echo "$packages")) | cut -f1 -d' ')
+
+if [ "$(docker images $image:$tag | wc -l)" -ne 2 ]; then
+    if [ "$(docker images $image | wc -l)" -ne 1 ]; then
+        echo "flushing previous images..."
+        docker images --all --quiet --no-trunc $image | xargs docker rmi
+    fi
+
+    echo "creating the docker image..."
+    cat >Dockerfile <<EOF
+FROM $dockerimage
+EOF
+
+    if [ ! -z "$packages"  ]; then
+        echo "... with packages: $packages"
+        cat >>Dockerfile <<EOF
+RUN apt-get update && apt-get install -y $packages && rm -rf /var/lib/apt/lists/*
+EOF
+    fi
+
+    if [ -f requirements.txt ]; then
+        echo "... with requirements:"
+        cat requirements.txt
+        cat >>Dockerfile <<EOF
+COPY requirements.txt requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt -f https://download.pytorch.org/whl/cpu/torch_stable.html
+EOF
+    fi
+
+    cat >>Dockerfile <<EOF
+ENV MPLCONFIGDIR /tmp
+
+ENV bin /workdir/bin/
+ENV demoextras=/workdir/demoextras/
+WORKDIR /workdir/exec
+
+ENV PATH \$bin:\$PATH
+
+# prepare a fake venv so that demos that require sourcing a venv work
+RUN mkdir -p /workdir/venv/bin && touch /workdir/venv/bin/activate
+ENV virtualenv /workdir/venv/
+EOF
+    echo Dockerfile:
+    cat Dockerfile
+    DOCKER_BUILDKIT=1 docker build . -t $image:$tag
+fi
+
+# move the dockerizer-image token to bin ourselves, so that demo editors don't have to do it
+# we could also move dockerize there, but IPOL does not allow build step without 'move'
+# so let the demo editor move this file
+echo "$image:$tag" >dockerizer-image
+cp dockerizer-image ../bin
+
