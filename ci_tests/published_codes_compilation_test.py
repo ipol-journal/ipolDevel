@@ -99,7 +99,10 @@ def build(demo_id, build_section, requirements, demorunners):
         params = {'ddl_build': json.dumps(build_section), 'compilation_path': get_compilation_path(demo_id)}
         response = post(demorunner_host, 'demorunner', 'test_compilation', params)
         json_response = response.json()
-        if json_response.get('status') != 'OK':
+        if response.status_code == 504:
+            all_success = False
+            print("Couldn't build demo {demo_id} in {demorunner}. Timeout")
+        if response.status_code == 200 and json_response.get('status') != 'OK':
             all_success = False
             print(f"Couldn't build demo {demo_id} in {demorunner}.")
     return all_success
