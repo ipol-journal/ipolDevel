@@ -622,9 +622,9 @@ class Blobs():
             print("Couldn't obtain owned blobs from template '{}'. Error: {}".format(template_id, ex))
         except Exception as ex:
             self.logger.exception("*** Unhandled exception while obtaining the owned blobs from template '{}'"
-                                  .format(template_name))
+                                  .format(template_id))
             print("*** Unhandled exception while obtaining the owned blobs from template '{}'. Error: {}" \
-                .format(template_name, ex))
+                .format(template_id, ex))
         finally:
             if conn is not None:
                 conn.close()

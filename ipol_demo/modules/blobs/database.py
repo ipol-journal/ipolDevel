@@ -210,8 +210,8 @@ def get_demo_templates(conn, editor_demo_id):
                                         WHERE editor_demo_id = ?))
             """, (editor_demo_id,))
         templates = []
-        for id, name in cursor.fetchall():
-            templates.append({'id': id, 'name': name})
+        for template_id, name in cursor.fetchall():
+            templates.append({'id': template_id, 'name': name})
         return templates
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
@@ -628,8 +628,8 @@ def get_all_templates(conn):
             FROM templates
             """)
         templates = []
-        for id, name in cursor.fetchall():
-            templates.append({'id': id, 'name': name})
+        for template_id, name in cursor.fetchall():
+            templates.append({'id': template_id, 'name': name})
         return templates
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
