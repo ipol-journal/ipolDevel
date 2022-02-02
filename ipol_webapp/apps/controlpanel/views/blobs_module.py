@@ -155,6 +155,12 @@ class DemoBlobSaveInfo(NavbarReusableMixinMF, TemplateView):
             title = dict_response['title'][0]
             credit = dict_response['credit'][0]
 
+            blobs_request = ipolservices.get_demo_owned_blobs(id)
+            blobs = json.loads(blobs_request)
+            for blobset in blobs['sets']:
+                if blobset['name'] == set and new_pos in blobset['blobs']:
+                    return HttpResponseRedirect('/cp/blob_demo/'+id)
+
             if has_permission(id, self.request.user):
                 ipolservices.edit_blob_from_demo(request,id,set,new_set,pos,new_pos,title,credit)
         except Exception as ex:
