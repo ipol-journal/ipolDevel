@@ -5,10 +5,11 @@ import sqlite3
 import argparse
 import magic
 import os
+import cv2
 import sys
 sys.path.insert(0, '/home/ipol/ipolDevel/ipol_demo/modules/core') 
 from ipolutils.utils import thumbnail
-
+from ipolutils.errors import IPOLImageReadError
 
 def read_from_db(db_dir, thumb_dir):
     '''
@@ -21,14 +22,42 @@ def read_from_db(db_dir, thumb_dir):
     data = c.fetchall()
 
     for item in data:
-        hash = item[0]
-        format = item[1]
-        type = item[2]
-        thumb_path = os.path.join(thumb_dir, hash[:1], hash[1:2])
-        thumb_path = os.path.join(thumb_dir, hash[:1], hash[1:2])
-        thumb_path = os.path.join(thumb_path, hash) + '.jpeg'
+        blob = item[0]
+        media_type = item[1]
+        mime_type = item[2]
+        thumb_path = os.path.join(thumb_dir, blob[:1], blob[1:2])
+        thumb_path = os.path.join(thumb_dir, blob[:1], blob[1:2])
+        thumb_path = os.path.join(thumb_path, blob) + '.jpeg'
 
-        yield hash, format, type, thumb_path
+        yield blob, media_type, mime_type, thumb_path
+
+comp_size = (500, 470)
+def must_write_thumb(thumb_path):
+    '''
+    Return write_thumb as True if fileformat
+    not JPEG, size and filesize are large
+    '''
+    mime = magic.Magic(mime=True)
+    fileformat = mime.from_file(thumb_path)
+    fileformat = fileformat.split('/')[1]
+    bytes = os.path.getsize(thumb_path)
+
+    try:
+        im = PIL.Image.open(thumb_path)
+        file_size = im.size
+    except PIL.UnidentifiedImageError:
+        print("cannot identify image file:",thumb_path)
+        return False
+    except ValueError as e:
+        print(f"error:{e} at:{thumb_path}")
+        return False
+    except PIL.Image.DecompressionBombError as e:
+        print(f"error:{e} at:{thumb_path}")
+        return False
+
+    if fileformat != 'jpeg' or file_size > comp_size or bytes > 100000:
+        return True      
+
 
 # parse the arguments
 ap = argparse.ArgumentParser()
@@ -46,40 +75,59 @@ blobs_dir = args.blobs_dir
 
 #create/re-create thumbnails
 print("\nRecreating Thumbnails\n")
-comp_size = (500, 470)
 thumb_height = 128
 
-for hash, format, type, thumb_path in read_from_db(db_dir, thumb_dir):
-    src_file = thumb_path
-    thumb_file = thumb_path
+for blob, media_type, mime_type, thumb_path in read_from_db(db_dir, thumb_dir):
     filename = os.path.basename(thumb_path)
 
     #create thumbnail if it doesn't exist
     if not os.path.isfile(thumb_path):
-        if format in ('image') and type not in ('tiff'):
-            blob_path = os.path.join(blobs_dir, hash[:1], hash[1:2])
-            blob_path = os.path.join(blob_path, hash) + '.' + type
-            src_file = blob_path
-            response = thumbnail(src_file, thumb_height, thumb_file)
-            if response:
-                print(f"thumb created:{filename}, imagetype:{type}")
+        if media_type == 'image' and mime_type not in ('tiff', 'tif'):
+            blob_path = os.path.join(blobs_dir, blob[:1], blob[1:2])
+            blob_path = os.path.join(blob_path, blob) + '.' + mime_type
+            if os.path.isfile(blob_path):
+                image = cv2.imread(blob_path)
+                if image is not None:                    
+                    height, width = image.shape[:2]
+                    try:
+                        response = thumbnail(src_file=blob_path, height=thumb_height, dst_file=thumb_path)
+                        if response:
+                            print(f"thumb created:{filename}, imagetype:{mime_type}")
+                        else:
+                            continue                   
+                    except cv2.error as e:
+                        print("exception occurred:", e)
+                        if width < height:
+                            max_size = (width, 128)
+                        else: 
+                            max_size = (100, height)               
+                        data = cv2.resize(image, max_size, cv2.INTER_AREA)
+                        cv2.imwrite(thumb_path, data)
+                        print(f"thumb created:{filename}, imagetype:{mime_type}")
+                else:
+                    continue #continue if blob image has no data
             else:
-                continue
+                continue #continue if blob file does not exist
         else:
-            continue
+            continue #continue if media_type is not in image
 
-    mime = magic.Magic(mime=True)
-    fileformat = mime.from_file(thumb_path)
-    fileformat = fileformat.split('/')[1]
-
-    im = PIL.Image.open(thumb_path)
-    file_size = im.size
-
-    bytes = os.path.getsize(thumb_path)
-
-    #recreate thumbnail if format not JPEG, size and filesize large
-    if fileformat != "jpeg" or file_size > comp_size or bytes > 100000:
-        thumbnail(src_file, thumb_height, thumb_file)
-        print(f"thumb recreated:{filename} oldext:{fileformat} oldsize:{file_size}")
+    #recreate thumbnail if write_thumb is True
+    if must_write_thumb(thumb_path):
+        try:
+            thumbnail(src_file=thumb_path, height=thumb_height, dst_file=thumb_path)
+            print(f"thumb recreated:{filename}")
+        except IPOLImageReadError:
+            print("Image read error")
+        except cv2.error as e:
+            image = cv2.imread(thumb_path)
+            height, width = image.shape[:2]
+            print("exception occurred:", e)
+            if width < height:
+                max_size = (width, 128)
+            else: 
+                max_size = (100, height)               
+            data = cv2.resize(image, max_size, cv2.INTER_AREA)
+            cv2.imwrite(thumb_path, data)
+            print(f"thumb recreated:{filename}")
 
 print("\nDone Recreating\n")
