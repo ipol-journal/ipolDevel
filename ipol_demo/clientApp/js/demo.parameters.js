@@ -82,13 +82,13 @@ parameters.setParametersValues = function(params_values){
           $('#' + param.id + '_' + j).prop('checked', true);
     }
     if(param.type == "selection_collapsed"){
-      $('#select-' + param.id).val(params_values[param.id]);
+      $('#selection_collapsed_' + param.id).val(params_values[param.id]);
     }
     if(param.type == "checkbox"){
       $('#' + param.id).prop('checked', (params_values[param.id]));
     }
     if(param.type == "text"){
-      $('#text-' + param.id).val(params_values[param.id]);
+      $('#text_' + param.id).val(params_values[param.id]);
     }
   }
 }
