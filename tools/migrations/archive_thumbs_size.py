@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 
+'''
+It was found that blobs_thumbs folder contained huge thumbnails and was using 290 Gb of space.
+This script corrected the thumbnails on Feb 07, 2022.
+It goes through all entries in the database , checks size/format
+and creates the thumb if the thumbnail doesn't exist and recreates in case of
+wrong format (not JPEG) or thumb file size too large or image thumb too large.
+'''
+
 import PIL.Image
 import sqlite3
 import argparse
@@ -10,6 +18,7 @@ import sys
 sys.path.insert(0, '/home/ipol/ipolDevel/ipol_demo/modules/core') 
 from ipolutils.utils import thumbnail
 from ipolutils.errors import IPOLImageReadError
+
 
 def read_from_db(db_dir, thumb_dir):
     '''
@@ -25,7 +34,6 @@ def read_from_db(db_dir, thumb_dir):
         blob = item[0]
         media_type = item[1]
         mime_type = item[2]
-        thumb_path = os.path.join(thumb_dir, blob[:1], blob[1:2])
         thumb_path = os.path.join(thumb_dir, blob[:1], blob[1:2])
         thumb_path = os.path.join(thumb_path, blob) + '.jpeg'
 
