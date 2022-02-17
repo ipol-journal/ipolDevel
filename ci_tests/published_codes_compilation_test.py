@@ -100,12 +100,12 @@ def build(demo_id, build_section, requirements, demorunners):
         response = post(demorunner_host, 'demorunner', 'test_compilation', params)
         if response.status_code == 504:
             all_success = False
-            print(f"Couldn't build demo {demo_id} in {demorunner}. Timeout")
+            print(f"Couldn't build demo #{demo_id}. Reason: DR={demorunner} gave error HTTP 504 (gateway timeout.")
         else:
             json_response = response.json()
             if json_response.get('status') != 'OK':
                 all_success = False
-                print(f"Couldn't build demo {demo_id} in {demorunner}.")
+                print(f"Couldn't build demo #{demo_id} in DR={demorunner}.")
     return all_success
 
 
