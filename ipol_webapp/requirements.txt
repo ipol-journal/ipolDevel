@@ -14,7 +14,7 @@ django-allauth==0.39.1
 django-autocomplete-light==2.2.10
 
 # Filtering support
-django-filter==2.0.0
+django-filter==2.4.0
 
 #HTTP high level API
 requests
