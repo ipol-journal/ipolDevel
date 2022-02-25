@@ -81,15 +81,27 @@ def copy_demo(demo_id, host, source_host):
 
     demo_templates = get_demo_template_names(source_host, demo_id)
     local_templates = get_all_templates(host)
-    for template_name in demo_templates:
-        if template_name not in local_templates:
-            print('Cloning template: {}...'.format(template_name))
-            copy_template(host, source_host, template_name)
-            associate_template(host, new_id, template_name)
-        else:
+    for template in demo_templates:
+        template_name = template["name"]
+        template_id = template['id']
+        if template_exists(local_templates, template_name):
+            local_template_id = template_exists(local_templates, template_name)
             print('Associating template: {}...'.format(template_name))
-            associate_template(host, new_id, template_name)
-    print('Done')
+            associate_template(host, new_id, local_template_id)
+        else:
+            print('Cloning template: {}...'.format(template_name))
+            local_template_id = copy_template(host, source_host, template_name, template_id)
+            associate_template(host, new_id, local_template_id)
+        print('Done')
+
+def template_exists(templates, template_name):
+    """
+    Check if template exists
+    """
+    for template in templates:
+        if template['name'] == template_name:
+            return template['id']
+    return False
 
 def ddl_exists(demo_id, host):
     """
@@ -248,28 +260,29 @@ def get_demo_template_names(host, demo_id):
     response = post('/api/blobs/get_demo_templates', host, params=params).json()
     return response['templates']
 
-def associate_template(host, new_id, template_name):
+def associate_template(host, new_id, template_id):
     """
     Associate template to a demo
     """
-    params = {'demo_id': new_id, 'template_names': template_name}
-    post('/api/blobs/add_templates_to_demo', host, params=params)
+    params = {'demo_id': new_id, 'template_id': template_id}
+    post('/api/blobs/add_template_to_demo', host, params=params).json()
 
-def copy_template(host, source_host, template_name):
+def copy_template(host, source_host, template_name, template_id):
     """
     Copy template to local
     """
     params = {'template_name': template_name}
-    post('/api/blobs/create_template', host, params=params).json()
-    copy_blobs_from_template(host, source_host, template_name)
+    response = post('/api/blobs/create_template', host, params=params).json()
+    local_template_id = response['template_id']
+    copy_blobs_from_template(host, source_host, template_id, local_template_id)
+    return local_template_id
 
-def copy_blobs_from_template(host, source_host, template_name):
+def copy_blobs_from_template(host, source_host, template_id, local_template_id):
     """
     Copy blobs to template
     """
-    params = {'template_name': template_name}
+    params = {'template_id': template_id}
     blobs_json = post('/api/blobs/get_template_blobs', source_host, params=params).json()
-    # blobs_json = blobs_response.json()
 
     for blobset in blobs_json['sets']:
         set_name = blobset['name']
@@ -282,18 +295,18 @@ def copy_blobs_from_template(host, source_host, template_name):
             blob_file = get_blob_data(source_host, blob['blob'])
             if 'vr' in blob:
                 vr = get_blob_data(source_host, blob['vr'])
-                add_blob_to_template(host, template_name, blob_file, set_name, pos_in_set, credit, title, vr=vr)
+                add_blob_to_template(host, local_template_id, blob_file, set_name, pos_in_set, credit, title, vr=vr)
             else:
-                add_blob_to_template(host, template_name, blob_file, set_name, pos_in_set, credit, title)
+                add_blob_to_template(host, local_template_id, blob_file, set_name, pos_in_set, credit, title)
 
-def add_blob_to_template(host, template_name, blob, set_name, pos_in_set, credit, title, vr=None):
+def add_blob_to_template(host, template_id, blob, set_name, pos_in_set, credit, title, vr=None):
     """
     Add a blob to the demo
     """
     files = {'blob': blob}
     if vr:
         files['blob_vr'] = vr
-    params = {'template_name': template_name, 'title': title, 'blob_set': set_name, 'pos_set': pos_in_set, 'credit': credit}
+    params = {'template_id': template_id, 'title': title, 'blob_set': set_name, 'pos_set': pos_in_set, 'credit': credit}
     response = post('/api/blobs/add_blob_to_template', host, params=params, files=files)
     return response.json()
 
