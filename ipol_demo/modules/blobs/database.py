@@ -93,6 +93,24 @@ def template_exist(conn, template_id):
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
+def template(conn, template_name):
+    """
+    Get template data
+    """
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+                SELECT id, name
+                FROM templates
+                WHERE name = ?
+                """, (template_name,))
+        data = cursor.fetchone()
+        if data is not None:
+            return {'template_id': data[0], 'template_name': data[1]}
+        else:
+            return None
+    except Exception as ex:
+        raise IPOLBlobsDataBaseError(ex)
 
 def create_template(conn, template_name):
     """

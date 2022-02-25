@@ -472,12 +472,19 @@ class Blobs():
         conn = None
         try:
             conn = lite.connect(self.database_file)
-            template_id = database.create_template(conn, template_name)
-            conn.commit()
-            status = {
-                "status": "OK",
-                "template_id": template_id
-            }
+            result = database.template(conn, template_name)
+            if result is not None and result['template_id']:
+                status = {
+                    "status": "OK",
+                    "template_id": result['template_id']
+                }
+            else:
+                template_id = database.create_template(conn, template_name)
+                conn.commit()
+                status = {
+                    "status": "OK",
+                    "template_id": template_id
+                }
 
         except IPOLBlobsDataBaseError as ex:
             if conn is not None:
