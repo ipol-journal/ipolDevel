@@ -189,3 +189,8 @@ iframe {
 video {
   padding: 0 5px;
 }
+
+.flex-vertical {
+  display: flex;
+  flex-direction: column;
+}

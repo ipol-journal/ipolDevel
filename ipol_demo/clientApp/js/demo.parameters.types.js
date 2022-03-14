@@ -38,6 +38,7 @@ $.fn.selection_radio = function(param, index) {
   var values = Object.keys(param.values).map(function(e) {
     return param.values[e];
   });
+  let vertical = param.vertical ? param.vertical : false;
 
   $('.param-' + index).prepend('<span class=param-label >' + label + '</span>');
   $(this).append('<div id=param-' + param.id + '></div>');
@@ -48,6 +49,7 @@ $.fn.selection_radio = function(param, index) {
     if (param.default_value == values[i]) $(`#selection_radio_${param.id}_${i}`).prop('checked', true);
   }
   $('#param-' + param.id + ' > label').addClass('m-r-10');
+  if (vertical) $(`#param-${param.id}`).addClass('flex-vertical');
 
   $('input[name=' + param.id + ']').change(function() {
     updateParamsArrayValue(param.id, $('input[name=' + param.id + ']:checked').val());
