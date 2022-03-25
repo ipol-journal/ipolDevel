@@ -10,3 +10,4 @@ python-magic==0.4.24
 requests==2.26.0
 tifffile==2021.8.8
 imagecodecs==2021.8.26
+Pillow==9.0.1
