@@ -37,12 +37,4 @@
     <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
   </demorunner>
 
-  <demorunner name="dr_abeille">
-    <module>demorunner</module>
-    <server>abeille_dr</server>
-    <capability>GPU</capability>
-    <serverSSH>abeille_dr</serverSSH>
-    <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
-  </demorunner>
-
 </data>
