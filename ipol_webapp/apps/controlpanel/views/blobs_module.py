@@ -142,13 +142,16 @@ class DemoBlobSaveInfo(NavbarReusableMixinMF, TemplateView):
         try:
             response = self.request.POST
             dict_response = dict(response.iterlists())
-
             id = dict_response['demo'][0]
             set = dict_response['set'][0]
             new_set = dict_response['new_set'][0]
 
             if new_set == "":
                 new_set = set
+            if set != new_set:
+                final_set = new_set
+            else:
+                final_set = set
 
             pos = dict_response['pos'][0]
             new_pos = dict_response['new_pos'][0]
@@ -157,9 +160,10 @@ class DemoBlobSaveInfo(NavbarReusableMixinMF, TemplateView):
 
             blobs_request = ipolservices.get_demo_owned_blobs(id)
             blobs = json.loads(blobs_request)
-            for blobset in blobs['sets']:
-                if blobset['name'] == set and new_pos in blobset['blobs']:
-                    return HttpResponseRedirect('/cp/blob_demo/'+id)
+            if pos != new_pos:
+                for blobset in blobs['sets']:
+                    if blobset['name'] == final_set and new_pos in blobset['blobs']:
+                        return HttpResponseRedirect('/cp/blob_demo/'+id)
 
             if has_permission(id, self.request.user):
                 ipolservices.edit_blob_from_demo(request,id,set,new_set,pos,new_pos,title,credit)
@@ -423,6 +427,7 @@ class SaveBlobInfoFromTemplate(NavbarReusableMixinMF,TemplateView):
             new_pos = dict_response['new_pos'][0]
             title = dict_response['title'][0]
             credit = dict_response['credit'][0]
+            print "JASJDAJSD"
             ipolservices.edit_blob_from_template(request,template_id,set,new_set,pos,new_pos,title,credit)
         except Exception as ex:
             msg = "SaveBlobInfoFromTemplate Error %s " % ex
