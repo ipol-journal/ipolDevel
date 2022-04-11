@@ -422,12 +422,23 @@ class SaveBlobInfoFromTemplate(NavbarReusableMixinMF,TemplateView):
 
             if new_set == "":
                 new_set = set
+            if set != new_set:
+                final_set = new_set
+            else:
+                final_set = set
 
             pos = dict_response['pos'][0]
             new_pos = dict_response['new_pos'][0]
             title = dict_response['title'][0]
             credit = dict_response['credit'][0]
-            print "JASJDAJSD"
+
+            blobs_request = ipolservices.get_template_blobs(template_id)
+            blobs = json.loads(blobs_request)
+            if pos != new_pos:
+                for blobset in blobs['sets']:
+                    if blobset['name'] == final_set and new_pos in blobset['blobs']:
+                        return HttpResponseRedirect('/cp/blob_template/'+template_id)
+
             ipolservices.edit_blob_from_template(request,template_id,set,new_set,pos,new_pos,title,credit)
         except Exception as ex:
             msg = "SaveBlobInfoFromTemplate Error %s " % ex
