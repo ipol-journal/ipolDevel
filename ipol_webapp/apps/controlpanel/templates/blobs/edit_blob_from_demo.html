@@ -7,7 +7,6 @@
     {% endblock %}
 
 {% load i18n %}
-{% load crispy_forms_tags %}
 
 {% block title %}
 	{% trans "Blob details" %}
@@ -115,13 +114,7 @@
 	<script src="{% static 'js/min/jquery.validate.min.js' %}"></script>
 	<script src="{% static 'js/edit_blob_from_demo.js' %}"></script>
     <script src="{% static 'js/ajaxPost.js' %}"></script>
-    <script>
-        window.onload=function() {
-            var tags = [{% for tag in view.get_context_data.blob.tags %}"{{ tag|escapejs }}"{% if not forloop.last %}, {% endif %} {% endfor %}];
-            tags_list = tags.join(", ")
-            document.getElementById("tags").value = tags_list
-        }
-    </script>
+
 
 {% endblock %}
 
