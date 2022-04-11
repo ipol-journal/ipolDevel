@@ -1040,8 +1040,8 @@ class Blobs():
                 template_id = dest["id"]
 
                 if new_blob_set != blob_set or new_pos_set != pos_set:
-                    if database.is_pos_occupied_in_template_set(conn, template_id, blob_set, new_pos_set):
-                        new_pos_set = database.get_available_pos_in_template_set(conn, template_id, blob_set)
+                    if database.is_pos_occupied_in_template_set(conn, template_id, new_blob_set, new_pos_set):
+                        new_pos_set = database.get_available_pos_in_template_set(conn, template_id, new_blob_set)
 
                 database.edit_blob_from_template(conn, template_id, blob_set, new_blob_set, pos_set, new_pos_set,
                                                  title, credit)
