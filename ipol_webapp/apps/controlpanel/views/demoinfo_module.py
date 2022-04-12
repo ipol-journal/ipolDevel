@@ -9,6 +9,7 @@ from apps.controlpanel.forms import DDLform, CreateDemoform, UpdateDemoform, Aut
 from apps.controlpanel.mixings import NavbarReusableMixinMF
 
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import never_cache
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView, FormView
 from apps.controlpanel.tools import get_status_and_error_from_json, convert_str_to_bool,get_demoinfo_available_author_list, \
@@ -138,6 +139,7 @@ class DemoinfoDemosView(NavbarReusableMixinMF,TemplateView):
 class DemoinfoDemoEditionView(NavbarReusableMixinMF,TemplateView):
     template_name = "demoinfo/demo_edition.html"
 
+    @method_decorator(never_cache, name='dispatch')
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super(DemoinfoDemoEditionView, self).dispatch(*args, **kwargs)
