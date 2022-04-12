@@ -573,7 +573,8 @@ With this command we will have docker create an image from the Dockerfile in the
 
 \paragraph{Docker run}:\\
 \begin{verbatim}[firstnumber=1,breaklines]
-  $ docker run -it -v $(pwd):/home/ipol/ipolDevel -v $(pwd)/ipolDevel/ipol_demo/modules/config_common/authorized_patterns.conf.sample:/home/ipol/ipolDevel/ipol_demo/modules/config_common/authorized_patterns.conf -p 80:80 -h docker --add-host docker:127.0.0.1 --name ipol ipol
+  $ cp ipol_demo/modules/config_common/authorized_patterns.conf.sample ipol_demo/modules/config_common/authorized_patterns.conf
+  $ docker run -it -v $(pwd):/home/ipol/ipolDevel -p 80:80 -h docker --add-host docker:127.0.0.1 --name ipol ipol
 \end{verbatim}
 
 This command will create a container and log us in the terminal. Explanation:
@@ -660,18 +661,20 @@ Start all modules
 \begin{verbatim}[firstnumber=1,breaklines]
   IPOL> startall
 \end{verbatim}
+If the process is stuck when starting a module, press ctrl+c and it should continue.
 
 When you ping them all, they should be marked "OK"
 \begin{verbatim}[firstnumber=1,breaklines]
   IPOL> pingall
 \end{verbatim}
+If core and demoinfo are still unresponsive, create empty files /home/ipol/ipolDevel/ipol_demo/modules/core/local.conf and /home/ipol/ipolDevel/ipol_demo/modules/demoinfo/local.conf.
 
 You can now leave the terminal, cd to ipol\_webapp, create its venv, activate it, install its 
 requirements and make its migrations.
 \begin{verbatim}[firstnumber=1,breaklines]
   IPOL> exit
   $ cd ~/ipolDevel/ipol_webapp/
-  $ python -m virtualenv venv
+  $ python3 -m virtualenv -p /usr/bin/python2.7 venv
   $ source venv/bin/activate
   (venv) $ pip install -r requirements.txt
   (venv) $ ~/ipolDevel/docker/migrations_cp.sh
