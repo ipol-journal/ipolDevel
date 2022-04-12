@@ -880,7 +880,7 @@ class Core():
         text += "Traceback follows:\n"
         text += traceback.format_exc()
 
-        print("**** INTERNAL ERROR!\n\n")
+        print("**** INTERNAL ERROR! Sorry for the inconvenience. We're working on it\n\n")
         print(text)
 
         self.send_email(subject, text, emails, config_emails['sender'])
@@ -1129,7 +1129,8 @@ attached the failed experiment data.". \
             demorunner_response = dr_response.json()
         except Exception as ex:
             dr_response_content = Core.get_response_content(dr_response)
-            error_message = "**INTERNAL ERROR**. Bad format in the response \
+            error_message = "**An internal error has occurrred in the demo system, sorry for the inconvenience.\
+                The IPOL Team has been notified and will fix the issue as soon as possible**. Bad format in the response \
                         from DR server {} in demo #{}. {} - {}".format(dr_server, demo_id, dr_response_content, ex)
             self.logger.exception(error_message)
             raise IPOLEnsureCompilationError(error_message)
@@ -1150,7 +1151,9 @@ attached the failed experiment data.". \
         """
         key = self.create_new_execution_key(self.logger)
         if not key:
-            raise IPOLKeyError("**INTERNAL ERROR**. Failed to create a valid execution key")
+            raise IPOLKeyError("**An internal error has occurred in the demo system, sorry for the inconvenience.\
+                The IPOL team has been notified and will fix the issue as soon as possible**.\
+                     Failed to create a valid execution key")
         try:
             work_dir = self.create_run_dir(demo_id, key)
             # save parameters as a params.json file.
@@ -1246,7 +1249,8 @@ attached the failed experiment data.". \
             demorunner_response = resp.json()
         except Exception as ex:
             resp_content = Core.get_response_content(resp)
-            error_message = "**INTERNAL ERROR**. Bad format in the response \
+            error_message = "**An internal error has occurred in the demo system, sorry for the inconvenience.\
+                    The IPOL team has been notified and will fix the issue as soon as possible**. Bad format in the response \
                         from DR server {} in demo #{}. {} - {}".format(dr_server, demo_id, resp_content, ex)
             self.logger.exception(error_message)
             # nginx timeout
@@ -1428,7 +1432,9 @@ attached the failed experiment data.". \
             #
             # If we arrive here it means that we missed to catch and
             # take care of some exception type.
-            error_message = "**INTERNAL ERROR** in the run function of the Core in demo {}, {}. Received kwargs: {}".format(demo_id, ex, str(kwargs))
+            error_message = "**An internal error has occurred in the demo system, sorry for the inconvenience.\
+                The IPOL team has been notified and will fix the issue as soon as possible.** \
+                  Error in the run function of the Core in demo {}, {}. Received kwargs: {}".format(demo_id, ex, str(kwargs))
             print(traceback.format_exc())
             self.logger.exception(error_message)
             self.send_internal_error_email(error_message)
