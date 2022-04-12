@@ -129,6 +129,40 @@ forbid\_preprocess & Forbids any pre-processing of the input data by the IPOL sy
 \caption{Fields for a \emph{video} as input.}
 \end{longtable}
 
+
+\subsection{The \emph{data} type}
+
+The \emph{data} type is used when the input type is other than an image or a video. Submitted data is kept as it is. The extension of your data file should be defined in the "ext" column. 
+\begin{longtable}{|>{\bf}L{\dimexpr 0.26\linewidth}|L{\dimexpr 0.59\linewidth}|c|}
+\hline
+\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
+\hline \hline
+ type         & type of the input: data & yes \\ \hline
+ description  & Short name or description. This is used by the web interface. & no \\ \hline
+
+ max\_weight   & Maximum weight (in bytes) of an input file. This prevents uploading too large files. The value can be a number or an arithmetic expression (ex: ``100*1024*1024"= 100 Mb). & no \\ \hline
+
+ ext          & input extension (ie. file format, eg: .txt, .tiff) & yes \\ \hline
+
+\caption{Fields for the \emph{data} as input.}
+\end{longtable}
+
+\paragraph{Example:}
+An example of the \emph{data} input for a demo is shown below. An input file with the .txt format is required in this case.
+\begin{lstlisting}[language=json,firstnumber=1]
+"inputs": [
+    {
+    "description": "Text file containing the curve points",
+    "max_weight": 524288000,
+    "ext": ".txt",
+    "required": true,
+    "type": "data"
+    }
+]
+\end{lstlisting}
+
+
+
 %-------------------------------------------------------------------------------
 \section{The \emph{params} section}
 The \emph{params} section describes the set of parameters needed by a demo, their constraints and the visual appearance of the user control. It is defined as an array of sets, where each set contains (key, value) pairs. In this section, we show examples of the expected appearance of these parameters in the web interface. The look of the controls might differ depending on the operating system and the browser used.
