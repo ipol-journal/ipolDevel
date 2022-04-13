@@ -25,4 +25,8 @@ Until now the implemented policies are:
 \item \textbf{Lowest Workload Policy:} this policy assigns the demorunner with the lowest workload from the available demorunners list that matches the requirements.
 \end{itemize}
 
+\subsection{Capabilities}
+When computing the policies, the requirements of the demo are compared to the capabilities of the demorunner.
+If a demo has a requirement "x", then the demorunner has to have the capability "x" or "x!". This allows to exclude GPU demos to non-GPU demorunners.
+If a capability is of the form "x!", then the demo has to have the requirement "x". For example, this allows to exclude non-GPU demos to GPU demorunners
 

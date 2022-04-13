@@ -367,12 +367,22 @@ class Policy():
             return demorunners
 
         suitable_demorunners = []
-        requirements = requirements.lower().split(',')
+        requirements = {req.strip() for req in requirements.lower().split(',')}
+
+        def capability_is_respected(capability, requirements):
+            if capability.endswith('!'):
+                capability = capability.rstrip('!')
+                return capability in requirements
+            return True
+        def requirement_is_respected(requirement, capabilities):
+            plain_capabilities = {c.rstrip('!') for c in capabilities}
+            return requirement in plain_capabilities
 
         for dr in demorunners:
-            dr_capabilities = [cap.lower().strip() for cap in dr.capabilities]
+            dr_capabilities = {cap.lower().strip() for cap in dr.capabilities}
 
-            if all([req.strip() in dr_capabilities for req in requirements]):
+            if all(requirement_is_respected(requirement, dr_capabilities) for requirement in requirements) \
+            and all(capability_is_respected(capability, requirements) for capability in dr_capabilities):
                 suitable_demorunners.append(dr)
 
         return suitable_demorunners
