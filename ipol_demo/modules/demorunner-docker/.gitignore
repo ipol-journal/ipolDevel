@@ -1,0 +1,7 @@
+bin
+target
+.crates.toml
+.crates2.json
+
+logs
+compilation

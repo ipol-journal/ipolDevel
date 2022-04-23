@@ -1,0 +1,12 @@
+[default]
+compilation_root = "./compilation/"
+execution_root = "./execution/"
+docker_image_prefix = "ipol-demo-"
+docker_exec_prefix = "ipol-exec-"
+exec_workdir_in_docker = "/workdir"
+user_uid_gid = "1000:1000"
+
+[ipol]
+port = 3000
+user_uid_gid = "1001:1001"
+execution_root = "/home/ipol/ipolDevel/shared_folder/run/"
