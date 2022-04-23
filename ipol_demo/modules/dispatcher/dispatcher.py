@@ -363,11 +363,11 @@ class Policy():
         """
         Return all the suitable demorunners
         """
-        if requirements is None:
-            return demorunners
-
         suitable_demorunners = []
-        requirements = {req.strip() for req in requirements.lower().split(',')}
+        if requirements:
+            requirements = {req.strip() for req in requirements.lower().split(',')}
+        else:
+            requirements = {}
 
         def capability_is_respected(capability, requirements):
             if capability.endswith('!'):
