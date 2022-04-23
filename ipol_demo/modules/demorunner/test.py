@@ -35,6 +35,10 @@ def load_demorunners(demorunners_file):
         dict_tmp["serverSSH"] = demorunner.find('serverSSH').text
         dict_tmp["capability"] = list_tmp
 
+        if any(c.endswith("!") for c in dict_tmp["capability"]):
+            # don't run tests on non-standard demorunners
+            continue
+
         dict_demorunners[demorunner.get('name')] = dict_tmp
 
     return dict_demorunners
