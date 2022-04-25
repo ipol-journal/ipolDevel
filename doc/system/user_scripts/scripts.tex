@@ -1,0 +1,23 @@
+\section{User scripts}
+The demo system provides some scripts common tasks, to free the demo editors to re-invent the wheel writing the same code multiple times.
+In this section we document them briefly.
+
+\subsection{draw2Dcurve.py}
+A simple script utility to draw single and multiple 2D plots using matplotlib.
+
+
+\subsection{Video editing tools}
+This is for those authors who are unable to read a video file but instead they prefer to have the video as a bunch of frames.
+Thus, the system will save the frames as {\tt input\_0/frame\_00000.png}, {\tt input\_0/frame\_00001.png}, {\tt input\_0/frame\_00002.png}, \dots
+If there are several inputs, they will be {\tt input\_1}, {\tt input\_2}, etc.
+
+The system offers some helpers you can call from your demoExtras:
+\begin{itemize}
+    \item {\tt website\_mp4.sh}: converts a video of any format to a (lossy compressed) MP4 video that can be show in the web interface. Only for visualization. You can later offer to download original data.
+    \item {\tt frames\_to\_avi\_huff.sh}: reads the frames extracted from a video and creates a Huffman-encoded (lossless) AVI file.
+    \item {\tt frames\_to\_mp4.sh}: reads the frames extracted from a video and creates a lossy MP4 file. Only for visualization.
+    \item {\tt get\_video\_fps.py}: prints the video's frame's per second (FPS).
+\end{itemize}
+
+\subsection{ply2obj.py}
+Converts a .ply mesh (Stanford) to a .obj mesh (wavefront).
