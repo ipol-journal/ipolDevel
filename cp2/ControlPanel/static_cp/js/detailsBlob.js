@@ -2,7 +2,8 @@ var csrftoken = getCookie('csrftoken');
 var VRImage;
 var completeURL = document.location.href;
 var decoded = decodeURI(completeURL);
-var templateSelection = getParameterByName('template');
+var template_id = getParameterByName('template_id');
+var template_name = getParameterByName('template_name');
 var pos = getParameterByName('pos');
 var set = getParameterByName('set');
 var vr;
@@ -12,9 +13,9 @@ var demo_id;
 $(document).ready(function(){
     var get_demo_blobs = new XMLHttpRequest();
     var previousPage = document.getElementById("goPreviousPage");
-    if (templateSelection) {
-        previousPage.setAttribute("href", "/cp2/showTemplates?template="+templateSelection);
-         get_demo_blobs.open('GET', '/api/blobs/get_template_blobs?template_name='+templateSelection);
+    if (template_id) {
+        previousPage.setAttribute("href", `/cp2/showTemplates?template_id=${template_id}&template_name=${template_name}`);
+         get_demo_blobs.open('GET', `/api/blobs/get_template_blobs?template_id=${template_id}`);
          get_demo_blobs.responseType = 'json';
          get_demo_blobs.send();
          get_demo_blobs.onload = function() {
@@ -32,8 +33,7 @@ $(document).ready(function(){
         formData.append('SET' , $('#SET').val());
         formData.append('PositionSet', $('#PositionSet').val());
         formData.append('Credit', $('#Credit').val());
-        formData.append('Tags', $('#Tags').val());
-        formData.append('TemplateSelection', templateSelection);
+        formData.append('TemplateSelection', template_id);
         if (VRImage) {
             formData.append('VR', VRImage, VRImage.name);
         }
@@ -48,7 +48,7 @@ $(document).ready(function(){
             dataType : 'json',
             success: function(data) {
                 if (data.status === 'OK') {
-                    document.location.href = "/cp2/showTemplates?template="+templateSelection
+                    document.location.href = `/cp2/showTemplates?template_id=${template_id}&template_name=${template_name}`
                 } else {
                     alert("Error to add this Blob to the Template")
                 }
@@ -78,7 +78,6 @@ $(document).ready(function(){
         formData.append('SET' , $('#SET').val());
         formData.append('PositionSet', $('#PositionSet').val());
         formData.append('Credit', $('#Credit').val());
-        formData.append('Tags', $('#Tags').val());
         formData.append('demo_id', demo_id);
         if (VRImage) {
             formData.append('VR', VRImage, VRImage.name);
@@ -118,13 +117,12 @@ function showDetails(sets) {
             for (let blob_pos of set_keys ) {
                 var detailsBlob = Blobs[blob_pos];
                 if (sets[i].name == set & blob_pos == pos) {
-                    console.log("title="+detailsBlob.title+"\nset="+sets[i].name+"\npos="+blob_pos+"\ncredit="+detailsBlob.credit+"\ntags="+detailsBlob.tags+"\nthumbnail="+detailsBlob.thumbnail+"\nvr="+detailsBlob.vr+"\nblob="+detailsBlob.blob+"\nid="+detailsBlob.id);
+                    console.log("title="+detailsBlob.title+"\nset="+sets[i].name+"\npos="+blob_pos+"\ncredit="+detailsBlob.credit+"\nthumbnail="+detailsBlob.thumbnail+"\nvr="+detailsBlob.vr+"\nblob="+detailsBlob.blob+"\nid="+detailsBlob.id);
                     document.getElementById("setName").textContent = sets[i].name;
                     document.getElementById("Title").value = detailsBlob.title;
                     document.getElementById("SET").value = sets[i].name;
                     document.getElementById("PositionSet").value = blob_pos;
                     document.getElementById("Credit").value = detailsBlob.credit;
-                    document.getElementById("Tags").value = detailsBlob.tags;
                     if (detailsBlob.vr){
                         document.getElementById("thumbnail_vr").src = detailsBlob.vr;
                         document.getElementById("thumbnail_vr").style = "visibility : visible"

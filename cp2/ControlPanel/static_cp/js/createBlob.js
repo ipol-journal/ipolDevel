@@ -1,22 +1,23 @@
 var VRImage;
 var csrftoken = getCookie('csrftoken');
 var blobImage;
-var templateSelection = getParameterByName('template');
+var template_id = getParameterByName('template_id');
+var template_name = getParameterByName('template_name');
 
 $(document).ready(function() {
-    if (templateSelection) {
-        document.getElementById("nameOfTemplate").innerHTML = templateSelection;
-        $("#goPreviousPage").attr('href', '/cp2/showTemplates?template=' + templateSelection);
+    if (template_id) {
+        document.getElementById("nameOfTemplate").innerHTML = template_id;
+        $("#goPreviousPage").attr('href', '/cp2/showTemplates?template=' + template_id);
         var form = document.getElementById('createBlobForm');
         form.onsubmit = function(e) {
             e.preventDefault();
-            var formData = new FormData();
+            let formData = new FormData();
             formData.append('Title', $('#Title').val());
             formData.append('SET', $('#SET').val());
             formData.append('PositionSet', $('#PositionSet').val());
             formData.append('Credit', $('#Credit').val());
             formData.append('Tags', $('#Tags').val());
-            formData.append('TemplateSelection', templateSelection);
+            formData.append('TemplateSelection', template_id);
             formData.append('Blobs', blobImage, blobImage.name);
             if (VRImage) {
                 formData.append('VR', VRImage, VRImage.name);
@@ -32,7 +33,7 @@ $(document).ready(function() {
                 dataType: 'json',
                 success: function(data) {
                     if (data.status === 'OK') {
-                        document.location.href = "/cp2/showTemplates?template=" + templateSelection
+                        document.location.href = `/cp2/showTemplates?template_id=${template_id}&template_name=${template_name}`
                     } else {
                         alert("Error to add this Blob to the Template")
                     }

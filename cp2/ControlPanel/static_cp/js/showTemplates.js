@@ -2,12 +2,13 @@ var section = document.querySelector('section');
 var csrftoken = getCookie('csrftoken');
 var get_demo_blobs = new XMLHttpRequest();
 var get_demo_using_the_template = new XMLHttpRequest();
-var templateSelection = getParameterByName('template');
-document.getElementById("nameOfTemplate").innerHTML = templateSelection;
+var template_id = getParameterByName('template_id');
+var template_name = getParameterByName('template_name');
+document.getElementById("nameOfTemplate").innerHTML = template_name;
 nameOfTemplate.setAttribute("style", "text-decoration: underline");
 
-get_demo_blobs.open('GET', '/api/blobs/get_template_blobs?template_name='+templateSelection);
-get_demo_using_the_template.open('GET','/api/blobs/get_demos_using_the_template?template_name='+templateSelection);
+get_demo_blobs.open('GET', '/api/blobs/get_template_blobs?template_id='+template_id);
+get_demo_using_the_template.open('GET','/api/blobs/get_demos_using_the_template?template_id='+template_id);
 get_demo_blobs.responseType = 'json';
 get_demo_using_the_template.responseType = 'json';
 get_demo_blobs.send();
@@ -16,16 +17,16 @@ get_demo_blobs.onload = function() {
     var templates = get_demo_blobs.response;
     var demo = get_demo_using_the_template.response;
     var sets = templates['sets'];
-    var demos = demo['demos'];
     showTemplates(sets);
     deleteBlob();
     deleteTemplates();
-    show_demo_using_template(demos);   
+    var demos = demo?.['demos'] || null;
+    if (demos) show_demo_using_template(demos);
 }
 
 
 function showTemplates(sets) {
-   $("#addBlob").attr('href', '/cp2/createBlob?template='+templateSelection);
+   $("#addBlob").attr('href', `/cp2/createBlob?template_id=${template_id}&template_name=${template_name}`);
 
    
     for (var i = 0; i < sets.length; i++) {
@@ -43,7 +44,7 @@ function showTemplates(sets) {
             var image = document.createElement('div');
             image.setAttribute("class","image_files");
             var blobDetails = document.createElement('a');
-            blobDetails.setAttribute("href", "/cp2/detailsBlob?&template="+templateSelection+"&set="+sets[i].name+"&pos="+blob_pos);
+            blobDetails.setAttribute("href", `/cp2/detailsBlob?&template_id=${template_id}&template_name=${template_name}&set=${sets[i].name}&pos=${blob_pos}`);
             var image_src = document.createElement('img');
             image_src.setAttribute("src",detailsBlob.thumbnail);
             image_src.setAttribute("onError", "setBrokenImage(this)");
@@ -92,7 +93,7 @@ function deleteBlob() {
                 },
             data : ({
                 blob_set : blobSelection,
-                template_name : templateSelection,
+                template_id : template_id,
                 pos_set : $pos_set,
                 csrfmiddlewaretoken: csrftoken,
             }),
@@ -101,7 +102,7 @@ function deleteBlob() {
             url: 'showTemplates/ajax',
             success: function(data) {
                 if (data.status === 'OK') {
-                    document.location.href = "/cp2/showTemplates?template="+templateSelection
+                    document.location.href = `/cp2/showTemplates?template_id=${template_id}&template_name=${template_name}`
                 } else {
                     alert("Error to delete this Blob");
                 }
@@ -117,7 +118,7 @@ function deleteTemplates() {
                 return (confirm("Are you sure?"))
             },
             data : ({
-                template_name : templateSelection,
+                template_id : template_id,
                 csrfmiddlewaretoken: csrftoken,
             }),
             type : 'POST',

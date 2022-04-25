@@ -87,11 +87,11 @@ def showTemplates(request):
 @login_required(login_url = '/cp2/loginPage')
 @csrf_protect
 def ajax_delete_blob_template(request):
-    template_name = request.POST['template_name']
+    template_id = request.POST['template_id']
     pos_set = request.POST['pos_set']
     blob_set = request.POST['blob_set']
     response = {}
-    settings = {'template_name' : template_name, 'blob_set' : blob_set, 'pos_set' : pos_set }
+    settings = {'template_id' : template_id, 'blob_set' : blob_set, 'pos_set' : pos_set }
     response_api = api_post("/api/blobs/remove_blob_from_template", settings)
     result = response_api.json()
     if result.get('status') != 'OK':
@@ -123,9 +123,9 @@ def ajax_delete_blob_demo(request):
 
 @login_required(login_url = '/cp2/loginPage')
 def ajax_delete_template(request):
-    template_name = request.POST['template_name']
+    template_id = request.POST['template_id']
     response = {}
-    settings = {'template_name' : template_name }
+    settings = {'template_id' : template_id }
     response_api = api_post("/api/blobs/delete_template", settings)
     result = response_api.json()
     if result.get('status') != 'OK':
@@ -142,7 +142,6 @@ def CreateBlob(request):
 
 @login_required(login_url = '/cp2/loginPage')
 def ajax_add_blob_demo(request):
-    tags = request.POST['Tags']
     blob_set = request.POST['SET']
     pos_set = request.POST['PositionSet']
     title = request.POST['Title']
@@ -154,7 +153,7 @@ def ajax_add_blob_demo(request):
 
     response = {}
     if user_can_edit_demo(request.user.email, demo_id):
-        settings = {'demo_id' : demo_id, 'tags' : tags, 'blob_set' : blob_set, 'pos_set' : pos_set, 'title' : title, 'credit' : credit}
+        settings = {'demo_id' : demo_id, 'blob_set' : blob_set, 'pos_set' : pos_set, 'title' : title, 'credit' : credit}
         response_api = api_post("/api/blobs/add_blob_to_demo",settings , files)
         result = response_api.json()
         if result.get('status') != 'OK':
@@ -169,18 +168,17 @@ def ajax_add_blob_demo(request):
 
 @login_required(login_url = '/cp2/loginPage')
 def ajax_add_blob_template(request):
-    tags = request.POST['Tags']
     blob_set = request.POST['SET']
     pos_set = request.POST['PositionSet']
     title = request.POST['Title']
     credit = request.POST['Credit']
-    template_name = request.POST['TemplateSelection']
+    template_id = request.POST['TemplateSelection']
     files = {'blob': request.FILES['Blobs'].file}
     if 'VR' in request.FILES:
         files['blob_vr'] = request.FILES['VR'].file
 
     response = {}
-    settings = {'template_name' : template_name, 'tags' : tags, 'blob_set' : blob_set, 'pos_set' : pos_set, 'title' : title, 'credit' : credit}
+    settings = {'template_id' : template_id, 'blob_set' : blob_set, 'pos_set' : pos_set, 'title' : title, 'credit' : credit}
     response_api = api_post("/api/blobs/add_blob_to_template",settings , files)
     result = response_api.json()
     if result.get('status') != 'OK':
@@ -197,20 +195,19 @@ def detailsBlob(request):
 
 @login_required(login_url = '/cp2/loginPage')
 def ajax_edit_blob_template(request):
-    tags = request.POST['Tags']
     new_blob_set = request.POST['SET']
     blob_set = request.POST['old_set']
     new_pos_set = request.POST['PositionSet']
     pos_set = request.POST['old_pos']
     title = request.POST['Title']
     credit = request.POST['Credit']
-    template_name = request.POST['TemplateSelection']
+    template_id = request.POST['TemplateSelection']
     files = {}
     if 'VR' in request.FILES:
         files['vr'] = request.FILES['VR'].file
     
     response = {}
-    settings = {'template_name' : template_name, 'tags' : tags, 'blob_set' : blob_set, 'new_blob_set' : new_blob_set, 'pos_set' : pos_set, 'new_pos_set' : new_pos_set, 'title' : title, 'credit' : credit}
+    settings = {'template_id' : template_id, 'blob_set' : blob_set, 'new_blob_set' : new_blob_set, 'pos_set' : pos_set, 'new_pos_set' : new_pos_set, 'title' : title, 'credit' : credit}
     response_api = api_post("/api/blobs/edit_blob_from_template",settings ,files )
     result = response_api.json()
     if result.get('status') != 'OK':
@@ -315,7 +312,6 @@ def ajax_remove_template_to_demo(request):
 
 @login_required(login_url = '/cp2/loginPage')
 def ajax_edit_blob_demo(request):
-    tags = request.POST['Tags']
     new_blob_set = request.POST['SET']
     blob_set = request.POST['old_set']
     new_pos_set = request.POST['PositionSet']
@@ -329,7 +325,7 @@ def ajax_edit_blob_demo(request):
     if user_can_edit_demo(request.user.email, demo_id):
         print("OK")
         response = {}
-        settings = {'demo_id' : demo_id, 'tags' : tags, 'blob_set' : blob_set, 'new_blob_set' : new_blob_set, 'pos_set' : pos_set, 'new_pos_set' : new_pos_set, 'title' : title, 'credit' : credit}
+        settings = {'demo_id' : demo_id, 'blob_set' : blob_set, 'new_blob_set' : new_blob_set, 'pos_set' : pos_set, 'new_pos_set' : new_pos_set, 'title' : title, 'credit' : credit}
         response_api = api_post("/api/blobs/edit_blob_from_demo",settings ,files )
     # print(response_api)
     # print(type(response_api))

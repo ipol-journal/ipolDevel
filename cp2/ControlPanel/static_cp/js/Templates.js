@@ -3,7 +3,7 @@
 
 var csrftoken = getCookie('csrftoken');
 var section = document.querySelector('section');
-var templateSelection;
+var template_id;
 /*-----------------------------------------Templates and add Templates-----------------------------------------*/
 
 
@@ -34,8 +34,8 @@ function showTemplatesList (templatesList) {
     for (var i=0; i < templatesList.length; i++){
         var templates = document.createElement('article');
         var templateName = document.createElement('a');
-        templateName.setAttribute("href","/cp2/showTemplates?template="+templatesList[i]);
-        templateName.textContent = templatesList[i];
+        templateName.setAttribute("href",`/cp2/showTemplates?template_id=${templatesList[i].id}&template_name=${templatesList[i].name}`);
+        templateName.textContent = templatesList[i].name;
         templates.appendChild(templateName);
         section.appendChild(templates);
     };
