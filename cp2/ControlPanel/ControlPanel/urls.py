@@ -15,7 +15,6 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from django.conf.urls import url
 from ControlPanel.view import Homepage, loginPage, signout, logoff, status, ajax_add_demo, templates, showTemplates, ajax_add_template, ajax_delete_blob_template, ajax_delete_template, CreateBlob, ajax_add_blob_template, ajax_add_blob_demo, detailsBlob, ajax_edit_blob_template, showDemo, ajax_show_DDL, showBlobsDemo, demoExtras, ajax_add_template_to_demo, ajax_remove_template_to_demo, ajax_remove_vr, ajax_user_can_edit_demo, ajax_edit_blob_demo, ajax_delete_blob_demo
 
 

@@ -1,7 +1,14 @@
 #!/bin/bash
 
-cd /home/ipol/ipolDevel/cp2
-source bin/activate
+virtualenv=venv/bin/activate
+
+if [ ! -d 'venv' ]; then
+  python3 -m virtualenv venv
+  source $virtualenv
+  pip install -r requirements.txt
+fi
+
+source $virtualenv
 
 NAME="cp2"                                  # Name of the application
 DJANGODIR=/home/ipol/ipolDevel/cp2/ControlPanel             # Django project directory
@@ -21,6 +28,14 @@ test -d $RUNDIR || mkdir -p $RUNDIR
 # Start your Django Unicorn
 # Programs meant to be run under supervisor should not daemonize themselves (do not use --daemon)
 cd ControlPanel/
+
+echo "gunicorn ControlPanel.wsgi \
+  --name $NAME \
+  --workers $NUM_WORKERS \
+  --user=$USER \
+  --bind=unix:$SOCKFILE \
+  --log-level=debug \
+  --log-file=- \ "
 exec gunicorn ControlPanel.wsgi \
   --name $NAME \
   --workers $NUM_WORKERS \
