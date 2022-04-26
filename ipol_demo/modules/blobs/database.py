@@ -107,8 +107,6 @@ def template(conn, template_name):
         data = cursor.fetchone()
         if data is not None:
             return {'template_id': data[0], 'template_name': data[1]}
-        else:
-            return None
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
