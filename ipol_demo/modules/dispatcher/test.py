@@ -81,9 +81,9 @@ class DispatcherTests(unittest.TestCase):
             suitable_dr = 'http://{}/api/dispatcher/get_suitable_demorunner'.format(
                 self.HOST)
             for demorunner in self.demorunners:
-                capabilities = self.demorunners[demorunner]['capabilities'].split(' ')
+                capabilities = self.demorunners[demorunner]['capabilities'].split(',')
                 capabilities_as_requirements = [cap.rstrip('!') for cap in capabilities]
-                payload = {'requirements': ' '.join(capabilities_as_requirements)}
+                payload = {'requirements': ','.join(capabilities_as_requirements)}
                 response = requests.get(suitable_dr, params=payload).json()
                 if response.get('status') != 'OK':
                     status = response.get('status')
