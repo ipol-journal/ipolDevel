@@ -30,11 +30,27 @@
     <module>demorunner</module>
     <server>green.hw.ipol.im</server>
     <capability>Matlab</capability>
-    <capability>GPU</capability>
     <capability>DEBIAN_STABLE</capability>
     <capability>GREEN</capability>
     <serverSSH>ipol_green_dr</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
+  </demorunner>
+
+  <demorunner name="dr-docker">
+    <module>demorunner-docker</module>
+    <server>127.0.0.1:3000</server>
+    <capability>experimental-docker!</capability>
+    <serverSSH>ipol_core</serverSSH>
+    <path>~/ipolDevel/ipol_demo/modules/demorunner-docker/</path>
+  </demorunner>
+
+  <demorunner name="dr_abeille-docker">
+    <module>demorunner</module>
+    <server>138.231.63.118:2332</server>
+    <capability>GPU!</capability>
+    <capability>experimental-docker!</capability>
+    <serverSSH>138.231.63.118:2332</serverSSH>
+    <path>~/ipolDevel/ipol_demo/modules/demorunner-docker/</path>
   </demorunner>
 
 </data>

@@ -95,7 +95,6 @@ ipol_demo/modules/config_common/emails.conf
 # Links to the IPOL environment config files
 ipol_demo/modules/config_common/modules.xml
 ipol_demo/modules/config_common/demorunners.xml
-demorunners.xml
 
 # ClientApp configs
 .csscomb.json
