@@ -49,7 +49,7 @@
     <server>138.231.63.118:2332</server>
     <capability>GPU!</capability>
     <capability>experimental-docker!</capability>
-    <serverSSH>138.231.63.118:2332</serverSSH>
+    <serverSSH>abeille_dr</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/demorunner-docker/</path>
   </demorunner>
 
