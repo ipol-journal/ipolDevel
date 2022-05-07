@@ -215,6 +215,8 @@ Then, clone the repository with {\tt git clone git@github\_deploy:mcolom/ipolDev
 
 In {\tt ipolDevel/sysadmin/install\_packages/} there is a script that needs to be run with {\tt sudo ./install\_dist\_packages.sh}. It will install all required Debian packages listed in apt\_requirements.txt.
 
+If the python line {\tt import mimetypes; print(mimetypes.guess\_extension("image/webp"))} prints None, then add the {\tt image/webp webp} to the file {\tt /usr/local/etc/mime.types}.
+
 \subsection{External repositories}
 Some packages as for example Intel's IPP are not directly in the Debian Stable distribution and therefore they need to be added to APT manually. Normally it implies just adding the repository's \emph{.list} file to {\tt /etc/apt/sources.list.d}.
 For Intel IPP, it is described in their website\footnote{\url{https://software.intel.com/en-us/articles/installing-intel-free-libs-and-python-apt-repo}}.
