@@ -18,3 +18,10 @@ port = 3000
 user_uid_gid = "1001:1001"
 execution_root = "/home/ipol/ipolDevel/shared_folder/run/"
 ssh_key_path = "id_ed25519"
+
+[ipol-abeille]
+port = 3000
+user_uid_gid = "1003:1003"
+execution_root = "/home/ipol/ipolDevel/shared_folder/run/"
+ssh_key_path = "id_ed25519"
+gpus = ["GPU-43d69276-d085-d30b-2a53-b8d276038d12"]
