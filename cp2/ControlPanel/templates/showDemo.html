@@ -1,76 +1,47 @@
- {% extends "base.html" %} {% block title %}showDemo{% endblock %} {% block bodyid %}showDemo{% endblock %} {% block header %}
-<h2>
-    Demo Editor
-</h2>
-<div id="headerShowDemo">
-    <h3>
-        Demo ID : <span id="demo_id"></span> Title : <span id="title"></span>
-    </h3>
-
-</div>
-<div id="can_edit">
-
-</div>
+ {% extends "base.html" %} {% block title %}showDemo{% endblock %} {% block bodyid %}showDemo{% endblock %}
+{% block header %}
+    {% include "header.html" %}
 {% endblock %} {% block content %}
-<div id="ddlDemo">
-    <p> DDL :</p>
-    <p>Press <i>Ctrl+F</i> to search</p>
-    <div>
+{% if canEditDemo %}
+<div id="can_edit">You are not allowed to edit this demo</div>
+{% endif %}
+<div id="demoinfo-container">
+    <div id="demo-header">
+        <h1>Demo Editor</h1>
+        <h3>Title: {{ title }}</h3>
+        <div id="demo-buttons">
+            <div class="optionLine">
+                <a id="demoExtras" href="/cp2/demoExtras?demo_id={{ demo_id }}" class="btn">Demo Extras</a>
+                <a href="/cp2/archive?demo_id={{ demo_id }}" class="btn">Archive</a>
+                <a id="showBlobsDemo" href="/cp2/showBlobsDemo?demo_id={{ demo_id }}" class="btn">Blobs</a>
+            </div>
+            <div class="members">
+                <a href="" class="btn">Editors</a>
+                <a href="" class="btn">Authors</a>
+            </div>
+        </div>
+    </div>
+    <div id="editorContainer">
+        <h2>DDL editor</h2>
         <pre id="aceEditor"></pre>
-        <div class="scrollmargin"></div>
-    </div>
-    <div>
-        <button id="changeThemeWhite">White Theme</button>
-        <button id="changeThemeDark">Dark Theme</button>
-    </div>
-    <div id="save_ddl_container">
-        <div id="saveDDL">
-            <button>Save DDL</button>
-        </div>
-        <div>
-            <p>DDL already saved</p>
-            <p>There are unsaved changes.</p>
-        </div>
-        <div>
-            <a href="">DDL History</a>
-        </div>
-    </div>
-    <div class="optionLine">
-        <div>
-            <h4>Editors/Authors:</h4>
-            <a href="">Editors</a><a href="">Authors</a>
-        </div>
-        <div>
-            <h4>Demo Extras:</h4>
-            <a id="demoExtras" href="">Demo Extras</a>
-        </div>
-        <div>
-            <h4>Archives:</h4>
-            <a href="">Archives</a>
-        </div>
-        <div>
-            <h4>Blobs:</h4>
-            <a id="showBlobsDemo" href="" >Blobs</a>
+        <div id="ddl-info">
+            <div>
+                <button id="changeThemeWhite">White Theme</button>
+                <button id="changeThemeDark">Dark Theme</button>
+            </div>
+            <div id="saveDDL">
+                <button id="btn save-btn">Save DDL</button>
+            </div>
+            <div>
+                <p>DDL already saved</p>
+                <p>There are unsaved changes.</p>
+            </div>
+            <div>
+                <a href="">DDL History</a>
+            </div>
         </div>
     </div>
 </div>
-    <div>
-        <a id="goPreviousPage" href="/cp2">Go Previous Page</a>
-    </div>
 
-<pre id="editor3"></pre>
-<div class="scrollmargin"></div>
-
-
-
-{% endblock %} {% block footer %}
-<nav id="footer" class="navbar_default">
-    <a class="navbar_brand" href="/cp2">
-        <img src="/cp2/static/images/IPOL-header-logo.png"></a>
-    <ul class="navbar">
-        <li class="nav-footer"><a href="/cp2/templates">Templates</a></li>
-        <li class="nav-footer"><a href="/cp2/status">Status</a></li>
-    </ul>
-</nav>
 <script type="text/javascript" src="/cp2/static/js/showDemo.js"></script>
 {% endblock %}

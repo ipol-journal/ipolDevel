@@ -1,0 +1,45 @@
+#editorContainer {
+    width: 80%;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    max-height: 75vh;
+    margin: 0 auto;
+    padding: 1rem 0;
+}
+
+#ddl-info {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    flex-direction: row;
+}
+
+#aceEditor {
+    border: 1px solid lightgray;
+    margin: 1rem 0;
+    height: 400px;
+    font-size: 1rem;
+    z-index: 0;
+}
+
+.optionLine {
+    display: inline-flex;
+}
+
+#demoExtras {
+    margin-left: 0;
+}
+
+#demo-header {
+    display: flex;
+    flex-direction: column;
+    margin: 1rem auto;
+    width: 80%;
+}
+
+#demo-buttons {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 1rem;
+}

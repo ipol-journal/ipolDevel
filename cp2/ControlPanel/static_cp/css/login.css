@@ -1,0 +1,74 @@
+.navbar-brand {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#Login {
+    padding-top: 40px;
+    padding-bottom: 40px;
+    background-color: #eee;
+}
+
+.form_signin {
+    max-width: 330px;
+    margin: 5px auto;
+    font-weight: var(--fw-regular);
+    line-height: 1.2;
+    color: inherit;
+    font-size: 32px;
+    margin-top: 20px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.container_login .form_action {
+    padding-top: 15px;
+}
+
+.container_login {
+    max-width: 300px;
+    padding-bottom: 15px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    margin: 0 auto;
+}
+
+.container_login p label {
+    display: none;
+}
+
+.container_login #action {
+    display: none;
+}
+
+.container_login p input {
+    position: relative;
+    padding: 10px;
+    font-size: var(--fs-normal);
+    border-color: #d9dfea;
+    border-style: solid;
+    border-width: 1px;
+    margin-top: 5px;
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    border-radius: var(--border-radius);
+    border: 1px solid #ccc;
+}
+
+.loginForm input[type="text"] {
+    margin-bottom: 1rem;
+}
+
+.loginForm input[type="password"] {
+    margin-bottom: 1rem;
+}
+
+input[type="checkbox"] {
+    margin: 1rem;
+}
+

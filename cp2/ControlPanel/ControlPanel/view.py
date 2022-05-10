@@ -4,19 +4,47 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth import logout, authenticate, login
 from .forms import loginForm
-from django.http import HttpRequest
 import json, requests
 from .utils import api_post, user_can_edit_demo
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
-
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 
 
 
 @login_required(login_url='/cp2/loginPage')
 def Homepage(request):
-    return render(request, 'Homepage.html')
+
+    try:
+        qfilter = request.GET.get('qfilter')
+    except:
+        qfilter = ""
+    try:
+        qfilter = request.GET.get('qfilter')
+        page = request.GET.get('page')
+        page = int(page)
+    except:
+        page = 1
+
+    settings = {
+        'num_elements_page': '8',
+        'page': page,
+        'qfilter': qfilter
+    }
+    demos = api_post('/api/demoinfo/demo_list_pagination_and_filter', settings).json()
+    
+    host_url = request.build_absolute_uri()
+    host_url = host_url[:host_url.rfind('/cp2')]
+
+    context = {
+        "demos": demos['demo_list'],
+        "page": page,
+        "next_page_number": demos['next_page_number'],
+        "previous_page_number": demos['previous_page_number'],
+        "host_url": host_url
+    }
+    return render(request, 'Homepage.html', context)
 
 @csrf_protect
 def loginPage(request):
@@ -219,7 +247,24 @@ def ajax_edit_blob_template(request):
 
 @login_required(login_url='/cp2/loginPage')
 def showDemo(request):
-    return render(request, 'showDemo.html')
+    demo_id = request.GET['demo_id']
+    demos = api_post('/api/demoinfo/demo_list_pagination_and_filter', {
+        'qfilter': demo_id,
+        'num_elements_page': 1,
+        'page': 1
+        }).json()
+    
+    demo = demos['demo_list'][0]
+    title = demo['title']
+    # canEdit = api_post('showDemo/ajax_user_can_edit_demo', { 'demo_id': demo_id })
+
+    context = {
+        "demo_id": demo_id,
+        "title": title,
+        # "canEditDemo": canEdit
+    }
+    print('context',context)
+    return render(request, 'showDemo.html', context)
 
 @login_required(login_url='/cp2/loginPage')
 def ajax_user_can_edit_demo(request):
@@ -269,7 +314,43 @@ def showBlobsDemo(request):
 
 @login_required(login_url='/cp2/loginPage')
 def demoExtras(request):
-    return render(request, 'demoExtras.html')
+    demo_id = request.GET['demo_id']
+    response = api_post('/api/demoinfo/get_demo_extras_info', {'demo_id': demo_id }).json()
+    extras_name = None
+    extras_url = None
+    if 'url' in response:
+        extras_name = response['url'].split('/')[-1]
+        extras_url = response['url']
+
+    context = {
+        'demo_id': demo_id,
+        'extras_url': extras_url,
+        'extras_name': extras_name
+    }
+    return render(request, 'demoExtras.html', context)
+
+@login_required(login_url='/cp2/loginPage')
+@csrf_protect
+def ajax_add_demo_extras(request):
+    demo_id = request.POST['demo_id']
+    file = request.POST['file']
+    print(request.FILES)
+    print(request.user.email, demo_id)
+    if user_can_edit_demo(request.user.email, demo_id):
+        response = api_post('/api/demoinfo/add_demoextras', { 
+            'demo_id': demo_id,
+            'demoextras': file,
+            'demoextras_name': 'file.tar.gz'
+            }).json()
+        print('alskdjaslkdj', response)
+    return HttpResponseRedirect(f'/cp2/demoExtras?demo_id={demo_id}')
+
+@login_required(login_url='/cp2/loginPage')
+def ajax_delete_demo_extras(request, demo_id):
+    if user_can_edit_demo(request.user.email, demo_id):
+        response = api_post('/api/demoinfo/delete_demoextras', { 'demo_id': demo_id }).json()
+        print('alskdjaslkdj', response)
+    return HttpResponseRedirect(f'/cp2/demoExtras?demo_id={demo_id}')
 
 @login_required(login_url='/cp2/loginPage')
 def ajax_add_template_to_demo(request):
