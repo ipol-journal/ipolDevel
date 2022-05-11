@@ -2,10 +2,20 @@ var section = document.querySelector('section');
 var csrftoken = getCookie('csrftoken');
 var demo_id = getParameterByName('demo_id');
 var can_edit = document.getElementById('can_edit');
+let saveButton = document.getElementById("save-btn");
+let aceEditor = ace.edit("aceEditor", {
+    mode: "ace/mode/json",
+    autoScrollEditorIntoView: false,
+    maxLines: 100,
+    minLines: 20
+});
+aceEditor.setValue('{}');
+var last_DDL_saved = aceEditor.getValue();
 
 $(document).ready(function() {
     showDDL();
-    update_edit_demo();
+    ddlModified();
+    // update_edit_demo();
 });
 
 $("#changeThemeWhite").click(function() {
@@ -16,12 +26,45 @@ $("#changeThemeDark").click(function() {
     aceEditor.setTheme("ace/theme/tomorrow_night_blue");
 });
 
-var aceEditor = ace.edit("aceEditor", {
-    mode: "ace/mode/json",
-    autoScrollEditorIntoView: false,
-    maxLines: 100,
-    minLines: 20
+aceEditor.on('input', function(){
+    saveButton.disabled = aceEditor.session.getUndoManager().isClean();
+    ddlModified();
+})
+
+// Save shortcut keybind
+aceEditor.commands.addCommand({
+    name: 'save',
+    bindKey: { win: "Ctrl-S", "mac": "Cmd-S" },
+    exec: saveDDL
 });
+
+$("#save-btn").click(saveDDL);
+
+function saveDDL() {
+    const ddl = aceEditor.getValue();
+    if (last_DDL_saved.localeCompare(ddl) != 0) {
+        $.ajax({
+            data: ({
+                demo_id: demo_id,
+                ddl: ddl,
+                csrfmiddlewaretoken: csrftoken,
+            }),
+            type: 'POST',
+            dataType: 'json',
+            url: 'showDemo/ajax_save_DDL',
+            success: function(data) {
+                aceEditor.session.getUndoManager().markClean();
+                saveButton.disabled = aceEditor.session.getUndoManager().isClean();
+                last_DDL_saved = aceEditor.getValue();
+                ddlModified();
+            },
+            error: function(error) {
+                
+            }
+        });
+    }
+
+}
 
 
 function update_edit_demo() {
@@ -35,10 +78,6 @@ function update_edit_demo() {
         url: 'showDemo/ajax_user_can_edit_demo',
         success: function(data) {
             if (!data.can_edit) {
-                console.log('No puede');
-                var not_allowed = document.createElement('h2');
-                not_allowed.textContent = "You are not allowed to edit this demo"
-                can_edit.appendChild(not_allowed);
                 $('#save-btn').addClass('btn-disabled');
             }
         },
@@ -56,9 +95,14 @@ function showDDL() {
         url: 'showDemo/ajax_showDDL',
         success: function(data) {
             if (data.status === 'OK') {
-                aceEditor.setValue(data.last_demodescription.ddl);
+                aceEditor.setValue(data.last_demodescription.ddl, -1);
+                last_DDL_saved = aceEditor.getValue();
+                aceEditor.session.getUndoManager().markClean();
+
             } else {
-                aceEditor.setValue('{}');
+                aceEditor.setValue({});
+                last_DDL_saved = aceEditor.getValue();
+
             }
         },
         error: function(error) {
@@ -66,3 +110,13 @@ function showDDL() {
         }
     });
 };
+
+function ddlModified() {
+    if (aceEditor.session.getUndoManager().isClean()) {
+        $('#saved-text').removeClass('di-none');
+        $('#not-saved-text').addClass('di-none');
+    } else {
+        $('#saved-text').addClass('di-none');
+        $('#not-saved-text').removeClass('di-none');
+    }
+}

@@ -23,23 +23,23 @@
         <pre id="aceEditor"></pre>
         <div id="ddl-info">
             <div id="saveDDL">
-                <button id="save-btn" class="btn">Save DDL</button>
+                <button id="save-btn" class="btn" disabled>Save DDL</button>
             </div>
             {% if not can_edit %}
             <div id="can_edit">
                 <h2>You are not allowed to edit this demo</h2>
             </div>
             {% endif %}
-            <div>
-                <button id="changeThemeWhite" class="btn">White Theme</button>
-                <button id="changeThemeDark" class="btn btn-dark">Dark Theme</button>
-            </div>
-            <div>
-                <p>DDL already saved</p>
-                <p>There are unsaved changes.</p>
+            <div id="saved-texts">
+                <p id="saved-text">DDL already saved</p>
+                <p id="not-saved-text" class="di-none">There are unsaved changes.</p>
             </div>
             <div>
                 <a href="">DDL History</a>
+            </div>
+            <div>
+                <button id="changeThemeWhite" class="btn">White Theme</button>
+                <button id="changeThemeDark" class="btn btn-dark">Dark Theme</button>
             </div>
         </div>
     </div>

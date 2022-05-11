@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from ControlPanel.view import Homepage, loginPage, signout, logoff, status, ajax_add_demo, templates, showTemplates, ajax_add_template, ajax_delete_blob_template, ajax_delete_template, CreateBlob, ajax_add_blob_template, ajax_add_blob_demo, detailsBlob, ajax_edit_blob_template, showDemo, ajax_show_DDL, showBlobsDemo, demoExtras, ajax_add_template_to_demo, ajax_remove_template_to_demo, ajax_remove_vr, ajax_user_can_edit_demo, ajax_edit_blob_demo, ajax_delete_blob_demo, ajax_add_demo_extras, ajax_delete_demo_extras
+from ControlPanel.view import Homepage, loginPage, signout, logoff, status, ajax_add_demo, templates, showTemplates, ajax_add_template, ajax_delete_blob_template, ajax_delete_template, CreateBlob, ajax_add_blob_template, ajax_add_blob_demo, detailsBlob, ajax_edit_blob_template, showDemo, ajax_show_DDL, ajax_save_DDL, showBlobsDemo, demoExtras, ajax_add_template_to_demo, ajax_remove_template_to_demo, ajax_remove_vr, ajax_user_can_edit_demo, ajax_edit_blob_demo, ajax_delete_blob_demo, ajax_add_demo_extras, ajax_delete_demo_extras
 
 
 urlpatterns = [
@@ -40,6 +40,7 @@ urlpatterns = [
     path('cp2/detailsBlob/ajax_remove_vr', ajax_remove_vr),
     path('cp2/showDemo', showDemo),
     path('cp2/showDemo/ajax_showDDL', ajax_show_DDL),
+    path('cp2/showDemo/ajax_save_DDL', ajax_save_DDL, name='save_ddl'),
     path('cp2/showDemo/ajax_user_can_edit_demo', ajax_user_can_edit_demo),
     path('cp2/showBlobsDemo', showBlobsDemo),
     path('cp2/showBlobsDemo/ajax', ajax_delete_blob_demo),

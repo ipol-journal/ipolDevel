@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth import logout, authenticate, login
@@ -264,22 +264,21 @@ def ajax_edit_blob_template(request):
 @login_required(login_url='/cp2/loginPage')
 def showDemo(request):
     demo_id = request.GET['demo_id']
+    title = request.GET['title']
+    demoinfo_response = api_post('/api/demoinfo/get_ddl', { 'demo_id': demo_id }).json()
+    ddl = None
+    if demoinfo_response['status'] == 'OK':
+        ddl = demoinfo_response['last_demodescription']
+
     can_edit = user_can_edit_demo(request.user, demo_id)
-    demos = api_post('/api/demoinfo/demo_list_pagination_and_filter', {
-        'qfilter': demo_id,
-        'num_elements_page': 1,
-        'page': 1
-        }).json()
-    
-    demo = demos['demo_list'][0]
-    title = demo['title']
 
     context = {
         'demo_id': demo_id,
         'title': title,
+        'ddl': ddl,
         'can_edit': can_edit
     }
-    print('context',context)
+    
     return render(request, 'showDemo.html', context)
 
 @login_required(login_url='/cp2/loginPage')
@@ -323,8 +322,16 @@ def ajax_show_DDL(request):
         response['status'] = 'OK'
         return HttpResponse(json.dumps(result), 'application/json')
 
+@login_required(login_url='/cp2/loginPage')
 def ajax_save_DDL(request):
-    demo_id = request.GET['demo_id']
+    demo_id = request.POST['demo_id']
+    ddl = request.POST['ddl']
+
+    if user_can_edit_demo(request.user, demo_id):
+        demoinfo_response = api_post('/api/demoinfo/save_ddl', {'demoid': demo_id}, json=ddl).json()
+        return JsonResponse({'status': 'OK'}, status=200)
+    else:
+        return JsonResponse({'status': 'OK', 'message': 'Unauthorized'}, status=401)
 
 @login_required(login_url='/cp2/loginPage')
 def showBlobsDemo(request):

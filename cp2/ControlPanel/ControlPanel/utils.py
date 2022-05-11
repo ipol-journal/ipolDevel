@@ -7,11 +7,10 @@ from django.db import connection
 from django.contrib.auth.models import User
 #function in order to know wich machine/server it's used for POST and GET methods (/api/....) 
 
-def api_post(resource, params=None, files=None):
+def api_post(resource, params=None, files=None, json=None):
     server = socket.gethostbyname(socket.getfqdn())
-    url = "http://{}{}".format(server, resource)
-    print(url)
-    return requests.post(url, params=params, files=files)
+    print(f"http://{server}{resource}")
+    return requests.post(f"http://{server}{resource}", params=params, data=json, files=files)
 
 
 def user_can_edit_demo(user, demo_id):

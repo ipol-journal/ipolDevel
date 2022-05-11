@@ -81,13 +81,16 @@ h4 {
     color: white;
 }
 
-.btn-disabled {
+button:disabled {
     pointer-events: none;
     border: 1px solid #999999;
     background-color: #cccccc;
     color: #666666;
 }
 
+.di-none {
+    display: none;
+}
 
 body#Logout {
     background-color: rgb(0, 0, 0);
