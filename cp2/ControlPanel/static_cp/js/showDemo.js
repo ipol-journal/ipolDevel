@@ -4,8 +4,8 @@ var demo_id = getParameterByName('demo_id');
 var can_edit = document.getElementById('can_edit');
 
 $(document).ready(function() {
-    update_edit_demo();
     showDDL();
+    update_edit_demo();
 });
 
 $("#changeThemeWhite").click(function() {
@@ -20,8 +20,7 @@ var aceEditor = ace.edit("aceEditor", {
     mode: "ace/mode/json",
     autoScrollEditorIntoView: false,
     maxLines: 100,
-    minLines: 20,
-    height: '200px'
+    minLines: 20
 });
 
 
@@ -35,12 +34,12 @@ function update_edit_demo() {
         type: 'POST',
         url: 'showDemo/ajax_user_can_edit_demo',
         success: function(data) {
-            if (data.can_edit === 'NO') {
-                var not_allowed = document.createElement('h3');
+            if (!data.can_edit) {
+                console.log('No puede');
+                var not_allowed = document.createElement('h2');
                 not_allowed.textContent = "You are not allowed to edit this demo"
                 can_edit.appendChild(not_allowed);
-                $('#saveDDL').remove(); 
-
+                $('#save-btn').addClass('btn-disabled');
             }
         },
     });
@@ -59,8 +58,11 @@ function showDDL() {
             if (data.status === 'OK') {
                 aceEditor.setValue(data.last_demodescription.ddl);
             } else {
-                alert("Error to show the DDL of this Demo")
+                aceEditor.setValue('{}');
             }
         },
+        error: function(error) {
+            alert('Error getting DDL, please reload or contact support')
+        }
     });
 };

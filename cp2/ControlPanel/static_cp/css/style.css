@@ -18,13 +18,15 @@
     --border-radius: 4px;
 
     --color-white: #eee;
-    --color-blue: #337ab7;
+    --color-blue: #5e7b93;
     --color-shadow-purple: #a170a6;
     --color-dark-purple: #58237c;
     --color-lightgray: #ebebebd5;
     --color-darkgray: #363636d5;
 
     --color-danger: #ce3c6f;
+    --color-black: #000000;
+    --color-light-black: #3b3b3b;
 }
 
 body {
@@ -64,6 +66,7 @@ h4 {
     text-decoration: none;
     color: var(--color-darkgray);
     background-color: var(--color-lightgray);
+    cursor: pointer;
 }
 
 .btn-danger {
@@ -71,6 +74,20 @@ h4 {
     border-color: var(--color-danger);
     color: var(--color-white);
 }
+
+.btn-dark {
+    background-color: var(--color-black);
+    border-color: var(--color-light-black);
+    color: white;
+}
+
+.btn-disabled {
+    pointer-events: none;
+    border: 1px solid #999999;
+    background-color: #cccccc;
+    color: #666666;
+}
+
 
 body#Logout {
     background-color: rgb(0, 0, 0);

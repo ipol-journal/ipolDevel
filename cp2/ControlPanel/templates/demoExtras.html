@@ -1,45 +1,36 @@
-{% extends "base.html" %} {% block title %}demoExtras{% endblock %} {% block bodyid %}demoExtras{% endblock %} {% block header %} 
-<h1>Manage Demo Extras for demo <span id="demo_id"></span> </h1>
+{% extends "base.html" %} {% block title %}demoExtras{% endblock %} {% block bodyid %}demoExtras{% endblock %}
+{% block header %}
+    {% include "header.html" %}
 {% endblock %} {% block content %} 
-<p>
-					
-        Upload your Demo Extras as a package (.zip, .gz, .tar, or .tar.gz) containing all your scripts and data.<br> 
-        Ensure that all files are readable and the scripts have the execution permission set. You can set the execution permission with <u>chmod +x file</u>.<br>
-        The ZIP format loses the file permissions and thus we advise to use a different format for your executables.
-        
-</p>
-<p>
-					
-        Command-line examples to create the packages:<br>
-</p>
-<ul>
+<div id="demoextras-texts" class="container-centered">
+    <h1>Manage Demo Extras {{ demo_id }}</h1>
+    {% if not can_edit %}
+    <div id="can_edit">
+        <h2>You are not allowed to edit this demo</h2>
+    </div>
+    {% endif %}
+    <p>Upload your Demo Extras as a package (.zip, .gz, .tar, or .tar.gz) containing all your scripts and data.</p> 
+    <p>Ensure that all files are readable and the scripts have the execution permission set. You can set the execution permission with <u>chmod +x file</u>.</p>
+    <p>The ZIP format loses the file permissions and thus we advise to use a different format for your executables.</p>
+    <p>Command-line examples to create the packages:</p>
+    <ul>
         <li>tar -zcvf demoExtras.tar.gz source_dir</li>
         <li>tar -cvf demoExtras.tar source_dir</li>
         <li>zip -r demoExtras.zip source_dir</li>
-</ul>
-<form id="editDemoExtras">
-        <p>
-                <label>Select File </label><input type = "file">
-        </p>
-        <button id="ButtonDemoExtras">SAVE</button>
-</form>
-<a id="GoPreviousPage" href="">Go Previous Page</a>
-{% endblock %} {% block footer %}
-<nav id="footer" class="navbar_default">
-    <a class="navbar_brand" href="/cp2">
-        <img src="/cp2/static/images/IPOL-header-logo.png"></a>
-    <ul class="navbar">
-        <li class="nav-footer"><a href="/cp2/templates">Templates</a></li>
-        <li class="nav-footer"><a href="/cp2/status">Status</a></li>
     </ul>
-</nav>
-<script>
-    var demo_id = getParameterByName('demo_id');
-    var title = getParameterByName('title');
-    var modification = getParameterByName('modification');
-    var state = getParameterByName('state')
-    document.getElementById("demo_id").innerHTML = demo_id;
-    $("#goPreviousPage").attr('href', '/cp2/showDemo?demo_id='+demo_id+"&title="+title+"&modification="+modification+"&state="+state);
-
-</script>
+    <form id="editDemoExtras" action="{% url 'add_extras' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label>Select File </label>
+        <input type="hidden" name="demo_id" value="{{ demo_id }}">
+        <input type="file" name="demoextras">
+        <button type="submit" id="save-btn" class="btn">Save</button>
+    </form>
+    {% if extras_name %}
+    <div class="extras-info">
+        <p>{{ extras_name }}</p>
+        <a href="{{ extras_url }}" class="btn">Download file</a>
+        <a href="{% url 'delete_extras' %}?demo_id={{ demo_id }}" id="delete-btn" class="btn btn-danger">Delete file</a>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

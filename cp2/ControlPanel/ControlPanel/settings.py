@@ -126,3 +126,4 @@ USE_TZ = True
 
 STATIC_URL = '/cp2/static/'
 STATIC_ROOT = BASE_DIR + '/static_cp/'
+HOST_NAME = socket.getfqdn()

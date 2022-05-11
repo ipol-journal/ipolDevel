@@ -1,7 +1,8 @@
-{% extends "base.html" %} {% block title %}Status{% endblock %} {% block bodyid %}Status{% endblock %} {% block header %} {% endblock %} {% block content %}
-<h1>
-    System Status
-</h1>
+{% extends "base.html" %} {% block title %}Status{% endblock %} {% block bodyid %}Status{% endblock %}
+{% block header %}
+    {% include "header.html" %}
+{% endblock %} {% block content %}
+<h1>System Status</h1>
 <div class="container_status">
     <div id="DR" class="module"></div>
     <div id="DI" class="module"></div>
@@ -11,14 +12,5 @@
     <div id="Dispatcher" class="module"></div>
     <div id="Conversion" class="module"></div>
 </div>
-{% endblock %} {% block footer %}
-<nav id="footer" class="navbar_default">
-    <a class="navbar_brand" href="/cp2">
-        <img src="/cp2/static/images/IPOL-header-logo.png"></a>
-    <ul class="navbar">
-        <li class="nav-footer"><a href="/cp2/templates">Templates</a></li>
-        <li class="nav-footer"><a href="/cp2/status">Status</a></li>
-    </ul>
-</nav>
 <script type="text/javascript" src="/cp2/static/js/status.js"></script>
-{% endblock %}
+{% endblock %} 

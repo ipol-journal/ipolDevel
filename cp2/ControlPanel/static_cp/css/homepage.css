@@ -10,7 +10,7 @@
 }
 
 .demos-head > h1 {
-    background-image: linear-gradient(90deg, #9615c5, #ce1adfab);
+    background-image: linear-gradient(90deg, #9615c5, #92119eab);
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
@@ -336,4 +336,8 @@ input#id_Title {
     border-color: #2e6da4;
     color: #fff;
     font-size: var(--fs-normal);
+}
+
+#can_edit {
+    color: var(--color-danger);
 }

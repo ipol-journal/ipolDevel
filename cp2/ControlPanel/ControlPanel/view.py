@@ -9,13 +9,12 @@ from .utils import api_post, user_can_edit_demo
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
-
+from ControlPanel.settings import HOST_NAME
 
 
 
 @login_required(login_url='/cp2/loginPage')
 def Homepage(request):
-
     try:
         qfilter = request.GET.get('qfilter')
     except:
@@ -69,6 +68,20 @@ def logoff(request):
 
 @login_required(login_url='/cp2/loginPage')
 def status(request):
+    # dr_response = api_post('/api/dispatcher/get_demorunners_stats').json()
+    # archive_stats = api_post('/api/archive/stats').json()
+    # blobs_stats = api_post('/api/blobs/stats').json()
+    # core = api_post('/api/core/ping').json()
+    # conversion = api_post('/api/conversion/ping').json()
+    # context = {
+    #     'dr': dr_response['demorunners'],
+    #     'blobs': blobs,
+    #     'archive': archive_stats,
+    #     'blobs': blobs_stats,
+    #     'core': core,
+    #     'conversion': conversion
+    # }
+    # print(context)
     return render(request, 'status.html')
 
 @login_required(login_url='/cp2/loginPage')
@@ -82,6 +95,9 @@ def ajax_add_demo(request):
     settings = {'state': state, 'title': title, 'editorsdemoid': demoid}
     response_api = api_post("/api/demoinfo/add_demo", settings)
     result = response_api.json()
+
+    settings = {'demo_id': editorsdemoid, 'editor_id': editor}
+    api_post('/api/demoinfo/add_editor_to_demo', settings)
     if result.get('status') != 'OK':
         response['status'] = 'KO'
         response['message'] = result.get('error')
@@ -135,7 +151,7 @@ def ajax_delete_blob_demo(request):
     pos_set = request.POST['pos_set']
     blob_set = request.POST['blob_set']
     response = {}
-    if user_can_edit_demo(request.user.email, demo_id):
+    if user_can_edit_demo(request.user, demo_id):
         settings = {'demo_id' : demo_id, 'blob_set' : blob_set, 'pos_set' : pos_set }
         response_api = api_post("/api/blobs/remove_blob_from_demo", settings)
         result = response_api.json()
@@ -180,7 +196,7 @@ def ajax_add_blob_demo(request):
         files['blob_vr'] = request.FILES['VR'].file
 
     response = {}
-    if user_can_edit_demo(request.user.email, demo_id):
+    if user_can_edit_demo(request.user, demo_id):
         settings = {'demo_id' : demo_id, 'blob_set' : blob_set, 'pos_set' : pos_set, 'title' : title, 'credit' : credit}
         response_api = api_post("/api/blobs/add_blob_to_demo",settings , files)
         result = response_api.json()
@@ -248,6 +264,7 @@ def ajax_edit_blob_template(request):
 @login_required(login_url='/cp2/loginPage')
 def showDemo(request):
     demo_id = request.GET['demo_id']
+    can_edit = user_can_edit_demo(request.user, demo_id)
     demos = api_post('/api/demoinfo/demo_list_pagination_and_filter', {
         'qfilter': demo_id,
         'num_elements_page': 1,
@@ -256,12 +273,11 @@ def showDemo(request):
     
     demo = demos['demo_list'][0]
     title = demo['title']
-    # canEdit = api_post('showDemo/ajax_user_can_edit_demo', { 'demo_id': demo_id })
 
     context = {
-        "demo_id": demo_id,
-        "title": title,
-        # "canEditDemo": canEdit
+        'demo_id': demo_id,
+        'title': title,
+        'can_edit': can_edit
     }
     print('context',context)
     return render(request, 'showDemo.html', context)
@@ -270,13 +286,13 @@ def showDemo(request):
 def ajax_user_can_edit_demo(request):
     demo_id = request.POST['demoID']
     response = {}
-    user_email = request.user.email
+    user_email = request.user
     print(user_email)
     if user_can_edit_demo(user_email, demo_id) :
-        response['can_edit'] = 'YES'
+        response['can_edit'] = True
         return HttpResponse(json.dumps(response), 'application/json')
     else :
-        response['can_edit'] = 'NO'
+        response['can_edit'] = False
         return HttpResponse(json.dumps(response), 'application/json')
 
 
@@ -307,6 +323,8 @@ def ajax_show_DDL(request):
         response['status'] = 'OK'
         return HttpResponse(json.dumps(result), 'application/json')
 
+def ajax_save_DDL(request):
+    demo_id = request.GET['demo_id']
 
 @login_required(login_url='/cp2/loginPage')
 def showBlobsDemo(request):
@@ -325,7 +343,9 @@ def demoExtras(request):
     context = {
         'demo_id': demo_id,
         'extras_url': extras_url,
-        'extras_name': extras_name
+        'extras_name': extras_name,
+        'hostname': HOST_NAME,
+        'can_edit': user_can_edit_demo(request.user, demo_id)
     }
     return render(request, 'demoExtras.html', context)
 
@@ -333,21 +353,20 @@ def demoExtras(request):
 @csrf_protect
 def ajax_add_demo_extras(request):
     demo_id = request.POST['demo_id']
-    file = request.POST['file']
-    print(request.FILES)
-    print(request.user.email, demo_id)
-    if user_can_edit_demo(request.user.email, demo_id):
-        response = api_post('/api/demoinfo/add_demoextras', { 
+    file = request.FILES['demoextras']
+    filename = request.FILES['demoextras'].name
+    if user_can_edit_demo(request.user, demo_id):
+        params = { 
             'demo_id': demo_id,
-            'demoextras': file,
-            'demoextras_name': 'file.tar.gz'
-            }).json()
-        print('alskdjaslkdj', response)
+            'demoextras_name': filename
+            }
+        files = { 'demoextras': file}
+        api_post('/api/demoinfo/add_demoextras', params= params, files= files).json()
     return HttpResponseRedirect(f'/cp2/demoExtras?demo_id={demo_id}')
 
 @login_required(login_url='/cp2/loginPage')
 def ajax_delete_demo_extras(request, demo_id):
-    if user_can_edit_demo(request.user.email, demo_id):
+    if user_can_edit_demo(request.user, demo_id):
         response = api_post('/api/demoinfo/delete_demoextras', { 'demo_id': demo_id }).json()
         print('alskdjaslkdj', response)
     return HttpResponseRedirect(f'/cp2/demoExtras?demo_id={demo_id}')
@@ -358,7 +377,7 @@ def ajax_add_template_to_demo(request):
     template_name = request.POST['template_name']
     settings = {'demo_id': demo_id, 'template_names': template_name}
     response = {}
-    if user_can_edit_demo(request.user.email, demo_id):
+    if user_can_edit_demo(request.user, demo_id):
         response_api = api_post("/api/blobs/add_templates_to_demo",settings)
         result = response_api.json()
         if result.get('status') != 'OK':
@@ -376,7 +395,7 @@ def ajax_remove_template_to_demo(request):
     template_name = request.POST['template_name']
     settings = {'demo_id': demo_id, 'template_name': template_name}
     response = {}
-    if user_can_edit_demo(request.user.email, demo_id):
+    if user_can_edit_demo(request.user, demo_id):
         response_api = api_post("/api/blobs/remove_template_from_demo", settings)
     # print(response_api)
     # print("************" + response_api.content.decode("utf-8"))
@@ -403,7 +422,7 @@ def ajax_edit_blob_demo(request):
     files = {}
     if 'VR' in request.FILES:
         files['vr'] = request.FILES['VR'].file
-    if user_can_edit_demo(request.user.email, demo_id):
+    if user_can_edit_demo(request.user, demo_id):
         print("OK")
         response = {}
         settings = {'demo_id' : demo_id, 'blob_set' : blob_set, 'new_blob_set' : new_blob_set, 'pos_set' : pos_set, 'new_pos_set' : new_pos_set, 'title' : title, 'credit' : credit}

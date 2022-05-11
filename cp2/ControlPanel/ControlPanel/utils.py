@@ -14,14 +14,15 @@ def api_post(resource, params=None, files=None):
     return requests.post(url, params=params, files=files)
 
 
-def user_can_edit_demo(user_email, demo_id):
+def user_can_edit_demo(user, demo_id):
+    if user.is_staff or user.is_superuser:
+        return True
     settings = {'demo_id' : demo_id}
     response_api = api_post("/api/demoinfo/demo_get_editors_list", settings)
     editors_list = response_api.json()
     for editor in editors_list.get('editor_list'):
-        if editor.get('mail') == user_email:
+        if editor.get('mail') == user.email:
             return True
     return False
-
 
     

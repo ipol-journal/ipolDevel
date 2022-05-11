@@ -2,9 +2,6 @@
 {% block header %}
     {% include "header.html" %}
 {% endblock %} {% block content %}
-{% if canEditDemo %}
-<div id="can_edit">You are not allowed to edit this demo</div>
-{% endif %}
 <div id="demoinfo-container">
     <div id="demo-header">
         <h1>Demo Editor</h1>
@@ -22,15 +19,20 @@
         </div>
     </div>
     <div id="editorContainer">
-        <h2>DDL editor</h2>
+        <div>DDL editor</div>
         <pre id="aceEditor"></pre>
         <div id="ddl-info">
-            <div>
-                <button id="changeThemeWhite">White Theme</button>
-                <button id="changeThemeDark">Dark Theme</button>
-            </div>
             <div id="saveDDL">
-                <button id="btn save-btn">Save DDL</button>
+                <button id="save-btn" class="btn">Save DDL</button>
+            </div>
+            {% if not can_edit %}
+            <div id="can_edit">
+                <h2>You are not allowed to edit this demo</h2>
+            </div>
+            {% endif %}
+            <div>
+                <button id="changeThemeWhite" class="btn">White Theme</button>
+                <button id="changeThemeDark" class="btn btn-dark">Dark Theme</button>
             </div>
             <div>
                 <p>DDL already saved</p>
