@@ -17,7 +17,8 @@ source $ZSH/oh-my-zsh.sh
 alias terminal="cd ~/ipolDevel/tools/terminal && ./terminal.py"
 # Control Panel
 alias cpanel="cd ~/ipolDevel/ipol_webapp && source venv/bin/activate && python manage.py runserver 127.0.0.1:8000"
-alias cp2="cd ~/ipolDevel && ./gunicorn_start_cp2"
+alias cp2="cd ~/ipolDevel/cp2 && ./gunicorn_start_cp2"
+alias cp2devel="cd ~/ipolDevel/cp2 && source venv/bin/activate && python ControlPanel/manage.py runserver 127.0.0.1:8001"
 alias venvcp2="cd ~/ipolDevel/cp2 && source bin/activate"
 
 # Collect all static files from CP.
