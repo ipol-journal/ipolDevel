@@ -1,7 +1,7 @@
 var clientApp = clientApp || {};
 var helpers = clientApp.helpers || {};
 
-var errorMsg = 'Error.';
+var errorMsg = "Error: This demo couldn't reach the IPOL's system. Please check that you're connected to the Internet";
 var runData;
 var clientData;
 
