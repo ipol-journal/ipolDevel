@@ -26,9 +26,6 @@
             showModal();
             addDemos();
         });
-        $(window).resize(function () {
-
-        });
     });
     /*-----------------------------------------JS Functions-----------------------------------------*/
 
@@ -122,7 +119,7 @@
             document.getElementById('next_page').style.visibility='hidden';
             document.getElementById('previous_page').style.visibility='hidden';
             var buttonNbPage = document.getElementById("pageMax");
-            buttonNbPage.style.borderRadius = "5px 5px 5px 5px";
+            buttonNbPage.style.borderRadius = "5px";
         }
         else {
             showHideNext();

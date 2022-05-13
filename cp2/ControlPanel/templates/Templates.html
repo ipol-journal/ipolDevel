@@ -5,18 +5,13 @@
 <div id="fond"></div>
 {% endblock %}
 {% block header %}
-<h1>List of Templates</h1>
+    {% include "header.html" %}
 {% endblock %} {% block content %}
-<a href="#" id="show">Create template</a>
+<div id="templates-header">
+    <h1>List of Templates</h1>
+    <a href="#" id="show" class="btn">Create template</a>
+</div>
 <div id="modal" class="popup"></div>
- {% endblock %} {% block footer %}
-<nav id="footer" class="navbar_default">
-    <a class="navbar_brand" href="/cp2">
-        <img src="/cp2/static/images/IPOL-header-logo.png"></a>
-    <ul class="navbar">
-        <li class="nav-footer"><a href="/cp2/templates">Templates</a></li>
-        <li class="nav-footer"><a href="/cp2/status">Status</a></li>
-    </ul>
-</nav>
+<div id="template-container"></div>
 <script type="text/javascript" src="/cp2/static/js/Templates.js"></script>
-{% endblock %}
+ {% endblock %}

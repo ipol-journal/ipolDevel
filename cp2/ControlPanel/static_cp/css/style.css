@@ -3,11 +3,11 @@
 :root {
     --main--color: #eee;
 
-    --fs-small: 0.75rem:
-    --fs-normal: 1rem:
-    --fs-medium: 1.25rem:
-    --fs-large: 1.5rem:
-    --fs-xlarge: 2rem:
+    --fs-small: 0.75rem;
+    --fs-normal: 1rem;
+    --fs-medium: 1.25rem;
+    --fs-large: 1.5rem;
+    --fs-xlarge: 2rem;
     
     --fw-thin: 100;
     --fw-regular: 400;
@@ -23,6 +23,9 @@
     --color-dark-purple: #58237c;
     --color-lightgray: #ebebebd5;
     --color-darkgray: #363636d5;
+
+    --color-button-confirm: #50bf96;
+    --color-button-close: #aaaaaa;
 
     --color-danger: #ce3c6f;
     --color-black: #000000;
@@ -232,60 +235,6 @@ article a {
     font-size: 17px;
 }
 
-#buttonAddTemplate {
-    color: #fff;
-    background-color: #337ab7;
-    border-color: #2e6da4;
-    display: inline-block;
-    padding: 5px 5px 5px 5px;
-    text-align: center;
-    border-radius: var(--border-radius);
-}
-
-#Templates article {
-    margin-top: 30px;
-    margin-right: 50%;
-    border: 2px solid lightgray;
-    font-size: 20px;
-}
-
-#Templates h1 {
-    margin-bottom: 50px;
-}
-
-#modal #titleAddTemplate {
-    font-size: 25px;
-    text-align: center;
-    margin-left: 15%;
-    color: #337ab7;
-    font-weight: var(--fw-bolder);
-}
-
-#modal #labelAddTemplate {
-    margin-top: 30px;
-    color: #337ab7;
-    margin-right: 15px;
-    margin-bottom: 35px;
-}
-
-#modal #Template_name {
-    border-radius: 2px;
-    width: 50%;
-    border: solid 2px lightblue;
-}
-
-div.block {
-    margin-left: 50px;
-    margin-top: 25px;
-    margin-right: 10px;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    border: 3px double black;
-    padding: 25px 0px 0px 2%;
-    max-width: 85%;
-}
 
 #myContainer {
     display: flex;

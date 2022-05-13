@@ -80,15 +80,12 @@ input .demo_selector {
 /* ////////// DEMO LIST /////////// */
 
 #demos-list {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
     padding: 1rem;
     margin: 1rem auto;
-    flex-wrap: wrap;
-    align-content: space-between;
     gap: 1rem;
     width: 80%;
-    flex-direction: row;
-    justify-content: space-between;
 }
 
 .demo-card {
@@ -257,7 +254,7 @@ input .demo_selector {
 
 
 #DemoForm button {
-    background-color: #50bf96;
+    background-color: var(--color-button-confirm);
     border: none;
     font-size: var(--fs-normal);
     padding: 1rem;
@@ -267,30 +264,8 @@ input .demo_selector {
 }
 
 #modal .close {
-    background-color: #dbdbdb;
-    color: #6c6c6c;
+    background-color: var(--color-button-close);
 }
-
-/* .Demo {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 2rem;
-}
-
-.Demo h2 {
-    margin-top: 10px;
-    margin-bottom: 10px;
-    font-size: 30px;
-    font-weight: var(--fw-regular);
-}
-
-.Demo {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 2rem;
-} */
 
 #SelectDemoState {
     border: 1px solid black;
@@ -328,14 +303,6 @@ input#id_Title {
 
 #DemoForm p {
     width: 90%;
-}
-
-#modal #saveTemplate {
-    border-radius: var(--border-radius);
-    background-color: #337ab7;
-    border-color: #2e6da4;
-    color: #fff;
-    font-size: var(--fs-normal);
 }
 
 #can_edit {

@@ -4,21 +4,11 @@
 {% block fond %}
 {% endblock %}
 {% block header %}
-<h1>Template : <b><span id="nameOfTemplate"></span></b></h1>
-<h2>
-    Blobs list
-</h2>
+    {% include "header.html" %}
 {% endblock %} {% block content %}
+<h1>Template : <b><span id="nameOfTemplate"></span></b></h1>
+<h2>Blobs list</h2>
 <a id="addBlob" href="">Add new Blob</a>
 <button id="deleteTemplate">Delete Template</button>
- {% endblock %} {% block footer %}
-<nav id="footer" class="navbar_default">
-    <a class="navbar_brand" href="/cp2">
-        <img src="/cp2/static/images/IPOL-header-logo.png"></a>
-    <ul class="navbar">
-        <li class="nav-footer"><a href="/cp2/templates">Templates</a></li>
-        <li class="nav-footer"><a href="/cp2/status">Status</a></li>
-    </ul>
-</nav>
 <script type="text/javascript" src="/cp2/static/js/showTemplates.js"></script>
-{% endblock %}
+ {% endblock %}

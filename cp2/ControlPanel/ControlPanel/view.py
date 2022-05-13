@@ -113,17 +113,17 @@ def templates(request):
 @login_required(login_url='/cp2/loginPage')
 @csrf_protect
 def ajax_add_template(request):
-    NameTemplate = request.POST['nameTemplate']
-    response = {}
-    settings = {'template_name' : NameTemplate }
-    response_api = api_post("/api/blobs/create_template", settings)
-    result = response_api.json()
-    if result.get('status') != 'OK':
-        response['status'] = 'KO'
-        return HttpResponse(json.dumps(response), 'application/json')
+    template_name = request.POST['templateName']
+    settings = {'template_name' : template_name }
+    result = api_post("/api/blobs/create_template", settings).json()
+
+    if result['status'] == 'OK':
+        return JsonResponse({
+            'status': 'OK',
+            'template_id': result['template_id']
+        }, status=200)
     else :
-        response['status'] = 'OK'
-        return HttpResponse(json.dumps(response), 'application/json')
+        return JsonResponse({'status': 'KO', 'message': 'Unauthorized'}, status=401)
 
 def showTemplates(request):
     return render(request, 'showTemplates.html')

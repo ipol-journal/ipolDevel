@@ -1,0 +1,69 @@
+#templates-header {
+    display: flex;
+    max-width: 80%;
+    margin: 0 auto;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#template-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    flex-direction: column;
+    max-width: 80%;
+    margin: 1rem auto;
+}
+
+#templateForm {
+    margin: 1rem 0;
+}
+
+#buttonAddTemplate {
+    color: #fff;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+    display: inline-block;
+    padding: 5px 5px 5px 5px;
+    text-align: center;
+    border-radius: var(--border-radius);
+}
+
+#Templates article {
+    border: 2px solid lightgray;
+    font-size: 20px;
+    min-width: 5rem;
+    padding: 1rem;
+}
+
+#modal #labelAddTemplate {
+    margin: 1rem;
+}
+
+#modal #Template_name {
+    border-radius: 2px;
+    width: 50%;
+    border: solid 2px lightblue;
+}
+
+div.block {
+    margin-left: 50px;
+    margin-top: 25px;
+    margin-right: 10px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    border: 3px double black;
+    padding: 25px 0px 0px 2%;
+    max-width: 85%;
+}
+
+#modal #saveTemplate {
+    border-radius: var(--border-radius);
+    background-color: var(--color-button-confirm);
+    color: #fff;
+    font-size: var(--fs-normal);
+}

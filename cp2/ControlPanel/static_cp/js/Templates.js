@@ -23,9 +23,6 @@ $(document).ready(function() {
         showModal();
         addTemplates();
     });
-    $(window).resize(function () {
-        resizeModal()
-   });
 });
 
 /*-----------------------------------------JS Functions-----------------------------------------*/
@@ -37,35 +34,29 @@ function showTemplatesList (templatesList) {
         templateName.setAttribute("href",`/cp2/showTemplates?template_id=${templatesList[i].id}&template_name=${templatesList[i].name}`);
         templateName.textContent = templatesList[i].name;
         templates.appendChild(templateName);
-        section.appendChild(templates);
+        $('#template-container').append(templates);
     };
 }
 
 function showModal(){
-   var id = '#modal';
-   $(id).html('<a id="titleAddTemplate">Add a new template</a></br><label id="labelAddTemplate">Template name </label><input type="text" id="templateName"/></br> <button class="close">Close</button> <button id="saveTemplate">Save</button>');
-   
-   resizeModal();
-   
+   var modalSelector = '#modal';
+   $(modalSelector).html(`
+      <h1 id="titleAddTemplate">Create new template</h1>
+      <div id="templateForm">
+         <label id="labelAddTemplate">Template name</label>
+         <input type="text" id="templateName"/>
+      </div>
+      <button id="saveTemplate" class="btn">Save</button>
+      <button class="btn close">Close</button>`);
+
    $('#fond').fadeIn(1000);   
    $('#fond').fadeTo("slow",0.7);
-   $(id).fadeIn(1000);
-   
+   $(modalSelector).fadeIn(1000);
+
    $('.popup .close').click(function (e) {
       e.preventDefault();
       hideModal();
     });
-}
-
-function resizeModal(){
-   var modal = $('#modal');
-   var winH = $(document).height();
-   var winW = $(document).width();
-   
-   $('#fond').css({'width':winW,'height':winH});
-   
-   modal.css('top', winH/2 - modal.height()/2);
-   modal.css('left', winW/2 - modal.width()/2);
 }
 
 function hideModal(){
@@ -77,10 +68,10 @@ function hideModal(){
 
 function addTemplates() {
     $("button#saveTemplate").click(function () {
-        $nameTemplate = $("#templateName").val();
+        templateName = $("#templateName").val();
         $.ajax({
             beforeSend: function(xhr, settings) {
-                if ($nameTemplate == ''){
+                if (templateName == ''){
                     return false
                 }
                 else {
@@ -88,7 +79,7 @@ function addTemplates() {
                 }
             },
             data : ({
-                nameTemplate : $nameTemplate,
+                templateName : templateName,
                 csrfmiddlewaretoken: csrftoken,
             }),
             type: 'POST',
@@ -96,9 +87,9 @@ function addTemplates() {
             dataType : 'json',
             success: function(data) {
                 if (data.status === 'OK') {
-                    document.location.href = "/cp2/templates"
+                    document.location.href = `/cp2/showTemplates?template_id=${data.template_id}&template_name=${templateName}`
                 } else {
-                    alert("Error to add the template in the DataBase");
+                    alert("Error when adding the template in the DataBase");
                 }
             },
         })
