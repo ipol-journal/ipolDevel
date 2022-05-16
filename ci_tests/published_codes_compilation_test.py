@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from sys import exit
 import errno
 import json
 import os
 import shutil
 import socket
 import xml.etree.ElementTree as ET
-
 import requests
 
 HOST = socket.gethostbyname(socket.gethostname())
