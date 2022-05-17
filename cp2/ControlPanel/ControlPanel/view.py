@@ -126,7 +126,21 @@ def ajax_add_template(request):
         return JsonResponse({'status': 'KO', 'message': 'Unauthorized'}, status=401)
 
 def showTemplates(request):
-    return render(request, 'showTemplates.html')
+    template_id = request.GET['template_id']
+    template_name = request.GET['template_name']
+
+    template = api_post('/api/blobs/get_template_blobs', { 'template_id': template_id}).json()
+    template_sets = template['sets']
+
+    demos = api_post('/api/blobs/get_demos_using_the_template', { 'template_id': template_id }).json()
+    demos_using_template = demos['demos']
+    context = {
+        'template_id': template_id,
+        'template_name': template_name,
+        'template_sets': template_sets,
+        'demos_using_template': demos_using_template
+    }
+    return render(request, 'showTemplates.html', context)
 
 @login_required(login_url = '/cp2/loginPage')
 @csrf_protect
@@ -234,7 +248,37 @@ def ajax_add_blob_template(request):
     
 @login_required(login_url= '/cp2/loginPage')
 def detailsBlob(request):
-    return render(request, 'detailsBlob.html')
+    context = {}
+    if 'demo_id' in request: # demo blob edit
+        can_edit = user_can_edit_demo(request.GET['demo_id'])
+        context = {
+            'demo_id': request.GET['demo_id'],
+        }
+    else: #Template blob edit
+        template_id = request.GET['template_id']
+        template_name = request.GET['template_name']
+        set_name = request.GET['set']
+        blob_pos = request.GET['pos']
+        blobs_response = api_post('/api/blobs/get_template_blobs', {'template_id': template_id}).json()
+        sets = blobs_response['sets']
+        for blobset in sets:
+            print(blobset['blobs'], blob_pos in blobset['blobs'])
+            if blobset['name'] == set_name and blob_pos in blobset['blobs']:
+                blob = blobset['blobs'][blob_pos]
+                context = {
+                    'template_id': template_id,
+                    'template_name': template_name,
+                    'pos': blob_pos,
+                    'set_name': blobset['name'],
+                    'title': blob['title'],
+                    'blob': blob['blob'],
+                    'format': blob['format'],
+                    'credit': blob['credit'],
+                    'thumbnail': blob['thumbnail']
+                }
+                return render(request, 'detailsBlob.html', context)
+        return JsonResponse({'status': 'OK', 'message': 'Blob not found'}, status=404)
+
 
 
 @login_required(login_url = '/cp2/loginPage')

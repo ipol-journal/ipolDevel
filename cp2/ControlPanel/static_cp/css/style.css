@@ -30,6 +30,8 @@
     --color-danger: #ce3c6f;
     --color-black: #000000;
     --color-light-black: #3b3b3b;
+
+    --box-shadow: #63636333 0px 0px 10px 3px;
 }
 
 body {
@@ -66,6 +68,7 @@ h4 {
     margin: 0 0.5rem;
     border: 1px solid var(--color-darkgray);
     border-radius: 4px;
+    font-size: 1rem;
     text-decoration: none;
     color: var(--color-darkgray);
     background-color: var(--color-lightgray);
@@ -169,6 +172,10 @@ ul li:before{
     font-weight: var(--fw-regular);
 }
 
+#content h1 {
+    padding: 1rem 2rem;
+}
+
 /* #content article {
     border: 1px solid lightgray;
     margin: 10px;
@@ -244,72 +251,6 @@ article a {
 
 .demo_id {
     margin-bottom: 20px;
-}
-
-#TemplatesDetails h2 {
-    margin-left: 25px;
-    font-size: 30px;
-    font-weight: var(--fw-regular);
-    margin-top: 50px;
-}
-
-#TemplatesDetails #addBlob {
-    border-radius: var(--border-radius);
-    background-color: #337ab7;
-    border-color: #2e6da4;
-    text-decoration: none;
-    color: #fff;
-    padding: 5px 5px 5px 5px;
-    margin-left: 50px;
-    margin-right: 25px;
-}
-
-#TemplatesDetails #deleteTemplate {
-    border-radius: var(--border-radius);
-    background-color: lightcoral;
-    border-color: lightcoral;
-    text-decoration: none;
-    color: white;
-    padding: 5px 5px 5px 5px;
-    margin-left: 15px;
-    font-size: 14px;
-}
-
-.buttonDelete {
-    /* border-radius: 2px;
-    background-color: black;
-    border-color: black;
-    text-decoration: none;
-    color: white;  */
-    /* padding: 5px 5px 5px 5px; 
-    border-radius: 10px; */
-    margin-top: 15px;
-    border-radius: 10px;
-    background-color: lightcoral;
-    text-decoration: none;
-    color: #fff;
-    padding: 5px 5px 5px 5px;
-}
-
-#TemplatesDetails #content h3 {
-    color: black;
-    margin-left: 5%;
-    margin-top: 25px;
-    font-size: 22px;
-}
-
-.demoUsingTemplate a {
-    color: #2e6da4;
-    padding: 10px 10px 10px 10px;
-    margin: 10px 10px 10px 10px;
-    font-size: 25px;
-}
-
-.demoUsingTemplate {
-    border: 2px solid #2e6da4;
-    padding: 10px 10px 10px 10px;
-    margin: 25px 25px 25px 50px;
-    max-width: 50%;
 }
 
 #blobCreation {
@@ -422,12 +363,6 @@ article a {
     width: 40%;
     margin: 0px 0px 5px 0px;
     text-align: center;
-}
-
-#setName {
-    margin-left: 10%;
-    margin-top: 30px;
-    font-size: 30px;
 }
 
 #blobRepresentation {

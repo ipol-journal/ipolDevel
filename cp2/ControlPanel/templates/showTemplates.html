@@ -6,9 +6,41 @@
 {% block header %}
     {% include "header.html" %}
 {% endblock %} {% block content %}
-<h1>Template : <b><span id="nameOfTemplate"></span></b></h1>
-<h2>Blobs list</h2>
-<a id="addBlob" href="">Add new Blob</a>
-<button id="deleteTemplate">Delete Template</button>
+<h1>Template: {{ template_name }}<h1/>
+<div class="head">
+    <h2>Template blobsets</h2>
+    <div>
+        <a class="btn" href="">Add new Blob</a>
+        <button id="deleteTemplate" class="btn btn-danger">Delete Template</button>
+    </div>
+</div>
+
+<div class="set-container">
+    {% for set in template_sets %}
+    <div class="set">
+        <div class="set-images">
+            {% for key, blob in set.blobs.items %}
+            <div>
+                <a href="detailsBlob?&template_id={{template_id}}&template_name={{template_name}}&set={{set.name}}&pos={{key}}">
+                    <img src="{{blob.thumbnail}}">
+                    <button class="btn-delete">X</button>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        <p class="set-title">{{ set.name }}</p>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="template-usage">
+    <h2>Demos using template {{ template_name }}</h2>
+    <div class="demos-container">
+        {% for demo_id in demos_using_template %}
+        <a href="/cp2/showBlobsDemo?demo_id={{demo_id}}" class="demo">{{ demo_id }}</a>
+        {% endfor %}
+    </div>
+</div>
+
 <script type="text/javascript" src="/cp2/static/js/showTemplates.js"></script>
  {% endblock %}

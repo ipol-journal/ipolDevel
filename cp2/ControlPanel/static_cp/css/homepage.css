@@ -25,7 +25,7 @@ input .demo_selector {
     border: 2px solid #555;
     border-radius: var(--border-radius);
     font-size: var(--fs-normal);
-    box-shadow: rgb(99 99 99 / 20%) 0px 0px 10px 3px;
+    box-shadow: #63636333 0px 0px 10px 3px;
     width: 350px;
 }
 

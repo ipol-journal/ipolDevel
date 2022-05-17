@@ -4,8 +4,6 @@ var get_demo_blobs = new XMLHttpRequest();
 var get_demo_using_the_template = new XMLHttpRequest();
 var template_id = getParameterByName('template_id');
 var template_name = getParameterByName('template_name');
-document.getElementById("nameOfTemplate").innerHTML = template_name;
-nameOfTemplate.setAttribute("style", "text-decoration: underline");
 
 get_demo_blobs.open('GET', '/api/blobs/get_template_blobs?template_id='+template_id);
 get_demo_using_the_template.open('GET','/api/blobs/get_demos_using_the_template?template_id='+template_id);
@@ -17,11 +15,11 @@ get_demo_blobs.onload = function() {
     var templates = get_demo_blobs.response;
     var demo = get_demo_using_the_template.response;
     var sets = templates['sets'];
-    showTemplates(sets);
-    deleteBlob();
-    deleteTemplates();
-    var demos = demo?.['demos'] || null;
-    if (demos) show_demo_using_template(demos);
+    // showTemplates(sets);
+    // deleteBlob();
+    // deleteTemplates();
+    // var demos = demo?.['demos'] || null;
+    // if (demos) show_demo_using_template(demos);
 }
 
 
@@ -65,7 +63,7 @@ function showTemplates(sets) {
     };
     var demos = document.createElement('h2');
     demos.textContent = "Demos using this template"
-    section.appendChild(demos);   
+        .appendChild(demos);   
 };
 
 function show_demo_using_template(demos){
