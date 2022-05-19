@@ -4,15 +4,23 @@
 
 #editBlobForm div {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
     margin: 1rem 0;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    align-content: flex-start;
 }
 
 #editBlobForm div:last-child {
     display: flex;
     justify-content: flex-end;
     flex-direction: row;
+}
+
+#editBlobForm > div > i {
+    position: relative;
+    left: -5%;
 }
 
 #DetailsBlob {
@@ -31,9 +39,11 @@
 }
 
 #DetailsBlob label {
+    flex: 0 1 100%;
     font-size: 1.1rem;
     font-weight: var(--fw-regular);
-    border-bottom: 2px solid var(--color-dark-purple);
+    text-decoration: underline;
+    text-decoration-color: var(--color-dark-purple);
     margin: 0.2rem 0;
 }
 
@@ -44,8 +54,7 @@
     border-radius: var(--border-radius);
     text-align: center;
     line-height: 2rem;
-    width: fit-content;
-    min-width: -webkit-fill-available;
+    flex: 0 1 90%;
 }
 
 #blobRepresentation {
@@ -90,10 +99,4 @@
     padding: 5px 5px 5px 5px;
     font-size: 14px;
     margin-top: 20px;
-}
-
-#removeVRFile {
-    position: relative;
-    top: 50%;
-    left: 90%;
 }

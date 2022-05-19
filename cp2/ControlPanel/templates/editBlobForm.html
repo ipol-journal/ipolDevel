@@ -1,0 +1,37 @@
+<form id="editBlobForm">
+    <h2>Blob information</h2>
+    {% csrf_token %}
+    {% if create_blob %}
+    <div>
+        <label>Blob</label><input type="file" id="Blob" onchange="blobUploaded()" />
+        <i class="fas fa-times" onclick="removeBlob()"></i>
+    </div>
+    {% endif %}
+    <div>
+        <label for="title">Title</label>
+        <input type="text" name="title" id="title" value="{{title}}">
+    </div>
+    <div>
+        <label for="set">SET</label>
+        <input type="text" name="set" id="set" value="{{set_name}}">
+    </div>
+    <div>
+        <label for="position">Position in set</label>
+        <input type="text" name="position" id="positionSet" value="{{pos}}">
+    </div>
+    <div>
+        <label for="credit">Credit</label>
+        <input type="text" name="credit" id="credit" value="{{credit}}">
+    </div>
+    <div>
+        <label for="vr">Visual Representation</label>
+        <input type ="file" name="vr" accept="image/*" id="VR" onchange="vrUploaded()">
+        <i id="removeVRFile" class="fas fa-times" onclick="removeVR()"></i>
+    </div>
+    <div id="details-form-buttons">
+        <button id="ButtonAddBlob" class="btn">SAVE</button>
+        {% if not create_blob %}
+        <button id="removeVR" class="btn btn-danger">Remove Visual Representation</button>
+        {% endif %}
+    </div>
+</form> 

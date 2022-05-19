@@ -6,17 +6,17 @@ var template_name = getParameterByName('template_name');
 
 $(document).ready(function() {
     if (template_id) {
-        document.getElementById("nameOfTemplate").innerHTML = template_id;
-        $("#goPreviousPage").attr('href', '/cp2/showTemplates?template=' + template_id);
-        var form = document.getElementById('createBlobForm');
+        // document.getElementById("nameOfTemplate").innerHTML = template_id;
+        // $("#goPreviousPage").attr('href', '/cp2/showTemplates?template=' + template_id);
+        var form = document.getElementById('editBlobForm');
         form.onsubmit = function(e) {
             e.preventDefault();
             let formData = new FormData();
-            formData.append('Title', $('#Title').val());
-            formData.append('SET', $('#SET').val());
-            formData.append('PositionSet', $('#PositionSet').val());
-            formData.append('Credit', $('#Credit').val());
-            formData.append('Tags', $('#Tags').val());
+            formData.append('Title', $('#title').val());
+            formData.append('SET', $('#set').val());
+            formData.append('PositionSet', $('#positionSet').val());
+            formData.append('Credit', $('#credit').val());
+            formData.append('Tags', $('#tags').val());
             formData.append('TemplateSelection', template_id);
             formData.append('Blobs', blobImage, blobImage.name);
             if (VRImage) {

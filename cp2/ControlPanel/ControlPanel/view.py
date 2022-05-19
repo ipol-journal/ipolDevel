@@ -196,7 +196,22 @@ def ajax_delete_template(request):
 
 @login_required(login_url='/cp2/loginPage')
 def CreateBlob(request):
-    return render(request, 'createBlob.html')
+    context = {}
+    if 'demo_id' in request: # demo blob edit
+        can_edit = user_can_edit_demo(request.GET['demo_id'])
+        context = {
+            'demo_id': request.GET['demo_id'],
+            'can_edit': can_edit
+        }
+    else: #Template blob edit
+        template_id = request.GET['template_id']
+        template_name = request.GET['template_name']
+        context = {
+            'create_blob': True,
+            'template_id': template_id,
+            'template_name': template_name
+        }
+    return render(request, 'createBlob.html', context)
 
 @login_required(login_url = '/cp2/loginPage')
 def ajax_add_blob_demo(request):
@@ -237,6 +252,7 @@ def ajax_add_blob_template(request):
 
     response = {}
     settings = {'template_id' : template_id, 'blob_set' : blob_set, 'pos_set' : pos_set, 'title' : title, 'credit' : credit}
+    print(settings)
     response_api = api_post("/api/blobs/add_blob_to_template",settings , files)
     result = response_api.json()
     if result.get('status') != 'OK':

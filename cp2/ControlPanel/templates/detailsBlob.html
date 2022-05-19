@@ -4,35 +4,9 @@
 {% endblock %} {% block content %}
 <h1 id="setName">Blobset: {{ set_name }}</h1>
 <div id ="DetailsBlob">
-    <form id="editBlobForm">
-        <h2>Blob information</h2>
-        {% csrf_token %}
-        <div>
-            <label for="title">Title</label>
-            <input type="text" name="title" id="title" value="{{title}}">
-        </div>
-        <div>
-            <label for="set">SET</label>
-            <input type="text" name="set" id="set" value="{{set_name}}">
-        </div>
-        <div>
-            <label for="position">Position in set</label>
-            <input type="text" name="position" id="positionSet" value="{{pos}}">
-        </div>
-        <div>
-            <label for="credit">Credit</label>
-            <input type="text" name="credit" id="credit" value="{{credit}}">
-        </div>
-        <div>
-            <label for="vr">Visual Representation</label>
-            <input type ="file" name="vr" accept="image/*" id="VR" onchange="vrUploaded()">
-            <!-- <i id="removeVRFile" class="fas fa-times" onclick="removeVR()"></i> -->
-        </div>
-        <div id="details-form-buttons">
-            <button id="ButtonAddBlob" class="btn">SAVE</button>
-            <button id="removeVR" class="btn btn-danger">Remove Visual Representation</button>
-        </div>
-    </form>
+    {% block blobForm %}
+        {% include "editBlobform.html" %}
+    {% endblock%}
     <div id="blobRepresentation">
         <h2>Preview</h2>
         <div id="blobThumbnail">
