@@ -10,7 +10,7 @@
 <div class="head">
     <h2>Template blobsets</h2>
     <div>
-        <a class="btn" href="">Add new Blob</a>
+        <a class="btn" href="createBlob?template_id{{template_id}}&template_name={{template_name}}">Add new Blob</a>
         <button id="deleteTemplate" class="btn btn-danger">Delete Template</button>
     </div>
 </div>
@@ -32,7 +32,7 @@
     </div>
     {% endfor %}
 </div>
-
+{% if demos_using_template %}
 <div class="template-usage">
     <h2>Demos using template {{ template_name }}</h2>
     <div class="demos-container">
@@ -41,6 +41,7 @@
         {% endfor %}
     </div>
 </div>
+{% endif %}
 
 <script type="text/javascript" src="/cp2/static/js/showTemplates.js"></script>
  {% endblock %}

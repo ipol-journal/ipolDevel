@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth import logout, authenticate, login
@@ -262,7 +262,6 @@ def detailsBlob(request):
         blobs_response = api_post('/api/blobs/get_template_blobs', {'template_id': template_id}).json()
         sets = blobs_response['sets']
         for blobset in sets:
-            print(blobset['blobs'], blob_pos in blobset['blobs'])
             if blobset['name'] == set_name and blob_pos in blobset['blobs']:
                 blob = blobset['blobs'][blob_pos]
                 context = {

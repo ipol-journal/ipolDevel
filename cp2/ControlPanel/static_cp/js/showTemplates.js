@@ -109,26 +109,25 @@ function deleteBlob() {
     });
 };
 
-function deleteTemplates() {
-    $("button#deleteTemplate").click(function () {
-        $.ajax({
-            beforeSend: function (xhr, settings) {
-                return (confirm("Are you sure?"))
-            },
-            data : ({
-                template_id : template_id,
-                csrfmiddlewaretoken: csrftoken,
-            }),
-            type : 'POST',
-            dataType : 'json',
-            url : 'showTemplates/ajax_delete_template',
-            success : function (data) {
-                if (data.status === 'OK') {
-                    document.location.href = "/cp2/templates"
-                } else {
-                    alert("Error to delete this template")
-                }
-            },
-        });
+
+$("button#deleteTemplate").click(function () {
+    $.ajax({
+        beforeSend: function (xhr, settings) {
+            return (confirm("Are you sure?"))
+        },
+        data : ({
+            template_id : template_id,
+            csrfmiddlewaretoken: csrftoken,
+        }),
+        type : 'POST',
+        dataType : 'json',
+        url : 'showTemplates/ajax_delete_template',
+        success : function (data) {
+            if (data.status === 'OK') {
+                document.location.href = "/cp2/templates"
+            } else {
+                alert("Error to delete this template")
+            }
+        },
     });
-};
+});

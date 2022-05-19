@@ -81,7 +81,7 @@ input .demo_selector {
 
 #demos-list {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(25rem, 100%), 1fr));
     padding: 1rem;
     margin: 1rem auto;
     gap: 1rem;
@@ -98,7 +98,6 @@ input .demo_selector {
     grid-template-rows: minmax(1rem, 4rem);
     grid-column-gap: 1rem;
     grid-row-gap: 1rem;
-    width: 46%;
 }
 
 .demo-title { grid-area: 1 / 1 / 2 / 2; }

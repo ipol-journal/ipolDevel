@@ -1,53 +1,53 @@
-{% extends "base.html" %} {% block title %}detailsBlob{% endblock %} {% block bodyid %}detailsBlob{% endblock %} {% block header %}
-
+{% extends "base.html" %} {% block title %}detailsBlob{% endblock %} {% block bodyid %}detailsBlob{% endblock %}
+{% block header %}
+    {% include "header.html" %}
 {% endblock %} {% block content %}
-<h2 id="setName"></h2>
+<h1 id="setName">Blobset: {{ set_name }}</h1>
 <div id ="DetailsBlob">
+    <form id="editBlobForm">
+        <h2>Blob information</h2>
+        {% csrf_token %}
+        <div>
+            <label for="title">Title</label>
+            <input type="text" name="title" id="title" value="{{title}}">
+        </div>
+        <div>
+            <label for="set">SET</label>
+            <input type="text" name="set" id="set" value="{{set_name}}">
+        </div>
+        <div>
+            <label for="position">Position in set</label>
+            <input type="text" name="position" id="positionSet" value="{{pos}}">
+        </div>
+        <div>
+            <label for="credit">Credit</label>
+            <input type="text" name="credit" id="credit" value="{{credit}}">
+        </div>
+        <div>
+            <label for="vr">Visual Representation</label>
+            <input type ="file" name="vr" accept="image/*" id="VR" onchange="vrUploaded()">
+            <!-- <i id="removeVRFile" class="fas fa-times" onclick="removeVR()"></i> -->
+        </div>
+        <div id="details-form-buttons">
+            <button id="ButtonAddBlob" class="btn">SAVE</button>
+            <button id="removeVR" class="btn btn-danger">Remove Visual Representation</button>
+        </div>
+    </form>
     <div id="blobRepresentation">
+        <h2>Preview</h2>
         <div id="blobThumbnail">
             <p>Blob</p>
             <a id="download_blob" target="_blank">
-            <img id="thumbnail" title = "Blob" onError=setBrokenImage(this)>
+                <img id="thumbnail" src="{{blob}}" title ="Blob" onError=setBrokenImage(this)>
             </a>
         </div>
         <div id="vrThumbnail">
             <p>Visual representation</p>
             <a id="download_vr" target="_black">
-                <img id="thumbnail_vr" title="Visual Representation" onError=setBrokenImage(this) >
+                <img id="thumbnail_vr" src="{{thumbnail}}" title="Visual Representation" onError=setBrokenImage(this) >
             </a>
         </div>
     </div>
-<form id="editBlobForm">
-    {% csrf_token %}
-    <p>
-        <label>Title</label><input type="text" id="Title" value= "" >
-    </p>
-    <p>
-        <label>SET</label><input type="text" id="SET" value= "">
-    </p>
-    <p>
-        <label>Position in set</label><input type="text" id="PositionSet" value= "">
-    </p>
-    <p>
-        <label>Credit</label><input type="text" id="Credit" value= "">
-    </p>
-    <p>
-        <label>Visual Representation</label><input type = "file" accept="image/*" id="VR" onchange="vrUploaded()">
-        <i class="fas fa-times" onclick="removeVr()"></i>
-    </p>
-<button id="ButtonAddBlob">SAVE</button>
-</form>
-<button id="removeVr">Remove Visual Representation</button>
 </div>
-<a id="goPreviousPage">Go Previous Page</a>
-{% endblock %} {% block footer %}
-<nav id="footer" class="navbar_default">
-    <a class="navbar_brand" href="/cp2">
-        <img src="/cp2/static/images/IPOL-header-logo.png"></a>
-    <ul class="navbar">
-        <li class="nav-footer"><a href="/cp2/templates">Templates</a></li>
-        <li class="nav-footer"><a href="/cp2/status">Status</a></li>
-    </ul>
-</nav>
 <script type="text/javascript" src="/cp2/static/js/detailsBlob.js"></script>
-{% endblock %}
+{% endblock %} 

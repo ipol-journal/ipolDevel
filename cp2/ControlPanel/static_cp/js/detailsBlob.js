@@ -12,16 +12,16 @@ var demo_id;
 
 $(document).ready(function(){
     var get_demo_blobs = new XMLHttpRequest();
-    var previousPage = document.getElementById("goPreviousPage");
+    // var previousPage = document.getElementById("goPreviousPage");
     if (template_id) {
-        previousPage.setAttribute("href", `/cp2/showTemplates?template_id=${template_id}&template_name=${template_name}`);
+        // previousPage.setAttribute("href", `/cp2/showTemplates?template_id=${template_id}&template_name=${template_name}`);
          get_demo_blobs.open('GET', `/api/blobs/get_template_blobs?template_id=${template_id}`);
          get_demo_blobs.responseType = 'json';
          get_demo_blobs.send();
          get_demo_blobs.onload = function() {
              var templates = get_demo_blobs.response;
              var sets = templates['sets']
-             showDetails(sets);
+            //  showDetails(sets);
          }
          var form = document.getElementById('editBlobForm');
         form.onsubmit = function (e) {
@@ -29,15 +29,16 @@ $(document).ready(function(){
         var formData = new FormData();
         formData.append('old_set', set)
         formData.append('old_pos', pos)
-        formData.append('Title', $('#Title').val());
-        formData.append('SET' , $('#SET').val());
-        formData.append('PositionSet', $('#PositionSet').val());
-        formData.append('Credit', $('#Credit').val());
+        formData.append('Title', $('#title').val());
+        formData.append('SET' , $('#set').val());
+        formData.append('PositionSet', $('#positionSet').val());
+        formData.append('Credit', $('#credit').val());
         formData.append('TemplateSelection', template_id);
         if (VRImage) {
             formData.append('VR', VRImage, VRImage.name);
         }
         formData.append('csrfmiddlewaretoken', csrftoken);
+        console.log("asdas");
         $.ajax({
             url: 'detailsBlob/ajax',
             data: formData,
@@ -57,14 +58,14 @@ $(document).ready(function(){
     }}
     else {
         demo_id = getParameterByName('demo_id')
-        previousPage.setAttribute("href", "/cp2/showBlobsDemo?demo_id="+demo_id)
+        // previousPage.setAttribute("href", "/cp2/showBlobsDemo?demo_id="+demo_id)
         get_demo_blobs.open('GET', '/api/blobs/get_demo_owned_blobs?demo_id='+demo_id);
         get_demo_blobs.responseType = 'json';
         get_demo_blobs.send();
         get_demo_blobs.onload = function() {
             var demo_list = get_demo_blobs.response;
             var sets = demo_list['sets']
-            showDetails(sets);
+            // showDetails(sets);
         }
 
         update_edit_demo();
@@ -110,34 +111,34 @@ $(document).ready(function(){
     })
 });
 
-function showDetails(sets) {
-    for (var i = 0; i < sets.length; i++) {
-        var Blobs = sets[i].blobs;
-        var set_keys = Object.keys(Blobs);
-            for (let blob_pos of set_keys ) {
-                var detailsBlob = Blobs[blob_pos];
-                if (sets[i].name == set & blob_pos == pos) {
-                    console.log("title="+detailsBlob.title+"\nset="+sets[i].name+"\npos="+blob_pos+"\ncredit="+detailsBlob.credit+"\nthumbnail="+detailsBlob.thumbnail+"\nvr="+detailsBlob.vr+"\nblob="+detailsBlob.blob+"\nid="+detailsBlob.id);
-                    document.getElementById("setName").textContent = sets[i].name;
-                    document.getElementById("Title").value = detailsBlob.title;
-                    document.getElementById("SET").value = sets[i].name;
-                    document.getElementById("PositionSet").value = blob_pos;
-                    document.getElementById("Credit").value = detailsBlob.credit;
-                    if (detailsBlob.vr){
-                        document.getElementById("thumbnail_vr").src = detailsBlob.vr;
-                        document.getElementById("thumbnail_vr").style = "visibility : visible"
-                    }
-                    else {
-                        document.getElementById("thumbnail_vr").style = "visibility : hidden"
-                    }
-                    document.getElementById("thumbnail").src = detailsBlob.blob;
-                    blob_id = detailsBlob.id
-                    vr = detailsBlob.vr
-                    blob = detailsBlob.blob
-                }
-            };
-        };
-    };
+// function showDetails(sets) {
+//     for (var i = 0; i < sets.length; i++) {
+//         var Blobs = sets[i].blobs;
+//         var set_keys = Object.keys(Blobs);
+//             for (let blob_pos of set_keys ) {
+//                 var detailsBlob = Blobs[blob_pos];
+//                 if (sets[i].name == set & blob_pos == pos) {
+//                     console.log("title="+detailsBlob.title+"\nset="+sets[i].name+"\npos="+blob_pos+"\ncredit="+detailsBlob.credit+"\nthumbnail="+detailsBlob.thumbnail+"\nvr="+detailsBlob.vr+"\nblob="+detailsBlob.blob+"\nid="+detailsBlob.id);
+//                     document.getElementById("setName").textContent = sets[i].name;
+//                     document.getElementById("Title").value = detailsBlob.title;
+//                     document.getElementById("SET").value = sets[i].name;
+//                     document.getElementById("PositionSet").value = blob_pos;
+//                     document.getElementById("Credit").value = detailsBlob.credit;
+//                     if (detailsBlob.vr){
+//                         document.getElementById("thumbnail_vr").src = detailsBlob.vr;
+//                         document.getElementById("thumbnail_vr").style = "visibility : visible"
+//                     }
+//                     else {
+//                         document.getElementById("thumbnail_vr").style = "visibility : hidden"
+//                     }
+//                     document.getElementById("thumbnail").src = detailsBlob.blob;
+//                     blob_id = detailsBlob.id
+//                     vr = detailsBlob.vr
+//                     blob = detailsBlob.blob
+//                 }
+//             };
+//         };
+//     };
 
 function update_edit_demo() {
     $.ajax({
@@ -152,7 +153,7 @@ function update_edit_demo() {
             if (data.can_edit === 'NO') {
                 alert("You are not allowed to edit this blob")
                 $('#ButtonAddBlob').remove(); 
-                $('#removeVr').remove();
+                $('#removeVR').remove();
             }
 
         },
@@ -165,7 +166,7 @@ function update_edit_demo() {
 
 
 $(function() {
-    $("#removeVr").click(function(event) {
+    $("#removeVR").click(function(event) {
         event.preventDefault()
         $.ajax({
             beforeSend: function(xhr, settings) {

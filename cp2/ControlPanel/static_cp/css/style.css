@@ -35,6 +35,8 @@
 }
 
 body {
+    display: grid;
+    grid-template-rows: auto 1fr;
     font-family: 'Raleway', sans-serif;
     box-sizing: border-box;
     height: 100vh;
@@ -176,42 +178,9 @@ ul li:before{
     padding: 1rem 2rem;
 }
 
-/* #content article {
-    border: 1px solid lightgray;
-    margin: 10px;
-    padding: 15px 10px;
-    border-radius: 5px;
-    box-sizing: border-box;
-    font-size: 14px;
-    color: #337ab7;
-    position: relative;
-    margin-right: 15%;
-} */
-
 article a {
     text-decoration: None;
 }
-
-/* #content article a {
-    text-decoration: None;
-    list-style-type: None;
-    color: blue;
-}
-
-#content a {
-    text-decoration: None;
-}
-
-#content a li {
-    display: inline-block;
-    margin: 5px 5% 10px 15px;
-    color: #3479b7;
-}
-
-#content ul {
-    text-decoration: None;
-    margin-bottom: 5px;
-} */
 
 .identity {
     border: 3px solid #9a9a9a;
@@ -230,27 +199,12 @@ article a {
     border-radius: 15px;
 }
 
-.DemoInformation li {
-    width: 40%;
-}
-
 .module {
     border: 2px solid lightgray;
     margin: 10px 50% 10px 10px;
     padding: 10px 10px 10px 30px;
     border-radius: var(--border-radius);
     font-size: 17px;
-}
-
-
-#myContainer {
-    display: flex;
-    flex-wrap: wrap;
-    overflow: auto;
-}
-
-.demo_id {
-    margin-bottom: 20px;
 }
 
 #blobCreation {
@@ -283,9 +237,7 @@ article a {
     border-radius: var(--border-radius);
     background-color: #337ab7;
     border-color: #2e6da4;
-    text-decoration: none;
     color: #fff;
-    padding: 10px 10px 10px 10px;
 }
 
 #addBlob {
@@ -294,9 +246,6 @@ article a {
     border-color: #2e6da4;
     text-decoration: none;
     color: #fff;
-    padding: 5px 5px 5px 5px;
-    margin-left: 50px;
-    margin-right: 25px;
 }
 
 #blobCreation #thumbnail {
@@ -308,99 +257,4 @@ article a {
     max-width: 350px;
     max-height: 350px;
     margin-left: 10%;
-}
-
-#createBlob h2 {
-    margin: 50px 50px 0px 50px;
-}
-
-#nameOfTemplate {
-    text-decoration: underline;
-    font-size: 35px;
-}
-
-#goPreviousPage {
-    color: #fff;
-    background-color: #5bc0de;
-    border-color: #46b8da;
-    border-radius: 5px;
-    text-decoration: none;
-    padding: 10px 10px 10px 10px;
-    margin-left: 10%;
-}
-
-#DetailsBlob {
-    border: 2px solid lightslategray;
-    padding: 20px 0px 50px 40px;
-    margin: 30px 30% 30px 10%;
-}
-
-#DetailsBlob #thumbnail {
-    max-width: 300px;
-    max-height: 300px;
-}
-
-#DetailsBlob #thumbnail_vr {
-    max-width: 300px;
-    max-height: 300px;
-}
-
-#DetailsBlob label {
-    width: 30%;
-    font-size: 15px;
-    background-color: #ccc;
-    padding: 7px 12px;
-}
-
-#DetailsBlob input {
-    padding: 6px 12px;
-    font-size: 14px;
-    color: #555;
-    background-color: #fff;
-    background-image: none;
-    border: 2px solid #ccc;
-    border-radius: var(--border-radius);
-    width: 40%;
-    margin: 0px 0px 5px 0px;
-    text-align: center;
-}
-
-#blobRepresentation {
-    display: inline-flex;
-    width: 100%;
-    text-decoration: underline;
-    margin-bottom: 20px;
-    font-size: 20px;
-}
-
-#blobThumbnail {
-    text-align: center;
-    width: 250px;
-}
-
-#vrThumbnail {
-    text-align: center;
-    margin-left: 10%;
-    width: 100%;
-    margin-right: 10%;
-}
-
-#removeFile {
-    padding: 8px 8px 8px 8px;
-    background-color: lightcoral;
-    border-color: red;
-    border-radius: 2px;
-    text-decoration: none;
-    color: black;
-}
-
-#removeVr {
-    border-radius: var(--border-radius);
-    background-color: lightcoral;
-    border-color: lightcoral;
-    text-decoration: none;
-    color: white;
-    padding: 5px 5px 5px 5px;
-    font-size: 14px;
-    margin-top: 20px;
 }
