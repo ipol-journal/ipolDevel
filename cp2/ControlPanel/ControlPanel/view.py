@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.cache import never_cache
 from django.contrib.auth import logout, authenticate, login
 from .forms import loginForm
 import json, requests
@@ -125,6 +126,7 @@ def ajax_add_template(request):
     else :
         return JsonResponse({'status': 'KO', 'message': 'Unauthorized'}, status=401)
 
+@never_cache
 def showTemplates(request):
     template_id = request.GET['template_id']
     template_name = request.GET['template_name']
@@ -263,6 +265,7 @@ def ajax_add_blob_template(request):
         return HttpResponse(json.dumps(response), 'application/json')
     
 @login_required(login_url= '/cp2/loginPage')
+@never_cache
 def detailsBlob(request):
     context = {}
     if 'demo_id' in request: # demo blob edit
@@ -280,16 +283,19 @@ def detailsBlob(request):
         for blobset in sets:
             if blobset['name'] == set_name and blob_pos in blobset['blobs']:
                 blob = blobset['blobs'][blob_pos]
+                vr = blob['vr'] if 'vr' in blob else ''
                 context = {
                     'template_id': template_id,
                     'template_name': template_name,
                     'pos': blob_pos,
                     'set_name': blobset['name'],
+                    'blob_id': blob['id'],
                     'title': blob['title'],
                     'blob': blob['blob'],
                     'format': blob['format'],
                     'credit': blob['credit'],
-                    'thumbnail': blob['thumbnail']
+                    'thumbnail': blob['thumbnail'],
+                    'vr': vr,
                 }
                 return render(request, 'detailsBlob.html', context)
         return JsonResponse({'status': 'OK', 'message': 'Blob not found'}, status=404)
@@ -355,17 +361,16 @@ def ajax_user_can_edit_demo(request):
 
 
 @login_required(login_url='/cp2/loginPage')
-def ajax_remove_vr(request):
-    blob_id = request.POST['blob_id']
+def ajax_remove_vr(request, blob_id):
     settings = {'blob_id' : blob_id}
     response = {}
     response_api = api_post("/api/blobs/delete_vr_from_blob", settings)
     result = response_api.json()
-    if result.get('status') != 'OK':
-        response['status'] ='KO'
-        return HttpResponse(json.dumps(response), 'application/json')
+    if result.get('status') == 'OK':
+        response['status'] ='OK'
+        return JsonResponse({'status': 'OK'}, status=200)
     else : 
-        response['status'] = 'OK'
+        response['status'] = 'KO'
         return HttpResponse(json.dumps(response), 'application/json')
 
 @login_required(login_url='/cp2/loginPage')

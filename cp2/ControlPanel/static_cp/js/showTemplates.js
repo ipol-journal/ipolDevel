@@ -16,7 +16,7 @@ get_demo_blobs.onload = function() {
     var demo = get_demo_using_the_template.response;
     var sets = templates['sets'];
     // showTemplates(sets);
-    // deleteBlob();
+    deleteBlob();
     // deleteTemplates();
     // var demos = demo?.['demos'] || null;
     // if (demos) show_demo_using_template(demos);
@@ -82,9 +82,9 @@ function show_demo_using_template(demos){
 
 
 function deleteBlob() {
-    $("button.buttonDelete").click(function () {
-        var blobSelection = $(this).attr('blobName');
-        var $pos_set = $(this).attr('blobSet')
+    $("button.btn-delete").click(function () {
+        var blobSelection = $(this).attr('name');
+        var pos_set = $(this).attr('blobPos');
         $.ajax({
             beforeSend: function(xhr, settings) {
                 return (confirm("Are you sure?"))
@@ -92,7 +92,7 @@ function deleteBlob() {
             data : ({
                 blob_set : blobSelection,
                 template_id : template_id,
-                pos_set : $pos_set,
+                pos_set : pos_set,
                 csrfmiddlewaretoken: csrftoken,
             }),
             type: 'POST',

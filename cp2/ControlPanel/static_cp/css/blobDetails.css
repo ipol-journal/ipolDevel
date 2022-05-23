@@ -2,7 +2,7 @@
     padding: 1rem 0;
 }
 
-#editBlobForm div {
+.form-item {
     display: flex;
     margin: 1rem 0;
     flex-wrap: wrap;
@@ -12,15 +12,10 @@
     align-content: flex-start;
 }
 
-#editBlobForm div:last-child {
-    display: flex;
+.form-item:last-child {
     justify-content: flex-end;
     flex-direction: row;
-}
-
-#editBlobForm > div > i {
-    position: relative;
-    left: -5%;
+    flex: 0 0 100%;
 }
 
 #DetailsBlob {
@@ -31,6 +26,27 @@
     align-items: stretch;
     gap: 2rem;
 }
+
+#container-vr {
+    position: relative;
+    display: flex;
+    flex: 0 0 100%;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+#container-vr > i {
+    position: absolute;
+    padding: 1rem;
+    background-color: var(--color-button-remove);
+    border-radius: 2px;
+    margin: 2px;
+}
+/* 
+#removeVRFile {
+    position: absolute;
+    padding: 1rem;
+} */
 
 #DetailsBlob #thumbnail,
 #DetailsBlob #thumbnail_vr {
@@ -54,14 +70,14 @@
     border-radius: var(--border-radius);
     text-align: center;
     line-height: 2rem;
-    flex: 0 1 90%;
+    flex: 0 1 100%;
 }
 
 #blobRepresentation {
     display: flex;
     flex-direction: column;
     align-content: space-between;
-    justify-content: space-around;
+    justify-content: flex-start;
     align-items: center;
     gap: 1rem;
     font-size: 1rem;

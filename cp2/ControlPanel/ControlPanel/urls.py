@@ -37,7 +37,7 @@ urlpatterns = [
     path('cp2/detailsBlob', detailsBlob),
     path('cp2/detailsBlob/ajax', ajax_edit_blob_template),
     path('cp2/detailsBlob/ajax_demo', ajax_edit_blob_demo),
-    path('cp2/detailsBlob/ajax_remove_vr', ajax_remove_vr),
+    path('cp2/detailsBlob/ajax_remove_vr/<int:blob_id>', ajax_remove_vr, name='remove_vr'),
     path('cp2/showDemo', showDemo),
     path('cp2/showDemo/ajax_showDDL', ajax_show_DDL),
     path('cp2/showDemo/ajax_save_DDL', ajax_save_DDL, name='save_ddl'),

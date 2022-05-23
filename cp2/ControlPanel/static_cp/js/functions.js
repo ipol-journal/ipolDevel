@@ -6,8 +6,8 @@ function getParameterByName(name) {
     if (!results) return null;
     if (!results[2]) return '';
     return decodeURIComponent(results[2].replace(/\+/g, " "));
-  };
-  
+};
+
 function vrUploaded(){
   var thumbnail = document.getElementById("thumbnail_vr");
   var vr = document.getElementById("VR");

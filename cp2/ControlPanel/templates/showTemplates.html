@@ -6,7 +6,7 @@
 {% block header %}
     {% include "header.html" %}
 {% endblock %} {% block content %}
-<h1>Template: {{ template_name }}<h1/>
+<h1>Template: {{ template_name }}</h1>
 <div class="head">
     <h2>Template blobsets</h2>
     <div>
@@ -20,12 +20,17 @@
     <div class="set">
         <div class="set-images">
             {% for key, blob in set.blobs.items %}
-            <div>
+            <div id="slide-{{set.name}}-{{key}}">
+                <button class="btn-delete" name="{{set.name}}" blobPos="{{key}}">X</button>
                 <a href="detailsBlob?&template_id={{template_id}}&template_name={{template_name}}&set={{set.name}}&pos={{key}}">
                     <img src="{{blob.thumbnail}}">
-                    <button class="btn-delete">X</button>
                 </a>
             </div>
+            {% endfor %}
+        </div>
+        <div class="slider">
+            {% for key, blob in set.blobs.items %}
+            <a href="#slide-{{set.name}}-{{key}}">{{key}}</a>
             {% endfor %}
         </div>
         <p class="set-title">{{ set.name }}</p>
