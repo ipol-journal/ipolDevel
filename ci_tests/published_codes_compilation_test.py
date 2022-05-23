@@ -9,6 +9,11 @@ import socket
 import xml.etree.ElementTree as ET
 import requests
 
+import os, sys
+sys.path.append(os.path.join(os.path.dirname(__file__), "../ipol_demo/modules/"))
+from dispatcher.demorunnerinfo import DemoRunnerInfo
+from dispatcher.policy import Policy
+
 HOST = socket.gethostbyname(socket.gethostname())
 user = 'ipol'
 compilation_path = os.path.join("/", "home", user, "ipolDevel", "ci_tests", "compilation_folder")
@@ -101,14 +106,15 @@ def build(demo_id, build_section, requirements, demorunners):
     Execute the build section.
     Returns False if any build fails. True is everything's fine.
     """
-    suitable_demorunners = get_suitable_demorunners(requirements, demorunners)
-    for demorunner in suitable_demorunners.keys():
-        demorunner_host = demorunners[demorunner].get('server')
+    suitable_demorunners = Policy.get_suitable_demorunners(requirements, demorunners)
+    for demorunner in suitable_demorunners:
+        print(demo_id, demorunner.name)
+        demorunner_host = demorunner.server
         params = {'ddl_build': json.dumps(build_section), 'compilation_path': get_compilation_path(demo_id)}
         response = post(demorunner_host, 'demorunner', 'test_compilation', params)
 
         if response == None or response.status_code == None:
-            print(f"Bad response from DR={demorunner} when trying to build demo #{demo_id}: {str(response)}")
+            print(f"Bad response from DR={demorunner.name} when trying to build demo #{demo_id}: {str(response)}")
             return False
 
         if response.status_code == 200:
@@ -116,10 +122,10 @@ def build(demo_id, build_section, requirements, demorunners):
             if json_response.get('status') == 'OK':
                 continue
             else:
-                print(f"Couldn't build demo #{demo_id} in DR={demorunner}.")
+                print(f"Couldn't build demo #{demo_id} in DR={demorunner.name} ({json_response}).")
                 return False
         else:
-            msg = f"Bad HTTP response status_code from DR={demorunner} when trying to build demo #{demo_id}."
+            msg = f"Bad HTTP response status_code from DR={demorunner.name} when trying to build demo #{demo_id}."
             if response.status_code == 504:
                 msg += " HTTP error 504 (gateway timeout)"
             elif response.status_code == 404:
@@ -133,47 +139,30 @@ def build(demo_id, build_section, requirements, demorunners):
     return True
 
 
-def get_suitable_demorunners(requirements, demorunners):
-    """
-    Return all the suitable demorunners
-    """
-    if requirements is None:
-        return demorunners
-
-    suitable_demorunners = {}
-    requirements = requirements.lower().split(',')
-
-    for dr in demorunners.keys():
-        dr_capabilities = [cap.lower().strip() for cap in demorunners[dr].get('capability')]
-
-        if all([req.strip() in dr_capabilities for req in requirements]):
-            suitable_demorunners[dr] = demorunners[dr]
-
-    return suitable_demorunners
-
-
 def read_demorunners():
     """
     Read demorunners xml
     """
-    dict_demorunners = {}
+    demorunners = []
     tree = ET.parse(os.path.join("/", "home", user, "ipolDevel", "ipol_demo", "modules",
                                  "config_common", "demorunners.xml"))
     root = tree.getroot()
     for demorunner in root.findall('demorunner'):
-        dict_tmp = {}
-        list_tmp = []
+        capabilities = []
 
         for capability in demorunner.findall('capability'):
-            list_tmp.append(capability.text)
+            capabilities.append(capability.text)
 
-        dict_tmp["server"] = demorunner.find('server').text
-        dict_tmp["serverSSH"] = demorunner.find('serverSSH').text
-        dict_tmp["capability"] = list_tmp
+        demorunner = DemoRunnerInfo(
+            demorunner.find('server').text,
+            demorunner.get('name'),
+            demorunner.find('serverSSH').text,
+            capabilities
+        )
 
-        dict_demorunners[demorunner.get('name')] = dict_tmp
+        demorunners.append(demorunner)
 
-    return dict_demorunners
+    return demorunners
 
 
 def post(host, module, service, params=None):
