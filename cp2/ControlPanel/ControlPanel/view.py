@@ -361,7 +361,8 @@ def ajax_user_can_edit_demo(request):
 
 
 @login_required(login_url='/cp2/loginPage')
-def ajax_remove_vr(request, blob_id):
+def ajax_remove_vr(request):
+    blob_id = request.POST['blob_id']
     settings = {'blob_id' : blob_id}
     response = {}
     response_api = api_post("/api/blobs/delete_vr_from_blob", settings)
@@ -370,8 +371,7 @@ def ajax_remove_vr(request, blob_id):
         response['status'] ='OK'
         return JsonResponse({'status': 'OK'}, status=200)
     else : 
-        response['status'] = 'KO'
-        return HttpResponse(json.dumps(response), 'application/json')
+        return JsonResponse({'message': 'Could not remove VR'}, status=404)
 
 @login_required(login_url='/cp2/loginPage')
 def ajax_show_DDL(request):

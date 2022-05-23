@@ -33,47 +33,47 @@ $(document).ready(function(){
             });
         
         // previousPage.setAttribute("href", `/cp2/showTemplates?template_id=${template_id}&template_name=${template_name}`);
-        // get_demo_blobs.open('GET', `/api/blobs/get_template_blobs?template_id=${template_id}`);
-        // get_demo_blobs.responseType = 'json';
-        // get_demo_blobs.send();
-        // get_demo_blobs.onload = function() {
-        //     var templates = get_demo_blobs.response;
-        //     var sets = templates['sets']
-        // //  showDetails(sets);
-        // }
-        // var form = document.getElementById('editBlobForm');
-        // form.onsubmit = function (e) {
-        // e.preventDefault();
-        // var formData = new FormData();
-        // formData.append('old_set', set)
-        // formData.append('old_pos', pos)
-        // formData.append('Title', $('#title').val());
-        // formData.append('SET' , $('#set').val());
-        // formData.append('PositionSet', $('#positionSet').val());
-        // formData.append('Credit', $('#credit').val());
-        // formData.append('TemplateSelection', template_id);
-        // if (VRImage) {
-        //     formData.append('VR', VRImage, VRImage.name);
-        // }
-        // formData.append('csrfmiddlewaretoken', csrftoken);
-        // console.log("asdas");
-        // $.ajax({
-        //     url: 'detailsBlob/ajax',
-        //     data: formData,
-        //     cache: false,
-        //     contentType: false,
-        //     processData: false,
-        //     type: 'POST',
-        //     dataType : 'json',
-        //     success: function(data) {
-        //         if (data.status === 'OK') {
-        //             document.location.href = `/cp2/showTemplates?template_id=${template_id}&template_name=${template_name}`
-        //         } else {
-        //             alert("Error to add this Blob to the Template")
-        //         }
-        //     },
-        // });
-        // }
+        get_demo_blobs.open('GET', `/api/blobs/get_template_blobs?template_id=${template_id}`);
+        get_demo_blobs.responseType = 'json';
+        get_demo_blobs.send();
+        get_demo_blobs.onload = function() {
+            var templates = get_demo_blobs.response;
+            var sets = templates['sets']
+        //  showDetails(sets);
+        }
+        var form = document.getElementById('editBlobForm');
+        form.onsubmit = function (e) {
+            e.preventDefault();
+            var formData = new FormData();
+            formData.append('old_set', set)
+            formData.append('old_pos', pos)
+            formData.append('Title', $('#title').val());
+            formData.append('SET' , $('#set').val());
+            formData.append('PositionSet', $('#positionSet').val());
+            formData.append('Credit', $('#credit').val());
+            formData.append('TemplateSelection', template_id);
+            if (VRImage) {
+                formData.append('VR', VRImage, VRImage.name);
+            }
+            formData.append('csrfmiddlewaretoken', csrftoken);
+            console.log("asdas");
+            $.ajax({
+                url: 'detailsBlob/ajax',
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                type: 'POST',
+                dataType : 'json',
+                success: function(data) {
+                    if (data.status === 'OK') {
+                        document.location.href = `/cp2/showTemplates?template_id=${template_id}&template_name=${template_name}`
+                    } else {
+                        alert("Error to add this Blob to the Template")
+                    }
+                },
+            });
+        }
     } else {
         demo_id = getParameterByName('demo_id')
         // previousPage.setAttribute("href", "/cp2/showBlobsDemo?demo_id="+demo_id)
@@ -193,9 +193,6 @@ $('#removeVRFile').click(function () {
 })
 
 $("#removeVR").click(function(event) {
-    if (template_id) {
-        return confirm(`Deleting visual representation will afect other demos and templates using this blob.\nAre you sure you want to continue?`);
-    }
     event.preventDefault()
     $.ajax({
         beforeSend: function(xhr, settings) {
