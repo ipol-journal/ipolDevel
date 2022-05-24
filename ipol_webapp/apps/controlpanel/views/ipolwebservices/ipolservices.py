@@ -22,7 +22,7 @@ def is_json(myjson):
     try:
         json_object = json.loads(myjson)
     except Exception, e:
-        print("e:%s" % e)
+        print(f"e:{e}")
         return False
     return True
 
@@ -46,7 +46,7 @@ def http_request(path, METHOD=None, params=None, json=None, files=None):
         elif METHOD == 'DELETE':
             response = requests.delete(url, params=params)  
         else:
-            msg = "http_request: Not valid METHOD: %s" % result
+            msg = f"http_request: not a valid METHOD: {result}"
             logger.error(msg)
             print(msg)
             raise ValueError(msg)
@@ -54,12 +54,12 @@ def http_request(path, METHOD=None, params=None, json=None, files=None):
         result = response.content
 
         if not is_json(result):
-            msg = "http_request: Not valid JSON: %s" % result
+            msg = f"http_request: not a valid JSON: {result}"
             logger.error(msg)
             print(msg)
             raise ValueError(msg)
     except Exception as e:
-        msg = " http_request: error=%s" % (e)
+        msg = f"http_request error: {e}"
         print(msg)
         logger.error(msg)
         return msg
