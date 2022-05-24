@@ -116,3 +116,16 @@
     font-size: 14px;
     margin-top: 20px;
 }
+
+#template-dropdown {
+    padding: 0.5rem;
+    background-color: var(--color-blue);
+    border: 0;
+    color: var(--color-white);
+}
+
+.templates-head {
+    display: flex;
+    justify-content: space-between;
+    margin: 0 auto;
+}

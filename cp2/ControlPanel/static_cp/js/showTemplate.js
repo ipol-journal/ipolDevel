@@ -85,11 +85,13 @@ function deleteBlob() {
     $("button.btn-delete").click(function () {
         var blobSelection = $(this).attr('name');
         var pos_set = $(this).attr('blobPos');
+        console.log(blobSelection, pos_set);
         $.ajax({
             beforeSend: function(xhr, settings) {
                 return (confirm("Are you sure?"))
                 },
             data : ({
+                dest: 'template',
                 blob_set : blobSelection,
                 template_id : template_id,
                 pos_set : pos_set,
@@ -97,10 +99,10 @@ function deleteBlob() {
             }),
             type: 'POST',
             dataType: 'json',
-            url: 'showTemplates/ajax',
+            url: 'removeBlob/ajax_remove_blob_from_template',
             success: function(data) {
                 if (data.status === 'OK') {
-                    document.location.href = `/cp2/showTemplates?template_id=${template_id}&template_name=${template_name}`
+                    document.location.href = `/cp2/showTemplate?template_id=${template_id}&template_name=${template_name}`
                 } else {
                     alert("Error to delete this Blob");
                 }
@@ -113,6 +115,7 @@ function deleteBlob() {
 $("button#deleteTemplate").click(function () {
     $.ajax({
         beforeSend: function (xhr, settings) {
+            console.log('asda');
             return (confirm("Are you sure?"))
         },
         data : ({

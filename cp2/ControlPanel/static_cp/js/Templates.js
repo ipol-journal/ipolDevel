@@ -31,7 +31,7 @@ function showTemplatesList (templatesList) {
     for (var i=0; i < templatesList.length; i++){
         var templates = document.createElement('article');
         var templateName = document.createElement('a');
-        templateName.setAttribute("href",`/cp2/showTemplates?template_id=${templatesList[i].id}&template_name=${templatesList[i].name}`);
+        templateName.setAttribute("href",`/cp2/showTemplate?template_id=${templatesList[i].id}&template_name=${templatesList[i].name}`);
         templateName.textContent = templatesList[i].name;
         templates.appendChild(templateName);
         $('#template-container').append(templates);
