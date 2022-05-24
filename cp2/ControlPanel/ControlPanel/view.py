@@ -311,14 +311,32 @@ def ajax_add_blob_template(request):
 @never_cache
 def detailsBlob(request):
     context = {}
-    demo_id = request.GET['demo_id']
-    print(demo_id)
-    if demo_id: # demo blob edit
+    if 'demo_id' in request.GET: # demo blob edit
+        demo_id = request.GET['demo_id']
         can_edit = user_can_edit_demo(request.user, demo_id)
-        context = {
-            'demo_id': request.GET['demo_id'],
-        }
-        return render(request, 'detailsBlob.html', context)
+        set_name = request.GET['set']
+        blob_pos = request.GET['pos']
+        blobs_response = api_post('/api/blobs/get_demo_owned_blobs', {'demo_id': demo_id}).json()
+        sets = blobs_response['sets']
+        for blobset in sets:
+            if blobset['name'] == set_name and blob_pos in blobset['blobs']:
+                blob = blobset['blobs'][blob_pos]
+                vr = blob['vr'] if 'vr' in blob else ''
+                context = {
+                    'demo_id': request.GET['demo_id'],
+                    'pos': blob_pos,
+                    'set_name': blobset['name'],
+                    'blob_id': blob['id'],
+                    'title': blob['title'],
+                    'blob': blob['blob'],
+                    'format': blob['format'],
+                    'credit': blob['credit'],
+                    'thumbnail': blob['thumbnail'],
+                    'vr': vr,
+                    'can_edit': can_edit
+                }
+                return render(request, 'detailsBlob.html', context)
+
     else: #Template blob edit
         template_id = request.GET['template_id']
         template_name = request.GET['template_name']
@@ -545,31 +563,28 @@ def ajax_remove_template_to_demo(request):
 
 @login_required(login_url = '/cp2/loginPage')
 def ajax_edit_blob_demo(request):
-    new_blob_set = request.POST['SET']
-    blob_set = request.POST['old_set']
-    new_pos_set = request.POST['PositionSet']
-    pos_set = request.POST['old_pos']
-    title = request.POST['Title']
-    credit = request.POST['Credit']
     demo_id = request.POST['demo_id']
     files = {}
     if 'VR' in request.FILES:
         files['vr'] = request.FILES['VR'].file
     if user_can_edit_demo(request.user, demo_id):
-        print("OK")
         response = {}
-        settings = {'demo_id' : demo_id, 'blob_set' : blob_set, 'new_blob_set' : new_blob_set, 'pos_set' : pos_set, 'new_pos_set' : new_pos_set, 'title' : title, 'credit' : credit}
-        response_api = api_post("/api/blobs/edit_blob_from_demo",settings ,files )
-    # print(response_api)
-    # print(type(response_api))
-    # print("************" + response_api.content.decode("utf-8"))
-        result = response_api.json()
-        if result.get('status') != 'OK':
+        settings = {
+            'demo_id' : demo_id,
+            'blob_set' : request.POST['old_set'],
+            'new_blob_set' : request.POST['SET'],
+            'pos_set' : request.POST['old_pos'],
+            'new_pos_set' : request.POST['PositionSet'],
+            'title' : request.POST['Title'],
+            'credit' : request.POST['Credit']
+        }
+        response = api_post("/api/blobs/edit_blob_from_demo",settings ,files).json()
+
+        if response.get('status') != 'OK':
             response['status'] =  'KO'
             return HttpResponse(json.dumps(response), 'application/json')
         else :
             response['status'] = 'OK'
             return HttpResponse(json.dumps(response), 'application/json')
     else :
-        print("KO")
         return render(request, 'Homepage.html')
