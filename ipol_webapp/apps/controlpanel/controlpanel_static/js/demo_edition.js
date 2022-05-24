@@ -190,7 +190,7 @@ function submitDDLAJAX(submit_URL){
                 disableSaveButton(true);
             }else {
                 console.log("status KO");
-                setDDLMessage('KO', 'Could not save the DDL. Status: \'' + data.status + '\'.');
+                setDDLMessage('KO', 'Could not save the DDL. Status: \'' + data.status + '\',' + '\ Error: \'' + data.error +'\'.');
             }
         },
         error: function () {

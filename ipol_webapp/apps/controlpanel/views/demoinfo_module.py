@@ -297,9 +297,10 @@ class DemoinfoSaveDDLView(NavbarReusableMixinMF,FormView):
                             jres['error'] = error
 
                     except Exception as e:
-                        msg = "update ddl error: %s" % e
+                        msg = "update ddl error (%s)" % e
                         logger.error(msg)
                         print msg
+                        jres['error'] = msg
 
                 else:
                     msg='DemoinfoSaveDDLView invalid json'

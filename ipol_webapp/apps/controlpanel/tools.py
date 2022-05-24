@@ -23,7 +23,7 @@ def get_status_and_error_from_json(result):
             error = resultdict['code']
     except Exception as e:
         print "get_status_and_error_from_json error"
-        raise ValueError
+        raise ValueError(e)
     return status,error
 
 

@@ -62,6 +62,7 @@ def http_request(path, METHOD=None, params=None, json=None, files=None):
         msg = " http_request: error=%s" % (e)
         print(msg)
         logger.error(msg)
+        return msg
 
     return result
 
