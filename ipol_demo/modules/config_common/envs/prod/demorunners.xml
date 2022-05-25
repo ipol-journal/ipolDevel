@@ -44,6 +44,7 @@
     <path>~/ipolDevel/ipol_demo/modules/demorunner-docker/</path>
   </demorunner>
 
+  <!--
   <demorunner name="dr_abeille-docker">
     <module>demorunner</module>
     <server>138.231.63.118:2332</server>
@@ -52,5 +53,6 @@
     <serverSSH>abeille_dr</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/demorunner-docker/</path>
   </demorunner>
+  -->
 
 </data>
