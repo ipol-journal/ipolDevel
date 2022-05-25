@@ -192,13 +192,20 @@ article a {
     border-radius: 15px;
 } */
 
-/* .module {
-    border: 2px solid lightgray;
-    margin: 10px 50% 10px 10px;
-    padding: 10px 10px 10px 30px;
+.container-status {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(25rem, 100%), 1fr));
+    max-width: 80%;
+    margin: 0 auto;
+    gap: 2rem;
+}
+
+.module {
+    border: 2px solid var(--color-lightgray);
+    padding: 1rem;
     border-radius: var(--border-radius);
     font-size: 1rem;
-} */
+}
 
 #blobCreation {
     border: 2px solid var(--color-lightgray);
