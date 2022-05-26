@@ -2,6 +2,40 @@
     padding: 1rem 0;
 }
 
+#editor-dialog {
+    padding: 2rem;
+    border: 2px solid black;
+    border-radius: 4px;
+}
+
+#add-editor-form {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    margin: 1rem 0;
+    align-items: center;
+    align-content: center;
+    flex-wrap: nowrap;
+}
+
+#add-editor-input {
+    font-size: var(--fs-normal);
+    padding: 0.5rem;
+    border-radius: 4px;
+}
+
+.editor {
+    border: 1px solid;
+    padding: 1rem;
+    margin: 0.5rem 0;
+}
+
+#editors-btn-close {
+    position: absolute;
+    top: -0.5rem;
+    right: -0.5rem;
+}
+
 .form-item {
     display: flex;
     margin: 1rem 0;

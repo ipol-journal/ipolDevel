@@ -86,6 +86,47 @@ def status(request):
     return render(request, 'status.html')
 
 @login_required(login_url='/cp2/loginPage')
+def add_demo_editor(request):
+    demo_id = request.POST['demo_id']
+    editor_id = request.POST['editor_id']
+    settings = {
+        'demo_id': demo_id,
+        'editor_id': editor_id
+    }
+    if user_can_edit_demo(request.user, demo_id):
+        demoinfo_response = api_post('/api/demoinfo/add_editor_to_demo', settings).json()
+
+    response = {}
+    if demoinfo_response.get('status') != 'OK':
+        response['status'] = 'KO'
+        response['message'] = demoinfo_response.get('error')
+        return HttpResponse(json.dumps(response), 'application/json')
+    else:
+        return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+@login_required(login_url='/cp2/loginPage')
+def remove_demo_editor(request):
+    demo_id = request.POST['demo_id']
+    editor_id = request.POST['editor_id']
+    settings = {
+        'demo_id': demo_id,
+        'editor_id': editor_id
+    }
+    if user_can_edit_demo(request.user, demo_id):
+        print(settings)
+        demoinfo_response = api_post('/api/demoinfo/remove_editor_from_demo', settings).json()
+
+    response = {}
+    if demoinfo_response.get('status') != 'OK':
+        response['status'] = 'KO'
+        response['message'] = demoinfo_response.get('error')
+        return HttpResponse(json.dumps(response), 'application/json')
+    else :
+        response['status'] = 'OK'
+        return HttpResponse(json.dumps(response), 'application/json')
+
+
+@login_required(login_url='/cp2/loginPage')
 @csrf_protect
 def ajax_add_demo(request):
     state = request.POST['State'].lower()
@@ -396,6 +437,11 @@ def showDemo(request):
     title = request.GET['title']
     demoinfo_response = api_post('/api/demoinfo/get_ddl', { 'demo_id': demo_id }).json()
     ddl = None
+    demo_editors = api_post('/api/demoinfo/demo_get_editors_list', { 'demo_id': demo_id }).json()
+    editor_list = demo_editors['editor_list']
+    available_editors = api_post('/api/demoinfo/demo_get_available_editors_list', { 'demo_id': demo_id }).json()
+    available_editors = available_editors['editor_list']
+
     if demoinfo_response['status'] == 'OK':
         ddl = demoinfo_response['last_demodescription']
 
@@ -405,7 +451,9 @@ def showDemo(request):
         'demo_id': demo_id,
         'title': title,
         'ddl': ddl,
-        'can_edit': can_edit
+        'can_edit': can_edit,
+        'editors_list': editor_list,
+        'available_editors': available_editors
     }
     
     return render(request, 'showDemo.html', context)

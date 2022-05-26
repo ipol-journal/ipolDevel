@@ -25,6 +25,8 @@ urlpatterns = [
     path('cp2/signout', signout),
     path('cp2/logoff', logoff),
     path('cp2/status', status),
+    path('cp2/add_demo_editor', add_demo_editor, name='add_demo_editor'),
+    path('cp2/remove_demo_editor', remove_demo_editor, name='remove_demo_editor'),
     path('cp2/addDemo/ajax', ajax_add_demo),
     path('cp2/templates', templates),
     path('cp2/templates/ajax', ajax_add_template),

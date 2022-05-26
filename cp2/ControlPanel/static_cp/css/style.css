@@ -80,6 +80,11 @@ h4 {
     cursor: pointer;
 }
 
+.btn:hover {
+    transition: all 0.3s ease-in-out;
+    box-shadow: var(--box-shadow);
+}
+
 .btn-danger {
     background-color: var(--color-danger);
     border-color: var(--color-danger);
@@ -89,6 +94,14 @@ h4 {
 .btn-dark {
     background-color: var(--color-black);
     border-color: var(--color-light-black);
+    color: var(--color-white);
+}
+
+.btn-add {
+    flex-shrink: 0;
+    background-color: var(--color-blue);
+    border: 1px solid var(--color-blue);
+    cursor: pointer;
     color: var(--color-white);
 }
 
@@ -114,6 +127,15 @@ button:disabled {
 
 .di-none {
     display: none;
+}
+
+.di-flex {
+    display: flex;
+    place-content: center;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: nowrap;
+    justify-content: space-between;
 }
 
 body#Logout {
@@ -167,7 +189,7 @@ ul li:before{
     /* font-weight: var(--fw-regular); */
 }
 
-#content h1 {
+#content > h1 {
     padding: 1rem 2rem;
 }
 

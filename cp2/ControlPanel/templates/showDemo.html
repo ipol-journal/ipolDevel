@@ -11,10 +11,32 @@
                 <a id="demoExtras" href="/cp2/demoExtras?demo_id={{ demo_id }}" class="btn">Demo Extras</a>
                 <a href="/cp2/archive?demo_id={{ demo_id }}" class="btn">Archive</a>
                 <a id="showBlobsDemo" href="/cp2/showBlobsDemo?demo_id={{ demo_id }}" class="btn">Blobs</a>
+                <button id="editors-btn" class="btn">Editors</button id="editors-btn">
             </div>
             <div class="members">
-                <a href="" class="btn">Editors</a>
-                <a href="" class="btn">Authors</a>
+                <dialog id="editors-dialog">
+                    <h1>{{ title }} editors</h1>
+                    {% for editor in editors_list %}
+                    <div id="editor-{{editor.id}}" class="di-flex editor">
+                        <p>{{editor.name}}</p>
+                        <button class="btn btn-danger" data-editor-id="{{editor.id}}" data-demo-id="{{demo_id}}">Remove editor</button>
+                    </div>
+                    {% endfor %}
+                    <h2>Add demo editor</h2>
+                    <form id="add-editor-form" autocomplete="off" action="{% url 'add_demo_editor' %}" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="hidden" name="demo_id" value="{{ demo_id }}">
+                        <label for="editor">Editor</label>
+                        <select name="editor_id" id="add-editor-input" form="add-editor-form" required>
+                            <option value="" disabled selected>Select an editor</option>
+                            {% for editor in available_editors %}
+                            <option value="{{editor.id}}">{{editor.name}}, {{editor.mail}}</option>
+                            {% endfor %}
+                        </select>
+                        <input type="submit" class="btn btn-add" value="Submit">
+                    </form>
+                    <button id="editors-btn-close" class="btn btn-delete">X</button>
+                  </dialog>
             </div>
         </div>
     </div>
