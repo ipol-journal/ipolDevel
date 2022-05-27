@@ -3,7 +3,7 @@ compilation_root = "./compilation/"
 execution_root = "./execution/"
 docker_image_prefix = "ipol-demo-"
 docker_exec_prefix = "ipol-exec-"
-exec_workdir_in_docker = "/workdir"
+exec_workdir_in_docker = "/workdir/exec"
 user_uid_gid = "1000:1000"
 gpus = []
 
