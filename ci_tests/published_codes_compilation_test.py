@@ -108,7 +108,6 @@ def build(demo_id, build_section, requirements, demorunners):
     """
     suitable_demorunners = Policy.get_suitable_demorunners(requirements, demorunners)
     for demorunner in suitable_demorunners:
-        print(demo_id, demorunner.name)
         demorunner_host = demorunner.server
         params = {'ddl_build': json.dumps(build_section), 'compilation_path': get_compilation_path(demo_id)}
         response = post(demorunner_host, 'demorunner', 'test_compilation', params)
