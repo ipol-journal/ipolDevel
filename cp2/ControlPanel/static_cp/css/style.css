@@ -29,6 +29,8 @@
     --color-button-close: #aaaaaa;
     --color-button-remove: #ce3c6f;
 
+    --color-disabled: #444343ba;
+
     --color-danger: #ce3c6f;
     --color-black: #000000;
     --color-light-black: #3b3b3b;
@@ -80,7 +82,7 @@ h4 {
     cursor: pointer;
 }
 
-.btn:hover {
+.btn:hover:not(:disabled) {
     transition: all 0.3s ease-in-out;
     box-shadow: var(--box-shadow);
 }
@@ -119,10 +121,13 @@ h4 {
 }
 
 button:disabled {
-    pointer-events: none;
     border: 1px solid var(--color-lightgray);
     background-color: var(--color-lightgray);
-    color: var(--color-darkgray);
+    border-color: var(--color-disabled);
+    color: var(--color-disabled);
+    /* color: var(--color-darkgray); */
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 .di-none {

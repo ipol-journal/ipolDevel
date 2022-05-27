@@ -635,4 +635,54 @@ def ajax_edit_blob_demo(request):
             response['status'] = 'OK'
             return HttpResponse(json.dumps(response), 'application/json')
     else :
-        return render(request, 'Homepage.html')
+        return render(request, 'homepage.html')
+
+@login_required(login_url = '/cp2/loginPage')
+def show_archive(request):
+    demo_id = request.GET['demo_id']
+    title = request.GET['title']
+
+    if 'page' in request.GET:
+        page = request.GET['page']
+    else:
+        page = 1
+
+    if 'qfilter' in request.GET:
+        experiment_id = request.GET['qfilter']
+        archive_response = api_post('/api/archive/get_experiment', { 'experiment_id': experiment_id }).json()
+        experiment = archive_response['experiment']
+
+    archive_response = api_post('/api/archive/get_page', { 'demo_id': demo_id, 'page': page }).json()
+    experiments = archive_response['experiments']
+    meta = archive_response['meta']
+
+    context = {
+        'title': title,
+        'demo_id': demo_id,
+        'experiments': experiments,
+        'meta': meta,
+        'page': int(page)
+    }
+    return render(request, 'archive.html', context)
+
+
+@login_required(login_url = '/cp2/loginPage')
+def show_experiment(request):
+    demo_id = request.GET['demo_id']
+    title = request.GET['title']
+
+    if 'experiment_id' in request.GET:
+        experiment_id = request.GET['experiment_id']
+        archive_response = api_post('/api/archive/get_experiment', { 'experiment_id': experiment_id }).json()
+        experiment = archive_response['experiment']
+
+    archive_response = api_post('/api/archive/get_page', { 'demo_id': demo_id }).json()
+    meta = archive_response['meta']
+
+    context = {
+        'title': title,
+        'demo_id': demo_id,
+        'experiment': experiment,
+        'meta': meta
+    }
+    return render(request, 'showExperiment.html', context)

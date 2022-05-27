@@ -1,0 +1,44 @@
+{% extends "base.html" %} {% block title %}createBlob{% endblock %} {% block bodyid %}createBlob{% endblock %} 
+
+{% block header %}
+    {% include "header.html" %}
+{% endblock %}  {% block content %}
+<h1>Archive</h1>
+<div class="archive-head">
+    <h2>{{title}}</h2>
+    {% block searchExperimentForm %}
+        {% include "searchExperiment.html" %}
+    {% endblock%}
+    <div class="archive-pagination">
+        {% if page|add:"0" > 1 %}
+        <a href="showArchive?demo_id={{demo_id}}&title={{title}}&page={{page|add:'-1'}}">Previous page: {{page|add:"-1"}}</a>
+        {% endif %}
+        {% if page|add:"0" < meta.number_of_pages %}
+        <a href="showArchive?demo_id={{demo_id}}&title={{title}}&page={{page|add:'1'}}">Next page: {{page|add:"1"}}</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="experiment-container">
+{% for experiment in experiments %}
+    <div class="experiment">
+        <div class="files">
+            {% for file in experiment.files%}
+            <a href="{{file.url}}" class="img-container">
+                <img src="{{file.url_thumb}}" alt="{{file.name}}" title="{{file.name}}" onerror="setBrokenImage(this)">
+            </a>
+            {% endfor %}
+        </div>
+        <div class="di-flex experiment-info">
+            <h3>Experiment ID: {{experiment.id}}</h3>
+            <h3>Date: {{experiment.date}}</h3>
+            <button class="btn btn-danger">Delete experiment</button>
+        </div>
+
+    </div>
+{% endfor %}
+</div>
+
+
+<script type="text/javascript" src="/cp2/static/js/archive.js"></script>
+{% endblock %}
