@@ -7,36 +7,40 @@
 <div class="archive-head">
     <h2>{{title}}</h2>
     {% block searchExperimentForm %}
-        {% include "searchExperiment.html" %}
+        {% include "searchExperimentForm.html" %}
     {% endblock%}
     <div class="archive-pagination">
         {% if page|add:"0" > 1 %}
-        <a href="showArchive?demo_id={{demo_id}}&title={{title}}&page={{page|add:'-1'}}">Previous page: {{page|add:"-1"}}</a>
+        <a href="showArchive?demo_id={{demo_id}}&title={{title}}&page={{page|add:'-1'}}" class="btn btn-nav">Previous page</a>
         {% endif %}
+        <form action="showArchive" id="pagination-form">
+            <input type="hidden" name="demo_id" value="{{demo_id}}">
+            <input type="hidden" name="title" value="{{title}}">
+            <div class="page-input">
+                <input id="page-input" type="number" name="page" placeholder="Page" max="{{meta.number_of_pages}}">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </div>
+        </form>
         {% if page|add:"0" < meta.number_of_pages %}
-        <a href="showArchive?demo_id={{demo_id}}&title={{title}}&page={{page|add:'1'}}">Next page: {{page|add:"1"}}</a>
+        <a href="showArchive?demo_id={{demo_id}}&title={{title}}&page={{page|add:'1'}}" class="btn btn-nav">Next page</a>
         {% endif %}
     </div>
 </div>
 
 <div class="experiment-container">
 {% for experiment in experiments %}
-    <div class="experiment">
-        <div class="files">
-            {% for file in experiment.files%}
-            <a href="{{file.url}}" class="img-container">
-                <img src="{{file.url_thumb}}" alt="{{file.name}}" title="{{file.name}}" onerror="setBrokenImage(this)">
-            </a>
-            {% endfor %}
-        </div>
-        <div class="di-flex experiment-info">
-            <h3>Experiment ID: {{experiment.id}}</h3>
-            <h3>Date: {{experiment.date}}</h3>
-            <button class="btn btn-danger">Delete experiment</button>
-        </div>
-
-    </div>
+    {% block experiment %}
+        {% include "experiment.html" %}
+    {% endblock %}
 {% endfor %}
+<div class="archive-pagination push-right">
+    {% if page|add:"0" > 1 %}
+    <a href="showArchive?demo_id={{demo_id}}&title={{title}}&page={{page|add:'-1'}}">Previous page: {{page|add:"-1"}}</a>
+    {% endif %}
+    {% if page|add:"0" < meta.number_of_pages %}
+    <a href="showArchive?demo_id={{demo_id}}&title={{title}}&page={{page|add:'1'}}">Next page: {{page|add:"1"}}</a>
+    {% endif %}
+</div>
 </div>
 
 

@@ -121,7 +121,7 @@ def remove_demo_editor(request):
         response['status'] = 'KO'
         response['message'] = demoinfo_response.get('error')
         return HttpResponse(json.dumps(response), 'application/json')
-    else :
+    else:
         response['status'] = 'OK'
         return HttpResponse(json.dumps(response), 'application/json')
 
@@ -144,7 +144,7 @@ def ajax_add_demo(request):
         response['status'] = 'KO'
         response['message'] = result.get('error')
         return HttpResponse(json.dumps(response), 'application/json')
-    else :
+    else:
         response['status'] = 'OK'
         return HttpResponse(json.dumps(response), 'application/json')
 
@@ -164,7 +164,7 @@ def ajax_add_template(request):
             'status': 'OK',
             'template_id': result['template_id']
         }, status=200)
-    else :
+    else:
         return JsonResponse({'status': 'KO', 'message': 'Unauthorized'}, status=401)
 
 @never_cache
@@ -198,7 +198,7 @@ def ajax_delete_blob_template(request):
     if result.get('status') != 'OK':
         response['status'] = 'KO'
         return HttpResponse(json.dumps(response), 'application/json')
-    else :
+    else:
         response['status'] = 'OK'
         return HttpResponse(json.dumps(response), 'application/json')
 
@@ -215,7 +215,7 @@ def ajax_delete_blob_demo(request):
         if result.get('status') != 'OK':
             response['status'] = 'KO'
             return HttpResponse(json.dumps(response), 'application/json')
-        else :
+        else:
             response['status'] = 'OK'
             return HttpResponse(json.dumps(response), 'application/json')
     else:
@@ -232,7 +232,7 @@ def ajax_delete_template(request):
     if result.get('status') != 'OK':
         response['status'] = 'KO'
         return HttpResponse(json.dumps(response), 'application/json')
-    else :
+    else:
         response['status'] = 'OK'
         return HttpResponse(json.dumps(response), 'application/json')
 
@@ -251,7 +251,7 @@ def ajax_remove_blob_from_template(request):
     if response['status'] != 'OK':
         response['status'] = 'KO'
         return HttpResponse(json.dumps(response), 'application/json')
-    else :
+    else:
         response['status'] = 'OK'
         return HttpResponse(json.dumps(response), 'application/json')
 
@@ -275,7 +275,7 @@ def ajax_remove_blob_from_demo(request):
     if response['status'] != 'OK':
         response['status'] = 'KO'
         return HttpResponse(json.dumps(response), 'application/json')
-    else :
+    else:
         response['status'] = 'OK'
         return HttpResponse(json.dumps(response), 'application/json')
 
@@ -318,10 +318,10 @@ def ajax_add_blob_demo(request):
         if result.get('status') != 'OK':
             response['status'] = 'KO'
             return HttpResponse(json.dumps(response), 'application/json')
-        else :
+        else:
             response['status'] = 'OK'
             return HttpResponse(json.dumps(response), 'application/json')
-    else : 
+    else: 
         return render(request, 'Homepage.html')
 
 
@@ -344,7 +344,7 @@ def ajax_add_blob_template(request):
     if result.get('status') != 'OK':
         response['status'] = 'KO'
         return HttpResponse(json.dumps(response), 'application/json')
-    else :
+    else:
         response['status'] = 'OK'
         return HttpResponse(json.dumps(response), 'application/json')
     
@@ -427,7 +427,7 @@ def ajax_edit_blob_template(request):
     if result.get('status') != 'OK':
         response['status'] =  'KO'
         return HttpResponse(json.dumps(response), 'application/json')
-    else :
+    else:
         response['status'] = 'OK'
         return HttpResponse(json.dumps(response), 'application/json')
 
@@ -467,7 +467,7 @@ def ajax_user_can_edit_demo(request):
     if user_can_edit_demo(request.user, demo_id) :
         response['can_edit'] = True
         return HttpResponse(json.dumps(response), 'application/json')
-    else :
+    else:
         response['can_edit'] = False
         return HttpResponse(json.dumps(response), 'application/json')
 
@@ -482,7 +482,7 @@ def ajax_remove_vr(request):
     if result.get('status') == 'OK':
         response['status'] ='OK'
         return JsonResponse({'status': 'OK'}, status=200)
-    else : 
+    else: 
         return JsonResponse({'message': 'Could not remove VR'}, status=404)
 
 @login_required(login_url='/cp2/loginPage')
@@ -494,7 +494,7 @@ def ajax_show_DDL(request):
     result = response_api.json()
     if result.get('status') != 'OK':
         return HttpResponse(json.dumps(result), 'application/json')
-    else :
+    else:
         response['status'] = 'OK'
         return HttpResponse(json.dumps(result), 'application/json')
 
@@ -585,10 +585,10 @@ def ajax_add_template_to_demo(request):
         if result.get('status') != 'OK':
             response['status'] = 'KO'
             return HttpResponse(json.dumps(response), 'application/json')
-        else :
+        else:
             response['status'] = 'OK'
             return HttpResponse(json.dumps(response), 'application/json')
-    else : 
+    else: 
         return render(request, 'Homepage.html')
 
 @login_required(login_url='/cp2/loginPage')
@@ -603,10 +603,10 @@ def ajax_remove_template_to_demo(request):
         if result.get('status') != 'OK':
             response['status'] = 'KO'
             return HttpResponse(json.dumps(response), 'application/json')
-        else :
+        else:
             response['status'] = 'OK'
             return HttpResponse(json.dumps(response), 'application/json')
-    else : 
+    else: 
         return render(request, 'Homepage.html')
 
 @login_required(login_url = '/cp2/loginPage')
@@ -631,10 +631,10 @@ def ajax_edit_blob_demo(request):
         if response.get('status') != 'OK':
             response['status'] =  'KO'
             return HttpResponse(json.dumps(response), 'application/json')
-        else :
+        else:
             response['status'] = 'OK'
             return HttpResponse(json.dumps(response), 'application/json')
-    else :
+    else:
         return render(request, 'homepage.html')
 
 @login_required(login_url = '/cp2/loginPage')
@@ -661,7 +661,8 @@ def show_archive(request):
         'demo_id': demo_id,
         'experiments': experiments,
         'meta': meta,
-        'page': int(page)
+        'page': int(page),
+        'can_edit': user_can_edit_demo(request.user, demo_id)
     }
     return render(request, 'archive.html', context)
 
@@ -683,6 +684,21 @@ def show_experiment(request):
         'title': title,
         'demo_id': demo_id,
         'experiment': experiment,
-        'meta': meta
+        'meta': meta,
+        'can_edit': user_can_edit_demo(request.user, demo_id)
     }
     return render(request, 'showExperiment.html', context)
+
+@login_required(login_url='/cp2/loginPage')
+def ajax_delete_experiment(request):
+    demo_id = request.POST['demo_id']
+    experiment_id = request.POST['experiment_id']
+    if user_can_edit_demo(request.user, demo_id):
+        response = api_post('/api/archive/delete_experiment', { 'experiment_id': experiment_id }).json()
+
+        if response.get('status') != 'OK':
+            response['status'] =  'KO'
+            return HttpResponse(json.dumps(response), 'application/json')
+        else:
+            response['status'] = 'OK'
+            return HttpResponse(json.dumps(response), 'application/json')

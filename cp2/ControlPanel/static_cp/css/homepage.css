@@ -72,7 +72,7 @@ input .demo_selector {
 
 #demos-list {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(25rem, 100%), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(30rem, 100%), 1fr));
     padding: 1rem;
     margin: 1rem auto;
     gap: 1rem;
@@ -96,7 +96,7 @@ input .demo_selector {
     grid-area: 2 / 1 / 3 / 2;
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     flex-wrap: nowrap;
 }
 .card-buttons {

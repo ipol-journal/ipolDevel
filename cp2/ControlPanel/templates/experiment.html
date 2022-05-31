@@ -1,0 +1,27 @@
+<div class="experiment">
+    <div class="files">
+        {% for file in experiment.files%}
+        <a href="{{file.url}}" class="img-container">
+            <img src="{{file.url_thumb}}" alt="{{file.name}}" title="{{file.name}}" onerror="setBrokenImage(this)">
+        </a>
+        {% endfor %}
+    </div>
+    <div class="di-flex params">
+        {% if experiment.parameters %}
+        <h3>Parameters:</h3>
+            {% for parameter, value in experiment.parameters.items %}
+                <p>{{parameter}}: {{value}}</p>
+            {% endfor %}
+        {% endif %}
+    </div>
+    {% if experiment.execution %}
+    <p>Execution: {{experiment.execution}}</p>Execution: 
+    {% endif %}
+    <div class="di-flex experiment-info">
+        <h3>Experiment ID: <strong>{{experiment.id}}</strong></h3>
+        <h3><i class="fa-regular fa-calendar-check"></i> Date: {{experiment.date}}</h3>
+        {% if can_edit %}
+        <button class="btn btn-danger" data-id="{{experiment.id}}"><i class="fa-regular fa-trash-can"></i> Delete experiment</button>
+        {% endif %}
+    </div>
+</div>

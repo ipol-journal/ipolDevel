@@ -3,31 +3,19 @@
 {% block header %}
     {% include "header.html" %}
 {% endblock %}  {% block content %}
-<h1>Archive</h1>
+<h1>Experiment {{experiment.id}}</h1>
 <div class="archive-head">
     <h2>{{title}}</h2>
     {% block searchExperimentForm %}
         {% include "searchExperimentForm.html" %}
     {% endblock%}
-    <div class="archive-pagination">
-        Experiment searched: {{experiment.id}}
-    </div>
+    <a href="showArchive?demo_id={{demo_id}}&title={{title}}" class="btn btn-nav">Back to archive</a>
 </div>
 
 <div class="experiment-container">
-    <div class="experiment">
-        <div class="files">
-            {% for file in experiment.files%}
-            <a href="{{file.url}}" class="img-container">
-                <img src="{{file.url_thumb}}" alt="{{file.name}}" title="{{file.name}}" onerror="setBrokenImage(this)">
-            </a>
-            {% endfor %}
-        </div>
-        <div class="di-flex experiment-info">
-            <h3>Experiment ID: {{experiment.id}}</h3>
-            <h3>Date: {{experiment.date}}</h3>
-            <button class="btn btn-danger">Delete experiment</button>
-        </div>
-    </div>
+    {% block experiment %}
+        {% include "experiment.html" %}
+    {% endblock%}
 </div>
+<script type="text/javascript" src="/cp2/static/js/archive.js"></script>
 {% endblock %}

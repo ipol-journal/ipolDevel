@@ -55,6 +55,7 @@ urlpatterns = [
     path('cp2/showBlobsDemo/ajax_remove_template_to_demo', ajax_remove_template_to_demo),
     path('cp2/showArchive', show_archive, name='archive'),
     path('cp2/showExperiment', show_experiment, name='showExperiment'),
+    path('cp2/ajax_delete_experiment', ajax_delete_experiment, name='delete_experiment'),
 ]
 
 
