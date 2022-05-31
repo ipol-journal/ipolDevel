@@ -26,6 +26,22 @@
     margin: 1rem 0;
 }
 
+#templateForm > input {
+    padding: 0.5rem;
+    border: 2px solid var(--color-black);
+    border-radius: 4px;
+    min-width: 15rem;
+}
+
+#addTemplate-dialog > .close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
 #buttonAddTemplate {
     color: #fff;
     background-color: #337ab7;
@@ -36,11 +52,28 @@
     border-radius: var(--border-radius);
 }
 
-#Templates article {
+#template-container article {
     border: 2px solid lightgray;
     font-size: 20px;
     min-width: 5rem;
+    display: flex;
+    align-items: center;
+}
+
+#template-container a {
+    display: block;
     padding: 1rem;
+    width: 100%;
+    color: var(--color-black);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    cursor: pointer;
+    text-decoration: None;
+}
+
+#template-container a > i {
+    padding: 0 0.4rem;
 }
 
 #modal #labelAddTemplate {

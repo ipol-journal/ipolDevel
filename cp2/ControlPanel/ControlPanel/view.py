@@ -150,7 +150,12 @@ def ajax_add_demo(request):
 
 @login_required(login_url='/cp2/loginPage')
 def templates(request):
-    return render(request, 'Templates.html')
+    demoinfo_response = api_post('/api/blobs/get_all_templates').json()
+    templates = demoinfo_response['templates']
+    context = {
+        'templates': templates
+    }
+    return render(request, 'Templates.html', context)
 
 @login_required(login_url='/cp2/loginPage')
 @csrf_protect
