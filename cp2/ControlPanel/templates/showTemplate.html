@@ -14,7 +14,11 @@
         <button id="deleteTemplate" class="btn btn-danger">Delete Template</button>
     </div>
 </div>
-
+{% if not template_sets %}
+    {% block empty %}
+        {% include "empty.html" with item='blobs' %}
+    {% endblock %}
+{% endif %}
 <div class="set-container">
     {% for set in template_sets %}
     <div class="set">

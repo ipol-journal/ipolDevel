@@ -21,11 +21,11 @@
     </form>
     <div class="pagination">
         {% if previous_page_number %}
-        <a href="?page={{ previous_page_number }}{%if search%}&search={{search}}{%endif%}" id="previous_page" class="btn">Previous</a>
+        <a href="?page={{ previous_page_number }}{%if search%}&search={{search}}{%endif%}" id="previous_page"><i class="fa-solid fa-angle-left"></i> Previous</a>
+        <p>{{ page }}</p>
         {% endif %}
-        <p>Page: {{ page }}</p>
         {% if next_page_number %}
-        <a href="?page={{ next_page_number }}{%if search%}&search={{search}}{%endif%}" id="next_page" class="btn">Next</a>
+        <a href="?page={{ next_page_number }}{%if search%}&search={{search}}{%endif%}" id="next_page">Next <i class="fa-solid fa-angle-right"></i></a>
         {% endif %}
     </div>
 </div>
@@ -43,14 +43,14 @@
             <p class="demo-date">Last modification: {{ demo.modification|parse_iso|date:"d M Y" }}</p>
         </div>
         <div class="card-buttons">
-            <a href="{{ host_url }}/demo/clientApp/demo.html?id={{ demo.editorsdemoid }}" class="btn" target="_blank">Open demo</a>
-            <a href="/cp2/showDemo?demo_id={{ demo.editorsdemoid }}&title={{ demo.title }}" class="btn">Edit demo</a>
+            <a href="{{ host_url }}/demo/clientApp/demo.html?id={{ demo.editorsdemoid }}" class="btn" target="_blank"><i class="fa-solid fa-link"></i> Open demo</a>
+            <a href="/cp2/showDemo?demo_id={{ demo.editorsdemoid }}&title={{ demo.title }}" class="btn"><i class="fa-solid fa-pen-to-square"></i> Edit demo</a>
         </div>
     </div>
     {% endfor %}
 </div>
 <div class="addDemos">
-    <button href="" id="show">+</button>
+    <button href="" id="show"><i class="fa-solid fa-plus"></i></button>
 </div>
 <script type="text/javascript" src="/cp2/static/js/Homepage.js"></script>
 {% endblock %}

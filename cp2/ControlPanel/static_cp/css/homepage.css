@@ -41,6 +41,17 @@ input .demo_selector {
     gap: 1rem;
 }
 
+.pagination a {
+    text-decoration: none;
+    color: var(--color-black);
+}
+
+.pagination a:hover {
+    text-decoration: underline;
+    transform: scale(1.1);
+    transition: all 0.3s ease-in-out;
+}
+
 .pageCount {
     font-size: 20px;
     width: 20px;
@@ -183,14 +194,13 @@ input .demo_selector {
 .addDemos > button {
     margin: 3rem;
     background-color: #76568a;
-    padding: 1rem;
-    color: white;
+    color: var(--color-white);
     width: 4rem;
     height: 4rem;
     font-size: 2rem;
     line-height: 1rem;
     box-shadow: #63636333 0px 2px 4px 2px;
-    border: 3px solid #a579c0;
+    border: 3px solid var(--color-shadow-purple);
     border-radius: 50%;
 }
 
