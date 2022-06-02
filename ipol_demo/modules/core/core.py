@@ -249,7 +249,7 @@ class Core():
                                                 reverse=True)
 
             if demos_by_state[publication_state]:
-                demos_string += "<h2><a id='{0}'>{0}</a></h2>".format(publication_state)
+                demos_string += "<h2 id='{0}'>{0}</h2>".format(publication_state)
             #
             for demo_data in demos_by_state[publication_state]:
                 editorsdemoid = str(demo_data['editorsdemoid'])
