@@ -1,0 +1,14 @@
+[Unit]
+Description=Run demorunner-docker (for limule)
+After=network.target
+
+[Service]
+ExecStart=/home/ipol/ipolDevel/ipol_demo/modules/demorunner-docker/bin/ipol-demorunner
+WorkingDirectory=/home/ipol/ipolDevel/ipol_demo/modules/demorunner-docker/
+Environment=ROCKET_PROFILE=ipol-limule
+RestartSec=10
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+

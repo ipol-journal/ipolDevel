@@ -1,0 +1,11 @@
+[Unit]
+Description=From limule:3000 to ipolcore:9801
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/ssh -N -T -R3000:localhost:3000 ipolcore.ipol.im
+RestartSec=20
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
