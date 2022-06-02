@@ -1391,6 +1391,7 @@ attached the failed experiment data.". \
             # do not output full path for public
             internal_error_message = (error_message + ". Error: {}").format(str(ex))
             self.logger.exception(internal_error_message)
+            self.send_internal_error_email(internal_error_message)
             return json.dumps({'error': error_message, 'status': 'KO'}).encode()
         except (IPOLReadDDLError) as ex:
             # code -1: the DDL of the requested ID doesn't exist
