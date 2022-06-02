@@ -66,6 +66,18 @@ function getCookie(name) {
 	return cookieValue;
 }
 
+function toast(text) {
+  // Get the snackbar DIV
+  let snackbar = document.getElementById("snackbar");
+  snackbar.textContent = text;
+
+  // Add the "show" class to DIV
+  snackbar.className = "show";
+
+  // After 3 seconds, remove the show class from DIV
+  setTimeout(function(){ snackbar.className = snackbar.className.replace("show", ""); }, 3000);
+}
+
 // function update_edit_demo() {
 //   $.ajax({
 //       data: ({
