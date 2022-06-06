@@ -1,0 +1,20 @@
+{% extends "base.html" %} {% block title %}showDemo{% endblock %} {% block bodyid %}showDemo{% endblock %}
+{% block header %}
+    {% include "header.html" %}
+{% endblock %} {% block content %}
+<h1>DDL history for demo {{title}}</h1>
+
+<div class="ddl-history-container">
+    <div class="ddl-dates">
+        {% for ddl in ddl_history %}
+        <button class="btn ddl" data-ddl="{{ddl.ddl}}" data-creation="{{ddl.creation}}">{{ddl.creation}}</button>
+        {% endfor %}
+    </div>
+    <pre id="aceEditor"></pre>
+    <div class="ddl-history-buttons">
+        <button id="restore-ddl-button" class="btn btn-save" onclick="saveDDL()" disabled>Restore this version</button>
+    </div>
+</div>
+
+<script type="text/javascript" src="/cp2/static/js/ddl_history.js"></script>
+{% endblock %}

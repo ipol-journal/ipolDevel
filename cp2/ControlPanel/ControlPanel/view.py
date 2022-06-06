@@ -463,6 +463,22 @@ def showDemo(request):
     
     return render(request, 'showDemo.html', context)
 
+
+@login_required(login_url='/cp2/loginPage')
+def ddl_history(request):
+    demo_id = request.GET['demo_id']
+    title = request.GET['title']
+
+    dll_history_response = api_post('/api/demoinfo/get_ddl_history', { 'demo_id': demo_id }).json()
+    ddl_history = dll_history_response['ddl_history']
+
+    context = {
+        'demo_id': demo_id,
+        'title': title,
+        'ddl_history': ddl_history,
+    }
+    return render(request, 'ddl_history.html', context)
+
 @login_required(login_url='/cp2/loginPage')
 def ajax_user_can_edit_demo(request):
     demo_id = request.POST['demoID']

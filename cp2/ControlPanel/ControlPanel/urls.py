@@ -46,6 +46,7 @@ urlpatterns = [
     path('cp2/showDemo/ajax_showDDL', ajax_show_DDL),
     path('cp2/showDemo/ajax_save_DDL', ajax_save_DDL, name='save_ddl'),
     path('cp2/showDemo/ajax_user_can_edit_demo', ajax_user_can_edit_demo),
+    path('cp2/showDemo/ddl_history', ddl_history, name='ddl_history'),
     path('cp2/showBlobsDemo', showBlobsDemo),
     path('cp2/showBlobsDemo/ajax', ajax_delete_blob_demo),
     path('cp2/demoExtras', demoExtras),
