@@ -76,7 +76,6 @@ def status(request):
     # conversion = api_post('/api/conversion/ping').json()
     # context = {
     #     'dr': dr_response['demorunners'],
-    #     'blobs': blobs,
     #     'archive': archive_stats,
     #     'blobs': blobs_stats,
     #     'core': core,

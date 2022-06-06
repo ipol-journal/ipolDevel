@@ -3,17 +3,34 @@
     function estate(jsonObj, idDiv, moduleName) {
         var status = jsonObj['status'];
         if (status === "OK") {
-            return ($('#' + idDiv).html('<h4>' + moduleName + ' module is running:</h4>'));
+            $('#' + idDiv).prepend(`<h2>${moduleName} module is running: <i class="fa-solid fa-check"></i></i></h2>`);
         } else {
-            return ($('#' + idDiv).html('<h4>' + moduleName + ' does not respond!'))
+            $('#' + idDiv).prepend(`<h2>' ${moduleName} does not respond!  <i class="fa-solid fa-triangle-exclamation"></i></h2>`);
         }
     }
     //-----------------------------------------Request AJAX---------------------------------//   
     //-----------------------------------------DR-----------------------------------------//
-    function chargeDR(donnees) {
-        var DRdata = donnees['demorunners'];
-        $('#DR').append('<p>' + DRdata[0].name + '</p>');
-        $('#DR').append('<p>workload: ' + DRdata[0].workload + '</p>');
+    function chargeDR(data) {
+        for (const dr of data.demorunners) {
+            console.log(dr);
+            if (dr.status == 'OK') {
+                $('#dr-table').append(`
+                    <tr>
+                        <td>${dr.name}</td>
+                        <td>${dr.worload}</td>
+                        <td><i class="fa-solid fa-check"></td>
+                    </tr>
+                `)
+            } else {
+                $('#dr-table').append(`
+                    <tr>
+                        <td>${dr.name}</td>
+                        <td>${dr.worload}</td>
+                        <td><i class="fa-solid fa-triangle-exclamation"></td>
+                    </tr>
+                `)
+            }
+        }
     };
 
     $(function() {
@@ -22,11 +39,11 @@
             dataType: 'json',
             url: '/api/dispatcher/get_demorunners_stats',
             success: function(data) {
-                estate(data, "DR", "Demorunner");
+                $('#DR').prepend(`<h2>Demorunner module:</i></h2>`);
                 chargeDR(data);
             },
             error: function() {
-                $('#DR').html('<h3>Could not obtain the list of demoRunners!</h3>')
+                $('#DR').html('<h2>Could not obtain the list of demoRunners!  <i class="fa-solid fa-triangle-exclamation"></i></h2>')
             }
         });
         return false;
@@ -34,9 +51,9 @@
 
     //-----------------------------------------Archive-----------------------------------------//
 
-    function chargeArchive(donnees) {
-        $('#Archive').append('<p>Number of blobs: ' + donnees.nb_blobs + '</p>');
-        $('#Archive').append('<p>Number of experiments: ' + donnees.nb_experiments + '</p>');
+    function chargeArchive(data) {
+        $('#Archive').append('<p>Number of blobs: ' + data.nb_blobs + '</p>');
+        $('#Archive').append('<p>Number of experiments: ' + data.nb_experiments + '</p>');
     }
 
     $(function() {
@@ -49,7 +66,7 @@
                 chargeArchive(data);
             },
             error: function() {
-                $('#Archive').html('<h3>Archive does not respond!</h3>')
+                $('#Archive').html('<h2>Archive does not respond! <i class="fa-solid fa-triangle-exclamation"></i></h2>')
             }
         });
         return false;
@@ -57,10 +74,10 @@
 
     //-----------------------------------------DI-----------------------------------------//
 
-    function chargeDI(donnees) {
-        $('#DI').append('<p>Number of demos: ' + donnees.nb_demos + '</p>');
-        $('#DI').append('<p>Number of authors: ' + donnees.nb_authors + '</p>');
-        $('#DI').append('<p>Number of editors: ' + donnees.nb_editors + '</p>');
+    function chargeDI(data) {
+        $('#DI').append('<p>Number of demos: ' + data.nb_demos + '</p>');
+        $('#DI').append('<p>Number of authors: ' + data.nb_authors + '</p>');
+        $('#DI').append('<p>Number of editors: ' + data.nb_editors + '</p>');
     }
 
     $(function() {
@@ -73,7 +90,7 @@
                 chargeDI(data);
             },
             error: function() {
-                $('#DI').html('<h3>DemoInfo does not respond!</h3>')
+                $('#DI').html('<h2>DemoInfo does not respond! <i class="fa-solid fa-triangle-exclamation"></i></h2>')
             }
         });
         return false;
@@ -81,10 +98,10 @@
 
     //-----------------------------------------Blobs-----------------------------------------//
 
-    function chargeBlobs(donnees) {
-        $('#Blobs').append('<p>Number of blobs: ' + donnees.nb_blobs + '</p>');
-        $('#Blobs').append('<p>Number of templates: ' + donnees.nb_templates + '</p>');
-        $('#Blobs').append('<p>Number of tags: ' + donnees.nb_tags + '</p>');
+    function chargeBlobs(data) {
+        $('#Blobs').append('<p>Number of blobs: ' + data.nb_blobs + '</p>');
+        $('#Blobs').append('<p>Number of templates: ' + data.nb_templates + '</p>');
+        $('#Blobs').append('<p>Number of tags: ' + data.nb_tags + '</p>');
     }
 
     $(function() {
@@ -97,7 +114,7 @@
                 chargeBlobs(data);
             },
             error: function() {
-                $('#Blobs').html('<h3>Blobs does not respond!</h3>')
+                $('#Blobs').html('<h2>Blobs does not respond! <i class="fa-solid fa-triangle-exclamation"></i></h2>')
             }
         });
         return false;
@@ -114,7 +131,7 @@
                 estate(data, "Core", "Core");
             },
             error: function() {
-                $('#Core').html('<h3>Core does not respond!</h3>')
+                $('#Core').html('<h2>Core does not respond! <i class="fa-solid fa-triangle-exclamation"></i></h2>')
             }
         });
         return false;
@@ -131,7 +148,7 @@
                 estate(data, "Dispatcher", "Dispatcher");
             },
             error: function() {
-                $('#Dispatcher').html('<h3>Dispatcher does not respond!</h3>')
+                $('#Dispatcher').html('<h2>Dispatcher does not respond! <i class="fa-solid fa-triangle-exclamation"></i></h2>')
             }
         });
         return false;
@@ -147,8 +164,8 @@
             success: function(data) {
                 estate(data, "Conversion", "Conversion");
             },
-            error: function() {
-                $('#Conversion').html('<h3>Conversion does not respond!</h3>')
+            error: function(e) {
+                $('#Conversion').html('<h2>Conversion does not respond! <i class="fa-solid fa-triangle-exclamation"></i></h2>')
             }
         });
         return false;
