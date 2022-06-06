@@ -5,7 +5,13 @@ gi_*
 *.pyc
 
 # python virtualenv folder of each module
-venv/
+.env 
+.venv 
+env/ 
+venv/ 
+ENV/ 
+env.bak/ 
+venv.bak/ 
 
 # Archive data
 ipol_demo/modules/archive/blobs/*
@@ -107,3 +113,16 @@ changes*.txt
 ipol_demo/app_new/
 ipol_webapp/apps/controlpanel/migrations/*_auto_*.py
 
+# Django
+*.pot
+__pycache__
+db.sqlite3
+media
+
+# Visual Studio Code # 
+.vscode/* 
+!.vscode/settings.json 
+!.vscode/tasks.json 
+!.vscode/launch.json 
+!.vscode/extensions.json 
+.history
