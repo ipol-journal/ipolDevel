@@ -11,7 +11,7 @@
                 <a id="demoExtras" href="/cp2/demoExtras?demo_id={{ demo_id }}" class="btn">Demo Extras</a>
                 <a href="showArchive?demo_id={{ demo_id }}&title={{title}}" class="btn">Archive</a>
                 <a id="showBlobsDemo" href="/cp2/showBlobsDemo?demo_id={{ demo_id }}" class="btn">Blobs</a>
-                {% if not can_edit %}
+                {% if can_edit %}
                 <button id="editors-btn" class="btn">Editors</button id="editors-btn">
                 {% else %}
                 <button id="editors-btn" class="btn btn-disabled" disabled>Editors</button id="editors-btn">    
