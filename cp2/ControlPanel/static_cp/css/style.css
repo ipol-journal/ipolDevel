@@ -19,6 +19,7 @@
 
     --color-white: #eee;
     --color-blue: #3d83df;
+    --color-dark-blue: #173760;
     --color-blue-gray: #5e7b93;
     --color-shadow-purple: #a170a6;
     --color-dark-purple: #58237c;
@@ -205,10 +206,6 @@ table {
     color: green;
 }
 
-body#Logout {
-    background-color: var(--color-black);
-}
-
 .container-centered {
     margin: 1rem auto;
     width: 80%;
@@ -248,12 +245,10 @@ ul li:before{
 .form-logout {
     text-align: center;
     margin-top: 100px;
-}
-
-.form-logout h2 {
-    /* font-size: 40px; */
-    margin: 40px;
-    /* font-weight: var(--fw-regular); */
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 #content > h1 {
@@ -263,23 +258,6 @@ ul li:before{
 article a {
     text-decoration: None;
 }
-
-/* .identity {
-    border: 3px solid #9a9a9a;
-    padding: 10px 10px 15px 10px;
-    height: 10px;
-    max-width: 20%;
-    text-align: center;
-    font-size: 15px;
-    font-weight: var(--fw-bold);
-    line-height: 1;
-    color: #fff;
-    text-align: center;
-    white-space: nowrap;
-    vertical-align: baseline;
-    background-color: #9a9a9a;
-    border-radius: 15px;
-} */
 
 .container-status {
     display: grid;

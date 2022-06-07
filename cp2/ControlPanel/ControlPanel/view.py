@@ -59,15 +59,18 @@ def loginPage(request):
         return render(request, "loginPage.html", {'form': form})
 
 @login_required(login_url='/cp2/loginPage')
+@csrf_protect
 def signout(request):
     return render(request, 'signout.html')
 
 @login_required(login_url='/cp2/loginPage')
+@csrf_protect
 def logoff(request):
     logout(request)
     return redirect ('/cp2/loginPage')
 
 @login_required(login_url='/cp2/loginPage')
+@csrf_protect
 def status(request):
     # dr_response = api_post('/api/dispatcher/get_demorunners_stats').json()
     # archive_stats = api_post('/api/archive/stats').json()
@@ -171,6 +174,7 @@ def ajax_add_template(request):
     else:
         return JsonResponse({'status': 'KO', 'message': 'Unauthorized'}, status=401)
 
+@login_required(login_url = '/cp2/loginPage')
 @never_cache
 def showTemplate(request):
     template_id = request.GET['template_id']
