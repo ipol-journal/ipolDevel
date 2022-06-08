@@ -8,11 +8,16 @@
 
 .archive-pagination {
     display: flex;
-    gap: 1rem;
+}
+
+.page-input {
+    display: flex;
 }
 
 .page-input i {
     transform: translateX(-2rem);
+    width: 0;
+    line-height: 38px;
 }
 
 #page-input {

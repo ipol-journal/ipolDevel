@@ -423,7 +423,7 @@ def ajax_edit_blob_template(request):
     pos_set = request.POST['old_pos']
     title = request.POST['Title']
     credit = request.POST['Credit']
-    template_id = request.POST['TemplateSelection']
+    template_id = request.POST['template_id']
     files = {}
     if 'VR' in request.FILES:
         files['vr'] = request.FILES['VR'].file
