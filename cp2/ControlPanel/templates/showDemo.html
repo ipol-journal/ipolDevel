@@ -49,17 +49,14 @@
         <pre id="aceEditor"></pre>
         <div id="ddl-info">
             <div id="saveDDL">
-                <button id="save-btn" class="btn" disabled>Save DDL</button>
+                <button id="save-btn" class="btn" onclick="saveDDL()" disabled>Save DDL</button>
             </div>
             {% if not can_edit %}
             <div id="can_edit">
                 <h2>You are not allowed to edit this demo</h2>
             </div>
             {% endif %}
-            <div id="saved-texts">
-                <p id="saved-text">DDL already saved</p>
-                <p id="not-saved-text" class="di-none">There are unsaved changes.</p>
-            </div>
+            <p id="ddl-status-text">DDL already saved</p>
             <div>
                 <a href="showDemo/ddl_history?demo_id={{demo_id}}&title={{title}}" id="history-btn" class="btn">DDL History</a>
             </div>
