@@ -17,7 +17,7 @@
                 $('#dr-table').append(`
                     <tr>
                         <td>${dr.name}</td>
-                        <td>${dr.worload}</td>
+                        <td>${dr.workload}</td>
                         <td><i class="fa-solid fa-check"></td>
                     </tr>
                 `)
@@ -25,7 +25,7 @@
                 $('#dr-table').append(`
                     <tr>
                         <td>${dr.name}</td>
-                        <td>${dr.worload}</td>
+                        <td>${dr.workload}</td>
                         <td><i class="fa-solid fa-triangle-exclamation"></td>
                     </tr>
                 `)
