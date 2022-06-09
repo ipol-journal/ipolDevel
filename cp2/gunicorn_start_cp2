@@ -11,9 +11,10 @@ fi
 source $virtualenv
 
 NAME="cp2"                                  # Name of the application
-DJANGODIR=/home/ipol/ipolDevel/cp2/ControlPanel             # Django project directory
-SOCKFILE=/home/ipol/ipolDevel/cp2/ControlPanel/run/gunicorn.sock  # we will communicte using this unix socket
 USER=ipol                                        # the user to run as
+PORT=8001
+DJANGODIR=/home/${USER}/ipolDevel/cp2/ControlPanel             # Django project directory
+SOCKFILE=/home/${USER}/ipolDevel/cp2/ControlPanel/run/gunicorn.sock  # we will communicte using this unix socket
                                      # the group to run as
 NUM_WORKERS=3                                     # how many worker processes should Gunicorn spawn
 DJANGO_SETTINGS_MODULE=ControlPanel.settings             # which settings file should Django use
@@ -36,7 +37,7 @@ echo "gunicorn ControlPanel.wsgi \
   --bind=unix:$SOCKFILE \
   --log-level=debug \
   --log-file=- \ "
-exec gunicorn ControlPanel.wsgi \
+exec gunicorn -b 0.0.0.0:${PORT} ControlPanel.wsgi \
   --name $NAME \
   --workers $NUM_WORKERS \
   --user=$USER \
