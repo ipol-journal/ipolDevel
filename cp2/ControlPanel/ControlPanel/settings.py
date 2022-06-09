@@ -15,6 +15,9 @@ import socket
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PROJECT_DIR = os.path.normpath(os.path.join(BASE_DIR, '../..'))
+OUTER_DIR = os.path.normpath(os.path.join(PROJECT_DIR, '..'))
+
 
 
 # Quick-start development settings - unsuitable for production
@@ -137,5 +140,11 @@ USE_TZ = True
 #static Root
 
 STATIC_URL = '/cp2/static/'
-STATIC_ROOT = BASE_DIR + '/static_cp/'
+STATIC_ROOT = os.path.join(OUTER_DIR, 'CP2_STATIC/')
+STATICFILES_DIRS = (
+        # Put strings here, like "/home/html/static" or "C:/www/django/static".
+        # Always use forward slashes, even on Windows.
+        # Don't forget to use absolute paths, not relative paths.
+        os.path.join(PROJECT_DIR, 'cp2/ControlPanel/static_cp/'),
+)
 HOST_NAME = socket.getfqdn()
