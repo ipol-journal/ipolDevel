@@ -1,5 +1,9 @@
 # Default server configuration
 #
+# CP2 socket
+upstream cp2_socket {  
+	server unix:/home/ipol/ipolDevel/cp2/ControlPanel/run/gunicorn.sock fail_timeout=0;
+}
 
 upstream ipol_webapp_server {
   # fail_timeout=0 means we always retry an upstream even if it failed
@@ -23,9 +27,9 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 
         location /demo/clientApp/ {
-                expires 1m;
-                resolver 127.0.0.1;
-                alias  /home/ipol/ipolDevel/ipol_demo/clientApp/;
+			expires 1m;
+			resolver 127.0.0.1;
+			alias  /home/ipol/ipolDevel/ipol_demo/clientApp/;
         }
 }
 
@@ -65,8 +69,8 @@ server {
 	# Static files for the web interface
 	location /demo/clientApp/ {
 		if ($args ~ ".*id=33333999\d*") {
-				error_page 418 = @authTestPasswd;
-				return 418;
+			error_page 418 = @authTestPasswd;
+			return 418;
 		}
 
 		add_header 'Content-Security-Policy' "default-src 'self' data: https: blob: 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval' https: code.jquery.com cdnjs.cloudflare.com;";
@@ -83,7 +87,7 @@ server {
 	auth_basic "Restricted";
 	auth_basic_user_file /etc/nginx/.passwd/auth_test;
 	resolver 127.0.0.1;
-			proxy_pass  http://$host:81/$request_uri;
+		proxy_pass  http://$host:81/$request_uri;
 	}
 
 	location /auth_src/ {
@@ -110,12 +114,28 @@ server {
 		resolver 127.0.0.1;
 		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 		proxy_set_header Host $http_host;
-	        
 		if (!-f $request_filename) {
 			proxy_pass http://ipol_webapp_server;
 			break;
 	        }
 
+		proxy_pass http://$host:8001;
+	}
+
+	location /cp2/static/ {
+		alias /home/ipol/CP2_STATIC/;
+	}
+
+	location /cp2/ {
+		resolver 127.0.0.1;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header Host $http_host;
+		proxy_redirect off;
+		proxy_buffering off;
+		if (! -f $request_filename) {
+			proxy_pass http://cp2_socket;
+			break;
+		}
 		proxy_pass http://$host:8001;
 	}
 	
@@ -181,16 +201,16 @@ server {
 
 	# DISPATCHER
 	location /api/dispatcher/ {
-			rewrite ^/api/dispatcher/(.*) /$1 break;
-			resolver 127.0.0.1;
-			proxy_pass   http://$host:9005;
+		rewrite ^/api/dispatcher/(.*) /$1 break;
+		resolver 127.0.0.1;
+		proxy_pass   http://$host:9005;
 	}
 
 	# DEMORUNNER
 	location /api/demorunner/ {
-			rewrite ^/api/demorunner/(.*) /$1 break;
-			resolver 127.0.0.1;
-			proxy_pass   http://$host:9004;
+		rewrite ^/api/demorunner/(.*) /$1 break;
+		resolver 127.0.0.1;
+		proxy_pass   http://$host:9004;
 	}
 
 	# CONVERSION
