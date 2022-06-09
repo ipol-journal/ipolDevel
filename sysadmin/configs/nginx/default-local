@@ -55,7 +55,7 @@ server {
 		add_header X-Frame-Options SAMEORIGIN always;
 		# If the distribution is Debian you need the resolver
 		# resolver 127.0.0.1;
-		proxy_pass http://$host:8000;
+		proxy_pass http://$host:8001;
 	}
 
 	location /cp2/static/ {
@@ -72,7 +72,7 @@ server {
 			proxy_pass http://cp2_socket;
 			break;
 		}
-		proxy_pass http://$host:8001;
+		proxy_pass http://$host:8002;
 	}
 
 	# CORE

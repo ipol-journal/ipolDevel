@@ -12,7 +12,7 @@ source $virtualenv
 
 NAME="cp2"                                  # Name of the application
 USER=ipol                                        # the user to run as
-PORT=8001
+PORT=8002
 DJANGODIR=/home/${USER}/ipolDevel/cp2/ControlPanel             # Django project directory
 SOCKFILE=/home/${USER}/ipolDevel/cp2/ControlPanel/run/gunicorn.sock  # we will communicte using this unix socket
                                      # the group to run as

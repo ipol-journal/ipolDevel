@@ -136,7 +136,7 @@ server {
 			proxy_pass http://cp2_socket;
 			break;
 		}
-		proxy_pass http://$host:8001;
+		proxy_pass http://$host:8002;
 	}
 	
 	# SMARTALGO
