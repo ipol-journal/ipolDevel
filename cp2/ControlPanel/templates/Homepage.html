@@ -40,7 +40,9 @@
         <div class="demo-info">
             <p class="demo-id">ID: {{ demo.editorsdemoid }}</p>
             <p class="demo-state">State: {{ demo.state }}</p>
-            <p class="demo-date">Last modification: {{ demo.modification|parse_iso|date:"d M Y" }}</p>
+            {% if demo.modification %}
+            <p class="demo-date">Last modification: {{ demo.modification }}</p>
+            {% endif %}
         </div>
         <div class="card-buttons">
             <a href="{{ host_url }}/demo/clientApp/demo.html?id={{ demo.editorsdemoid }}" class="btn" target="_blank"><i class="fa-solid fa-link"></i> Open demo</a>
