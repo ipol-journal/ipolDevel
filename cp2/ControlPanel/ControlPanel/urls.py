@@ -21,7 +21,7 @@ from ControlPanel.view import *
 urlpatterns = [
     path('cp2/admin/', admin.site.urls),
     path('cp2/', Homepage),
-    path('cp2/loginPage', loginPage),
+    path('cp2/login', loginPage, name='login'),
     path('cp2/signout', signout),
     path('cp2/logoff', logoff),
     path('cp2/status', status),

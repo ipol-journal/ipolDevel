@@ -32,14 +32,14 @@ DEBUG = True
 ALLOWED_HOSTS = [socket.getfqdn(), '127.0.0.1', 'localhost', 'integration.ipol.im', 'ipolcore.ipol.im']
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
+    "http://localhost",
+    "http://127.0.0.1",
     "https://integration.ipol.im",
     "https://ipolcore.ipol.im",
 ]
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
+    "http://localhost",
+    "http://127.0.0.1",
     "https://integration.ipol.im",
     "https://ipolcore.ipol.im",
     ]

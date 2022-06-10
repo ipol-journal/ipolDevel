@@ -2,7 +2,7 @@
 <img src="/cp2/static/images/IPOL-header-logo.png" class="navbar-brand">
 <div class="container_login">
     <h2 class="form_signin">Welcome to IPOL Editor's Control Panel</h2>
-    <form action="/cp2/loginPage" method="post">
+    <form action="{% url 'login' %}" method="post">
         {% csrf_token %} {{ form.as_p }}
         <div>
             <label for>Remember me:</label>

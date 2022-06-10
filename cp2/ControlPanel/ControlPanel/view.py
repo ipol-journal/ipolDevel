@@ -3,7 +3,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import never_cache
-from django.contrib.auth import logout, authenticate, login
+from django.contrib.auth import logout, authenticate, login as loginMethod
 from .forms import loginForm
 import json, requests
 from .utils import api_post, user_can_edit_demo
@@ -14,7 +14,7 @@ from ControlPanel.settings import HOST_NAME
 
 
 
-@login_required(login_url='/cp2/loginPage')
+@login_required(login_url='login')
 def Homepage(request):
     try:
         qfilter = request.GET.get('qfilter')
@@ -52,24 +52,25 @@ def loginPage(request):
     username = request.POST.get('username')
     password = request.POST.get('password')
     user = authenticate(request, username=username, password=password)
+    print('HI')
     if user is not None:
-        login(request, user)
+        loginMethod(request, user)
         return HttpResponseRedirect('/cp2/')
     else:
-        return render(request, "loginPage.html", {'form': form})
+        return render(request, "login.html", {'form': form})
 
-@login_required(login_url='/cp2/loginPage')
+@login_required(login_url='login')
 @csrf_protect
 def signout(request):
     return render(request, 'signout.html')
 
-@login_required(login_url='/cp2/loginPage')
+@login_required(login_url='login')
 @csrf_protect
 def logoff(request):
     logout(request)
-    return redirect ('/cp2/loginPage')
+    return redirect('login')
 
-@login_required(login_url='/cp2/loginPage')
+@login_required(login_url='login')
 @csrf_protect
 def status(request):
     # dr_response = api_post('/api/dispatcher/get_demorunners_stats').json()
@@ -87,7 +88,7 @@ def status(request):
     # print(context)
     return render(request, 'status.html')
 
-@login_required(login_url='/cp2/loginPage')
+@login_required(login_url='login')
 def add_demo_editor(request):
     demo_id = request.POST['demo_id']
     editor_id = request.POST['editor_id']
@@ -106,7 +107,7 @@ def add_demo_editor(request):
     else:
         return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
-@login_required(login_url='/cp2/loginPage')
+@login_required(login_url='login')
 def remove_demo_editor(request):
     demo_id = request.POST['demo_id']
     editor_id = request.POST['editor_id']
@@ -128,29 +129,31 @@ def remove_demo_editor(request):
         return HttpResponse(json.dumps(response), 'application/json')
 
 
-@login_required(login_url='/cp2/loginPage')
+@login_required(login_url='login')
 @csrf_protect
 def ajax_add_demo(request):
     state = request.POST['State'].lower()
     title = request.POST['Title']
     demoid = request.POST['DemoId']
-    response = {}
     
-    settings = {'state': state, 'title': title, 'editorsdemoid': demoid}
-    response_api = api_post("/api/demoinfo/add_demo", settings)
+    settings = {'state': state, 'title': title, 'editorsdemoid': demoid, 'ddl': '{}'}
+    response_api = api_post("/api/demoinfo/add_demo", settings, json='{}')
     result = response_api.json()
 
-    settings = {'demo_id': editorsdemoid, 'editor_id': editor}
-    api_post('/api/demoinfo/add_editor_to_demo', settings)
-    if result.get('status') != 'OK':
+    editor_info = api_post('/api/demoinfo/get_editor', { 'email': request.user.email }).json()
+    editor_id = editor_info['editor']['id']
+    settings = {'demo_id': demoid, 'editor_id': editor_id }
+    editor_add = api_post('/api/demoinfo/add_editor_to_demo', settings).json()
+
+    response = {}
+    if result.get('status') != 'OK' or editor_add.get('status') != 'OK':
         response['status'] = 'KO'
         response['message'] = result.get('error')
-        return HttpResponse(json.dumps(response), 'application/json')
     else:
         response['status'] = 'OK'
-        return HttpResponse(json.dumps(response), 'application/json')
+    return HttpResponse(json.dumps(response), 'application/json')
 
-@login_required(login_url='/cp2/loginPage')
+@login_required(login_url='login')
 def templates(request):
     demoinfo_response = api_post('/api/blobs/get_all_templates').json()
     templates = demoinfo_response['templates']
@@ -159,7 +162,7 @@ def templates(request):
     }
     return render(request, 'Templates.html', context)
 
-@login_required(login_url='/cp2/loginPage')
+@login_required(login_url='login')
 @csrf_protect
 def ajax_add_template(request):
     template_name = request.POST['templateName']
@@ -174,7 +177,7 @@ def ajax_add_template(request):
     else:
         return JsonResponse({'status': 'KO', 'message': 'Unauthorized'}, status=401)
 
-@login_required(login_url = '/cp2/loginPage')
+@login_required(login_url='login')
 @never_cache
 def showTemplate(request):
     template_id = request.GET['template_id']
@@ -193,7 +196,7 @@ def showTemplate(request):
     }
     return render(request, 'showTemplate.html', context)
 
-@login_required(login_url = '/cp2/loginPage')
+@login_required(login_url='login')
 @csrf_protect
 def ajax_delete_blob_template(request):
     template_id = request.POST['template_id']
@@ -210,7 +213,7 @@ def ajax_delete_blob_template(request):
         response['status'] = 'OK'
         return HttpResponse(json.dumps(response), 'application/json')
 
-@login_required(login_url= 'cp2/loginPage')
+@login_required(login_url='login')
 def ajax_delete_blob_demo(request):
     demo_id = request.POST['demo_id']
     pos_set = request.POST['pos_set']
@@ -230,7 +233,7 @@ def ajax_delete_blob_demo(request):
         return render(request, 'Homepage.html')
 
 
-@login_required(login_url = '/cp2/loginPage')
+@login_required(login_url='login')
 def ajax_delete_template(request):
     template_id = request.POST['template_id']
     response = {}
@@ -244,7 +247,7 @@ def ajax_delete_template(request):
         response['status'] = 'OK'
         return HttpResponse(json.dumps(response), 'application/json')
 
-@login_required(login_url = '/cp2/loginPage')
+@login_required(login_url='login')
 def ajax_remove_blob_from_template(request):
     template_id = request.POST['template_id']
     blob_set = request.POST['blob_set']
@@ -263,7 +266,7 @@ def ajax_remove_blob_from_template(request):
         response['status'] = 'OK'
         return HttpResponse(json.dumps(response), 'application/json')
 
-@login_required(login_url = '/cp2/loginPage')
+@login_required(login_url='login')
 def ajax_remove_blob_from_demo(request):
     demo_id = request.POST['demo_id']
     blob_set = request.POST['blob_set']
@@ -288,7 +291,7 @@ def ajax_remove_blob_from_demo(request):
         return HttpResponse(json.dumps(response), 'application/json')
 
 
-@login_required(login_url='/cp2/loginPage')
+@login_required(login_url='login')
 def CreateBlob(request):
     context = {}
     if 'demo_id' in request: # demo blob edit
@@ -307,7 +310,7 @@ def CreateBlob(request):
         }
     return render(request, 'createBlob.html', context)
 
-@login_required(login_url = '/cp2/loginPage')
+@login_required(login_url='login')
 def ajax_add_blob_demo(request):
     blob_set = request.POST['SET']
     pos_set = request.POST['PositionSet']
@@ -333,7 +336,7 @@ def ajax_add_blob_demo(request):
         return render(request, 'Homepage.html')
 
 
-@login_required(login_url = '/cp2/loginPage')
+@login_required(login_url='login')
 def ajax_add_blob_template(request):
     blob_set = request.POST['SET']
     pos_set = request.POST['PositionSet']
@@ -356,7 +359,7 @@ def ajax_add_blob_template(request):
         response['status'] = 'OK'
         return HttpResponse(json.dumps(response), 'application/json')
     
-@login_required(login_url= '/cp2/loginPage')
+@login_required(login_url='login')
 @never_cache
 def detailsBlob(request):
     context = {}
@@ -415,7 +418,7 @@ def detailsBlob(request):
 
 
 
-@login_required(login_url = '/cp2/loginPage')
+@login_required(login_url='login')
 def ajax_edit_blob_template(request):
     new_blob_set = request.POST['SET']
     blob_set = request.POST['old_set']
@@ -439,7 +442,7 @@ def ajax_edit_blob_template(request):
         response['status'] = 'OK'
         return HttpResponse(json.dumps(response), 'application/json')
 
-@login_required(login_url='/cp2/loginPage')
+@login_required(login_url='login')
 def showDemo(request):
     demo_id = request.GET['demo_id']
     title = request.GET['title']
@@ -467,7 +470,7 @@ def showDemo(request):
     return render(request, 'showDemo.html', context)
 
 
-@login_required(login_url='/cp2/loginPage')
+@login_required(login_url='login')
 def ddl_history(request):
     demo_id = request.GET['demo_id']
     title = request.GET['title']
@@ -482,7 +485,7 @@ def ddl_history(request):
     }
     return render(request, 'ddl_history.html', context)
 
-@login_required(login_url='/cp2/loginPage')
+@login_required(login_url='login')
 def ajax_user_can_edit_demo(request):
     demo_id = request.POST['demoID']
     response = {}
@@ -496,7 +499,7 @@ def ajax_user_can_edit_demo(request):
         return HttpResponse(json.dumps(response), 'application/json')
 
 
-@login_required(login_url='/cp2/loginPage')
+@login_required(login_url='login')
 def ajax_remove_vr(request):
     blob_id = request.POST['blob_id']
     settings = {'blob_id' : blob_id}
@@ -509,7 +512,7 @@ def ajax_remove_vr(request):
     else: 
         return JsonResponse({'message': 'Could not remove VR'}, status=404)
 
-@login_required(login_url='/cp2/loginPage')
+@login_required(login_url='login')
 def ajax_show_DDL(request):
     demo_id = request.POST['demoID']
     settings = {'demo_id': demo_id}
@@ -522,7 +525,7 @@ def ajax_show_DDL(request):
         response['status'] = 'OK'
         return HttpResponse(json.dumps(result), 'application/json')
 
-@login_required(login_url='/cp2/loginPage')
+@login_required(login_url='login')
 def ajax_save_DDL(request):
     demo_id = request.POST['demo_id']
     ddl = request.POST['ddl']
@@ -533,7 +536,7 @@ def ajax_save_DDL(request):
     else:
         return JsonResponse({'status': 'OK', 'message': 'Unauthorized'}, status=401)
 
-@login_required(login_url='/cp2/loginPage')
+@login_required(login_url='login')
 def showBlobsDemo(request):
     demo_id = request.GET['demo_id']
     can_edit = user_can_edit_demo(request.user, demo_id)
@@ -556,7 +559,7 @@ def showBlobsDemo(request):
 
     return render(request, 'showBlobsDemo.html', context)
 
-@login_required(login_url='/cp2/loginPage')
+@login_required(login_url='login')
 def demoExtras(request):
     demo_id = request.GET['demo_id']
     response = api_post('/api/demoinfo/get_demo_extras_info', {'demo_id': demo_id }).json()
@@ -575,7 +578,7 @@ def demoExtras(request):
     }
     return render(request, 'demoExtras.html', context)
 
-@login_required(login_url='/cp2/loginPage')
+@login_required(login_url='login')
 @csrf_protect
 def ajax_add_demo_extras(request):
     demo_id = request.POST['demo_id']
@@ -590,14 +593,14 @@ def ajax_add_demo_extras(request):
         api_post('/api/demoinfo/add_demoextras', params= params, files= files).json()
     return HttpResponseRedirect(f'/cp2/demoExtras?demo_id={demo_id}')
 
-@login_required(login_url='/cp2/loginPage')
+@login_required(login_url='login')
 def ajax_delete_demo_extras(request, demo_id):
     if user_can_edit_demo(request.user, demo_id):
         response = api_post('/api/demoinfo/delete_demoextras', { 'demo_id': demo_id }).json()
         # TODO
     return HttpResponseRedirect(f'/cp2/demoExtras?demo_id={demo_id}')
 
-@login_required(login_url='/cp2/loginPage')
+@login_required(login_url='login')
 def ajax_add_template_to_demo(request):
     demo_id = request.POST['demo_id']
     template_id = request.POST['template_id']
@@ -615,7 +618,7 @@ def ajax_add_template_to_demo(request):
     else: 
         return render(request, 'Homepage.html')
 
-@login_required(login_url='/cp2/loginPage')
+@login_required(login_url='login')
 def ajax_remove_template_to_demo(request):
     demo_id = request.POST['demo_id']
     template_id = request.POST['template_id']
@@ -633,7 +636,7 @@ def ajax_remove_template_to_demo(request):
     else: 
         return render(request, 'Homepage.html')
 
-@login_required(login_url = '/cp2/loginPage')
+@login_required(login_url='login')
 def ajax_edit_blob_demo(request):
     demo_id = request.POST['demo_id']
     files = {}
@@ -661,7 +664,7 @@ def ajax_edit_blob_demo(request):
     else:
         return render(request, 'homepage.html')
 
-@login_required(login_url = '/cp2/loginPage')
+@login_required(login_url='login')
 def show_archive(request):
     demo_id = request.GET['demo_id']
     title = request.GET['title']
@@ -691,7 +694,7 @@ def show_archive(request):
     return render(request, 'archive.html', context)
 
 
-@login_required(login_url = '/cp2/loginPage')
+@login_required(login_url='login')
 def show_experiment(request):
     demo_id = request.GET['demo_id']
     title = request.GET['title']
@@ -713,7 +716,7 @@ def show_experiment(request):
     }
     return render(request, 'showExperiment.html', context)
 
-@login_required(login_url='/cp2/loginPage')
+@login_required(login_url='login')
 def ajax_delete_experiment(request):
     demo_id = request.POST['demo_id']
     experiment_id = request.POST['experiment_id']
