@@ -12,24 +12,18 @@
     //-----------------------------------------DR-----------------------------------------//
     function chargeDR(data) {
         for (const dr of data.demorunners) {
-            console.log(dr);
+            let workload = dr.workload || 'N/A'
+            let DRStatus = '<i class="fa-solid fa-triangle-exclamation">';
             if (dr.status == 'OK') {
-                $('#dr-table').append(`
-                    <tr>
-                        <td>${dr.name}</td>
-                        <td>${dr.workload}</td>
-                        <td><i class="fa-solid fa-check"></td>
-                    </tr>
-                `)
-            } else {
-                $('#dr-table').append(`
-                    <tr>
-                        <td>${dr.name}</td>
-                        <td>${dr.workload}</td>
-                        <td><i class="fa-solid fa-triangle-exclamation"></td>
-                    </tr>
-                `)
+                DRStatus = '<i class="fa-solid fa-check">';
             }
+            $('#dr-table').append(`
+                <tr>
+                    <td>${dr.name}</td>
+                    <td>${workload}</td>
+                    <td>${DRStatus}</td>
+                </tr>
+            `)
         }
     };
 
@@ -101,7 +95,6 @@
     function chargeBlobs(data) {
         $('#Blobs').append('<p>Number of blobs: ' + data.nb_blobs + '</p>');
         $('#Blobs').append('<p>Number of templates: ' + data.nb_templates + '</p>');
-        $('#Blobs').append('<p>Number of tags: ' + data.nb_tags + '</p>');
     }
 
     $(function() {
