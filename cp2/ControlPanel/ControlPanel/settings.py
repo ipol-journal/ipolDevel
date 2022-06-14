@@ -14,9 +14,9 @@ import os
 import socket
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PROJECT_DIR = os.path.normpath(os.path.join(BASE_DIR, '../..'))
-OUTER_DIR = os.path.normpath(os.path.join(PROJECT_DIR, '..'))
+CP2_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # ControlPanel
+IPOLDEVEL_DIR = os.path.normpath(os.path.join(CP2_DIR, '../..')) # ipolDevel
+HOME_DIR = os.path.normpath(os.path.join(IPOLDEVEL_DIR, '..')) # ipol user folder
 
 
 
@@ -29,20 +29,46 @@ SECRET_KEY = 'ng&u0bv6bm6cs+w+c#=*b0-#g-e_*t(my7(q@&1@^b5m@-)&^!'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [socket.getfqdn(), '127.0.0.1', 'localhost', 'integration.ipol.im', 'ipolcore.ipol.im']
+HOST_NAME = socket.getfqdn()
+ALLOWED_HOSTS = []
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost",
-    "http://127.0.0.1",
-    "https://integration.ipol.im",
-    "https://ipolcore.ipol.im",
-]
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost",
-    "http://127.0.0.1",
-    "https://integration.ipol.im",
-    "https://ipolcore.ipol.im",
+dev_machines = ['127.0.0.1', 'localhost']
+production_servers = ['integration.ipol.im', 'ipolcore.ipol.im']
+
+if HOST_NAME in dev_machines:
+    DEBUG = True
+    ALLOWED_HOSTS = [socket.getfqdn(), '127.0.0.1']
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost",
+        "http://127.0.0.1",
     ]
+    CSRF_TRUSTED_ORIGINS = [
+        "http://localhost",
+        "http://127.0.0.1",
+    ]
+
+elif HOST_NAME in production_servers:
+    DEBUG = False
+    CORS_ALLOWED_ORIGINS = [
+        "https://integration.ipol.im",
+        "https://ipolcore.ipol.im",
+    ]
+    CSRF_TRUSTED_ORIGINS = [
+        "https://integration.ipol.im",
+        "https://ipolcore.ipol.im",
+    ]
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/2.0/howto/static-files/
+# python3 manage.py collectstatic pour copier les fichiers static (du projet et de l'admin) dans 
+STATIC_URL = 'cp2/static/'
+STATIC_ROOT = os.path.join(HOME_DIR, 'CP2_STATIC')
+STATICFILES_DIRS = (
+#     # Put strings here, like "/home/html/static" or "C:/www/django/static".
+#     # Always use forward slashes, even on Windows.
+#     # Don't forget to use absolute paths, not relative paths.
+    os.path.join(CP2_DIR, 'static_cp'),
+)
 
 # Application definition
 
@@ -73,7 +99,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, 'templates'),
+            os.path.join(CP2_DIR, 'templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -96,7 +122,7 @@ WSGI_APPLICATION = 'ControlPanel.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': os.path.join(CP2_DIR, 'db.sqlite3'),
     }
 }
 
@@ -132,19 +158,3 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/2.0/howto/static-files/
-# python3 manage.py collectstatic pour copier les fichiers static (du projet et de l'admin) dans 
-#static Root
-
-STATIC_URL = '/cp2/static/'
-STATIC_ROOT = os.path.join(OUTER_DIR, 'CP2_STATIC/')
-STATICFILES_DIRS = (
-        # Put strings here, like "/home/html/static" or "C:/www/django/static".
-        # Always use forward slashes, even on Windows.
-        # Don't forget to use absolute paths, not relative paths.
-        os.path.join(PROJECT_DIR, 'cp2/ControlPanel/static_cp/'),
-)
-HOST_NAME = socket.getfqdn()
