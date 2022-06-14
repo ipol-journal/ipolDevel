@@ -38,6 +38,7 @@ production_servers = ['integration.ipol.im', 'ipolcore.ipol.im']
 if HOST_NAME in dev_machines:
     DEBUG = True
     ALLOWED_HOSTS = [socket.getfqdn(), '127.0.0.1']
+
     CORS_ALLOWED_ORIGINS = [
         "http://localhost",
         "http://127.0.0.1",
@@ -49,6 +50,8 @@ if HOST_NAME in dev_machines:
 
 elif HOST_NAME in production_servers:
     DEBUG = False
+    ALLOWED_HOSTS = [socket.getfqdn()]
+
     CORS_ALLOWED_ORIGINS = [
         "https://integration.ipol.im",
         "https://ipolcore.ipol.im",
