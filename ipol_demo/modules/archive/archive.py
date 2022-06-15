@@ -301,7 +301,7 @@ class Archive():
             final_path, _ = self.get_new_path(main_dir, hash_file, extension)
             if not os.path.exists(final_path):
                 shutil.copyfile(original_path, final_path)
-                return final_path
+            return final_path
         except Exception as ex:
             message = "Failure in copy_file_in_folder. Error={}".format(ex)
             self.logger.exception(message)
