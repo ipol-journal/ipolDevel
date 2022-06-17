@@ -3,7 +3,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import never_cache
-from django.contrib.auth import logout, authenticate, login as loginMethod
+from django.contrib.auth import logout as logoutMethod, authenticate, login as loginMethod
 from .forms import loginForm
 import json, requests
 from .utils import api_post, user_can_edit_demo
@@ -15,7 +15,7 @@ from ControlPanel.settings import HOST_NAME
 
 
 @login_required(login_url='login')
-def Homepage(request):
+def homepage(request):
     try:
         qfilter = request.GET.get('qfilter')
     except:
@@ -44,7 +44,7 @@ def Homepage(request):
         "previous_page_number": demos['previous_page_number'],
         "host_url": host_url
     }
-    return render(request, 'Homepage.html', context)
+    return render(request, 'homepage.html', context)
 
 @csrf_protect
 def loginPage(request):
@@ -66,8 +66,8 @@ def signout(request):
 
 @login_required(login_url='login')
 @csrf_protect
-def logoff(request):
-    logout(request)
+def logout(request):
+    logoutMethod(request)
     return redirect('login')
 
 @login_required(login_url='login')
@@ -230,7 +230,7 @@ def ajax_delete_blob_demo(request):
             response['status'] = 'OK'
             return HttpResponse(json.dumps(response), 'application/json')
     else:
-        return render(request, 'Homepage.html')
+        return render(request, 'homepage.html')
 
 
 @login_required(login_url='login')
@@ -294,9 +294,10 @@ def ajax_remove_blob_from_demo(request):
 @login_required(login_url='login')
 def CreateBlob(request):
     context = {}
-    if 'demo_id' in request: # demo blob edit
-        can_edit = user_can_edit_demo(request.GET['demo_id'])
+    if 'demo_id' in request.GET: # demo blob edit
+        can_edit = user_can_edit_demo(request.user, request.GET['demo_id'])
         context = {
+            'create_blob': True,
             'demo_id': request.GET['demo_id'],
             'can_edit': can_edit
         }
@@ -312,6 +313,7 @@ def CreateBlob(request):
 
 @login_required(login_url='login')
 def ajax_add_blob_demo(request):
+    print(request.POST)
     blob_set = request.POST['SET']
     pos_set = request.POST['PositionSet']
     title = request.POST['Title']
@@ -333,7 +335,7 @@ def ajax_add_blob_demo(request):
             response['status'] = 'OK'
             return HttpResponse(json.dumps(response), 'application/json')
     else: 
-        return render(request, 'Homepage.html')
+        return render(request, 'homepage.html')
 
 
 @login_required(login_url='login')
@@ -616,7 +618,7 @@ def ajax_add_template_to_demo(request):
             response['status'] = 'OK'
             return HttpResponse(json.dumps(response), 'application/json')
     else: 
-        return render(request, 'Homepage.html')
+        return render(request, 'homepage.html')
 
 @login_required(login_url='login')
 def ajax_remove_template_to_demo(request):
@@ -634,7 +636,7 @@ def ajax_remove_template_to_demo(request):
             response['status'] = 'OK'
             return HttpResponse(json.dumps(response), 'application/json')
     else: 
-        return render(request, 'Homepage.html')
+        return render(request, 'homepage.html')
 
 @login_required(login_url='login')
 def ajax_edit_blob_demo(request):

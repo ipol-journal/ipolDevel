@@ -2,9 +2,12 @@
     <h2>Blob information</h2>
     {% csrf_token %}
     {% if create_blob %}
-    <div>
-        <label>Blob</label><input type="file" id="Blob" onchange="blobUploaded()" />
-        <i class="fas fa-times" onclick="removeBlob()"></i>
+    <div class="form-item">
+        <label for="blob">Blob</label>
+        <div id="blob-upload">
+            <input type="file" name="blob" id="blob" onchange="blobUploaded()" />
+            <i class="fas fa-times" onclick="removeBlob()"></i>
+        </div>
     </div>
     {% endif %}
     <div class="form-item">

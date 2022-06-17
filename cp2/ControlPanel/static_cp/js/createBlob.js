@@ -6,8 +6,6 @@ var template_name = getParameterByName('template_name');
 
 $(document).ready(function() {
     if (template_id) {
-        // document.getElementById("nameOfTemplate").innerHTML = template_id;
-        // $("#goPreviousPage").attr('href', '/cp2/showTemplates?template=' + template_id);
         var form = document.getElementById('editBlobForm');
         form.onsubmit = function(e) {
             e.preventDefault();
@@ -33,7 +31,7 @@ $(document).ready(function() {
                 dataType: 'json',
                 success: function(data) {
                     if (data.status === 'OK') {
-                        document.location.href = `/cp2/showTemplates?template_id=${template_id}&template_name=${template_name}`
+                        document.location.href = `showTemplates?template_id=${template_id}&template_name=${template_name}`
                     } else {
                         alert("Error to add this Blob to the Template")
                     }
@@ -41,19 +39,17 @@ $(document).ready(function() {
             })
         }
     } else {
-        var demo_id = getParameterByName('demo_id');
-        document.getElementById("nameOfTemplate").innerHTML = demo_id;
-        $("#goPreviousPage").attr("href", "/cp2/showBlobsDemo?demo_id=" + demo_id)
+        let demo_id = getParameterByName('demo_id');
         update_edit_demo();
-        var form = document.getElementById('createBlobForm');
+        var form = document.getElementById('editBlobForm');
         form.onsubmit = function(e) {
             e.preventDefault();
             var formData = new FormData();
-            formData.append('Title', $('#Title').val());
-            formData.append('SET', $('#SET').val());
-            formData.append('PositionSet', $('#PositionSet').val());
-            formData.append('Credit', $('#Credit').val());
-            formData.append('Tags', $('#Tags').val());
+            formData.append('Title', $('#title').val());
+            formData.append('SET', $('#set').val());
+            formData.append('PositionSet', $('#positionSet').val());
+            formData.append('Credit', $('#credit').val());
+            formData.append('Tags', $('#tags').val());
             formData.append('demo_id', demo_id);
             formData.append('Blobs', blobImage, blobImage.name);
             if (VRImage) {
@@ -70,7 +66,7 @@ $(document).ready(function() {
                 dataType: 'json',
                 success: function(data) {
                     if (data.status === 'OK') {
-                        document.location.href = "/cp2/showBlobsDemo?demo_id=" + demo_id
+                        document.location.href = "showBlobsDemo?demo_id=" + demo_id
                     } else {
                         alert("Error to add this Blob to the demo")
                     }
