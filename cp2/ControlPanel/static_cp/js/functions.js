@@ -23,7 +23,7 @@ function vrUploaded(){
 
 function blobUploaded(){
   var thumbnail = document.getElementById("thumbnail");
-  var blob = document.getElementById("Blob");
+  var blob = document.getElementById("blob");
   var fr = new FileReader();
   fr.onload = function() { thumbnail.src = this.result; };
   fr.readAsDataURL(blob.files[0]);
@@ -34,7 +34,7 @@ function blobUploaded(){
 };
 
 function removeBlob(){
-  document.getElementById("Blob").value = "";
+  document.getElementById("blob").value = "";
   document.getElementById("thumbnail").src = "";
   blobImage = null;
 }
