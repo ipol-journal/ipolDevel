@@ -46,7 +46,7 @@
     <h2>Demos using template {{ template_name }}</h2>
     <div class="demos-container">
         {% for demo_id in demos_using_template %}
-        <a href="/cp2/showBlobsDemo?demo_id={{demo_id}}" class="demo">{{ demo_id }}</a>
+        <a href="showBlobsDemo?demo_id={{demo_id}}" class="demo">{{ demo_id }}</a>
         {% endfor %}
     </div>
 </div>

@@ -6,7 +6,7 @@
 
 <div class="head">
     <h2>Demo blobsets</h2>
-    <a id="addBlob" class="btn btn-add" href="createBlob?demo_id={{demo_id}}&demo_title={{demo_title}}">Add new Blob</a> 
+    <a id="addBlob" class="btn btn-add" href="createBlob?demo_id={{demo_id}}&demo_title={{demo_title}}">Add new Blob</a>
 </div>
 <div class="set-container">
     {% for set in blob_sets %}
@@ -48,7 +48,7 @@
     </div>
     <div id="templates-used" class="demos-container">
         {% for template in demo_used_templates %}
-        <a href="/cp2/showTemplate?template_id={{template.id}}&template_name={{template.name}}" class="demo">
+        <a href="showTemplate?template_id={{template.id}}&template_name={{template.name}}" class="demo">
             <p>{{ template.name }}</p>
             <button class="btn-delete unlink-template" data-template-id="{{template.id}}">X</button>
         </a>

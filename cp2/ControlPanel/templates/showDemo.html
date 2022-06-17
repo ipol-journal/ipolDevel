@@ -8,9 +8,9 @@
         <h3>Title: {{ title }}</h3>
         <div id="demo-buttons">
             <div class="optionLine">
-                <a id="demoExtras" href="/cp2/demoExtras?demo_id={{ demo_id }}" class="btn">Demo Extras</a>
+                <a id="demoExtras" href="demoExtras?demo_id={{ demo_id }}" class="btn">Demo Extras</a>
                 <a href="showArchive?demo_id={{ demo_id }}&title={{title}}" class="btn">Archive</a>
-                <a id="showBlobsDemo" href="/cp2/showBlobsDemo?demo_id={{ demo_id }}" class="btn">Blobs</a>
+                <a id="showBlobsDemo" href="showBlobsDemo?demo_id={{ demo_id }}" class="btn">Blobs</a>
                 {% if can_edit %}
                 <button id="editors-btn" class="btn">Editors</button id="editors-btn">
                 {% else %}
