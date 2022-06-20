@@ -46,7 +46,8 @@ function showDemos(demoList) {
         let demoTitle = document.createElement('h1');
         demoTitle.setAttribute("class", "demo-title");
         let seeDemoButton = document.createElement('a');
-        seeDemoButton.setAttribute('href', `https://ipolcore.ipol.im/demo/clientApp/demo.html?id=${demo.editorsdemoid}`);
+        let location_url = `${window.location.protocol}//${window.location.host}`;
+        seeDemoButton.setAttribute('href', `${location_url}/demo/clientApp/demo.html?id=${demo.editorsdemoid}`);
         seeDemoButton.setAttribute('class', `btn`);
         seeDemoButton.textContent =`Open demo`;
         seeDemoButton.target = '_blank';
