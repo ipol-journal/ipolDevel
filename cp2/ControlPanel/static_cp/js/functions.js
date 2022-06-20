@@ -47,7 +47,7 @@ function removeVr(){
 
 function setBrokenImage(image) {
   image.onerror = "";
-  image.src = "/cp2/static/images/non_viewable_inputs.png";
+  image.src = "static/images/non_viewable_inputs.png";
 }
 
 /*  secure AJAX POST to ws ,from django docs  */

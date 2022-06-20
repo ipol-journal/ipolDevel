@@ -56,7 +56,7 @@ function addTemplates() {
             dataType : 'json',
             success: function(data) {
                 if (data.status === 'OK') {
-                    document.location.href = `/cp2/showTemplate?template_id=${data.template_id}&template_name=${templateName}`
+                    document.location.href = `showTemplate?template_id=${data.template_id}&template_name=${templateName}`
                 } else {
                     alert("Error when adding the template in the DataBase");
                 }

@@ -24,7 +24,7 @@ get_demo_blobs.onload = function() {
 
 
 function showTemplates(sets) {
-   $("#addBlob").attr('href', `/cp2/createBlob?template_id=${template_id}&template_name=${template_name}`);
+   $("#addBlob").attr('href', `createBlob?template_id=${template_id}&template_name=${template_name}`);
 
    
     for (var i = 0; i < sets.length; i++) {
@@ -42,7 +42,7 @@ function showTemplates(sets) {
             var image = document.createElement('div');
             image.setAttribute("class","image_files");
             var blobDetails = document.createElement('a');
-            blobDetails.setAttribute("href", `/cp2/detailsBlob?&template_id=${template_id}&template_name=${template_name}&set=${sets[i].name}&pos=${blob_pos}`);
+            blobDetails.setAttribute("href", `detailsBlob?&template_id=${template_id}&template_name=${template_name}&set=${sets[i].name}&pos=${blob_pos}`);
             var image_src = document.createElement('img');
             image_src.setAttribute("src",detailsBlob.thumbnail);
             image_src.setAttribute("onError", "setBrokenImage(this)");
@@ -71,7 +71,7 @@ function show_demo_using_template(demos){
         var demoUsingTemplate = document.createElement('div');
         demoUsingTemplate.setAttribute("class", "demoUsingTemplate");
         var showBlobsDemo = document.createElement('a');
-        showBlobsDemo.setAttribute("href", "/cp2/showBlobsDemo?demo_id="+demos[i]);
+        showBlobsDemo.setAttribute("href", "showBlobsDemo?demo_id="+demos[i]);
 
         showBlobsDemo.textContent = "ID: "+demos[i];
         section.appendChild(demoUsingTemplate);
@@ -102,7 +102,7 @@ function deleteBlob() {
             url: 'removeBlob/ajax_remove_blob_from_template',
             success: function(data) {
                 if (data.status === 'OK') {
-                    document.location.href = `/cp2/showTemplate?template_id=${template_id}&template_name=${template_name}`
+                    document.location.href = `showTemplate?template_id=${template_id}&template_name=${template_name}`
                 } else {
                     alert("Error to delete this Blob");
                 }
@@ -127,7 +127,7 @@ $("button#deleteTemplate").click(function () {
         url : 'showTemplates/ajax_delete_template',
         success : function (data) {
             if (data.status === 'OK') {
-                document.location.href = "/cp2/templates"
+                document.location.href = "templates"
             } else {
                 alert("Error to delete this template")
             }

@@ -38,7 +38,7 @@ $("button.unlink-template").click(function () {
         dataType: 'json',
         success: function(data) {
             if (data.status === 'OK') {
-                document.location.href = "/cp2/showBlobsDemo?demo_id=" + demo_id;
+                document.location.href = "showBlobsDemo?demo_id=" + demo_id;
             } else {
                 alert("Error to delete this template from the demo");
             }

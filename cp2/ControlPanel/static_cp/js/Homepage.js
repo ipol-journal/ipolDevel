@@ -34,7 +34,7 @@ function showDemos(demoList) {
         let demoInfo = document.createElement('div');
         demoInfo.setAttribute("class", "demo-card");
         let editButton = document.createElement('a');
-        editButton.setAttribute("href", "/cp2/showDemo?demo_id=" + demo.editorsdemoid);
+        editButton.setAttribute("href", "showDemo?demo_id=" + demo.editorsdemoid);
         editButton.setAttribute('class', `btn`);
         editButton.textContent = `Edit demo`;
         let demoId = document.createElement('p');
@@ -188,7 +188,7 @@ function addDemos() {
             type: 'POST',
             success: function(data) {
                 if (data.status === 'OK') {
-                    document.location.href = "/cp2/showDemo?demo_id="+ $DemoId
+                    document.location.href = "showDemo?demo_id="+ $DemoId
                 } else {
                     alert("Problem to add this Demo")
                 }
