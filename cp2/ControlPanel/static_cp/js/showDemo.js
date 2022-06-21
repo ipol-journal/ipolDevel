@@ -2,10 +2,15 @@ let section = document.querySelector('section');
 let csrftoken = getCookie('csrftoken');
 let demo_id = getParameterByName('demo_id');
 let can_edit = document.getElementById('can_edit');
+const location_url = `${window.location.protocol}//${window.location.host}`;
 let saveButton = document.getElementById("save-btn");
 let ddlStatusText = document.getElementById("ddl-status-text");
 let editorsDialog = document.querySelector('#editors-dialog');
 const editorsButton = document.getElementById('editors-btn');
+
+let demoEditDialog = document.querySelector('#editDemo-dialog');
+const demoEditButton = document.getElementById('demoEdit-btn');
+
 let aceEditor = ace.edit("aceEditor", {
 	 mode: "ace/mode/json",
 	 autoScrollEditorIntoView: false,
@@ -19,12 +24,14 @@ let editors = '';
 $(document).ready(function() {
 	 showDDL();
 	 aceEditor.on('input', function(){
-		console.log('input');
 		checkChanges();
 	})
+	get_demos();
+	getDemoState();
 });
 
 $('#editors-btn-close').click(() => editorsDialog.close());
+$('#demoEdit-btn-close').click(() => demoEditDialog.close());
 
 // Ace editor THEMES
 $("#changeThemeWhite").click(function() {
@@ -171,26 +178,97 @@ editorsButton.addEventListener('click', function onOpen() {
 	}
  });
 
+ demoEditButton.addEventListener('click', function onOpen() {
+	if (typeof demoEditDialog.showModal === "function") {
+		 demoEditDialog.showModal();
+	} else {
+	   outputBox.value = "Sorry, the <dialog> API is not supported by this browser.";
+	}
+ });
+
 $('.editor > button').click(function() {
    let editor_id = $(this).attr('data-editor-id');
    $.ajax({
-	   data: ({
-		   demo_id: demo_id,
-		   editor_id: editor_id,
-		   csrfmiddlewaretoken: csrftoken,
-	   }),
-	   type: 'POST',
-	   dataType: 'json',
-	   url: 'remove_demo_editor',
-	   success: function(data) {
-		   if (data.status == 'OK') {
-			   $(`#editor-${editor_id}`).remove();
-		   } else {
-			   alert(`Editor could not be removed. ${data.message}`)
-		   }
-	   },
-	   error: function(error) {
-		   alert(`Editor could not be removed. ${error}`)
-	   }
-   });
+		data: ({
+			demo_id: demo_id,
+			editor_id: editor_id,
+			csrfmiddlewaretoken: csrftoken,
+		}),
+		type: 'POST',
+		dataType: 'json',
+		url: 'remove_demo_editor',
+		success: function(data) {
+			if (data.status == 'OK') {
+				$(`#editor-${editor_id}`).remove();
+			} else {
+				alert(`Editor could not be removed. ${data.message}`)
+			}
+		},
+		error: function(error) {
+			alert(`Editor could not be removed. ${error}`)
+		}
+	});
 })
+
+async function get_demos() {
+	demo_ids = await fetch(`${location_url}/api/demoinfo/demo_list`)
+		.then(response => response.json())
+		.then(data => {
+			let ids = data.demo_list.map(demo => demo.editorsdemoid);
+			return ids;
+		});
+
+	$('#new_demo_id').keyup(function() {
+		const value = $(this).val();
+		let inputID = document.getElementById('new_demo_id');
+		if (value == demo_id) {
+			inputID.setCustomValidity('');
+			return;
+		}
+		let demoIDtext = document.getElementById('demo-id-used-warning');
+		if (value.length == 0) {
+			demoIDtext.innerHTML = '';
+			return;
+		}
+		const contained = demo_ids.includes(parseInt(value));
+		if (contained && value != demo_id) {
+			inputID.setCustomValidity('ID in use, pick another');
+			demoIDtext.innerHTML = 'ID in use, pick another';
+			demoIDtext.style.color = "red";
+		} else {
+			inputID.setCustomValidity('');
+			demoIDtext.innerHTML = 'Demo ID is valid';
+			demoIDtext.style.color = "green";
+		}
+	});
+}
+
+async function getDemoState() {
+	let demoMetadata = await fetch(`${location_url}/api/demoinfo/read_demo_metainfo?demoid=125`)
+	.then(response => response.json())
+	$(`option[value=${demoMetadata.state}]`)
+	document.querySelector(`option[value=${demoMetadata.state}]`).selected = true;
+}
+
+function deleteDemo() {
+	$.ajax({
+		beforeSend: function() {
+			return confirm('This will permanently delete the current demo, are you sure?');
+		},
+		data: ({
+			demo_id: demo_id,
+			csrfmiddlewaretoken: csrftoken,
+		}),
+		dataType : 'json',
+		type: 'POST',
+		url: 'removeDemo/ajax',
+		success: function(data) {
+			if (data.status != 'OK') {
+				toast(data.message);
+			} else {
+				toast('Demo deleted successfully');
+				document.location.href = `/cp2`
+			}
+		},
+   });
+}

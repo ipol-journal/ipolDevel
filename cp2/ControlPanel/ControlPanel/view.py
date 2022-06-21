@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import never_cache
@@ -134,19 +135,37 @@ def remove_demo_editor(request):
 def ajax_add_demo(request):
     state = request.POST['State'].lower()
     title = request.POST['Title']
-    demoid = request.POST['DemoId']
+    demo_id = request.POST['DemoId']
     
-    settings = {'state': state, 'title': title, 'editorsdemoid': demoid, 'ddl': '{}'}
+    settings = {'state': state, 'title': title, 'editorsdemoid': demo_id, 'ddl': '{}'}
     response_api = api_post("/api/demoinfo/add_demo", settings, json='{}')
     result = response_api.json()
 
     editor_info = api_post('/api/demoinfo/get_editor', { 'email': request.user.email }).json()
     editor_id = editor_info['editor']['id']
-    settings = {'demo_id': demoid, 'editor_id': editor_id }
+    settings = {'demo_id': demo_id, 'editor_id': editor_id }
     editor_add = api_post('/api/demoinfo/add_editor_to_demo', settings).json()
 
     response = {}
     if result.get('status') != 'OK' or editor_add.get('status') != 'OK':
+        response['status'] = 'KO'
+        response['message'] = result.get('error')
+    else:
+        response['status'] = 'OK'
+    return HttpResponse(json.dumps(response), 'application/json')
+
+@login_required(login_url='login')
+@csrf_protect
+def ajax_delete_demo(request):
+    demo_id = request.POST['demo_id']
+
+    if user_can_edit_demo(request.user, demo_id):
+        settings = {'demo_id': demo_id}
+        response_api = api_post("/api/demoinfo/delete_demo", settings, json='{}')
+        result = response_api.json()
+
+    response = {}
+    if result.get('status') != 'OK':
         response['status'] = 'KO'
         response['message'] = result.get('error')
     else:
@@ -471,6 +490,32 @@ def showDemo(request):
     
     return render(request, 'showDemo.html', context)
 
+@login_required(login_url='login')
+def edit_demo(request):
+    demo_id = request.POST['demo_id']
+    new_demo_id = request.POST['new_demo_id']
+    title = request.POST['demoTitle']
+    state = request.POST['state']
+    demo = {
+        'editorsdemoid': new_demo_id,
+        'title': title,
+        'state': state
+    }
+
+    settings ={
+        'old_editor_demoid': demo_id,
+        'demo': json.dumps(demo)
+    }
+
+    demoinfo_response = api_post('/api/demoinfo/update_demo', settings).json()
+    print(demoinfo_response)
+    response = {}
+    if demoinfo_response.get('status') != 'OK':
+        response['status'] = 'KO'
+        response['message'] = demoinfo_response.get('error')
+        return HttpResponse(json.dumps(response), 'application/json')
+    else:
+        return HttpResponseRedirect(f'/cp2/showDemo?demo_id={new_demo_id}&title={title}')
 
 @login_required(login_url='login')
 def ddl_history(request):

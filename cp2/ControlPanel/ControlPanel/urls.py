@@ -20,7 +20,7 @@ from ControlPanel.view import *
 
 urlpatterns = [
     path('cp2/', include([
-        path('', homepage),
+        path('', homepage, name='homepage'),
         path('admin', admin.site.urls),
         path('login', loginPage, name='login'),
         path('signout', signout),
@@ -29,6 +29,7 @@ urlpatterns = [
         path('add_demo_editor', add_demo_editor, name='add_demo_editor'),
         path('remove_demo_editor', remove_demo_editor, name='remove_demo_editor'),
         path('addDemo/ajax', ajax_add_demo),
+        path('removeDemo/ajax', ajax_delete_demo, name='delete_demo'),
         path('templates', templates),
         path('templates/ajax', ajax_add_template),
         path('showTemplate', showTemplate),
@@ -47,6 +48,7 @@ urlpatterns = [
         path('showDemo/ajax_showDDL', ajax_show_DDL),
         path('showDemo/ajax_save_DDL', ajax_save_DDL, name='save_ddl'),
         path('showDemo/ajax_user_can_edit_demo', ajax_user_can_edit_demo),
+        path('showDemo/ajax_edit_demo', edit_demo, name='edit_demo'),
         path('showDemo/ddl_history', ddl_history, name='ddl_history'),
         path('showBlobsDemo', showBlobsDemo),
         path('showBlobsDemo/ajax', ajax_delete_blob_demo),

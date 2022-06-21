@@ -44,3 +44,22 @@
     justify-content: space-between;
     padding-top: 1rem;
 }
+
+#edit-demo-form {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 20rem;
+    max-width: 80%;
+}
+
+#edit-demo-form > input,
+#edit-demo-form > select {
+    padding: 0.5rem;
+    border: 1px solid black;
+    border-radius: var(--border-radius);
+    font-size: var(--fs-normal);
+}

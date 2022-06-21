@@ -8,16 +8,49 @@
         <h3>Title: {{ title }}</h3>
         <div id="demo-buttons">
             <div class="optionLine">
-                <a id="demoExtras" href="demoExtras?demo_id={{ demo_id }}" class="btn">Demo Extras</a>
+                <a id="demoExtras" href="demoExtras?demo_id={{ demo_id }}&title={{title}}" class="btn">Demo Extras</a>
                 <a href="showArchive?demo_id={{ demo_id }}&title={{title}}" class="btn">Archive</a>
-                <a id="showBlobsDemo" href="showBlobsDemo?demo_id={{ demo_id }}" class="btn">Blobs</a>
+                <a id="showBlobsDemo" href="showBlobsDemo?demo_id={{ demo_id }}&title={{title}}" class="btn">Blobs</a>
                 {% if can_edit %}
                 <button id="editors-btn" class="btn">Editors</button id="editors-btn">
                 {% else %}
                 <button id="editors-btn" class="btn btn-disabled" disabled>Editors</button id="editors-btn">    
                 {% endif %}
             </div>
-            <div class="members">
+            <div>
+                <div class="edit-demo-container">
+                    {% if not can_edit %}
+                    <button id="demoEdit-btn" class="btn" disabled>Edit demo</button>
+                    {% else %}
+                    <button id="demoEdit-btn" class="btn">Edit demo</button>
+                    {% endif %}
+                    <dialog id="editDemo-dialog">
+                        <h1>Edit demo</h1>
+                        <form id="edit-demo-form" action="{% url 'edit_demo' %}" autocomplete="off" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="hidden" name="demo_id" value="{{ demo_id }}">
+                            <label for="demoID">Demo ID</label>
+                            <input type="number" name="new_demo_id" id="new_demo_id" value="{{demo_id}}" min="1" required>
+                            <p id="demo-id-used-warning"></p>
+                            <label for="demoTitle">Title</label>
+                            <input type="text" name="demoTitle" value="{{title}}" required>
+                            <label for="state">State</label>
+                            <select name="state" id="state-select">
+                                <option value="test">test</option>
+                                <option value="workshop">workshop</option>
+                                <option value="preprint">Preprint</option>
+                                <option value="published">Published</option>
+                            </select>
+                            <input type="submit" name="save-demo-submit" class="btn btn-save" value="Save">
+                        </form>
+                        {% if can_edit %}
+                        <button class="btn btn-danger" onclick="deleteDemo()">Delete demo</button>
+                        {% else %}
+                        <button class="btn btn-danger" disabled>Delete demo</button>
+                        {% endif %}
+                        <button id="demoEdit-btn-close" class="btn btn-delete dialog-btn-close">X</button>
+                    </dialog>
+                </div>
                 <dialog id="editors-dialog">
                     <h1>{{ title }} editors</h1>
                     {% for editor in editors_list %}
@@ -39,7 +72,7 @@
                         </select>
                         <input type="submit" class="btn btn-add" value="Submit">
                     </form>
-                    <button id="editors-btn-close" class="btn btn-delete">X</button>
+                    <button id="editors-btn-close" class="btn btn-delete dialog-btn-close">X</button>
                   </dialog>
             </div>
         </div>
