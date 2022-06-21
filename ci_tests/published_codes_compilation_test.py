@@ -8,6 +8,7 @@ import shutil
 import socket
 import xml.etree.ElementTree as ET
 import requests
+import re
 
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "../ipol_demo/modules/"))
@@ -25,6 +26,11 @@ def main():
     """
     all_success = True
     demorunners = read_demorunners()
+
+    id_list = []
+    if os.path.exists("ignored_ids.txt"):
+        id_list = [int(id) for id in read_file("ignored_ids.txt")]
+
     for demo_id in get_published_demos():
         json_ddl = json.loads(get_ddl(demo_id))
         build_section = json_ddl.get('build')
@@ -34,6 +40,9 @@ def main():
             print(f"Demo #{demo_id} doesn't have a build section")
             all_success = False
             continue
+
+        if demo_id in id_list:
+            continue 
 
         if not build(demo_id, build_section, requirements, demorunners):
             all_success = False
@@ -99,6 +108,23 @@ def get_ddl(demo_id):
         print(f"ERROR: get_ddl returned KO for demo #{demo_id}")
     last_demodescription = response.get('last_demodescription')
     return last_demodescription.get('ddl')
+
+
+def read_file(input_file):
+    """
+    Read the list of demo ids to be ignored in the tests
+    """
+    demoid_list = []
+    file_obj = open(input_file, 'r')
+    lines = file_obj.readlines()
+    for line in lines:
+        line_obj = re.match(r'([^#]*)#.*', line)
+        if line_obj:
+            line = line_obj.group(1)
+        line = line.strip()
+        if line:
+            demoid_list.append(line)
+    return demoid_list
 
 
 def build(demo_id, build_section, requirements, demorunners):
