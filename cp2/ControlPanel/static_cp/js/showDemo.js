@@ -244,7 +244,7 @@ async function get_demos() {
 }
 
 async function getDemoState() {
-	let demoMetadata = await fetch(`${location_url}/api/demoinfo/read_demo_metainfo?demoid=125`)
+	let demoMetadata = await fetch(`${location_url}/api/demoinfo/read_demo_metainfo?demoid=${demo_id}`)
 	.then(response => response.json())
 	$(`option[value=${demoMetadata.state}]`)
 	document.querySelector(`option[value=${demoMetadata.state}]`).selected = true;
