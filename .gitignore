@@ -40,6 +40,7 @@ ci_tests/pdflatex_report.txt
 ci_tests/pdflatex_tmp.txt
 ci_tests/pylint_report.txt
 ci_tests/compilation_folder/
+ci_tests/ignored_ids.txt
 
 # Sysadmin
 sysadmin/*.txt
