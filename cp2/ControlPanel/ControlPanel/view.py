@@ -69,7 +69,7 @@ def signout(request):
 @csrf_protect
 def logout(request):
     logoutMethod(request)
-    return redirect('login')
+    return redirect(reverse('login'))
 
 @login_required(login_url='login')
 @csrf_protect
