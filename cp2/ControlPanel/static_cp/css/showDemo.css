@@ -19,7 +19,7 @@
 #aceEditor {
     border: 1px solid lightgray;
     margin: 1rem 0;
-    height: 400px;
+    min-height: 70vh;
     font-size: 1rem;
     z-index: 0;
 }

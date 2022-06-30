@@ -14,8 +14,7 @@ const demoEditButton = document.getElementById('demoEdit-btn');
 let aceEditor = ace.edit("aceEditor", {
 	 mode: "ace/mode/json",
 	 autoScrollEditorIntoView: false,
-	 maxLines: 100,
-	 minLines: 20
+	 minLines: 100
 });
 aceEditor.setValue('{}');
 let last_DDL_saved = aceEditor.getValue();
