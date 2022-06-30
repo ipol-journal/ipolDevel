@@ -1,6 +1,7 @@
 let section = document.querySelector('section');
 let csrftoken = getCookie('csrftoken');
 let demo_id = getParameterByName('demo_id');
+let title = getParameterByName('title');
 let can_edit = document.getElementById('can_edit');
 const location_url = `${window.location.protocol}//${window.location.host}`;
 let saveButton = document.getElementById("save-btn");
@@ -181,7 +182,8 @@ editorsButton.addEventListener('click', function onOpen() {
 	if (typeof demoEditDialog.showModal === "function") {
 		 demoEditDialog.showModal();
 	} else {
-	   outputBox.value = "Sorry, the <dialog> API is not supported by this browser.";
+		showDemoEditModal();
+		outputBox.value = "Sorry, the <dialog> API is not supported by this browser.";
 	}
  });
 
@@ -270,4 +272,43 @@ function deleteDemo() {
 			}
 		},
    });
+}
+
+function showDemoEditModal() {
+	let id = '#modal';
+	$(id).html(`
+		<h1>Edit demo</h1>
+		<form id="edit-demo-form" action="showDemo/ajax_edit_demo" autocomplete="off" method="post" enctype="multipart/form-data">
+			<input type="hidden" name="csrfmiddlewaretoken" value="${csrftoken}">
+			<input type="hidden" name="demo_id" value="${demo_id}">
+			<label for="demoID">Demo ID</label>
+			<input type="number" name="new_demo_id" id="new_demo_id" value="${demo_id}" min="1" required>
+			<p id="demo-id-used-warning"></p>
+			<label for="demoTitle">Title</label>
+			<input type="text" name="demoTitle" value="${title}" required>
+			<label for="state">State</label>
+			<select name="state" id="state-select">
+				<option value="test">test</option>
+				<option value="workshop">workshop</option>
+				<option value="preprint">Preprint</option>
+				<option value="published">Published</option>
+			</select>
+			<input type="submit" name="save-demo-submit" class="btn btn-save" value="Save">
+		</form>
+		<button id="delete-demo-btn" class="btn btn-danger" onclick="deleteDemo()">Delete demo</button>
+		<button id="demoEdit-btn-close" class="btn btn-delete dialog-btn-close">X</button>
+	`);
+
+	$('#fond').fadeIn(500)   
+	$('#fond').fadeTo("slow",0.7);
+	$(id).fadeIn(300);
+	$('.popup .demoEdit-btn-close').click(function (event) {
+		event.preventDefault();
+		hideModal();
+	});
+}
+
+function hideModal(){
+   $('#fond, .popup').hide();
+   $('.popup').html('');
 }

@@ -46,12 +46,13 @@
 }
 
 #edit-demo-form {
-    padding: 1rem;
     display: flex;
     flex-direction: column;
     align-items: stretch;
     justify-content: center;
     gap: 0.5rem;
+    margin: 0 auto;
+    padding: 1rem;
     min-width: 20rem;
     max-width: 80%;
 }

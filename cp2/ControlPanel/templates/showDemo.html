@@ -1,7 +1,12 @@
  {% extends "base.html" %} {% block title %}showDemo{% endblock %} {% block bodyid %}showDemo{% endblock %}
 {% block header %}
     {% include "header.html" %}
-{% endblock %} {% block content %}
+{% endblock %}
+{% block fond %}
+<div id="fond"></div>
+<div id="modal" class="popup"></div>
+{% endblock %}
+{% block content %}
 <div id="demoinfo-container">
     <div id="demo-header">
         <h1>Demo Editor</h1>
