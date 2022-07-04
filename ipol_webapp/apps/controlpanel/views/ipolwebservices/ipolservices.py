@@ -217,7 +217,6 @@ def demoinfo_delete_demo(demo_id):
     http_request("/api/blobs/delete_demo", METHOD='POST', params={'demo_id': demo_id})
     http_request("/api/demoinfo/delete_demoextras", METHOD='POST', params={'demo_id': demo_id})
     http_request("/api/archive/delete_demo", METHOD='POST', params={'demo_id': demo_id})
-    http_request("/api/demorunner/delete_compilation", METHOD='GET', params={'demo_id': demo_id})
     return demoinfo_resp
 
 

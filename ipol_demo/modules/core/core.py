@@ -1099,8 +1099,7 @@ attached the failed experiment data.". \
             raise IPOLFindSuitableDR(error_message)
 
         server_name = resp['dr_name']
-        server_ip = resp['dr_server']
-        return server_name, server_ip
+        return server_name
 
     @staticmethod
     def get_response_content(response):
@@ -1117,12 +1116,13 @@ attached the failed experiment data.". \
             return "(no response.content. Ex: {})".format(ex)
         return response.content
 
-    def ensure_compilation(self, dr_server, dr_name, demo_id, ddl_build):
+    def ensure_compilation(self, dr_name, demo_id, ddl_build):
         """
         Ensure that the source codes of the demo are all updated and compiled correctly
         """
         build_data = {'demo_id': demo_id, 'ddl_build': json.dumps(ddl_build)}
-        dr_response = self.post('api/demorunner/ensure_compilation', data=build_data, host=dr_server)
+        url = f'api/demorunner/{dr_name}/ensure_compilation'
+        dr_response = self.post(url, data=build_data)
 
         # Read the JSON response from the DR
         try:
@@ -1131,7 +1131,7 @@ attached the failed experiment data.". \
             dr_response_content = Core.get_response_content(dr_response)
             error_message = "**An internal error has occurrred in the demo system, sorry for the inconvenience.\
                 The IPOL Team has been notified and will fix the issue as soon as possible**. Bad format in the response \
-                        from DR server {} in demo #{}. {} - {}".format(dr_server, demo_id, dr_response_content, ex)
+                        from DR server {} in demo #{}. {} - {}".format(dr_name, demo_id, dr_response_content, ex)
             self.logger.exception(error_message)
             raise IPOLEnsureCompilationError(error_message)
 
@@ -1227,7 +1227,7 @@ attached the failed experiment data.". \
             self.logger.exception(log_message)
             raise IPOLPrepareFolderError(error_message, log_message)
 
-    def execute_experiment(self, dr_server, dr_name, demo_id, key, params, ddl_run, ddl_general, work_dir):
+    def execute_experiment(self, dr_name, demo_id, key, params, ddl_run, ddl_general, work_dir):
         """
         Execute the experiment in the given DR.
         """
@@ -1236,7 +1236,8 @@ attached the failed experiment data.". \
         if 'timeout' in ddl_general:
             userdata['timeout'] = ddl_general['timeout']
 
-        resp = self.post('api/demorunner/exec_and_wait', data=userdata, host=dr_server)
+        url = f'api/demorunner/{dr_name}/exec_and_wait'
+        resp = self.post(url, data=userdata)
         if resp.status_code != 200:
             demo_state = self.get_demo_metadata(demo_id)["state"].lower()
 
@@ -1251,7 +1252,7 @@ attached the failed experiment data.". \
             resp_content = Core.get_response_content(resp)
             error_message = "**An internal error has occurred in the demo system, sorry for the inconvenience.\
                     The IPOL team has been notified and will fix the issue as soon as possible**. Bad format in the response \
-                        from DR server {} in demo #{}. {} - {}".format(dr_server, demo_id, resp_content, ex)
+                        from DR server {} in demo #{}. {} - {}".format(dr_name, demo_id, resp_content, ex)
             self.logger.exception(error_message)
             # nginx timeout
             if resp_content and "Time-out" in resp_content:
@@ -1328,13 +1329,13 @@ attached the failed experiment data.". \
             self.check_ddl(ddl)
 
             # Find a demorunner according the requirements of the demo and the dispatcher policy
-            dr_name, dr_server = self.find_suitable_demorunner(ddl['general'])
+            dr_name = self.find_suitable_demorunner(ddl['general'])
 
             # Ensure that the demoExtras are updated
             self.ensure_extras_updated(demo_id)
 
             # Ensure that the source code is updated
-            self.ensure_compilation(dr_server, dr_name, demo_id, ddl['build'])
+            self.ensure_compilation(dr_name, demo_id, ddl['build'])
 
             ddl_inputs = ddl.get('inputs')
             # Create run directory in the shared folder, copy blobs and delegate in the conversion module
@@ -1342,7 +1343,7 @@ attached the failed experiment data.". \
             work_dir, key, prepare_folder_messages = self.prepare_folder_for_execution(demo_id, origin, blobs, blobset_id, ddl_inputs, params, crop_info)
 
             # Delegate in the the chosen DR the execution of the experiment in the run folder
-            demorunner_response = self.execute_experiment(dr_server, dr_name, demo_id, \
+            demorunner_response = self.execute_experiment(dr_name, demo_id, \
                                     key, params, ddl['run'], ddl['general'], work_dir)
 
             # Archive the experiment, if the 'archive' section exists in the DDL and it is not a private execution

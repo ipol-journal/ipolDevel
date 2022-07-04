@@ -140,8 +140,8 @@ server {
 	}
 
 	# DEMORUNNER
-	location /api/demorunner/ {
-		rewrite ^/api/demorunner/(.*) /$1 break;
+	location /api/demorunner/my-dr {
+		rewrite ^/api/demorunner/my-dr/(.*) /$1 break;
 		# If the distribution is Debian you need the resolver		
 		# resolver 127.0.0.1;
 		proxy_pass   http://$host:9004;
