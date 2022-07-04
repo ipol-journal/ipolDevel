@@ -10,6 +10,9 @@ fi
 
 source $virtualenv
 
+export IPOL_HOST=$(hostname -f)
+export IPOL_URL=http://$(hostname -f)
+
 NAME="cp2"                                  # Name of the application
 USER=ipol                                        # the user to run as
 PORT=8002

@@ -8,4 +8,7 @@ if [ ! -d "venv" ]; then
   ./venv/bin/pip install -r requirements.txt
 fi
 
+export IPOL_HOST=$(hostname -f)
+export IPOL_URL=http://$(hostname -f)
+
 nohup bash -c "source ./venv/bin/activate && python main.py dispatcher.conf &" >/dev/null &
