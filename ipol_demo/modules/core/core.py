@@ -1349,8 +1349,9 @@ attached the failed experiment data.". \
             # Archive the experiment, if the 'archive' section exists in the DDL and it is not a private execution
             # Also check if it is an original uploaded data from the user (origin != 'blobset') or is enabled archive_always
             if not private_mode and 'archive' in ddl and (origin != 'blobset' or ddl['archive'].get('archive_always')):
+                base_url = os.environ.get('IPOL_URL', 'http://' + socket.getfqdn())
                 try:
-                    response = send_to_archive(demo_id, work_dir, kwargs, ddl['archive'], demorunner_response, socket.getfqdn())
+                    response = send_to_archive(demo_id, work_dir, kwargs, ddl['archive'], demorunner_response, base_url)
                     if not response['status'] == 'OK':
                         id_experiment = response.get('id_experiment', None)
                         message = "KO from archive module when archiving an experiment: demo={}, key={}, id={}."
@@ -1519,11 +1520,6 @@ attached the failed experiment data.". \
         return dic
 
     @staticmethod
-    def post(api_url, data=None, host=None):
-        """
-        Make a POST request via the IPOL API
-        """
-        if host is None:
-            host = socket.getfqdn()
-        url = 'http://{0}/{1}'.format(host, api_url)
-        return requests.post(url, data=data)
+    def post(api_url, data=None):
+        base_url = os.environ.get('IPOL_URL', 'http://' + socket.getfqdn())
+        return requests.post(f'{base_url}/{api_url}', data=data)

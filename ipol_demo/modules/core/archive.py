@@ -31,7 +31,7 @@ def create_thumbnail(src_file):
     except Exception:
         return False
 
-def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name):
+def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, base_url):
     """
     Prepare an execution folder for archiving an experiment (thumbnails).
     Collect information and parameters.
@@ -105,7 +105,7 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
     else:
         execution_json = None
 
-    url = 'http://{}/api/archive/add_experiment'.format(host_name)
+    url = '{}/api/archive/add_experiment'.format(base_url)
     data = {
         "demo_id": demo_id,
         "blobs": json.dumps(blobs),
