@@ -15,7 +15,7 @@ class IntegrationTests(unittest.TestCase):
     Integration Tests
     """
     # General
-    HOST = socket.getfqdn()
+    BASE_URL = os.environ.get('IPOL_URL', 'http://' + socket.getfqdn())
 
     # These variables are initialized in the __main__
     test_ddl_file = None
@@ -178,7 +178,7 @@ class IntegrationTests(unittest.TestCase):
     #####################
 
     def post(self, module, service, params=None, data=None, files=None, servicejson=None):
-        url = 'http://{}/api/{}/{}'.format(self.HOST, module, service)
+        url = '{}/api/{}/{}'.format(self.BASE_URL, module, service)
         return requests.post(url, params=params, data=data, files=files, json=servicejson)
 
     def check_status(self, response, error_msg):

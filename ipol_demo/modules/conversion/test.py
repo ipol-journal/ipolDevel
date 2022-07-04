@@ -28,7 +28,7 @@ class ConversionImageTests(unittest.TestCase):
     """
     Dispatcher tests.
     """
-    HOST = socket.getfqdn()
+    BASE_URL = os.environ.get('IPOL_URL', 'http://' + socket.getfqdn())
     module = 'conversion'
     blob_path = None
 
@@ -297,7 +297,7 @@ class ConversionImageTests(unittest.TestCase):
         """
         Do a post
         """
-        url = 'http://{}/api/{}/{}'.format(self.HOST, module, service)
+        url = '{}/api/{}/{}'.format(self.BASE_URL, module, service)
         return requests.post(url, params=params, data=data, files=files, json=servicejson)
 
     def convert(self, input_dir, input_desc, crop_info):
@@ -315,7 +315,7 @@ class ConversionVideoTests(unittest.TestCase):
     """
     Dispatcher tests.
     """
-    HOST = socket.getfqdn()
+    BASE_URL = os.environ.get('IPOL_URL', 'http://' + socket.getfqdn())
     module = 'conversion'
     blob_path = None
 
@@ -604,7 +604,7 @@ class ConversionVideoTests(unittest.TestCase):
         """
         Do a post
         """
-        url = 'http://{}/api/{}/{}'.format(self.HOST, module, service)
+        url = '{}/api/{}/{}'.format(self.BASE_URL, module, service)
         return requests.post(url, params=params, data=data, files=files, json=servicejson)
 
     def convert(self, work_dir, input_desc, crop_info):

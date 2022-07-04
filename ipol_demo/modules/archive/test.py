@@ -17,7 +17,7 @@ class ArchiveTests(unittest.TestCase):
     """
     ArchiveTests
     """
-    HOST = socket.getfqdn()
+    BASE_URL = os.environ.get('IPOL_URL', 'http://' + socket.getfqdn())
     module = 'archive'
 
     # Blob info
@@ -300,7 +300,7 @@ class ArchiveTests(unittest.TestCase):
         """
         post
         """
-        url = 'http://{}/api/{}/{}'.format(self.HOST, module, service)
+        url = '{}/api/{}/{}'.format(self.BASE_URL, module, service)
         return requests.post(url, params=params, data=data, files=files, json=servicejson)
 
     def add_experiment(self, demo_id, blobs_path, parameters, execution):

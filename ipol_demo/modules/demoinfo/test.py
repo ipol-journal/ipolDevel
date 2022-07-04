@@ -17,8 +17,7 @@ class DemoinfoTests(unittest.TestCase):
     """
     Demoinfo unit tests
     """
-
-    HOST = socket.getfqdn()
+    BASE_URL = os.environ.get('IPOL_URL', 'http://' + socket.getfqdn())
     module = 'demoinfo'
 
     # Demo
@@ -958,7 +957,7 @@ class DemoinfoTests(unittest.TestCase):
         """
         post
         """
-        url = 'http://{}/api/{}/{}'.format(self.HOST, module, service)
+        url = '{}/api/{}/{}'.format(self.BASE_URL, module, service)
         return requests.post(url, params=params, data=data, files=files, json=servicejson)
 
     def read_ddl(self):

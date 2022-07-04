@@ -16,7 +16,7 @@ class BlobsTests(unittest.TestCase):
     """
     BlobsTests
     """
-    HOST = socket.getfqdn()
+    BASE_URL = os.environ.get('IPOL_URL', 'http://' + socket.getfqdn())
     module = 'blobs'
 
     # Blob info
@@ -648,7 +648,7 @@ class BlobsTests(unittest.TestCase):
         """
             post
         """
-        url = 'http://{}/api/{}/{}'.format(self.HOST, module, service)
+        url = '{}/api/{}/{}'.format(self.BASE_URL, module, service)
         return requests.post(url, params=params, data=data, files=files, json=servicejson)
 
     def add_blob_to_demo(self, blob=None, demo_id=None, blob_set=None, pos_set=None, title=None,
