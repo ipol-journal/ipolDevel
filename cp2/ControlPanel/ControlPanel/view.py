@@ -53,7 +53,6 @@ def loginPage(request):
     username = request.POST.get('username')
     password = request.POST.get('password')
     user = authenticate(request, username=username, password=password)
-    print('HI')
     if user is not None:
         loginMethod(request, user)
         return HttpResponseRedirect('/cp2/')
@@ -88,6 +87,28 @@ def status(request):
     # }
     # print(context)
     return render(request, 'status.html')
+
+@login_required(login_url='login')
+def demo_editors(request):
+    demo_id = request.GET['demo_id']
+    title = request.GET['title']
+
+    demo_editors = api_post('/api/demoinfo/demo_get_editors_list', { 'demo_id': demo_id }).json()
+    editor_list = demo_editors['editor_list']
+    available_editors = api_post('/api/demoinfo/demo_get_available_editors_list', { 'demo_id': demo_id }).json()
+    available_editors = available_editors['editor_list']
+
+    can_edit = user_can_edit_demo(request.user, demo_id)
+
+    context = {
+        'demo_id': demo_id,
+        'title': title,
+        'can_edit': can_edit,
+        'editors_list': editor_list,
+        'available_editors': available_editors
+    }
+    
+    return render(request, 'demoEditors.html', context)
 
 @login_required(login_url='login')
 def add_demo_editor(request):
@@ -473,6 +494,7 @@ def showDemo(request):
     editor_list = demo_editors['editor_list']
     available_editors = api_post('/api/demoinfo/demo_get_available_editors_list', { 'demo_id': demo_id }).json()
     available_editors = available_editors['editor_list']
+
 
     if demoinfo_response['status'] == 'OK':
         ddl = demoinfo_response['last_demodescription']

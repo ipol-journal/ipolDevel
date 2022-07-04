@@ -174,7 +174,8 @@ editorsButton.addEventListener('click', function onOpen() {
 	if (typeof editorsDialog.showModal === "function") {
 		 editorsDialog.showModal();
 	} else {
-	   outputBox.value = "Sorry, the <dialog> API is not supported by this browser.";
+		outputBox.value = "Sorry, the <dialog> API is not supported by this browser.";
+		window.location.href = `demo_editors?demo_id=${demo_id}&title=${title}`;
 	}
  });
 

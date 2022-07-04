@@ -1,0 +1,57 @@
+{% extends "base.html" %} {% block title %}showDemo{% endblock %} {% block bodyid %}showDemo{% endblock %}
+{% block header %}
+    {% include "header.html" %}
+{% endblock %}
+{% block content %}
+<div class="editors-view">
+    <h1>{{ title }} editors</h1>
+    <h2>Add demo editor</h2>
+    <form id="add-editor-form" autocomplete="off" action="{% url 'add_demo_editor' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="demo_id" value="{{ demo_id }}">
+        <label for="editor">Editor</label>
+        <select name="editor_id" id="add-editor-input" form="add-editor-form" required>
+            <option value="" disabled selected>Select an editor</option>
+            {% for editor in available_editors %}
+            <option value="{{editor.id}}">{{editor.name}}, {{editor.mail}}</option>
+            {% endfor %}
+        </select>
+        <input type="submit" class="btn btn-add" value="Submit">
+    </form>
+    {% for editor in editors_list %}
+    <div id="editor-{{editor.id}}" class="di-flex editor">
+        <p>{{editor.name}}</p>
+        <button class="btn btn-danger" data-editor-id="{{editor.id}}" data-demo-id="{{demo_id}}">Remove editor</button>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+    $('.editor > button').click(function() {
+        let editor_id = $(this).attr('data-editor-id');
+        let demo_id = $(this).attr('data-demo-id');
+        let csrftoken = getCookie('csrftoken');
+        $.ajax({
+            data: ({
+                demo_id: demo_id,
+                editor_id: editor_id,
+                csrfmiddlewaretoken: csrftoken,
+            }),
+            type: 'POST',
+            dataType: 'json',
+            url: 'remove_demo_editor',
+            success: function(data) {
+                if (data.status == 'OK') {
+                    $(`#editor-${editor_id}`).remove();
+                } else {
+                    alert(`Editor could not be removed. ${data.message}`)
+                }
+            },
+            error: function(error) {
+                alert(`Editor could not be removed. ${error}`)
+            }
+        });
+})
+</script>
+
+{% endblock %}
