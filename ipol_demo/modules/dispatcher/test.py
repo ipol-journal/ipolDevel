@@ -4,6 +4,7 @@
 Dispatcher test
 """
 # Unit tests for the Blobs module
+import os
 import socket
 import sys
 import unittest
@@ -39,7 +40,7 @@ class DispatcherTests(unittest.TestCase):
     """
     Dispatcher tests
     """
-    HOST = socket.getfqdn()
+    BASE_URL = os.environ.get('IPOL_URL', 'http://' + socket.getfqdn())
     module = 'dispatcher'
 
     demorunners = []
@@ -53,7 +54,7 @@ class DispatcherTests(unittest.TestCase):
         """
         status = None
         try:
-            ping = 'http://{}/api/dispatcher/ping'.format(self.HOST)
+            ping = '{}/api/dispatcher/ping'.format(self.BASE_URL)
             response = requests.get(ping).json()
             status = response.get('status')
         finally:
@@ -64,8 +65,7 @@ class DispatcherTests(unittest.TestCase):
         Test get suitable demorunner
         """
         try:
-            suitable_dr = 'http://{}/api/dispatcher/get_suitable_demorunner'.format(
-                self.HOST)
+            suitable_dr = '{}/api/dispatcher/get_suitable_demorunner'.format(self.BASE_URL)
             response = requests.get(suitable_dr).json()
             status = response.get('status')
         finally:
@@ -78,8 +78,7 @@ class DispatcherTests(unittest.TestCase):
         """
         status = 'OK'
         try:
-            suitable_dr = 'http://{}/api/dispatcher/get_suitable_demorunner'.format(
-                self.HOST)
+            suitable_dr = '{}/api/dispatcher/get_suitable_demorunner'.format(self.BASE_URL)
             for demorunner in self.demorunners:
                 capabilities = self.demorunners[demorunner]['capabilities'].split(',')
                 capabilities_as_requirements = [cap.rstrip('!') for cap in capabilities]
@@ -96,7 +95,7 @@ class DispatcherTests(unittest.TestCase):
         """
         status = 'KO'
         try:
-            dr_stats = 'http://{}/api/dispatcher/get_demorunners_stats'.format(self.HOST)
+            dr_stats = '{}/api/dispatcher/get_demorunners_stats'.format(self.BASE_URL)
             response = requests.get(dr_stats).json()
             for dr in response.get('demorunners'):
                 if dr['status'] == 'OK' and 'workload' in dr:

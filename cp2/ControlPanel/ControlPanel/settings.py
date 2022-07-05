@@ -29,37 +29,26 @@ SECRET_KEY = 'ng&u0bv6bm6cs+w+c#=*b0-#g-e_*t(my7(q@&1@^b5m@-)&^!'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-HOST_NAME = socket.getfqdn()
+HOST_NAME = os.environ.get('IPOL_HOST', socket.getfqdn())
+IPOL_URL = os.environ.get('IPOL_URL', 'http://' + socket.getfqdn())
 ALLOWED_HOSTS = []
 
 dev_machines = ['127.0.0.1', 'localhost', 'integration.ipol.im']
 production_servers = ['ipolcore.ipol.im']
 
+ALLOWED_HOSTS = [HOST_NAME]
+
+CORS_ALLOWED_ORIGINS = [
+    IPOL_URL,
+]
+CSRF_TRUSTED_ORIGINS = [
+    IPOL_URL,
+]
+
 if HOST_NAME in dev_machines:
     DEBUG = True
-    ALLOWED_HOSTS = [socket.getfqdn(), '127.0.0.1']
-
-    CORS_ALLOWED_ORIGINS = [
-        "http://localhost",
-        "http://127.0.0.1",
-        "https://integration.ipol.im",
-    ]
-    CSRF_TRUSTED_ORIGINS = [
-        "http://localhost",
-        "http://127.0.0.1",
-        "https://integration.ipol.im",
-    ]
-
 elif HOST_NAME in production_servers:
     DEBUG = False
-    ALLOWED_HOSTS = [socket.getfqdn()]
-
-    CORS_ALLOWED_ORIGINS = [
-        "https://ipolcore.ipol.im",
-    ]
-    CSRF_TRUSTED_ORIGINS = [
-        "https://ipolcore.ipol.im",
-    ]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
