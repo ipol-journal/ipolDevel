@@ -11,7 +11,7 @@
 
   <demorunner name="dr">
     <module>demorunner</module>
-    <server>127.0.0.1</server>
+    <server>http://127.0.0.1/</server>
     <capability>DEBIAN_STABLE</capability>
     <!--<capability>Matlab</capability>-->
     <serverSSH>localhost</serverSSH>
