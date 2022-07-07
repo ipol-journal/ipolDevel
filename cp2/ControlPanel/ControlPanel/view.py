@@ -489,15 +489,20 @@ def showDemo(request):
     demo_id = request.GET['demo_id']
     title = request.GET['title']
     demoinfo_response = api_post('/api/demoinfo/get_ddl', { 'demo_id': demo_id }).json()
+    ssh_response = api_post('/api/demoinfo/get_ssh_keys', { 'demo_id': demo_id }).json()
     ddl = None
     demo_editors = api_post('/api/demoinfo/demo_get_editors_list', { 'demo_id': demo_id }).json()
     editor_list = demo_editors['editor_list']
     available_editors = api_post('/api/demoinfo/demo_get_available_editors_list', { 'demo_id': demo_id }).json()
     available_editors = available_editors['editor_list']
 
-
     if demoinfo_response['status'] == 'OK':
         ddl = demoinfo_response['last_demodescription']
+
+    if ssh_response['status'] != 'OK':
+        pubkey = '(error fetching the ssh public key)'
+    else:
+        pubkey = ssh_response['pubkey']
 
     can_edit = user_can_edit_demo(request.user, demo_id)
 
@@ -507,9 +512,10 @@ def showDemo(request):
         'ddl': ddl,
         'can_edit': can_edit,
         'editors_list': editor_list,
-        'available_editors': available_editors
+        'available_editors': available_editors,
+        'ssh_pubkey': pubkey,
     }
-    
+
     return render(request, 'showDemo.html', context)
 
 @login_required(login_url='login')

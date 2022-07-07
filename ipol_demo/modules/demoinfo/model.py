@@ -28,8 +28,12 @@ class Demo():
     creation = None
     modification = None
 
-    def __init__(self, editorsdemoid, title,
-                 state, creation=None, modification=None):
+    def __init__(self,
+            editorsdemoid,
+            title,
+            state,
+            creation=None,
+            modification=None):
         """
         Constructor.
         """
@@ -307,6 +311,34 @@ class DemoDAO():
         """, (editor_demo_id,))
 
         return self.cursor.fetchone()[0] == 1
+
+    def has_ssh_key(self, editor_demo_id):
+        """
+        Returns whether the demo has an ssh key
+        """
+        self.cursor.execute("""
+        SELECT EXISTS(SELECT *
+                    FROM demo
+                    WHERE editor_demo_id=? and ssh_pubkey is not null);
+        """, (editor_demo_id,))
+
+        return self.cursor.fetchone()[0] == 1
+
+    def get_ssh_key(self, editor_demo_id):
+        self.cursor.execute("""
+        SELECT ssh_pubkey, ssh_privkey
+        FROM demo
+        WHERE editor_demo_id=?;
+        """, (editor_demo_id,))
+        return self.cursor.fetchone()
+
+    def set_ssh_key(self, editor_demo_id, pubkey, privkey):
+        self.cursor.execute("""
+        UPDATE demo
+        SET ssh_pubkey=?, ssh_privkey=?
+        WHERE editor_demo_id=?;
+        """, (pubkey, privkey, editor_demo_id))
+        self.conn.commit()
 
 
 class DemoDemoDescriptionDAO():

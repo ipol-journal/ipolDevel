@@ -462,7 +462,7 @@ class DemoRunner():
 
 
     @cherrypy.expose
-    def ensure_compilation(self, demo_id, ddl_build):
+    def ensure_compilation(self, demo_id, ddl_build, **kwargs):
         """
         Ensures that the source codes of the given demo are compiled and
         moved correctly.

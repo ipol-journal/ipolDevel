@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS "demo" (
 	creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	stateID INTEGER,
+	ssh_pubkey TEXT,
+	ssh_privkey TEXT,
 	FOREIGN KEY(stateID) REFERENCES state(id)
 );
 CREATE TABLE IF NOT EXISTS "demo_demodescription" (

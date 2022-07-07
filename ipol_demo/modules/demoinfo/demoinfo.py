@@ -35,7 +35,7 @@ import magic
 from model import (Author, AuthorDAO, Demo, DemoAuthorDAO, DemoDAO,
                    DemoDemoDescriptionDAO, DemoDescriptionDAO, DemoEditorDAO,
                    Editor, EditorDAO, initDb)
-from tools import is_json
+from tools import is_json, generate_ssh_keys
 
 # GLOBAL VARS
 LOGNAME = "demoinfo_log"
@@ -1960,3 +1960,37 @@ class DemoInfo():
             # raise Exception
             data["error"] = error_string
         return json.dumps(data).encode()
+
+    @cherrypy.expose
+    @authenticate
+    def get_ssh_keys(self, demo_id):
+        try:
+            demo_id = int(demo_id)
+        except(TypeError, ValueError) as ex:
+            return json.dumps({'status': 'KO', 'error': "Invalid demo_id: {}".format(demo_id), 'error_code': -2}).encode()
+
+        data = {'status': 'KO'}
+        try:
+            conn = lite.connect(self.database_file)
+            demo_dao = DemoDAO(conn)
+
+            if not demo_dao.exist(demo_id):
+                return json.dumps(data).encode()
+
+            if not demo_dao.has_ssh_key(demo_id):
+                pubkey, privkey = generate_ssh_keys()
+                demo_dao.set_ssh_key(demo_id, pubkey, privkey)
+
+            pubkey, privkey = demo_dao.get_ssh_key(demo_id)
+            data = {
+                'status': 'OK',
+                'pubkey': pubkey.decode('utf-8'),
+                'privkey': privkey.decode('utf-8'),
+            }
+            return json.dumps(data).encode()
+
+        except Exception as ex:
+            error_message = "Failure in 'get_ssh_keys' for demo '{}'. Error {}".format(demo_id, ex)
+            self.logger.exception(error_message)
+            data['error_message'] = error_message
+            return json.dumps(data).encode()

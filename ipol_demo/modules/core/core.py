@@ -1121,6 +1121,12 @@ attached the failed experiment data.". \
         Ensure that the source codes of the demo are all updated and compiled correctly
         """
         build_data = {'demo_id': demo_id, 'ddl_build': json.dumps(ddl_build)}
+
+        ssh_response = self.post('api/demoinfo/get_ssh_keys', data={'demo_id': demo_id}).json()
+        if ssh_response['status'] == 'OK':
+            build_data['ssh_key.public'] = ssh_response['pubkey']
+            build_data['ssh_key.private'] = ssh_response['privkey']
+
         url = f'api/demorunner/{dr_name}/ensure_compilation'
         dr_response = self.post(url, data=build_data)
 
