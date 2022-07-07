@@ -34,6 +34,7 @@ def load_demorunners(demorunners_file):
         dict_tmp["server"] = demorunner.find('server').text
         dict_tmp["serverSSH"] = demorunner.find('serverSSH').text
         dict_tmp["capability"] = list_tmp
+        dict_tmp["name"] = demorunner.get('name')
 
         if any(c.endswith("!") for c in dict_tmp["capability"]):
             # don't run tests on non-standard demorunners
@@ -63,7 +64,7 @@ class DemorunnerTests(unittest.TestCase):
     test_demo_extras_file = None
 
     # Demo Runners
-    demorunners = []
+    demorunners = {}
 
     #####################
     #       Tests       #
@@ -84,9 +85,8 @@ class DemorunnerTests(unittest.TestCase):
         """
         status_list = []
         try:
-
-            for demorunner in self.demorunners:
-                response = self.post(self.demorunners[demorunner].get('server'), self.module, 'ping')
+            for dr in self.demorunners.values():
+                response = self.post_to_dr(dr, 'ping')
                 json_response = response.json()
                 status_list.append(json_response.get('status'))
         finally:
@@ -100,9 +100,8 @@ class DemorunnerTests(unittest.TestCase):
         status_list = []
         workload_list = []
         try:
-
-            for demorunner in self.demorunners:
-                response = self.get_workload(self.demorunners[demorunner].get('server'))
+            for dr in self.demorunners.values():
+                response = self.get_workload(dr)
                 status_list.append(response.get('status'))
                 workload_list.append(response.get('workload'))
         finally:
@@ -117,18 +116,16 @@ class DemorunnerTests(unittest.TestCase):
         """
         status_list = []
         try:
-
-            for demorunner in self.demorunners:
+            for dr in self.demorunners.values():
                 self.create_extras_folder()
 
                 with open(self.ddl_file, 'r') as f:
                     ddl = f.read()
                 ddl_json = json.loads(ddl)
                 build = json.dumps(ddl_json['build'])
-                host = self.demorunners[demorunner].get('server')
 
-                self.post(host, self.module, 'delete_compilation', data={'demo_id': self.demo_id})
-                response = self.ensure_compilation(host, self.demo_id, build)
+                self.post_to_dr(dr, 'delete_compilation', data={'demo_id': self.demo_id})
+                response = self.ensure_compilation(dr, self.demo_id, build)
                 status_list.append(response.get('status'))
 
                 self.delete_extras_folder()
@@ -142,16 +139,14 @@ class DemorunnerTests(unittest.TestCase):
         """
         status_list = []
         try:
-            for demorunner in self.demorunners:
-
+            for dr in self.demorunners.values():
                 with open(self.ddl_file, 'r') as f:
                     ddl = f.read()
                 ddl_json = json.loads(ddl)
                 build = json.dumps(ddl_json['build'])
-                host = self.demorunners[demorunner].get('server')
 
-                self.post(host, self.module, 'delete_compilation', data={'demo_id': self.demo_id})
-                response = self.ensure_compilation(host, self.demo_id, build)
+                self.post_to_dr(dr, 'delete_compilation', data={'demo_id': self.demo_id})
+                response = self.ensure_compilation(dr, self.demo_id, build)
                 status_list.append(response.get('status'))
 
         finally:
@@ -164,10 +159,9 @@ class DemorunnerTests(unittest.TestCase):
         """
         status_list = []
         try:
-
             blob_image = Image.open(self.blob_path)
             width, height = blob_image.size
-            for demorunner in self.demorunners:
+            for dr in self.demorunners.values():
                 self.create_extras_folder()
                 self.create_work_dir()
 
@@ -176,13 +170,12 @@ class DemorunnerTests(unittest.TestCase):
                 ddl_json = json.loads(ddl)
                 run = json.dumps(ddl_json['run'])
                 build = json.dumps(ddl_json['build'])
-                host = self.demorunners[demorunner].get('server')
 
-                self.post(host, self.module, 'delete_compilation', data={'demo_id': self.demo_id})
-                self.ensure_compilation(host, self.demo_id, build)
+                self.post_to_dr(dr, self.module, 'delete_compilation', data={'demo_id': self.demo_id})
+                self.ensure_compilation(dr, self.demo_id, build)
 
                 params = json.dumps({'x0': 0, 'x1': width, 'y0': 0, 'y1': height})
-                response = self.exec_and_wait(host, self.demo_id, self.execution_folder, params, run)
+                response = self.exec_and_wait(dr, self.demo_id, self.execution_folder, params, run)
                 status_list.append(response.get('status'))
 
                 self.delete_workdir()
@@ -197,10 +190,9 @@ class DemorunnerTests(unittest.TestCase):
         """
         status_list = []
         try:
-
             blob_image = Image.open(self.blob_path)
             width, height = blob_image.size
-            for demorunner in self.demorunners:
+            for dr in self.demorunners.values():
                 self.create_extras_folder()
 
                 with open(self.ddl_file, 'r') as f:
@@ -208,13 +200,12 @@ class DemorunnerTests(unittest.TestCase):
                 ddl_json = json.loads(ddl)
                 run = json.dumps(ddl_json['run'])
                 build = json.dumps(ddl_json['build'])
-                host = self.demorunners[demorunner].get('server')
 
-                self.post(host, self.module, 'delete_compilation', data={'demo_id': self.demo_id})
-                self.ensure_compilation(host, self.demo_id, build)
+                self.post_to_dr(dr, 'delete_compilation', data={'demo_id': self.demo_id})
+                self.ensure_compilation(dr, self.demo_id, build)
 
                 params = json.dumps({'x0': 0, 'x1': width, 'y0': 0, 'y1': height})
-                response = self.exec_and_wait(host, self.demo_id, self.execution_folder, params, run)
+                response = self.exec_and_wait(dr, self.demo_id, self.execution_folder, params, run)
                 status_list.append(response.get('status'))
 
                 self.delete_extras_folder()
@@ -228,11 +219,11 @@ class DemorunnerTests(unittest.TestCase):
     #####################
 
     @staticmethod
-    def post(host, module, service, params=None, data=None, files=None, servicejson=None):
+    def post_to_dr(demorunner, service, params=None, data=None, files=None, servicejson=None):
         """
         post
         """
-        url = 'http://{}/api/{}/{}'.format(host, module, service)
+        url = '{}/api/demorunner/{}/{}'.format(demorunner['server'], demorunner['name'], service)
         return requests.post(url, params=params, data=data, files=files, json=servicejson)
 
     def create_work_dir(self):
@@ -279,27 +270,27 @@ class DemorunnerTests(unittest.TestCase):
         shutil.rmtree(dl_extras_folder)
         shutil.rmtree(demo_extras_folder)
 
-    def get_workload(self, host):
+    def get_workload(self, dr):
         """
         get workload
         """
-        response = self.post(host, self.module, 'get_workload')
+        response = self.post_to_dr(dr, 'get_workload')
         return response.json()
 
-    def exec_and_wait(self, host, demo_id, key, params, ddl_run):
+    def exec_and_wait(self, dr, demo_id, key, params, ddl_run):
         """
         exec and wait
         """
         data = {'demo_id': str(demo_id), 'key': key, 'params': params, 'ddl_run': ddl_run}
-        response = self.post(host, self.module, 'exec_and_wait', data=data)
+        response = self.post_to_dr(dr, 'exec_and_wait', data=data)
         return response.json()
 
-    def ensure_compilation(self, host, demo_id, ddl_build):
+    def ensure_compilation(self, dr, demo_id, ddl_build):
         """
         ensure compilation
         """
         data = {'demo_id': demo_id, 'ddl_build': ddl_build}
-        response = self.post(host, self.module, 'ensure_compilation', data=data)
+        response = self.post_to_dr(dr, 'ensure_compilation', data=data)
         return response.json()
 
 
