@@ -151,6 +151,7 @@ class Terminal(object):
         list_tmp.append("info")
         for demorunner in root.findall('demorunner'):
             dict_tmp = {}
+            dict_tmp["name"] = demorunner.attrib['name']
             dict_tmp["server"] = demorunner.find('server').text
             dict_tmp["module"] = demorunner.find('module').text
             dict_tmp["serverSSH"] = demorunner.find('serverSSH').text
@@ -245,10 +246,17 @@ class Terminal(object):
             return False
         name = args_array[0]
         try:
-            json_response = urllib.request.urlopen("http://{}/api/{}/ping".format(
-                self.dict_modules[name]["server"],
-                self.dict_modules[name]["module"]
-            ), timeout=3).read()
+            if self.dict_modules[name]["module"] == 'demorunner':
+                server = self.dict_modules[name]["server"]
+                module = self.dict_modules[name]["module"]
+                dr_name = self.dict_modules[name]["name"]
+                json_response = urllib.request.urlopen(f"{server}api/{module}/{dr_name}/ping", timeout=3).read()
+            else:
+                json_response = urllib.request.urlopen("http://{}/api/{}/ping".format(
+                    self.dict_modules[name]["server"],
+                    self.dict_modules[name]["module"]
+                ), timeout=3).read()
+
             response = json.loads(json_response.decode())
             status = response['status']
 
@@ -280,10 +288,16 @@ class Terminal(object):
 
         name = args_array[0]
         try:
-            json_response = urllib.request.urlopen("http://{}/api/{}/shutdown".format(
-                self.dict_modules[name]["server"],
-                self.dict_modules[name]["module"]
-            )).read()
+            if self.dict_modules[name]["module"] == 'demorunner':
+                server = self.dict_modules[name]["server"]
+                module = self.dict_modules[name]["module"]
+                dr_name = self.dict_modules[name]["name"]
+                json_response = urllib.request.urlopen(f"{server}api/{module}/{dr_name}/shutdown", timeout=3).read()
+            else:
+                json_response = urllib.request.urlopen("http://{}/api/{}/shutdown".format(
+                    self.dict_modules[name]["server"],
+                    self.dict_modules[name]["module"]
+                )).read()
             response = json.loads(json_response.decode())
             status = response['status']
 
@@ -306,7 +320,7 @@ class Terminal(object):
 
         module = args_array[0]
         try:
-            cmd = (" \"" + self.dict_modules[module]["path"] + "start.sh\" ")
+            cmd = (" \"" + self.dict_modules[module]["path"] + "start.sh\" &")
             os.system("ssh " + self.dict_modules[module]["serverSSH"] + cmd)
         except Exception as ex:
             print(ex)
