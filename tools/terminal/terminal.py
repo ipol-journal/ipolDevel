@@ -249,8 +249,7 @@ class Terminal(object):
             if self.dict_modules[name]["module"] == 'demorunner':
                 server = self.dict_modules[name]["server"]
                 module = self.dict_modules[name]["module"]
-                dr_name = self.dict_modules[name]["name"]
-                json_response = urllib.request.urlopen(f"{server}api/{module}/{dr_name}/ping", timeout=3).read()
+                json_response = urllib.request.urlopen(f"{server}api/{module}/{name}/ping", timeout=3).read()
             else:
                 json_response = urllib.request.urlopen("http://{}/api/{}/ping".format(
                     self.dict_modules[name]["server"],
@@ -291,8 +290,7 @@ class Terminal(object):
             if self.dict_modules[name]["module"] == 'demorunner':
                 server = self.dict_modules[name]["server"]
                 module = self.dict_modules[name]["module"]
-                dr_name = self.dict_modules[name]["name"]
-                json_response = urllib.request.urlopen(f"{server}api/{module}/{dr_name}/shutdown", timeout=3).read()
+                json_response = urllib.request.urlopen(f"{server}api/{module}/{name}/shutdown", timeout=3).read()
             else:
                 json_response = urllib.request.urlopen("http://{}/api/{}/shutdown".format(
                     self.dict_modules[name]["server"],
