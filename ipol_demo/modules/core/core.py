@@ -416,8 +416,11 @@ class Core():
         """
         nb_inputs = len(inputs_desc)
 
+        inputs_names = {}
+
         for i in range(nb_inputs):
             file_up = blobs.pop('file_%i' % i, None)
+            inputs_names[i] = {"origin": file_up.filename}
 
             if file_up is None or file_up.filename == '':
                 if 'required' not in list(inputs_desc[i].keys()) or \
@@ -459,6 +462,8 @@ class Core():
                 max_size = evaluate(inputs_desc[i]['max_weight'])
             Core.write_data_to_file(file_up, file_save, max_size=max_size, input_index=i)
 
+        return inputs_names
+
     def copy_blobset_from_physical_location(self, demo_id, work_dir, blobset_id):
         """
         use the selected available input images
@@ -482,6 +487,8 @@ class Core():
         except IndexError:
             raise IPOLCopyBlobsError("Blobset {} doesn't exist".format(blobset_id))
 
+        inputs_names = {}
+
         for input_idx, blob in blobset["blobs"].items():
             blob_path = blob["blob"].split("/api/blobs/")[1]
             try:
@@ -492,16 +499,27 @@ class Core():
                 self.logger.exception("Error copying blob from {} to {}".format(blob_path, final_path))
                 print("Couldn't copy  blobs from {} to {}. Error: {}".format(blob_path, final_path, ex))
 
+            inputs_names[int(input_idx)] = {"origin": os.path.basename(blob['blob'])}
+
+        return inputs_names
+
     def copy_blobs(self, work_dir, demo_id, input_type, blobs, blobset_id, ddl_inputs):
         """
         Copy the input blobs to the execution folder.
         """
         if input_type == 'upload':
-            self.input_upload(work_dir, blobs, ddl_inputs)
+            inputs_names = self.input_upload(work_dir, blobs, ddl_inputs)
         elif input_type == 'blobset':
             if blobset_id is None:
                 raise IPOLCopyBlobsError("blobset_id absent")
-            self.copy_blobset_from_physical_location(demo_id, work_dir, blobset_id)
+            inputs_names = self.copy_blobset_from_physical_location(demo_id, work_dir, blobset_id)
+
+        for i, desc in enumerate(ddl_inputs):
+            ext = desc['ext']
+            filename = f'input_{i}{ext}'
+            inputs_names[i]['converted'] = filename
+
+        return inputs_names
 
     @staticmethod
     def copy_inpainting_data(work_dir, blobs, ddl_inputs):
@@ -1178,7 +1196,7 @@ attached the failed experiment data.". \
             return work_dir, key, []
         # Copy input blobs
         try:
-            self.copy_blobs(work_dir, demo_id, origin, blobs, blobset_id, ddl_inputs)
+            inputs_names = self.copy_blobs(work_dir, demo_id, origin, blobs, blobset_id, ddl_inputs)
             self.copy_inpainting_data(work_dir, blobs, ddl_inputs)
             params_conv = {'work_dir': work_dir}
             params_conv['inputs_description'] = json.dumps(ddl_inputs)
@@ -1203,7 +1221,7 @@ attached the failed experiment data.". \
                     modifications_str = ', '.join(conversion_info[input_key]['modifications'])
                     message = "Input #{} has been preprocessed {{{}}}.".format(input_key, modifications_str)
                     messages.append(message)
-            return work_dir, key, messages
+            return work_dir, key, messages, inputs_names
         except IPOLConversionError as ex:
             raise IPOLPrepareFolderError(str(ex))
         except IPOLInputUploadTooLargeError as ex:
@@ -1233,10 +1251,15 @@ attached the failed experiment data.". \
             self.logger.exception(log_message)
             raise IPOLPrepareFolderError(error_message, log_message)
 
-    def execute_experiment(self, dr_name, demo_id, key, params, ddl_run, ddl_general, work_dir):
+    def execute_experiment(self, dr_name, demo_id, key, params, inputs_names, ddl_run, ddl_general, work_dir):
         """
         Execute the experiment in the given DR.
         """
+        params = {**params}
+        for i, input in inputs_names.items():
+            params[f'orig_input_{i}'] = input['origin']
+            params[f'input_{i}'] = input['converted']
+
         userdata = {'demo_id': demo_id, 'key': key, 'params': json.dumps(params), 'ddl_run': json.dumps(ddl_run)}
 
         if 'timeout' in ddl_general:
@@ -1346,11 +1369,12 @@ attached the failed experiment data.". \
             ddl_inputs = ddl.get('inputs')
             # Create run directory in the shared folder, copy blobs and delegate in the conversion module
             # the conversion of the input data if it is requested and not forbidden
-            work_dir, key, prepare_folder_messages = self.prepare_folder_for_execution(demo_id, origin, blobs, blobset_id, ddl_inputs, params, crop_info)
+            work_dir, key, prepare_folder_messages, inputs_names = \
+                    self.prepare_folder_for_execution(demo_id, origin, blobs, blobset_id, ddl_inputs, params, crop_info)
 
             # Delegate in the the chosen DR the execution of the experiment in the run folder
             demorunner_response = self.execute_experiment(dr_name, demo_id, \
-                                    key, params, ddl['run'], ddl['general'], work_dir)
+                                    key, params, inputs_names, ddl['run'], ddl['general'], work_dir)
 
             # Archive the experiment, if the 'archive' section exists in the DDL and it is not a private execution
             # Also check if it is an original uploaded data from the user (origin != 'blobset') or is enabled archive_always
