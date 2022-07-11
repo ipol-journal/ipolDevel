@@ -785,6 +785,17 @@ class EditorDAO():
 
         return Editor(row[0], row[1], row[2], row[3])
 
+    def read_from_email(self, email):
+        """
+        get an editor from its email.
+        """
+        self.cursor.execute('''SELECT name, mail, id, creation
+        FROM editor WHERE mail=?''', (email,))
+        self.conn.commit()
+        row = self.cursor.fetchone()
+
+        return Editor(row[0], row[1], row[2], row[3])
+
     def list(self):
         """
         get the list of editors.

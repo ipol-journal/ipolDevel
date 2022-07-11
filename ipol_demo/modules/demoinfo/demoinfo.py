@@ -371,7 +371,7 @@ class DemoInfo():
     @cherrypy.expose
     def demo_list(self):
         """
-        Return the list of the demos with at least one archived experiment
+        Return the list of the demos
         """
         data = {}
         data["status"] = "KO"
@@ -775,7 +775,7 @@ class DemoInfo():
                 dddao = DemoDemoDescriptionDAO(conn)
                 dddao.add(int(editorsdemoid), int(ddl_id))
 
-            elif ddl_id:
+            elif ddl_id: # old CP dependency [TODO] remove when CP1 is not used anymore
                 # asigns to demo an existing demodescription
                 d = Demo(int(editorsdemoid), title, state)
                 editorsdemoid = dao.add(d)
@@ -1298,6 +1298,38 @@ class DemoInfo():
             data["editor_list"] = editor_list
             data["status"] = "OK"
             conn.close()
+        except Exception as ex:
+            error_string = "demoinfo editor_list error %s" % str(ex)
+            print(error_string)
+            self.logger.exception(error_string)
+            try:
+                conn.close()
+            except Exception as ex:
+                pass
+            # raise Exception
+            data["error"] = error_string
+        return json.dumps(data).encode()
+
+    @cherrypy.expose
+    @authenticate
+    def get_editor(self, email):
+        """
+        Returns an editor information
+        """
+        data = {}
+        data["status"] = "KO"
+        try:
+            conn = lite.connect(self.database_file)
+            editor_dao = EditorDAO(conn)
+            editor = editor_dao.read_from_email(email)
+            if editor:
+                data["editor"] = editor.__dict__
+                data["status"] = "OK"
+            else:
+                data["editor"] = {}
+                data["status"] = "OK"
+            conn.close()
+
         except Exception as ex:
             error_string = "demoinfo editor_list error %s" % str(ex)
             print(error_string)
