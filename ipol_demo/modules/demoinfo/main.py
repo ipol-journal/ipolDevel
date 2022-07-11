@@ -47,4 +47,9 @@ if __name__ == '__main__':
     cherrypy.config.update(LOCAL_CONF_FILE)
     cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS)
     cherrypy.log.error_log.setLevel('ERROR')
+
+    if os.getenv("IPOL_AUTORELOAD") == "1":
+        print("Autoreload enabled.")
+        cherrypy.engine.autoreload.start()
+
     cherrypy.quickstart(DemoInfo.get_instance(), config=CONF_FILE_ABS)
