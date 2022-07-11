@@ -30,6 +30,8 @@ from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 
 import sys
 
+ROOT = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+
 class Terminal(object):
     """
     IPOL Control Terminal Tool
@@ -39,13 +41,13 @@ class Terminal(object):
         '''
         Gets the full path of the modules.xml configuration file
         '''
-        return os.path.expanduser('~/ipolDevel/ipol_demo/modules/config_common/modules.xml')
+        return os.path.join(ROOT, 'ipol_demo/modules/config_common/modules.xml')
 
     def get_demorunners_xml_filename(self):
         '''
         Gets the full path of the demorunners.xml configuration file
         '''
-        return os.path.expanduser('~/ipolDevel/ipol_demo/modules/config_common/demorunners.xml')
+        return os.path.join(ROOT, 'ipol_demo/modules/config_common/demorunners.xml')
 
     def get_ipol_environment(self):
         '''
@@ -67,12 +69,12 @@ class Terminal(object):
         Sets the IPOL environment
         '''
         # Get targets
-        target_modules = os.path.expanduser('~/ipolDevel/ipol_demo/modules/config_common/envs/{}/modules.xml'.format(env))
+        target_modules = os.path.join(ROOT, 'ipol_demo/modules/config_common/envs/{}/modules.xml'.format(env))
         if not os.path.isfile(target_modules):
             print("ERROR. File not found: {}".format(target_modules))
             return
 
-        target_demorunners = os.path.expanduser('~/ipolDevel/ipol_demo/modules/config_common/envs/{}/demorunners.xml'.format(env))
+        target_demorunners = os.path.join(ROOT, 'ipol_demo/modules/config_common/envs/{}/demorunners.xml'.format(env))
         if not os.path.isfile(target_demorunners):
             print("ERROR. File not found: {}".format(target_modules))
             return
