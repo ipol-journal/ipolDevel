@@ -8,7 +8,7 @@ import shutil
 import socket
 import xml.etree.ElementTree as ET
 import requests
-import re
+from ipolutils.utils import read_commented_text_file
 
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "../ipol_demo/modules/"))
@@ -18,6 +18,7 @@ from dispatcher.policy import Policy
 HOST = socket.gethostbyname(socket.gethostname())
 user = 'ipol'
 compilation_path = os.path.join("/", "home", user, "ipolDevel", "ci_tests", "compilation_folder")
+ignored_ids_file_path = sys.argv[1]
 
 
 def main():
@@ -28,8 +29,8 @@ def main():
     demorunners = read_demorunners()
 
     id_list = []
-    if os.path.exists("ignored_ids.txt"):
-        id_list = [int(id) for id in read_file("ignored_ids.txt")]
+    if os.path.exists(ignored_ids_file_path):
+        id_list = [int(id) for id in read_commented_text_file(ignored_ids_file_path)]
 
     for demo_id in get_published_demos():
         json_ddl = json.loads(get_ddl(demo_id))
@@ -108,23 +109,6 @@ def get_ddl(demo_id):
         print(f"ERROR: get_ddl returned KO for demo #{demo_id}")
     last_demodescription = response.get('last_demodescription')
     return last_demodescription.get('ddl')
-
-
-def read_file(input_file):
-    """
-    Read the list of demo ids to be ignored in the tests
-    """
-    demoid_list = []
-    file_obj = open(input_file, 'r')
-    lines = file_obj.readlines()
-    for line in lines:
-        line_obj = re.match(r'([^#]*)#.*', line)
-        if line_obj:
-            line = line_obj.group(1)
-        line = line.strip()
-        if line:
-            demoid_list.append(line)
-    return demoid_list
 
 
 def build(demo_id, build_section, requirements, demorunners):
