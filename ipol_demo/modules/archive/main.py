@@ -40,9 +40,4 @@ if __name__ == '__main__':
     CONF_FILE_ABS = os.path.join(BASE_DIR, CONF_FILE_REL)
     cherrypy.log.error_log.setLevel('ERROR')
     cherrypy.config.update(CONF_FILE_ABS)
-
-    if os.getenv("IPOL_AUTORELOAD") == "1":
-        print("Autoreload enabled.")
-        cherrypy.engine.autoreload.start()
-
     cherrypy.quickstart(Archive.get_instance(), config=CONF_FILE_ABS)

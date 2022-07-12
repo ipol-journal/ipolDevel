@@ -33,9 +33,4 @@ if __name__ == '__main__':
 
     cherrypy.config.update(CONF_FILE_ABS)
     cherrypy.log.error_log.setLevel('ERROR')
-
-    if os.getenv("IPOL_AUTORELOAD") == "1":
-        print("Autoreload enabled.")
-        cherrypy.engine.autoreload.start()
-
     cherrypy.quickstart(Dispatcher.get_instance(), config=CONF_FILE_ABS)

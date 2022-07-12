@@ -68,9 +68,4 @@ if __name__ == '__main__':
     cherrypy.config.update(LOCAL_CONF_FILE)
     cherrypy.log.error_log.setLevel('ERROR')
     cherrypy.tools.cgitb = cherrypy.Tool('before_error_response', err_tb)
-
-    if os.getenv("IPOL_AUTORELOAD") == "1":
-        print("Autoreload enabled.")
-        cherrypy.engine.autoreload.start()
-
     cherrypy.quickstart(Core.get_instance(), config=CONF_FILE_ABS)
