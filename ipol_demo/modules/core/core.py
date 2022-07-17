@@ -420,7 +420,6 @@ class Core():
 
         for i in range(nb_inputs):
             file_up = blobs.pop('file_%i' % i, None)
-            inputs_names[i] = {"origin": file_up.filename}
 
             if file_up is None or file_up.filename == '':
                 if 'required' not in list(inputs_desc[i].keys()) or \
@@ -429,6 +428,8 @@ class Core():
                     raise IPOLMissingRequiredInputError(i)
                 # skip this input
                 continue
+
+            inputs_names[i] = {"origin": file_up.filename}
 
             mime = magic.Magic(mime=True)
             file_up.file.seek(0)
