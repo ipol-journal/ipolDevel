@@ -1193,7 +1193,7 @@ attached the failed experiment data.". \
             raise IPOLWorkDirError(ex)
 
         if not origin:
-            return work_dir, key, []
+            return work_dir, key, [], {}
         # Copy input blobs
         try:
             inputs_names = self.copy_blobs(work_dir, demo_id, origin, blobs, blobset_id, ddl_inputs)
