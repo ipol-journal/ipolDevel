@@ -79,7 +79,7 @@ def get_published_demos():
     """
     Get demos
     """
-    resp = post(HOST, 'demoinfo', 'demo_list')
+    resp = post(f'http://{HOST}/api/demoinfo/demo_list')
     if resp == None:
         print("Can't get the list of demos!")
         return []
@@ -99,7 +99,7 @@ def get_ddl(demo_id):
     """
     Read the DDL of the demo
     """
-    resp = post(HOST, 'demoinfo', 'get_ddl', params={"demo_id": demo_id})
+    resp = post(f'http://{HOST}/api/demoinfo/get_ddl', params={"demo_id": demo_id})
     if resp == None:
         print(f"Can't get the DDL of demo #{demo_id}!")
         return ""
@@ -120,7 +120,7 @@ def build(demo_id, build_section, requirements, demorunners):
     for demorunner in suitable_demorunners:
         demorunner_host = demorunner.server
         params = {'ddl_build': json.dumps(build_section), 'compilation_path': get_compilation_path(demo_id)}
-        response = post(demorunner_host, f'demorunner/{demorunner.name}', 'test_compilation', params)
+        response = post(f'{demorunner_host}api/demorunner/{demorunner.name}/test_compilation', params)
 
         if response == None or response.status_code == None:
             print(f"Bad response from DR={demorunner.name} when trying to build demo #{demo_id}: {str(response)}")
@@ -174,16 +174,11 @@ def read_demorunners():
     return demorunners
 
 
-def post(host, module, service, params=None):
+def post(url, params=None):
     """
     Post
     """
     try:
-        url = 'http://{}/api/{}/{}'.format(
-            host,
-            module,
-            service
-        )
         return requests.post(url, params=params)
     except Exception as ex:
         return None
