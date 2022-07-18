@@ -22,6 +22,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 # Prompt
 from prompt_toolkit import prompt
@@ -30,7 +31,7 @@ from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 
 import sys
 
-ROOT = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+ROOT = Path(__file__).parent.parent.parent.absolute()
 
 class Terminal(object):
     """
