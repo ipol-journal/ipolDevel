@@ -120,7 +120,7 @@ def build(demo_id, build_section, requirements, demorunners):
     for demorunner in suitable_demorunners:
         demorunner_host = demorunner.server
         params = {'ddl_build': json.dumps(build_section), 'compilation_path': get_compilation_path(demo_id)}
-        response = post(demorunner_host, 'demorunner', 'test_compilation', params)
+        response = post(demorunner_host, f'demorunner/{demorunner.name}', 'test_compilation', params)
 
         if response == None or response.status_code == None:
             print(f"Bad response from DR={demorunner.name} when trying to build demo #{demo_id}: {str(response)}")
