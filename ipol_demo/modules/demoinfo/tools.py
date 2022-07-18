@@ -25,7 +25,7 @@ def generate_ssh_keys():
     key = Ed25519PrivateKey.generate()
     privkey = key.private_bytes(
         crypto_serialization.Encoding.PEM,
-        crypto_serialization.PrivateFormat.PKCS8,
+        crypto_serialization.PrivateFormat.OpenSSH,
         crypto_serialization.NoEncryption()
     )
     pubkey = key.public_key().public_bytes(
