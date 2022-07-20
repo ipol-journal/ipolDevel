@@ -1,27 +1,24 @@
 [default]
 compilation_root = "./compilation/"
-execution_root = "./execution/"
+execution_root = "/home/ipol/ipolDevel/shared_folder/run/"
 docker_image_prefix = "ipol-demo-"
 docker_exec_prefix = "ipol-exec-"
 exec_workdir_in_docker = "/workdir/exec"
 user_uid_gid = "1000:1000"
 gpus = []
+env_vars = {"IPOL_URL"="https://ipolcore.ipol.im"}
+ssh_key_path = "id_ed25519"
 
 [ipol-ipolcore]
 port = 3000
 user_uid_gid = "1001:1001"
-execution_root = "/home/ipol/ipolDevel/shared_folder/run/"
-ssh_key_path = "id_ed25519"
 
 [ipol-integration]
 port = 3000
 user_uid_gid = "1001:1001"
-execution_root = "/home/ipol/ipolDevel/shared_folder/run/"
-ssh_key_path = "id_ed25519"
+env_vars = {"IPOL_URL"="https://integration.ipol.im"}
 
 [ipol-limule]
 port = 3000
 user_uid_gid = "1005:1005"
-execution_root = "/home/ipol/ipolDevel/shared_folder/run/"
-ssh_key_path = "id_ed25519"
 gpus = ["GPU-43d69276-d085-d30b-2a53-b8d276038d12"]
