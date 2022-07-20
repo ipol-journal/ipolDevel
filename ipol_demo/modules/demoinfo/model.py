@@ -340,6 +340,14 @@ class DemoDAO():
         """, (pubkey, privkey, editor_demo_id))
         self.conn.commit()
 
+    def reset_ssh_key(self, editor_demo_id):
+        self.cursor.execute("""
+        UPDATE demo
+        SET ssh_pubkey=null, ssh_privkey=null
+        WHERE editor_demo_id=?;
+        """, (editor_demo_id,))
+        self.conn.commit()
+
 
 class DemoDemoDescriptionDAO():
     """

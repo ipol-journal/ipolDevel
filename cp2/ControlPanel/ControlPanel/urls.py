@@ -51,6 +51,7 @@ urlpatterns = [
         path('showDemo/ajax_user_can_edit_demo', ajax_user_can_edit_demo),
         path('showDemo/ajax_edit_demo', edit_demo, name='edit_demo'),
         path('showDemo/ddl_history', ddl_history, name='ddl_history'),
+        path('showDemo/reset_ssh_key', reset_ssh_key),
         path('showBlobsDemo', showBlobsDemo),
         path('showBlobsDemo/ajax', ajax_delete_blob_demo),
         path('showBlobsDemo/ajax_add_template_to_demo', ajax_add_template_to_demo),

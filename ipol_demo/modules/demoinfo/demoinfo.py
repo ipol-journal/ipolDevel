@@ -2026,3 +2026,32 @@ class DemoInfo():
             self.logger.exception(error_message)
             data['error_message'] = error_message
             return json.dumps(data).encode()
+
+    @cherrypy.expose
+    @authenticate
+    def reset_ssh_keys(self, demo_id):
+        try:
+            demo_id = int(demo_id)
+        except(TypeError, ValueError) as ex:
+            return json.dumps({'status': 'KO', 'error': "Invalid demo_id: {}".format(demo_id), 'error_code': -2}).encode()
+
+        data = {'status': 'KO'}
+        try:
+            conn = lite.connect(self.database_file)
+            demo_dao = DemoDAO(conn)
+
+            if not demo_dao.exist(demo_id):
+                return json.dumps(data).encode()
+
+            demo_dao.reset_ssh_key(demo_id)
+
+            data = {
+                'status': 'OK',
+            }
+            return json.dumps(data).encode()
+
+        except Exception as ex:
+            error_message = "Failure in 'get_ssh_keys' for demo '{}'. Error {}".format(demo_id, ex)
+            self.logger.exception(error_message)
+            data['error_message'] = error_message
+            return json.dumps(data).encode()

@@ -110,7 +110,13 @@
 <!-- I don't know how to properly put the text below the editor -->
 <div id="editorContainer"></div>
 <div id="editorContainer">
-SSH public key: <pre>{{ssh_pubkey}}</pre>
+    SSH public key:
+    <pre>{{ssh_pubkey}}</pre>
+    <form action="showDemo/reset_ssh_key" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="demo_id" value="{{ demo_id }}">
+        <button class="btn" action="submit">Reset key</button>
+    </form>
 </div>
 
 <script type="text/javascript" src="/cp2/static/js/showDemo.js"></script>

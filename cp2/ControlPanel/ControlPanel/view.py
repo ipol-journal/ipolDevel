@@ -130,6 +130,23 @@ def add_demo_editor(request):
         return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 @login_required(login_url='login')
+def reset_ssh_key(request):
+    demo_id = request.POST['demo_id']
+    payload = {
+        'demo_id': demo_id,
+    }
+    if user_can_edit_demo(request.user, demo_id):
+        demoinfo_response = api_post('/api/demoinfo/reset_ssh_keys', payload).json()
+
+    response = {}
+    if demoinfo_response.get('status') != 'OK':
+        response['status'] = 'KO'
+        response['message'] = demoinfo_response.get('error')
+        return HttpResponse(json.dumps(response), 'application/json')
+    else:
+        return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+@login_required(login_url='login')
 def remove_demo_editor(request):
     demo_id = request.POST['demo_id']
     editor_id = request.POST['editor_id']
