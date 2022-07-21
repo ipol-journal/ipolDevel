@@ -496,6 +496,9 @@ def showDemo(request):
     available_editors = api_post('/api/demoinfo/demo_get_available_editors_list', { 'demo_id': demo_id }).json()
     available_editors = available_editors['editor_list']
 
+    host_url = request.build_absolute_uri()
+    host_url = host_url[:host_url.rfind('/cp2')]
+
     if demoinfo_response['status'] == 'OK':
         ddl = demoinfo_response['last_demodescription']
 
@@ -514,6 +517,7 @@ def showDemo(request):
         'editors_list': editor_list,
         'available_editors': available_editors,
         'ssh_pubkey': pubkey,
+        'host_url': host_url,
     }
 
     return render(request, 'showDemo.html', context)
