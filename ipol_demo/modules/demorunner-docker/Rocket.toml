@@ -21,4 +21,8 @@ env_vars = {"IPOL_URL"="https://integration.ipol.im"}
 [ipol-limule]
 port = 3000
 user_uid_gid = "1005:1005"
+
+[ipol-limule-gpu]
+port = 3001
+user_uid_gid = "1005:1005"
 gpus = ["GPU-43d69276-d085-d30b-2a53-b8d276038d12"]
