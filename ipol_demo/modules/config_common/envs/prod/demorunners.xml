@@ -36,10 +36,19 @@
     <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
   </demorunner>
 
-  <demorunner name="dr-docker">
+  <demorunner name="dr-limule-docker">
     <module>demorunner-docker</module>
     <server>http://ipolcore.ipol.im/</server>
     <capability>experimental-docker!</capability>
+    <serverSSH>ipol_core</serverSSH>
+    <path>~/ipolDevel/ipol_demo/modules/demorunner-docker/</path>
+  </demorunner>
+
+  <demorunner name="dr-limule-docker-gpu">
+    <module>demorunner-docker</module>
+    <server>http://ipolcore.ipol.im/</server>
+    <capability>experimental-docker!</capability>
+    <capability>GPU!</capability>
     <serverSSH>ipol_core</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/demorunner-docker/</path>
   </demorunner>
