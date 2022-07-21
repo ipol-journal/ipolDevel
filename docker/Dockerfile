@@ -16,7 +16,7 @@ RUN pip install virtualenv && pip3 install requests virtualenv ipython
 COPY ./docker/zsh_conf /home/ipol/zsh_conf
 
 # Nginx config file generation
-COPY ./sysadmin/configs/nginx/default-local /etc/nginx/sites-available/default
+COPY ./sysadmin/configs/nginx/default-docker /etc/nginx/sites-available/default
 RUN sed -i 's@miguel@ipol@g' /etc/nginx/sites-available/default
 
 USER ipol
