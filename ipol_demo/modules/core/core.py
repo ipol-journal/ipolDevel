@@ -435,7 +435,7 @@ class Core():
             inputs_names = self.copy_blobset_from_physical_location(demo_id, work_dir, blobset_id)
 
         for i, desc in enumerate(ddl_inputs):
-            ext = desc['ext']
+            ext = desc.get('ext', '')
             filename = f'input_{i}{ext}'
             inputs_names[i]['converted'] = filename
 
