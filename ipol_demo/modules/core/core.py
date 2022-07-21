@@ -437,7 +437,8 @@ class Core():
         for i, desc in enumerate(ddl_inputs):
             ext = desc.get('ext', '')
             filename = f'input_{i}{ext}'
-            inputs_names[i]['converted'] = filename
+            if i in inputs_names:
+                inputs_names[i]['converted'] = filename
 
         return inputs_names
 
