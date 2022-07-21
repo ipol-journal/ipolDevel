@@ -46,6 +46,7 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 if HOST_NAME in dev_machines:
+    ALLOWED_HOSTS = [HOST_NAME, '127.0.0.1', 'localhost']
     DEBUG = True
 elif HOST_NAME in production_servers:
     DEBUG = False
