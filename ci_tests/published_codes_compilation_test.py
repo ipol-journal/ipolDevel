@@ -18,7 +18,7 @@ from dispatcher.policy import Policy
 HOST = socket.gethostbyname(socket.gethostname())
 user = 'ipol'
 compilation_path = os.path.join("/", "home", user, "ipolDevel", "ci_tests", "compilation_folder")
-ignored_ids_file_path = sys.argv[1]
+ignored_ids_file_path = sys.argv[1] if len(sys.argv) > 1 else ''
 
 
 def main():
