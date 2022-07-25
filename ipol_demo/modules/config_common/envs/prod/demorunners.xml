@@ -39,7 +39,7 @@
   <demorunner name="dr-limule-docker">
     <module>demorunner-docker</module>
     <server>http://ipolcore.ipol.im/</server>
-    <capability>experimental-docker!</capability>
+    <capability>docker!</capability>
     <serverSSH>ipol_core</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/demorunner-docker/</path>
   </demorunner>
@@ -47,21 +47,10 @@
   <demorunner name="dr-limule-docker-gpu">
     <module>demorunner-docker</module>
     <server>http://ipolcore.ipol.im/</server>
-    <capability>experimental-docker!</capability>
+    <capability>docker!</capability>
     <capability>GPU!</capability>
     <serverSSH>ipol_core</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/demorunner-docker/</path>
   </demorunner>
-
-  <!--
-  <demorunner name="dr_abeille-docker">
-    <module>demorunner</module>
-    <server>138.231.63.118:2332</server>
-    <capability>GPU!</capability>
-    <capability>experimental-docker!</capability>
-    <serverSSH>abeille_dr</serverSSH>
-    <path>~/ipolDevel/ipol_demo/modules/demorunner-docker/</path>
-  </demorunner>
-  -->
 
 </data>
