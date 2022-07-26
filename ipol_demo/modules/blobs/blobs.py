@@ -18,6 +18,7 @@ import shutil
 import sqlite3 as lite
 import sys
 from threading import Lock
+from unittest import skip
 
 import cherrypy
 import database
@@ -25,7 +26,6 @@ import magic
 from errors import (IPOLBlobsDataBaseError, IPOLBlobsTemplateError,
                     IPOLBlobsThumbnailError, IPOLRemoveDirError)
 from ipolutils.utils import thumbnail
-
 
 def authenticate(func):
     """
@@ -141,7 +141,6 @@ class Blobs():
         """
 
         if os.path.isfile(self.database_file):
-
             file_info = os.stat(self.database_file)
 
             if file_info.st_size == 0:
@@ -150,6 +149,23 @@ class Blobs():
                 except Exception as ex:
                     self.logger.exception("init_database: {}".format(ex))
                     return False
+
+            #adding column set_order
+            try:
+                conn = lite.connect(self.database_file)
+                exists_col_in_demos_blobs = database.add_col_set_order_to_demos_blobs(conn) 
+                if not exists_col_in_demos_blobs:
+                    conn.commit()
+                
+                exists_col_in_templates_blobs = database.add_col_set_order_to_templates_blobs(conn)
+                if not exists_col_in_templates_blobs:
+                    conn.commit()
+                    
+                conn.close()
+
+            except IPOLBlobsDataBaseError:
+                self.logger.exception(f"init_database: {ex}")               
+                return False
 
         if not os.path.isfile(self.database_file):
             try:
@@ -160,7 +176,6 @@ class Blobs():
 
                 with open(self.database_dir + '/drop_create_db_schema.sql', 'r') as sql_file:
                     for line in sql_file:
-
                         sql_buffer += line
                         if lite.complete_statement(sql_buffer):
                             sql_buffer = sql_buffer.strip()
@@ -181,6 +196,7 @@ class Blobs():
                         return False
 
         return True
+
 
     def read_authorized_patterns(self):
         """
@@ -289,19 +305,32 @@ class Blobs():
             if dest["dest"] == "demo":
                 demo_id = dest["demo_id"]
                 # Check if the pos is empty
+                editor_demo_id = database.get_demo_id(conn, demo_id)
                 if database.is_pos_occupied_in_demo_set(conn, demo_id, blob_set, pos_set):
-                    editor_demo_id = database.get_demo_id(conn, demo_id)
                     pos_set = database.get_available_pos_in_demo_set(conn, editor_demo_id, blob_set)
 
-                self.do_add_blob_to_demo(conn, demo_id, blob_id, blob_set, pos_set, title)
+                #Get the set order position value
+                if database.is_blob_set_associated_to_blob_in_demo(conn, demo_id, blob_set):
+                    set_order = database.get_set_order_associated_to_blob_set(conn, editor_demo_id, blob_set)
+                else:
+                    set_order = database.get_next_available_set_order(conn, editor_demo_id)
+
+                self.do_add_blob_to_demo(conn, demo_id, blob_id, blob_set, pos_set, title, set_order)
                 res = True
+
             elif dest["dest"] == "template":
                 template_id = dest["template_id"]
                 # Check if the pos is empty
                 if database.is_pos_occupied_in_template_set(conn, template_id, blob_set, pos_set):
                     pos_set = database.get_available_pos_in_template_set(conn, template_id, blob_set)
 
-                self.do_add_blob_to_template(conn, template_id, blob_id, blob_set, pos_set, title)
+                #Get the set order position value
+                if database.is_blob_set_associated_to_blob_in_template_set(conn, template_id, blob_set):
+                    set_order = database.get_set_order_associated_to_blob_set_in_template(conn, template_id, blob_set)
+                else:
+                    set_order = database.get_next_available_set_order_in_template(conn, template_id)
+
+                self.do_add_blob_to_template(conn, template_id, blob_id, blob_set, pos_set, title, set_order)
                 res = True
             else:
                 self.logger.error("Failed to add the blob in add_blob. Unknown dest: {}".format(dest["dest"]))
@@ -418,21 +447,21 @@ class Blobs():
         return os.path.join(blob_hash[0], blob_hash[1])
 
     @staticmethod
-    def do_add_blob_to_demo(conn, demo_id, blob_id, pos_set, blob_set, blob_title):
+    def do_add_blob_to_demo(conn, demo_id, blob_id, pos_set, blob_set, blob_title, set_order):
         """
         Associates the blob to a demo in the DB
         """
         try:
             if not database.demo_exist(conn, demo_id):
                 database.create_demo(conn, demo_id)
-            database.add_blob_to_demo(conn, demo_id, blob_id, pos_set, blob_set, blob_title)
+            database.add_blob_to_demo(conn, demo_id, blob_id, pos_set, blob_set, blob_title, set_order)
             conn.commit()
         except IPOLBlobsDataBaseError:
             conn.rollback()
             raise
 
     @staticmethod
-    def do_add_blob_to_template(conn, template_id, blob_id, blob_set, pos_set, blob_title):
+    def do_add_blob_to_template(conn, template_id, blob_id, blob_set, pos_set, blob_title, set_order):
         """
         Associates the template to a demo in the DB
         """
@@ -440,7 +469,7 @@ class Blobs():
             if not database.template_exist(conn, template_id):
                 raise IPOLBlobsTemplateError("Template doesn't exist")
 
-            database.add_blob_to_template(conn, template_id, blob_id, pos_set, blob_set, blob_title)
+            database.add_blob_to_template(conn, template_id, blob_id, pos_set, blob_set, blob_title, set_order)
             conn.commit()
         except IPOLBlobsDataBaseError:
             conn.rollback()
