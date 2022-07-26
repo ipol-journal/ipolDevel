@@ -41,7 +41,7 @@
             <p class="demo-id">ID: {{ demo.editorsdemoid }}</p>
             <p class="demo-state">State: {{ demo.state }}</p>
             {% if demo.modification %}
-            <p class="demo-date">Last modification: {{ demo.modification }}</p>
+            <p class="demo-date">Last modification: {{ demo.modification|parse_iso|date:"d M Y" }}</p>
             {% endif %}
         </div>
         <div class="card-buttons">
