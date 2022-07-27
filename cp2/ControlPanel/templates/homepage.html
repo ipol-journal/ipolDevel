@@ -36,9 +36,9 @@
         <div class="demo-title">
             <p>Demo title:</p>
             <h1>{{ demo.title|truncatechars:100 }}</h1>
+            <p class="demo-id">ID: {{ demo.editorsdemoid }}</p>
         </div>
         <div class="demo-info">
-            <p class="demo-id">ID: {{ demo.editorsdemoid }}</p>
             <p class="demo-state">State: {{ demo.state }}</p>
             {% if demo.modification %}
             <p class="demo-date">Last modification: {{ demo.modification|parse_iso|date:"d M Y" }}</p>

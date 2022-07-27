@@ -83,44 +83,56 @@ input .demo_selector {
 
 #demos-list {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(30rem, 100%), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(50rem, 100%), 1fr));
     padding: 1rem;
     margin: 1rem auto;
-    gap: 1rem;
+    gap: 1.5rem;
     width: 80%;
 }
 
 .demo-card {
-    display: grid;
+    display: flex;
     padding: 1rem;
     gap: 1rem;
     border-radius: var(--border-radius);
     border-color: var(--color-dark-purple);
     box-shadow: rgb(99 99 99 / 20%) 0px 0px 10px 3px;
+    justify-content: space-around;
+    flex-wrap: nowrap;
 }
 
 .demo-title {
-    grid-area: 1 / 1 / 2 / 2;
     font-weight: var(--fw-medium);
+    flex-basis: 50%;
 }
 .demo-info { 
-    grid-area: 2 / 1 / 3 / 2;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    gap: 1rem;
+    align-items: flex-start;
     flex-wrap: nowrap;
+    flex-direction: column;
+    justify-content: space-around;
 }
 .card-buttons {
-    grid-area: 3 / 1 / 4 / 2;
     display: flex;
-    justify-content: flex-end;
-    align-items: center;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: space-around;
+    gap: 1rem;
+}
+
+.card-buttons a {
+    box-sizing: border-box;
+    margin: 0 auto;
+    width: 100%;
+    text-align: center;
 }
 
 .demo-title > h1 {
     color: var(--color-dark-blue);
-    font-size: 1.6rem;
-    padding: 0.4rem 0 1rem 0;
+    font-size: 1.5rem;
+    padding: 0.4rem 0;
+    font-weight: var(--fw-medium);
 }
 
 .demo-card > a.btn {
@@ -144,7 +156,7 @@ input .demo_selector {
 
 .demo-info > p {
     font-size: 1rem;
-    padding: 0.5rem;
+    padding: 0.25rem;
     font-weight: var(--fw-regular);
     display: inline-block;
 }
@@ -153,7 +165,11 @@ input .demo_selector {
     display: inline-block;
     color: var(--color-dark-purple);
     border: 2px solid var(--color-dark-purple);
-    border-radius: 18px;
+    border-radius: 4px;
+    font-size: 1rem;
+    padding: 0.25rem;
+    font-weight: var(--fw-regular);
+    display: inline-block;
 }
 
 /* //////// ADD DEMO MODAL ///////// */
