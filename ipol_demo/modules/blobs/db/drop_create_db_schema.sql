@@ -18,10 +18,9 @@ CREATE TABLE "demos_blobs" (
         'blob_set' VARCHAR (70) DEFAULT NULL,
         'pos_in_set' INTEGER,
         'blob_title'	VARCHAR(255),
-	'set_order' INTEGER,
         FOREIGN KEY('demo_id') REFERENCES "demos"('id') ON DELETE CASCADE ON UPDATE CASCADE,
         FOREIGN KEY('blob_id') REFERENCES "blobs"('id') ON DELETE CASCADE ON UPDATE CASCADE,
-        UNIQUE('demo_id','blob_set','pos_in_set', 'set_order')
+        UNIQUE('demo_id','blob_set','pos_in_set')
 );
 CREATE TABLE "demos_templates" (
         'id' INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,8 +41,7 @@ CREATE TABLE "templates_blobs" (
         'blob_set' VARCHAR (70) DEFAULT NULL,
         'pos_in_set' INTEGER,
         'blob_title'	VARCHAR(255),
-	'set_order' INTEGER,
         FOREIGN KEY('template_id') REFERENCES "templates"('id') ON DELETE CASCADE ON UPDATE CASCADE,
         FOREIGN KEY('blob_id') REFERENCES "blobs"('id') ON DELETE CASCADE ON UPDATE CASCADE,
-        UNIQUE('template_id','blob_set','pos_in_set', 'set_order')
+        UNIQUE('template_id','blob_set','pos_in_set')
 );
