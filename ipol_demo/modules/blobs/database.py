@@ -183,7 +183,7 @@ def get_next_available_set_order(conn, editor_demo_id):
                 FROM demos_blobs
                 WHERE demo_id = ?
                 )
-            ORDER BY set_order
+            ORDER BY blobs_order
         """, (editor_demo_id, editor_demo_id))
 
         return cursor.fetchone()[0]
