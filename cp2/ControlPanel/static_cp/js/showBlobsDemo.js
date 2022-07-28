@@ -2,6 +2,7 @@ var templates_used = [];
 var csrftoken = getCookie('csrftoken');
 var section = document.querySelector('section');
 var demo_id = getParameterByName('demo_id');
+var demo_id = getParameterByName('title');
 var templateSelection;
 
 function add_template_to_demo(selected_template) {

@@ -635,6 +635,7 @@ def ajax_save_DDL(request):
 @login_required(login_url='login')
 def showBlobsDemo(request):
     demo_id = request.GET['demo_id']
+    title = request.GET['title']
     can_edit = user_can_edit_demo(request.user, demo_id)
     blobs = api_post('/api/blobs/get_demo_owned_blobs', { 'demo_id': demo_id}).json()
     blob_sets = blobs['sets']
@@ -648,6 +649,7 @@ def showBlobsDemo(request):
     context = {
         'can_edit': can_edit,
         'demo_id': demo_id,
+        'title': title,
         'blob_sets': blob_sets,
         'demo_used_templates': demo_used_templates,
         'template_list': template_list
