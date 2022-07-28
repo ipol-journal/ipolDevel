@@ -40,6 +40,7 @@ $(document).ready(function() {
         }
     } else {
         let demo_id = getParameterByName('demo_id');
+        let title = getParameterByName('title');
         update_edit_demo();
         var form = document.getElementById('editBlobForm');
         form.onsubmit = function(e) {
@@ -66,7 +67,7 @@ $(document).ready(function() {
                 dataType: 'json',
                 success: function(data) {
                     if (data.status === 'OK') {
-                        document.location.href = "showBlobsDemo?demo_id=" + demo_id
+                        document.location.href = `showBlobsDemo?demo_id=${demo_id}&title=${title}`
                     } else {
                         alert("Error to add this Blob to the demo")
                     }

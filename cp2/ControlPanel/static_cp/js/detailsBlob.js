@@ -3,6 +3,7 @@ var VRImage;
 var completeURL = document.location.href;
 var decoded = decodeURI(completeURL);
 var demo_id = getParameterByName('demo_id');
+var title = getParameterByName('title');
 var template_id = getParameterByName('template_id');
 var template_name = getParameterByName('template_name');
 var pos = getParameterByName('pos');
@@ -73,7 +74,7 @@ $(document).ready(function(){
                     if (template_id) {
                         document.location.href = `showTemplate?template_id=${template_id}&template_name=${template_name}`;
                     } else {
-                        document.location.href = "showBlobsDemo?demo_id="+demo_id;
+                        document.location.href = `showBlobsDemo?demo_id=${demo_id}&title=${title}`;
                     }
                 } else {
                     alert("Error to add this Blob to the Template")
