@@ -192,7 +192,7 @@ class IntegrationTests(unittest.TestCase):
         """
         Creates a demo
         """
-        response = self.post('demoinfo', 'add_demo', params={'editorsdemoid': demo_id, 'title': title, 'state': state})
+        response = self.post('demoinfo', 'add_demo', params={'demo_id': demo_id, 'title': title, 'state': state})
         return response.json()
 
     def add_ddl(self, demo_id, ddl):

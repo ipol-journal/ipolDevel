@@ -258,7 +258,7 @@ class DemoInfo():
             return None
         demoextras_name = pathname2url(os.path.basename(demoextras_file[0]))
         env = self.server_environment
-        protocol = 'https' if env == 'production' or env == 'integration' else 'http'
+        protocol = 'https' if env in ('production', 'integration') else 'http'
         return "{}://{}/api/demoinfo/{}{}/{}".format(
             protocol,
             socket.getfqdn(),
@@ -749,7 +749,7 @@ class DemoInfo():
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
     @authenticate
-    def add_demo(self, editorsdemoid, title, state, ddl_id=None, ddl=None):
+    def add_demo(self, demo_id, title, state, ddl_id=None, ddl=None):
         """
         Create a demo
         """
@@ -757,38 +757,30 @@ class DemoInfo():
         conn = None
         try:
             conn = lite.connect(self.database_file)
-            dao = DemoDAO(conn)
+            demo_db = DemoDAO(conn)
 
-            editorsdemoid = int(editorsdemoid)
+            demo_id = int(demo_id)
 
             # Check if the demo already exists
             # In that case, get out with an error
-            if dao.exist(int(editorsdemoid)):
-                return json.dumps({"status": "KO", "error": "Demo ID={} already exists".format(editorsdemoid)}).encode()
+            if demo_db.exist(demo_id):
+                return json.dumps({"status": "KO", "error": "Demo ID={} already exists".format(demo_id)}).encode()
 
-            if ddl:
-                # creates a demodescription and asigns it to demo
-                ddao = DemoDescriptionDAO(conn)
-                ddl_id = ddao.add(ddl)
-                d = Demo(int(editorsdemoid), title, state)
-                editorsdemoid = dao.add(d)
-                dddao = DemoDemoDescriptionDAO(conn)
-                dddao.add(int(editorsdemoid), int(ddl_id))
-
-            elif ddl_id: # old CP dependency [TODO] remove when CP1 is not used anymore
+            demo = Demo(int(demo_id), title, state)
+            if ddl_id: # old CP dependency [TODO] remove when CP1 is not used anymore
                 # asigns to demo an existing demodescription
-                d = Demo(int(editorsdemoid), title, state)
-                editorsdemoid = dao.add(d)
-                ddddao = DemoDemoDescriptionDAO(conn)
-                ddddao.add(int(editorsdemoid), int(ddl_id))
-
+                demo_id = demo_db.add(demo)
+                ddl_db = DemoDemoDescriptionDAO(conn)
+                ddl_db.add(int(demo_id), int(ddl_id))
             else:
-                # demo created without demodescription
-                # careful with Demo init method's validation!
-                d = Demo(editorsdemoid=int(editorsdemoid), title=title, state=str(state))
-
-                demoid = dao.add(d)
-                data["demoid"] = demoid
+                # if ddl is none add empty json string
+                if ddl == None:
+                    ddl = '{}'
+                ddl_id = DemoDescriptionDAO(conn).add(ddl)
+                demo_id = demo_db.add(demo)
+                ddl_db = DemoDemoDescriptionDAO(conn)
+                ddl_db.add(int(demo_id), int(ddl_id))
+                data["demo_id"] = demo_id
 
             conn.close()
 
@@ -863,11 +855,11 @@ class DemoInfo():
 
         if 'creation' in demo_json:
             # Change creation date
-            d = Demo(demo_json.get('editorsdemoid'), demo_json.get('title'), demo_json.get('state'),
+            d = Demo(demo_json.get('demo_id'), demo_json.get('title'), demo_json.get('state'),
                      demo_json.get('creation'))
         else:
             # update Demo
-            d = Demo(demo_json.get('editorsdemoid'), demo_json.get('title'), demo_json.get('state'))
+            d = Demo(demo_json.get('demo_id'), demo_json.get('title'), demo_json.get('state'))
 
         try:
             old_editor_demoid = int(old_editor_demoid)

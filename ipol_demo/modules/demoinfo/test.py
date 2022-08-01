@@ -231,7 +231,7 @@ class DemoinfoTests(unittest.TestCase):
             self.add_demo(self.demo_id, self.demo_title, self.state)
             new_demo = {
                 "title": new_title,
-                "editorsdemoid": self.demo_id,
+                "demo_id": self.demo_id,
                 "state": new_state}
             json_response = self.update_demo(new_demo, self.demo_id)
             update_status = json_response.get('status')
@@ -972,7 +972,7 @@ class DemoinfoTests(unittest.TestCase):
         """
         add demo
         """
-        params = {'editorsdemoid': demo_id, 'title': title, 'state': state}
+        params = {'demo_id': demo_id, 'title': title, 'state': state}
         response = self.post(self.module, 'add_demo', params=params)
         return response.json()
 
