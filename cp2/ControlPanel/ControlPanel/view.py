@@ -171,26 +171,29 @@ def remove_demo_editor(request):
 @login_required(login_url='login')
 @csrf_protect
 def ajax_add_demo(request):
-    state = request.POST['State'].lower()
-    title = request.POST['Title']
-    demo_id = request.POST['DemoId']
-    
-    settings = {'state': state, 'title': title, 'editorsdemoid': demo_id, 'ddl': '{}'}
-    response_api = api_post("/api/demoinfo/add_demo", settings, json='{}')
-    result = response_api.json()
+    state = request.POST['state'].lower()
+    title = request.POST['title']
+    demo_id = request.POST['demo_id']
 
-    editor_info = api_post('/api/demoinfo/get_editor', { 'email': request.user.email }).json()
+    settings = {'state': state, 'title': title, 'demo_id': demo_id, 'ddl': '{}'}
+    result = api_post("/api/demoinfo/add_demo", settings, json='{}')
+
+    editor_info = api_post('/api/demoinfo/get_editor', { 'email': request.user.email })
     editor_id = editor_info['editor']['id']
     settings = {'demo_id': demo_id, 'editor_id': editor_id }
-    editor_add = api_post('/api/demoinfo/add_editor_to_demo', settings).json()
+    editor_add = api_post('/api/demoinfo/add_editor_to_demo', settings)
 
     response = {}
     if result.get('status') != 'OK' or editor_add.get('status') != 'OK':
         response['status'] = 'KO'
         response['message'] = result.get('error')
+        return JsonResponse({
+            'status': 'KO',
+            'message': result.get('error')
+        }, status=400)
     else:
         response['status'] = 'OK'
-    return HttpResponse(json.dumps(response), 'application/json')
+        return HttpResponseRedirect(f'/cp2/showDemo?demo_id={demo_id}&title={title}')
 
 @login_required(login_url='login')
 @csrf_protect
