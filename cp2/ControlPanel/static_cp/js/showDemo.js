@@ -105,7 +105,7 @@ function submitDDL() {
 			toast('DDL saved');
 		},
 		error: function(error) {
-			console.log('Error');
+			toast('Error when saving DDL, try again');
 		}
 	});
 }
@@ -128,30 +128,29 @@ function update_edit_demo() {
 };
 
 function showDDL() {
-	 $.ajax({
-		  data: ({
-				demoID: demo_id,
-				csrfmiddlewaretoken: csrftoken,
-		  }),
-		  type: 'POST',
-		  dataType: 'json',
-		  url: 'showDemo/ajax_showDDL',
-		  success: function(data) {
-				if (data.status === 'OK') {
-					 aceEditor.setValue(data.last_demodescription.ddl, -1);
-					 last_DDL_saved = aceEditor.getValue();
-					 aceEditor.session.getUndoManager().markClean();
-
-				} else {
-					 aceEditor.setValue({});
-					 last_DDL_saved = aceEditor.getValue();
-
-				}
-		  },
-		  error: function(error) {
-				alert('Error getting DDL, please reload or contact support')
-		  }
-	 });
+	$.ajax({
+		data: ({
+			demoID: demo_id,
+			csrfmiddlewaretoken: csrftoken,
+		}),
+		type: 'POST',
+		dataType: 'json',
+		url: 'showDemo/ajax_showDDL',
+		success: function(data) {
+			if (data.status === 'OK') {
+				aceEditor.setValue(data.last_demodescription.ddl, -1);
+				last_DDL_saved = aceEditor.getValue();
+				aceEditor.session.getUndoManager().markClean();
+			} else {
+				toast(`Error: ${data.error}`);
+				aceEditor.setValue({}, -1);
+				last_DDL_saved = aceEditor.getValue();
+			}
+		},
+		error: function(error) {
+			toast('Error getting DDL, please reload or contact support');
+		}
+	});
 };
 
 function DDLStatusMessage(status, text) {
@@ -269,7 +268,7 @@ function deleteDemo() {
 				toast(data.message);
 			} else {
 				toast('Demo deleted successfully');
-				document.location.href = `/cp2`
+				document.location.href = `/cp2/`
 			}
 		},
    });

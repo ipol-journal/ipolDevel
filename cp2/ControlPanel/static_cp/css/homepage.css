@@ -97,7 +97,7 @@ input .demo_selector {
     border-radius: var(--border-radius);
     border-color: var(--color-dark-purple);
     box-shadow: rgb(99 99 99 / 20%) 0px 0px 10px 3px;
-    justify-content: space-around;
+    justify-content: space-between;
     flex-wrap: nowrap;
 }
 
