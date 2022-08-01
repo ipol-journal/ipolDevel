@@ -9,8 +9,19 @@ from django.contrib.auth.models import User
 #function in order to know wich machine/server it's used for POST and GET methods (/api/....) 
 
 def api_post(resource, params=None, files=None, json=None):
-    host = os.environ.get('IPOL_URL', socket.gethostbyname(socket.getfqdn()))
-    return requests.post(f"{host}{resource}", params=params, data=json, files=files)
+    host = os.environ.get('IPOL_URL', f'http://{socket.gethostbyname(socket.getfqdn())}')
+    response = requests.post(f"{host}{resource}", params=params, data=json, files=files)
+    try:
+        return response.json()
+    except requests.exceptions.Timeout:
+        # Maybe set up for a retry, or continue in a retry loop
+        return {'status': 'KO'}
+    except requests.exceptions.TooManyRedirects:
+        # Tell the user their URL was bad and try a different one
+        return {'status': 'KO'}
+    except requests.exceptions.RequestException as e:
+        # catastrophic error. bail.
+        raise SystemExit(e)
 
 
 def user_can_edit_demo(user, demo_id):
