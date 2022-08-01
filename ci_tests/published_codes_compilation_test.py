@@ -8,7 +8,7 @@ import shutil
 import socket
 import xml.etree.ElementTree as ET
 import requests
-from ipolutils.utils import read_commented_text_file
+from ipolutils.text import read_commented_text_file
 
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "../ipol_demo/modules/"))

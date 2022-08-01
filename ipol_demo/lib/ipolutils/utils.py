@@ -20,8 +20,6 @@ import errno
 import mimetypes
 import os
 from shutil import rmtree
-import re
-import sys
 
 from .image.Image import Image
 
@@ -57,23 +55,3 @@ def rmdir_contents(target):
             os.unlink(file_path)
         else:
             rmtree(file_path)
-
-def read_commented_text_file(input_file):
-    """
-    Return the generated trimmed list after reading a commented text file
-    """
-    trimmed_list = []
-    try:
-        with open(input_file, 'r') as file_obj:
-            lines = file_obj.readlines()
-    except Exception as err:
-        print(f"Failed to read input file '{input_file}' - {err}")
-        sys.exit(-1)
-    for line in lines:
-        line_obj = re.match(r'([^#]*)#.*', line)
-        if line_obj:
-            line = line_obj.group(1)
-        line = line.strip()
-        if line:
-            trimmed_list.append(line)
-    return trimmed_list
