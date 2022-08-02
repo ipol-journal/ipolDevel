@@ -13,22 +13,28 @@
         <h3>Title: {{ title }}</h3>
         <div id="demo-buttons">
             <div class="optionLine">
-                <a id="demoExtras" href="demoExtras?demo_id={{ demo_id }}&title={{title}}" class="btn">Demo Extras</a>
-                <a href="showArchive?demo_id={{ demo_id }}&title={{title}}" class="btn">Archive</a>
-                <a id="showBlobsDemo" href="showBlobsDemo?demo_id={{ demo_id }}&title={{title}}" class="btn">Blobs</a>
+                <a id="demoExtras" href="demoExtras?demo_id={{ demo_id }}&title={{title}}" class="btn">
+                    <i class="fa-solid fa-file-import"></i> Demo Extras
+                </a>
+                <a href="showArchive?demo_id={{ demo_id }}&title={{title}}" class="btn">
+                    <i class="fa-solid fa-box-archive"></i> Archive
+                </a>
+                <a id="showBlobsDemo" href="showBlobsDemo?demo_id={{ demo_id }}&title={{title}}" class="btn">
+                    <i class="fa-solid fa-images"></i> Blobs
+                </a>
                 {% if can_edit %}
-                <button id="editors-btn" class="btn">Editors</button>
+                <button id="editors-btn" class="btn"><i class="fa-solid fa-user-group"></i> Editors</button>
                 {% else %}
-                <button id="editors-btn" class="btn btn-disabled" disabled>Editors</button>
+                <button id="editors-btn" class="btn btn-disabled" disabled><i class="fa-solid fa-user-group"></i> Editors</button>
                 {% endif %}
             </div>
             <div>
                 <div class="edit-demo-container">
                     <a href="{{ host_url }}/demo/clientApp/demo.html?id={{ demo_id }}" class="btn" target="_blank"><i class="fa-solid fa-link"></i> Open demo</a>
                     {% if not can_edit %}
-                    <button id="demoEdit-btn" class="btn" disabled>Edit demo</button>
+                    <button id="demoEdit-btn" class="btn" disabled><i class="fa-solid fa-pen-to-square"></i> Edit demo</button>
                     {% else %}
-                    <button id="demoEdit-btn" class="btn">Edit demo</button>
+                    <button id="demoEdit-btn" class="btn"><i class="fa-solid fa-pen-to-square"></i> Edit demo</button>
                     {% endif %}
                     <dialog id="editDemo-dialog">
                         <h1>Edit demo</h1>
@@ -88,35 +94,35 @@
         <pre id="aceEditor"></pre>
         <div id="ddl-info">
             <div id="saveDDL">
-                <button id="save-btn" class="btn" onclick="saveDDL()" disabled>Save DDL</button>
-            </div>
-            {% if not can_edit %}
-            <div id="can_edit">
-                <h2>You are not allowed to edit this demo</h2>
-            </div>
-            {% endif %}
-            <p id="ddl-status-text">DDL already saved</p>
-            <div>
-                <a href="showDemo/ddl_history?demo_id={{demo_id}}&title={{title}}" id="history-btn" class="btn">DDL History</a>
+                <button id="save-btn" class="btn" onclick="saveDDL()" disabled><i class="fa-solid fa-floppy-disk"></i> Save DDL</button>
+                {% if not can_edit %}
+                <div id="can_edit">
+                    <h2>You are not allowed to edit this demo</h2>
+                </div>
+                {% endif %}
+                <p id="ddl-status-text">DDL already saved</p>
             </div>
             <div>
-                <button id="changeThemeWhite" class="btn">White Theme</button>
-                <button id="changeThemeDark" class="btn btn-dark">Dark Theme</button>
+                <a href="showDemo/ddl_history?demo_id={{demo_id}}&title={{title}}" id="history-btn" class="btn">
+                    <i class="fa-solid fa-clock-rotate-left"></i> DDL History
+                </a>
+            </div>
+            <div>
+                <button id="changeThemeWhite" class="btn"><i class="fa-solid fa-sun"></i> White Theme</button>
+                <button id="changeThemeDark" class="btn btn-dark"><i class="fa-solid fa-moon"></i> Dark Theme</button>
             </div>
         </div>
     </div>
-</div>
-
-<!-- I don't know how to properly put the text below the editor -->
-<div id="editorContainer"></div>
-<div id="editorContainer">
-    SSH public key:
-    <pre>{{ssh_pubkey}}</pre>
-    <form action="showDemo/reset_ssh_key" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <input type="hidden" name="demo_id" value="{{ demo_id }}">
-        <button class="btn" action="submit">Reset key</button>
-    </form>
+    <div id="ssh-container">
+        <p>SSH public key:</p>
+        <pre id="ssh-key">{{ssh_pubkey}}</pre>
+        <button class="btn" onclick="copyKey()"><i class="fa-solid fa-copy"></i> Copy key</button>
+        <form action="showDemo/reset_ssh_key" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="demo_id" value="{{ demo_id }}">
+            <button class="btn" type="submit"><i class="fa-solid fa-arrow-rotate-right"></i> Reset key</button>
+        </form>
+    </div>
 </div>
 
 <script type="text/javascript" src="/cp2/static/js/showDemo.js"></script>

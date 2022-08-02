@@ -312,3 +312,9 @@ function hideModal(){
    $('#fond, .popup').hide();
    $('.popup').html('');
 }
+
+function copyKey() {
+	const key = document.getElementById('ssh-key');
+	navigator.clipboard.writeText(key.textContent);
+	toast('Ssh key copied to clipboard.');
+}
