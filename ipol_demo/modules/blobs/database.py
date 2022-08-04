@@ -55,12 +55,39 @@ def add_blob_to_demo(conn, editor_demo_id, blob_id, blob_set, blob_pos, blob_tit
     """
     try:
         cursor = conn.cursor()
+        
+        set_order = 1
         cursor.execute("""
-            INSERT INTO demos_blobs (demo_id, blob_id, blob_set, pos_in_set, blob_title)
+            SELECT set_order
+            FROM demos_blobs
+            WHERE demo_id=(SELECT id
+                           FROM demos
+                           WHERE editor_demo_id=?)
+            AND blob_set=?;
+            """, (editor_demo_id, blob_set))
+        ret = cursor.fetchone()
+        if ret:
+           set_order = ret[0]
+        else:
+            cursor.execute("""
+                SELECT set_order
+                FROM demos_blobs
+                WHERE demo_id=(SELECT id
+                            FROM demos
+                            WHERE editor_demo_id=?)
+                ORDER BY set_order DESC
+                LIMIT 1
+                """, (editor_demo_id,))
+            ret = cursor.fetchone()
+            if ret:
+                set_order = ret[0] + 1
+        
+        cursor.execute("""
+            INSERT INTO demos_blobs (demo_id, blob_id, blob_set, pos_in_set, blob_title, set_order)
             VALUES ((SELECT id
                     FROM demos
-                    WHERE editor_demo_id = ?), ?, ?, ?, ?)
-            """, (editor_demo_id, blob_id, blob_set, blob_pos, blob_title))
+                    WHERE editor_demo_id = ?), ?, ?, ?, ?, ?)
+            """, (editor_demo_id, blob_id, blob_set, blob_pos, blob_title, set_order))
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -125,16 +152,40 @@ def create_template(conn, template_name):
         raise IPOLBlobsDataBaseError(ex)
 
 
+
 def add_blob_to_template(conn, template_id, blob_id, pos_set, blob_set, blob_title):
     """
     Associates the blob to a template in templates_blobs table
     """
     try:
         cursor = conn.cursor()
+        
+        set_order = 1
         cursor.execute("""
-            INSERT INTO templates_blobs (template_id, blob_id, blob_set, pos_in_set, blob_title)
-            VALUES (?, ?, ?, ?, ?)
-            """, (template_id, blob_id, blob_set, pos_set, blob_title))
+            SELECT set_order
+            FROM templates_blobs
+            WHERE template_id=?
+            AND blob_set=?;
+            """, (template_id, blob_set))
+        ret = cursor.fetchone()
+        if ret:
+           set_order = ret[0]
+        else:
+            cursor.execute("""
+                SELECT set_order
+                FROM templates_blobs
+                WHERE template_id=?
+                ORDER BY set_order DESC
+                LIMIT 1
+                """, (template_id,))
+            ret = cursor.fetchone()
+            if ret:
+                set_order = ret[0] + 1
+        
+        cursor.execute("""
+            INSERT INTO templates_blobs (template_id, blob_id, blob_set, pos_in_set, blob_title, set_order)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """, (template_id, blob_id, blob_set, pos_set, blob_title, set_order))
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -752,5 +803,95 @@ def get_template_id(conn, template_name):
             WHERE name = ?
         """, (template_name,))
         return cursor.fetchone()[0]
+    except Exception as ex:
+        raise IPOLBlobsDataBaseError(ex)
+
+def add_col_set_order_to_demos_blobs(conn):
+    """
+    Adds a new column 'set_order' to demos_blobs table if it doesn't exist
+    """
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) AS CNTREC FROM pragma_table_info('demos_blobs') WHERE name='set_order'")
+        col_exist = cursor.fetchone()[0]
+
+        if col_exist != 1:
+            cursor.execute("ALTER TABLE demos_blobs ADD COLUMN set_order INTEGER;")
+
+        cursor.execute("SELECT COUNT(*) FROM demos_blobs WHERE (set_order is null or set_order = '')")
+        set_order_null_count = cursor.fetchone()[0]
+
+        if set_order_null_count > 0:
+            cursor.execute("SELECT * FROM demos_blobs")
+            data = cursor.fetchall()
+
+            data_by_demo_id = {}
+            for id, demo_id, blob_id, blob_set, pos_in_set, blob_title, set_order in data:
+                if not demo_id in data_by_demo_id:
+                    data_by_demo_id[demo_id] = []
+                data_by_demo_id[demo_id].append({'id': id, 'blob_id': blob_id, 'blob_set': blob_set, 'pos_in_set': pos_in_set, 'blob_title': blob_title})
+        
+            for demo_id in data_by_demo_id:
+                data_by_demo_id[demo_id] = sorted(data_by_demo_id[demo_id], key=lambda d: d['blob_set'])
+
+            for demo_id in data_by_demo_id:
+                count = 1
+                last_blob_set = None
+                for data_set in data_by_demo_id[demo_id]:            
+                    if last_blob_set and last_blob_set != data_set['blob_set']:
+                        count = count + 1            
+                    cursor.execute("UPDATE demos_blobs SET set_order=? WHERE id=? AND demo_id=? AND blob_id=? AND blob_set=? \
+                        AND pos_in_set=? AND blob_title=?",(count,data_set['id'],demo_id,data_set['blob_id'],\
+                            data_set['blob_set'],data_set['pos_in_set'],data_set['blob_title']))            
+                    
+                    last_blob_set = data_set['blob_set']
+            col_exist = 0
+            
+        return col_exist
+
+    except Exception as ex:
+        raise IPOLBlobsDataBaseError(ex)
+
+def add_col_set_order_to_templates_blobs(conn):
+    """
+    Adds a new column 'set_order' to templates_blobs table if it doesn't exist
+    """    
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) AS CNTREC FROM pragma_table_info('templates_blobs') WHERE name='set_order'")
+        col_exist = cursor.fetchone()
+
+        if col_exist[0] != 1:
+            cursor.execute("ALTER TABLE templates_blobs ADD COLUMN set_order INTEGER;")
+
+        cursor.execute("SELECT COUNT(*) FROM templates_blobs WHERE (set_order is null or set_order = '')")
+        set_order_null_count = cursor.fetchone()[0]
+
+        if set_order_null_count > 0:
+            cursor.execute("SELECT * FROM templates_blobs")
+            data = cursor.fetchall()
+
+            data_by_template_id = {}
+            for id, template_id, blob_id, blob_set, pos_in_set, blob_title, set_order in data:
+                if not template_id in data_by_template_id:
+                    data_by_template_id[template_id] = []
+                data_by_template_id[template_id].append({'id': id, 'blob_id': blob_id, 'blob_set': blob_set, 'pos_in_set': pos_in_set, 'blob_title': blob_title})
+
+            for template_id in data_by_template_id:
+                data_by_template_id[template_id] = sorted(data_by_template_id[template_id], key=lambda d: d['blob_set'])
+
+            for template_id in data_by_template_id:
+                count = 1
+                last_blob_set = None
+                for data_set in data_by_template_id[template_id]:            
+                    if last_blob_set and last_blob_set != data_set['blob_set']:
+                        count = count + 1            
+                    cursor.execute("UPDATE templates_blobs SET set_order=? WHERE id=? AND template_id=? AND blob_id=? AND blob_set=? \
+                        AND pos_in_set=? AND blob_title=?",(count,data_set['id'],template_id,data_set['blob_id'],\
+                            data_set['blob_set'],data_set['pos_in_set'],data_set['blob_title']))                                
+                    last_blob_set = data_set['blob_set']
+            col_exist = 0
+
+        return col_exist
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
