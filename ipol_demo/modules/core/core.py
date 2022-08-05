@@ -1290,19 +1290,19 @@ attached the failed experiment data.". \
             ddl_inputs = ddl.get('inputs')
             # Create run directory in the shared folder, copy blobs and delegate in the conversion module
             # the conversion of the input data if it is requested and not forbidden
-            work_dir, key, prepare_folder_messages, inputs_names = \
+            work_dir, key, prepare_folder_messages, input_names = \
                     self.prepare_folder_for_execution(demo_id, origin, blobs, blobset_id, ddl_inputs, params, crop_info)
 
             # Delegate in the the chosen DR the execution of the experiment in the run folder
             demorunner_response = self.execute_experiment(dr_name, demo_id, \
-                                    key, params, inputs_names, ddl['run'], ddl['general'], work_dir)
+                                    key, params, input_names, ddl['run'], ddl['general'], work_dir)
 
             # Archive the experiment, if the 'archive' section exists in the DDL and it is not a private execution
             # Also check if it is an original uploaded data from the user (origin != 'blobset') or is enabled archive_always
             if not private_mode and 'archive' in ddl and (origin != 'blobset' or ddl['archive'].get('archive_always')):
                 base_url = os.environ.get('IPOL_URL', 'http://' + socket.getfqdn())
                 try:
-                    response = send_to_archive(demo_id, work_dir, kwargs, ddl['archive'], demorunner_response, base_url)
+                    response = send_to_archive(demo_id, work_dir, kwargs, ddl['archive'], demorunner_response, base_url, input_names)
                     if not response['status'] == 'OK':
                         id_experiment = response.get('id_experiment', None)
                         message = "KO from archive module when archiving an experiment: demo={}, key={}, id={}."

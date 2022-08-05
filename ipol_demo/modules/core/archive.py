@@ -31,7 +31,7 @@ def create_thumbnail(src_file):
     except Exception:
         return False
 
-def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, base_url):
+def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, base_url, input_names):
     """
     Prepare an execution folder for archiving an experiment (thumbnails).
     Collect information and parameters.
@@ -100,6 +100,7 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, base_url)
         execution['demo_id'] = demo_id
         execution['request'] = clientData
         execution['response'] = res_data
+        execution['input_names'] = input_names
 
         execution_json = json.dumps(execution)
     else:
