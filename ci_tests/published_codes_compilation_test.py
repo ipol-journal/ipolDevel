@@ -43,7 +43,11 @@ def main():
             continue
 
         if demo_id in id_list:
-            continue 
+            continue
+
+        if 'docker' in requirements.split(','):
+            # don't test the compilation of docker demos since we keep images
+            continue
 
         if not build(demo_id, build_section, requirements, demorunners):
             all_success = False
