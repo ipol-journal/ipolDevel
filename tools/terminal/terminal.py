@@ -249,15 +249,14 @@ class Terminal(object):
             return False
         name = args_array[0]
         try:
-            if self.dict_modules[name]["module"] == 'demorunner':
-                server = self.dict_modules[name]["server"]
-                module = self.dict_modules[name]["module"]
-                json_response = urllib.request.urlopen(f"{server}api/{module}/{name}/ping", timeout=3).read()
+            server = self.dict_modules[name]["server"]
+            module = self.dict_modules[name]["module"]
+            if module in ('demorunner', 'demorunner-docker'):
+                json_response = urllib.request.urlopen(f"{server}api/demorunner/{name}/ping",
+                    timeout=3).read()
             else:
                 json_response = urllib.request.urlopen("http://{}/api/{}/ping".format(
-                    self.dict_modules[name]["server"],
-                    self.dict_modules[name]["module"]
-                ), timeout=3).read()
+                    server, module), timeout=3).read()
 
             response = json.loads(json_response.decode())
             status = response['status']
