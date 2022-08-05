@@ -36,6 +36,14 @@
     <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
   </demorunner>
 
+  <demorunner name="dr-limule">
+    <module>demorunner</module>
+    <server>http://ipolcore.ipol.im/</server>
+    <capability>test-dr-limule</capability>
+    <serverSSH>ipol_limule</serverSSH>
+    <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
+  </demorunner>
+
   <demorunner name="dr-limule-docker">
     <module>demorunner-docker</module>
     <server>http://ipolcore.ipol.im/</server>
