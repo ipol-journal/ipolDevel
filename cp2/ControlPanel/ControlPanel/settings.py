@@ -40,9 +40,13 @@ ALLOWED_HOSTS = [HOST_NAME]
 
 CORS_ALLOWED_ORIGINS = [
     IPOL_URL,
+    'localhost',
+    '127.0.0.1'
 ]
 CSRF_TRUSTED_ORIGINS = [
     IPOL_URL,
+    'http://localhost',
+    'http://127.0.0.1'
 ]
 
 if HOST_NAME in dev_machines:
@@ -75,6 +79,12 @@ INSTALLED_APPS = [
     'ControlPanel',
     'gunicorn',
 ]
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST = HOST_NAME
+EMAIL_PORT = 2525
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'IPOL Team <noreply@ipol.com>'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

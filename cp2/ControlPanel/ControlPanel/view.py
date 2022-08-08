@@ -14,7 +14,6 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from ControlPanel.settings import HOST_NAME
 
 
-
 @login_required(login_url='login')
 def homepage(request):
     try:
@@ -46,29 +45,6 @@ def homepage(request):
         "host_url": host_url
     }
     return render(request, 'homepage.html', context)
-
-@csrf_protect
-def loginPage(request):
-    form = loginForm(request.POST or None)
-    username = request.POST.get('username')
-    password = request.POST.get('password')
-    user = authenticate(request, username=username, password=password)
-    if user is not None:
-        loginMethod(request, user)
-        return HttpResponseRedirect('/cp2/')
-    else:
-        return render(request, "login.html", {'form': form})
-
-@login_required(login_url='login')
-@csrf_protect
-def signout(request):
-    return render(request, 'signout.html')
-
-@login_required(login_url='login')
-@csrf_protect
-def logout(request):
-    logoutMethod(request)
-    return redirect(reverse('login'))
 
 @login_required(login_url='login')
 @csrf_protect

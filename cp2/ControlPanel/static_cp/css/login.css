@@ -22,11 +22,11 @@
     text-align: center;
 }
 
-.container_login .form_action {
+.container-login .form_action {
     padding-top: 15px;
 }
 
-.container_login {
+.container-login {
     max-width: 300px;
     padding-bottom: 15px;
     text-align: center;
@@ -37,15 +37,15 @@
     margin: 0 auto;
 }
 
-.container_login p label {
+.container-login p label {
     display: none;
 }
 
-.container_login #action {
+.container-login #action {
     display: none;
 }
 
-.container_login p input {
+.container-login p input {
     position: relative;
     padding: 10px;
     font-size: var(--fs-normal);
@@ -72,3 +72,24 @@ input[type="checkbox"] {
     margin: 1rem;
 }
 
+
+#password-reset {
+    align-items: center;
+}
+
+#password-reset-container {
+    max-width: 400px;
+    gap: 2rem;
+}
+
+#password-reset-container > form {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+#email-input {
+    padding: 0.5rem;
+    border: 2px solid black;
+    border-radius: 4px;
+}
