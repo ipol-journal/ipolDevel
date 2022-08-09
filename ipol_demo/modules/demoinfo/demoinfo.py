@@ -774,7 +774,7 @@ class DemoInfo():
                 ddl_db.add(int(demo_id), int(ddl_id))
             else:
                 # if ddl is none add empty json string
-                if ddl == None:
+                if ddl is None:
                     ddl = '{}'
                 ddl_id = DemoDescriptionDAO(conn).add(ddl)
                 demo_id = demo_db.add(demo)
@@ -1988,6 +1988,9 @@ class DemoInfo():
     @cherrypy.expose
     @authenticate
     def get_ssh_keys(self, demo_id):
+        """
+        Returns the ssh keys for a given demo_id.
+        """
         try:
             demo_id = int(demo_id)
         except(TypeError, ValueError) as ex:
@@ -2022,6 +2025,9 @@ class DemoInfo():
     @cherrypy.expose
     @authenticate
     def reset_ssh_keys(self, demo_id):
+        """
+        Renews ssh keys for a given demo.
+        """
         try:
             demo_id = int(demo_id)
         except(TypeError, ValueError) as ex:

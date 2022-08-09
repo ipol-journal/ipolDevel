@@ -20,6 +20,9 @@ def is_json(myjson):
     return True
 
 def generate_ssh_keys():
+    """
+    Generates public and private ssh keys.
+    """
     from cryptography.hazmat.primitives import serialization as crypto_serialization
     from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
     key = Ed25519PrivateKey.generate()
