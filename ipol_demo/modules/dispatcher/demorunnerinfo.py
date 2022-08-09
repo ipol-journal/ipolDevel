@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+# -*- coding:utf-8 -*-
+"""
+Demorunner information type class.
+"""
+
 class DemoRunnerInfo():
     """
     Demorunner information object

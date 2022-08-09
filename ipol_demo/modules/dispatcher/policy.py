@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+# -*- coding:utf-8 -*-
+"""
+Dispatcher policy model classes.
+"""
+
 import random
 
 
