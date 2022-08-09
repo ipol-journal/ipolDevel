@@ -32,7 +32,6 @@ from random import random
 
 import cherrypy
 import magic
-import numpy as np
 import requests
 from archive import send_to_archive
 from errors import (IPOLCheckDDLError, IPOLConversionError, IPOLCopyBlobsError,
@@ -45,7 +44,6 @@ from errors import (IPOLCheckDDLError, IPOLConversionError, IPOLCopyBlobsError,
                     IPOLReadDDLError, IPOLUploadedInputRejectedError,
                     IPOLWorkDirError)
 from ipolutils.evaluator.evaluator import IPOLEvaluateError, evaluate
-from ipolutils.image.Image import Image
 
 
 def authenticate(func):
@@ -1177,9 +1175,9 @@ attached the failed experiment data.". \
         Execute the experiment in the given DR.
         """
         params = {**params}
-        for i, input in inputs_names.items():
-            params[f'orig_input_{i}'] = input['origin']
-            params[f'input_{i}'] = input['converted']
+        for i, input_item in inputs_names.items():
+            params[f'orig_input_{i}'] = input_item['origin']
+            params[f'input_{i}'] = input_item['converted']
 
         userdata = {'demo_id': demo_id, 'key': key, 'params': json.dumps(params), 'ddl_run': json.dumps(ddl_run)}
 
@@ -1472,5 +1470,8 @@ attached the failed experiment data.". \
 
     @staticmethod
     def post(api_url, data=None):
+        """
+        General purpose function to make http requests.
+        """
         base_url = os.environ.get('IPOL_URL', 'http://' + socket.getfqdn())
         return requests.post(f'{base_url}/{api_url}', data=data)
