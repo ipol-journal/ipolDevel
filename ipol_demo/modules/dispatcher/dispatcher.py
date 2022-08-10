@@ -78,6 +78,7 @@ class Dispatcher():
         self.base_directory = os.getcwd()
         self.logs_dir = cherrypy.config.get("logs_dir")
         self.authorized_patterns_file = cherrypy.config.get("authorized_patterns_file")
+        self.base_url = os.environ.get('IPOL_URL')
 
         # Default policy: lowest_workload
         self.policy = Policy.factory('lowest_workload')
@@ -136,7 +137,6 @@ class Dispatcher():
                     capabilities.append(capability.text)
 
                 self.demorunners.append(DemoRunnerInfo(
-                    demorunner.find('server').text,
                     demorunner.get('name'),
                     demorunner.find('serverSSH').text,
                     capabilities
@@ -157,7 +157,7 @@ class Dispatcher():
         demorunners = []
         for dr in self.demorunners:
             try:
-                url = f'{dr.server}/api/demorunner/{dr.name}/get_workload'
+                url = f'{self.base_url}/api/demorunner/{dr.name}/get_workload'
                 response = requests.get(url, timeout=3)
                 if not response:
                     demorunners.append({'status': 'KO', 'name': dr.name})
@@ -288,10 +288,9 @@ class Dispatcher():
             return json.dumps(data).encode()
 
         dr_name = chosen_dr.name
-        dr_server = chosen_dr.server
 
         # Check if the DR is up.
-        url = f'{dr_server}/api/demorunner/{dr_name}/ping'
+        url = f'{self.base_url}/api/demorunner/{dr_name}/ping'
         dr_response = requests.get(url, timeout=3)
         if not dr_response:
             self.error_log("get_suitable_demorunner",
@@ -301,7 +300,6 @@ class Dispatcher():
             return json.dumps(data).encode()
 
         data['dr_name'] = dr_name
-        data['dr_server'] = dr_server
         data['status'] = "OK"
         return json.dumps(data).encode()
 
@@ -312,7 +310,7 @@ class Dispatcher():
         dr_workload = {}
         for dr_info in self.demorunners:
             try:
-                url = f'{dr_info.server}/api/demorunner/{dr_info.name}/get_workload'
+                url = f'{self.base_url}/api/demorunner/{dr_info.name}/get_workload'
                 resp = requests.get(url, timeout=3)
                 if not resp:
                     error_message = "No response from DR='{}'".format(dr_info.name)
