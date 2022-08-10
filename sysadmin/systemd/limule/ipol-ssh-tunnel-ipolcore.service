@@ -1,9 +1,9 @@
 [Unit]
-Description=From limule:{3000,3001} to ipolcore:{3000,3001}
+Description=From limule:{3000,3001,3002} to ipolcore:{3000,3001,3002}
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/ssh -N -T -R3000:localhost:3000 -R3001:localhost:3001 ipolcore.ipol.im
+ExecStart=/usr/bin/ssh -N -T -R3000:localhost:3000 -R3001:localhost:3001 -R3002:localhost:3002 ipolcore.ipol.im
 RestartSec=10
 Restart=always
 

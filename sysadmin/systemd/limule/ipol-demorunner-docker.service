@@ -13,4 +13,3 @@ SyslogIdentifier=demorunner-docker
 
 [Install]
 WantedBy=default.target
-
