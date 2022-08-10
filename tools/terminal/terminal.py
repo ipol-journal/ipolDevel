@@ -118,7 +118,6 @@ class Terminal(object):
         server, and a list of strings representing the commands available
         to the module.
         """        
-        dict_modules = {}
         tree = ET.parse(self.get_modules_xml_filename())
         root = tree.getroot()
 
@@ -130,20 +129,22 @@ class Terminal(object):
                 list_tmp.append(command.text)
 
             list_tmp.append("info")
-            dict_tmp["server"] = module.find('server').text
             dict_tmp["module"] = module.find('module').text
             dict_tmp["serverSSH"] = module.find('serverSSH').text
-            dict_tmp["path"] = module.find('path').text
             dict_tmp["commands"] = list_tmp
-            self.dict_modules[module.get('name')] = dict_tmp
 
-        return dict_modules
+            serviceName = module.find('serviceName')
+            if serviceName is not None:
+                dict_tmp["serviceName"] = serviceName.text
+            else:
+                dict_tmp["path"] = module.find('path').text
+
+            self.dict_modules[module.get('name')] = dict_tmp
 
     def add_demorunners(self):
         """
         Read demorunners xml
         """
-        dict_demorunners = {}
         tree = ET.parse(self.get_demorunners_xml_filename())
         root = tree.getroot()
 
@@ -155,15 +156,27 @@ class Terminal(object):
         for demorunner in root.findall('demorunner'):
             dict_tmp = {}
             dict_tmp["name"] = demorunner.attrib['name']
-            dict_tmp["server"] = demorunner.find('server').text
             dict_tmp["module"] = demorunner.find('module').text
             dict_tmp["serverSSH"] = demorunner.find('serverSSH').text
-            dict_tmp["path"] = demorunner.find('path').text
-            dict_tmp["commands"] = list_tmp
 
+            serviceName = demorunner.find('serviceName')
+            if serviceName is not None:
+                dict_tmp["serviceName"] = serviceName.text
+            else:
+                dict_tmp["path"] = demorunner.find('path').text
+
+            dict_tmp["commands"] = list_tmp
             self.dict_modules[demorunner.get('name')] = dict_tmp
 
-        return dict_demorunners
+    def get_base_url(self):
+        filename = self.get_modules_xml_filename()
+        tree = ET.parse(filename)
+        root = tree.getroot()
+        element = root.find('baseURL')
+        if element is None:
+            print(f"\033[31;1mCouldn't find <baseURL> in {filename}\033[0m")
+            return ""
+        return element.text
 
     @staticmethod
     def do_nothing(dummy=None):
@@ -182,6 +195,7 @@ class Terminal(object):
         # Add to dict_modules the information in modules.xml and demorunners.xml
         self.add_modules()
         self.add_demorunners()
+        self.base_url = self.get_base_url()
 
         # Get pull servers
         self.pull_servers = set()
@@ -241,6 +255,17 @@ class Terminal(object):
                    + args_array[0]))
         return status
 
+    def get_service_url(self, name):
+        dict_module = self.dict_modules[name]
+        module = dict_module["module"]
+
+        if module in ('demorunner', 'demorunner-docker'):
+            service_url = f'{self.base_url}api/demorunner/{name}'
+        else:
+            service_url = f'{self.base_url}api/{module}'
+
+        return service_url
+
     def ping_module(self, args_array):
         """
         Ping specified module.
@@ -249,27 +274,21 @@ class Terminal(object):
             return False
         name = args_array[0]
         try:
-            server = self.dict_modules[name]["server"]
-            module = self.dict_modules[name]["module"]
-            if module in ('demorunner', 'demorunner-docker'):
-                json_response = urllib.request.urlopen(f"{server}api/demorunner/{name}/ping",
-                    timeout=3).read()
-            else:
-                json_response = urllib.request.urlopen("http://{}/api/{}/ping".format(
-                    server, module), timeout=3).read()
+            endpoint = f'{self.get_service_url(name)}/ping'
+            json_response = urllib.request.urlopen(endpoint, timeout=3).read()
 
             response = json.loads(json_response.decode())
             status = response['status']
 
             if status == "OK":
-                print("{} ({}): \033[92mOK\033[0m".format(name, self.dict_modules[name]["server"]))
+                print("{} ({}): \033[92mOK\033[0m".format(name, endpoint))
                 return True
             else:
-                print("{} ({}): \033[31;1m*** KO ***\033[0m".format(name, self.dict_modules[name]["server"]))
+                print("{} ({}): \033[31;1m*** KO ***\033[0m".format(name, endpoint))
                 return False
         except Exception as ex:
             # No JSON object could be decoded exception
-            print("{} ({}): \033[31;1mUnresponsive\033[0m".format(name, self.dict_modules[name]["server"]))
+            print("{} ({}): \033[31;1mUnresponsive\033[0m".format(name, ex))
             return False
 
     def ping_all(self, dummy=None):
@@ -288,28 +307,28 @@ class Terminal(object):
             return
 
         name = args_array[0]
-        try:
-            if self.dict_modules[name]["module"] == 'demorunner':
-                server = self.dict_modules[name]["server"]
-                module = self.dict_modules[name]["module"]
-                json_response = urllib.request.urlopen(f"{server}api/{module}/{name}/shutdown", timeout=3).read()
-            else:
-                json_response = urllib.request.urlopen("http://{}/api/{}/shutdown".format(
-                    self.dict_modules[name]["server"],
-                    self.dict_modules[name]["module"]
-                )).read()
-            response = json.loads(json_response.decode())
-            status = response['status']
 
-            if status == "OK":
-                print("{} ({}): \033[93mStopped\033[0m".format(name, self.dict_modules[name]["server"]))
-            else:
-                print("{} ({}): \033[31;1m*** KO ***\033[0m".format(name, self.dict_modules[name]["server"]))
-                print(name + "  (" + self.dict_modules[name]["server"] 
-                        + "): JSON response is KO when shutting down the module")
-        except Exception:
-            # No JSON object could be decoded exception
-            print("{} ({}): \033[31;1m*** KO (exception) ***\033[0m".format(name, self.dict_modules[name]["server"]))
+        module = self.dict_modules[name]
+        if "serviceName" in module:
+            serviceName = module["serviceName"]
+            serverSSH = module["serverSSH"]
+            os.system(f"ssh {serverSSH} systemctl stop {serviceName}")
+        else:
+            try:
+                endpoint = f'{self.get_service_url(name)}/shutdown'
+                json_response = urllib.request.urlopen(endpoint, timeout=3).read()
+
+                response = json.loads(json_response.decode())
+                status = response['status']
+
+                if status == "OK":
+                    print("{} ({}): \033[93mStopped\033[0m".format(name, endpoint))
+                else:
+                    print("{} ({}): \033[31;1m*** KO ***\033[0m".format(name, endpoint))
+                    print(f"{name} ({endpoint}): JSON response is KO when shutting down the module")
+            except Exception as ex:
+                # No JSON object could be decoded exception
+                print("{} ({}): \033[31;1m*** KO (exception) ***\033[0m".format(name, ex))
 
     def start_module(self, args_array):
         """
@@ -318,19 +337,23 @@ class Terminal(object):
         if not self.check_module_input("start", args_array):
             return
 
-        module = args_array[0]
-        try:
-            cmd = (" \"" + self.dict_modules[module]["path"] + "start.sh\" &")
-            os.system("ssh " + self.dict_modules[module]["serverSSH"] + cmd)
-        except Exception as ex:
-            print(ex)
+        name = args_array[0]
+
+        module = self.dict_modules[name]
+        serverSSH = module["serverSSH"]
+        if "serviceName" in module:
+            serviceName = module["serviceName"]
+            os.system(f"ssh {serverSSH} systemctl start {serviceName}")
+        else:
+            path = module['path']
+            os.system(f"ssh {serverSSH} \"{path}start.sh\" &")
 
     def start_all(self, dummy=None):
         """
         Start all the modules.
         """
         for module in list(self.dict_modules.keys()):
-            print("Starting {} ({})".format(module, self.dict_modules[module]["server"]))
+            print(f"Starting {module}")
             self.start_module([module, ])
 
     def stop_all(self, dummy=None):

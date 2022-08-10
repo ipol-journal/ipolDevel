@@ -27,6 +27,7 @@ def main():
     """
     all_success = True
     demorunners = read_demorunners()
+    base_url = get_base_url()
 
     id_list = []
     if os.path.exists(ignored_ids_file_path):
@@ -49,7 +50,7 @@ def main():
             # don't test the compilation of docker demos since we keep images
             continue
 
-        if not build(demo_id, build_section, requirements, demorunners):
+        if not build(base_url, demo_id, build_section, requirements, demorunners):
             all_success = False
 
     if all_success:
@@ -115,16 +116,15 @@ def get_ddl(demo_id):
     return last_demodescription.get('ddl')
 
 
-def build(demo_id, build_section, requirements, demorunners):
+def build(base_url, demo_id, build_section, requirements, demorunners):
     """
     Execute the build section.
     Returns False if any build fails. True is everything's fine.
     """
     suitable_demorunners = Policy.get_suitable_demorunners(requirements, demorunners)
     for demorunner in suitable_demorunners:
-        demorunner_host = demorunner.server
         params = {'ddl_build': json.dumps(build_section), 'compilation_path': get_compilation_path(demo_id)}
-        response = post(f'{demorunner_host}api/demorunner/{demorunner.name}/test_compilation', params)
+        response = post(f'{base_url}api/demorunner/{demorunner.name}/test_compilation', params)
 
         if response == None or response.status_code == None:
             print(f"Bad response from DR={demorunner.name} when trying to build demo #{demo_id}: {str(response)}")
@@ -167,7 +167,6 @@ def read_demorunners():
             capabilities.append(capability.text)
 
         demorunner = DemoRunnerInfo(
-            demorunner.find('server').text,
             demorunner.get('name'),
             demorunner.find('serverSSH').text,
             capabilities
@@ -177,6 +176,14 @@ def read_demorunners():
 
     return demorunners
 
+def get_base_url():
+    filename = os.path.join("/", "home", user, "ipolDevel", "ipol_demo", "modules",
+                            "config_common", "modules.xml")
+    tree = ET.parse(filename)
+    root = tree.getroot()
+    element = root.find('baseURL')
+    assert element is not None, f"Couldn't find <baseURL> in {filename}"
+    return element.text
 
 def post(url, params=None):
     """

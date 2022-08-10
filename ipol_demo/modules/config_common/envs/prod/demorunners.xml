@@ -10,7 +10,6 @@
 
   <demorunner name="dr1">
     <module>demorunner</module>
-    <server>http://ipolcore.ipol.im/</server>
     <capability>DEBIAN_STABLE</capability>
     <capability>DR1</capability>
     <serverSSH>ipol_dr1</serverSSH>
@@ -19,7 +18,6 @@
 
   <demorunner name="dr_core">
     <module>demorunner</module>
-    <server>http://ipolcore.ipol.im/</server>
     <capability>DEBIAN_STABLE</capability>
     <capability>CORE</capability>
     <serverSSH>ipol_core</serverSSH>
@@ -28,7 +26,6 @@
 
   <demorunner name="dr_green">
     <module>demorunner</module>
-    <server>http://ipolcore.ipol.im/</server>
     <capability>Matlab</capability>
     <capability>DEBIAN_STABLE</capability>
     <capability>GREEN</capability>
@@ -38,27 +35,24 @@
 
   <demorunner name="dr-limule">
     <module>demorunner</module>
-    <server>http://ipolcore.ipol.im/</server>
     <capability>test-dr-limule</capability>
     <serverSSH>ipol_limule</serverSSH>
-    <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
+    <serviceName>ipol-demorunner --user</serviceName>
   </demorunner>
 
   <demorunner name="dr-limule-docker">
     <module>demorunner-docker</module>
-    <server>http://ipolcore.ipol.im/</server>
     <capability>docker!</capability>
-    <serverSSH>ipol_core</serverSSH>
-    <path>~/ipolDevel/ipol_demo/modules/demorunner-docker/</path>
+    <serverSSH>ipol_limule</serverSSH>
+    <serviceName>ipol-demorunner-docker --user</serviceName>
   </demorunner>
 
   <demorunner name="dr-limule-docker-gpu">
     <module>demorunner-docker</module>
-    <server>http://ipolcore.ipol.im/</server>
     <capability>docker!</capability>
     <capability>GPU!</capability>
-    <serverSSH>ipol_core</serverSSH>
-    <path>~/ipolDevel/ipol_demo/modules/demorunner-docker/</path>
+    <serverSSH>ipol_limule</serverSSH>
+    <serviceName>ipol-demorunner-docker-gpu --user</serviceName>
   </demorunner>
 
 </data>
