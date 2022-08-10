@@ -154,15 +154,15 @@ class Blobs():
             #adding column set_order
             try:
                 conn = lite.connect(self.database_file)
-                exists_col_in_demos_blobs = database.add_col_set_order_to_demos_blobs(conn) 
+                exists_col_in_demos_blobs = database.add_col_set_order_to_demos_blobs(conn)
                 if not exists_col_in_demos_blobs:
-                    conn.commit()                
+                    conn.commit()
                 exists_col_in_templates_blobs = database.add_col_set_order_to_templates_blobs(conn)
                 if not exists_col_in_templates_blobs:
-                    conn.commit()                    
-                conn.close()            
+                    conn.commit()
+                conn.close()
             except IPOLBlobsDataBaseError:
-                self.logger.exception(f"init_database: {ex}")               
+                self.logger.exception(f"init_database: {ex}")
                 return False
 
         if not os.path.isfile(self.database_file):

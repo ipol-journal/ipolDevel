@@ -55,7 +55,7 @@ def add_blob_to_demo(conn, editor_demo_id, blob_id, blob_set, blob_pos, blob_tit
     """
     try:
         cursor = conn.cursor()
-        
+
         set_order = 1
         cursor.execute("""
             SELECT set_order
@@ -67,7 +67,7 @@ def add_blob_to_demo(conn, editor_demo_id, blob_id, blob_set, blob_pos, blob_tit
             """, (editor_demo_id, blob_set))
         ret = cursor.fetchone()
         if ret:
-           set_order = ret[0]
+            set_order = ret[0]
         else:
             cursor.execute("""
                 SELECT set_order
@@ -81,7 +81,7 @@ def add_blob_to_demo(conn, editor_demo_id, blob_id, blob_set, blob_pos, blob_tit
             ret = cursor.fetchone()
             if ret:
                 set_order = ret[0] + 1
-        
+
         cursor.execute("""
             INSERT INTO demos_blobs (demo_id, blob_id, blob_set, pos_in_set, blob_title, set_order)
             VALUES ((SELECT id
@@ -136,6 +136,7 @@ def template(conn, template_name):
             return {'template_id': data[0], 'template_name': data[1]}
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
+    return None
 
 def create_template(conn, template_name):
     """
@@ -152,14 +153,13 @@ def create_template(conn, template_name):
         raise IPOLBlobsDataBaseError(ex)
 
 
-
 def add_blob_to_template(conn, template_id, blob_id, pos_set, blob_set, blob_title):
     """
     Associates the blob to a template in templates_blobs table
     """
     try:
         cursor = conn.cursor()
-        
+
         set_order = 1
         cursor.execute("""
             SELECT set_order
@@ -169,7 +169,7 @@ def add_blob_to_template(conn, template_id, blob_id, pos_set, blob_set, blob_tit
             """, (template_id, blob_set))
         ret = cursor.fetchone()
         if ret:
-           set_order = ret[0]
+            set_order = ret[0]
         else:
             cursor.execute("""
                 SELECT set_order
@@ -181,7 +181,7 @@ def add_blob_to_template(conn, template_id, blob_id, pos_set, blob_set, blob_tit
             ret = cursor.fetchone()
             if ret:
                 set_order = ret[0] + 1
-        
+
         cursor.execute("""
             INSERT INTO templates_blobs (template_id, blob_id, blob_set, pos_in_set, blob_title, set_order)
             VALUES (?, ?, ?, ?, ?, ?)
@@ -640,9 +640,9 @@ def get_available_pos_in_demo_set(conn, editor_demo_id, blob_set):
             SELECT pos_in_set + 1
             FROM demos_blobs
             WHERE demo_id = ?
-            AND pos_in_set + 1 NOT IN 
+            AND pos_in_set + 1 NOT IN
                 (
-                SELECT pos_in_set 
+                SELECT pos_in_set
                 FROM demos_blobs
                 WHERE demo_id = ?
                 AND blob_set = ?
@@ -667,9 +667,9 @@ def get_available_pos_in_template_set(conn, template_id, blob_set):
             SELECT pos_in_set + 1
             FROM templates_blobs
             WHERE template_id = ?
-            AND pos_in_set + 1 NOT IN 
+            AND pos_in_set + 1 NOT IN
                 (
-                SELECT pos_in_set 
+                SELECT pos_in_set
                 FROM templates_blobs
                 WHERE template_id = ?
                 AND blob_set = ?
@@ -826,27 +826,27 @@ def add_col_set_order_to_demos_blobs(conn):
             data = cursor.fetchall()
 
             data_by_demo_id = {}
-            for id, demo_id, blob_id, blob_set, pos_in_set, blob_title, set_order in data:
+            for id_, demo_id, blob_id, blob_set, pos_in_set, blob_title, _ in data:
                 if not demo_id in data_by_demo_id:
                     data_by_demo_id[demo_id] = []
-                data_by_demo_id[demo_id].append({'id': id, 'blob_id': blob_id, 'blob_set': blob_set, 'pos_in_set': pos_in_set, 'blob_title': blob_title})
-        
+                data_by_demo_id[demo_id].append({'id': id_, 'blob_id': blob_id, 'blob_set': blob_set, 'pos_in_set': pos_in_set, 'blob_title': blob_title})
+
             for demo_id in data_by_demo_id:
                 data_by_demo_id[demo_id] = sorted(data_by_demo_id[demo_id], key=lambda d: d['blob_set'])
 
             for demo_id in data_by_demo_id:
                 count = 1
                 last_blob_set = None
-                for data_set in data_by_demo_id[demo_id]:            
+                for data_set in data_by_demo_id[demo_id]:
                     if last_blob_set and last_blob_set != data_set['blob_set']:
-                        count = count + 1            
+                        count = count + 1
                     cursor.execute("UPDATE demos_blobs SET set_order=? WHERE id=? AND demo_id=? AND blob_id=? AND blob_set=? \
-                        AND pos_in_set=? AND blob_title=?",(count,data_set['id'],demo_id,data_set['blob_id'],\
-                            data_set['blob_set'],data_set['pos_in_set'],data_set['blob_title']))            
-                    
+                        AND pos_in_set=? AND blob_title=?", (count, data_set['id'], demo_id, data_set['blob_id'], \
+                            data_set['blob_set'], data_set['pos_in_set'], data_set['blob_title']))
+
                     last_blob_set = data_set['blob_set']
             col_exist = 0
-            
+
         return col_exist
 
     except Exception as ex:
@@ -855,7 +855,7 @@ def add_col_set_order_to_demos_blobs(conn):
 def add_col_set_order_to_templates_blobs(conn):
     """
     Adds a new column 'set_order' to templates_blobs table if it doesn't exist
-    """    
+    """
     try:
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) AS CNTREC FROM pragma_table_info('templates_blobs') WHERE name='set_order'")
@@ -872,10 +872,10 @@ def add_col_set_order_to_templates_blobs(conn):
             data = cursor.fetchall()
 
             data_by_template_id = {}
-            for id, template_id, blob_id, blob_set, pos_in_set, blob_title, set_order in data:
+            for id_, template_id, blob_id, blob_set, pos_in_set, blob_title, _ in data:
                 if not template_id in data_by_template_id:
                     data_by_template_id[template_id] = []
-                data_by_template_id[template_id].append({'id': id, 'blob_id': blob_id, 'blob_set': blob_set, 'pos_in_set': pos_in_set, 'blob_title': blob_title})
+                data_by_template_id[template_id].append({'id': id_, 'blob_id': blob_id, 'blob_set': blob_set, 'pos_in_set': pos_in_set, 'blob_title': blob_title})
 
             for template_id in data_by_template_id:
                 data_by_template_id[template_id] = sorted(data_by_template_id[template_id], key=lambda d: d['blob_set'])
@@ -883,12 +883,12 @@ def add_col_set_order_to_templates_blobs(conn):
             for template_id in data_by_template_id:
                 count = 1
                 last_blob_set = None
-                for data_set in data_by_template_id[template_id]:            
+                for data_set in data_by_template_id[template_id]:
                     if last_blob_set and last_blob_set != data_set['blob_set']:
-                        count = count + 1            
+                        count = count + 1
                     cursor.execute("UPDATE templates_blobs SET set_order=? WHERE id=? AND template_id=? AND blob_id=? AND blob_set=? \
-                        AND pos_in_set=? AND blob_title=?",(count,data_set['id'],template_id,data_set['blob_id'],\
-                            data_set['blob_set'],data_set['pos_in_set'],data_set['blob_title']))                                
+                        AND pos_in_set=? AND blob_title=?", (count, data_set['id'], template_id, data_set['blob_id'], \
+                            data_set['blob_set'], data_set['pos_in_set'], data_set['blob_title']))
                     last_blob_set = data_set['blob_set']
             col_exist = 0
 
