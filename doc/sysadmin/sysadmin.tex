@@ -214,6 +214,7 @@ host github_deploy
 Then, clone the repository with {\tt git clone git@github\_deploy:mcolom/ipolDevel.git}
 
 In {\tt ipolDevel/sysadmin/install\_packages/} there is a script that needs to be run with {\tt sudo ./install\_dist\_packages.sh}. It will install all required Debian packages listed in apt\_requirements.txt.
+To run the demorunner without having to install all its dependency on the host, one can use the Dockerfile at {\tt ipolDevel/ipol_demo/modules/demorunner/Dockerfile} which depends on {\tt ipolDevel/sysadmin/install\_packages/Dockerfile}.
 
 If the python line {\tt import mimetypes; print(mimetypes.guess\_extension("image/webp"))} prints None, then add the {\tt image/webp webp} to the file {\tt /usr/local/etc/mime.types}.
 
