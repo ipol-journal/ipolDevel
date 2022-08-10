@@ -528,6 +528,58 @@ Open the script and configure the parameters:
 \subsection{Accessing the Control Panel}
 To access the Control Panel the users need to go to \url{http://ipolcore.ipol.im/cp/} and log in with their username and password.
 
+
+\section{Docker registry}
+The IPOL docker regitry is used to host base docker image \url{https://github.com/centreborelli/ipol-docker-images} and potentially the demos images.
+Since users might want to try to build their demos using docker, the registry is public to read. Write access is only permitted from within the system, on an IP basis.
+The registry is started using {\tt systemctl enable --now docker-registry}, with its default configuration and installed using apt.
+
+In addition, nginx has to be set up to proxy requests to the registry, and filter write requests:
+
+\begin{verbatim}
+# from https://github.com/MmAaXx500/docker.github.io/blob/e0c2a1ae0b9346c66cd65d457cd67f130ff440cd/registry/recipes/nginx.md
+map $upstream_http_docker_distribution_api_version $docker_distribution_api_version {
+	'' 'registry/2.0';
+}
+
+server {
+        listen 0.0.0.0:443 ssl http2 ;
+        listen [::0]:443 ssl http2 ;
+        server_name registry.ipol.im;
+
+	# ssl stuff
+
+        location / {
+                if ($http_user_agent ~ "^(docker\/1\.(3|4|5(?!\.[0-9]-dev))|Go ).*$" ) {
+                        return 404;
+                }
+
+                client_max_body_size 0;
+                chunked_transfer_encoding on;
+                add_header 'Docker-Distribution-Api-Version' 'registry/2.0' always;
+                limit_except GET {
+			allow 127.0.0.1;
+			allow <any server that need access>
+			deny all;
+                }
+
+		## If $docker_distribution_api_version is empty, the header is not added.
+		## See the map directive above where this variable is defined.
+		add_header 'Docker-Distribution-Api-Version' $docker_distribution_api_version always;
+
+                proxy_pass http://localhost:5000/;
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto $scheme;
+		proxy_set_header X-Forwarded-Host $host;
+		proxy_set_header X-Forwarded-Server $host;
+		proxy_set_header Authorization "";
+        }
+}
+\end{verbatim}
+
+
 \section{Docker}
 A docker image is available to develop and run the IPOL demo system in any enviroment (say, MacOS and others).
 
