@@ -9,5 +9,5 @@ while IFS='' read -r line || [[ -n "$line" ]]; do
     [[ "$line" =~ ^' '*$ ]] && continue
     # Remove empty lines
     [[ "$line" == '' ]] && continue
-    sudo apt-get -y install "$line"
+    apt-get -y install "$line"
 done < "apt-get_requirements.txt"
