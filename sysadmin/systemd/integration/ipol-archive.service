@@ -1,0 +1,15 @@
+[Unit]
+Description=Run archive
+After=network.target
+
+[Service]
+ExecStart=/bin/bash -c "source ./venv/bin/activate && python main.py archive.conf"
+WorkingDirectory=/home/ipol/ipolDevel/ipol_demo/modules/archive/
+Environment=IPOL_HOST=integration.ipol.im
+Environment=IPOL_URL=https://integration.ipol.im
+RestartSec=10
+Restart=always
+SyslogIdentifier=ipol-archive
+
+[Install]
+WantedBy=default.target
