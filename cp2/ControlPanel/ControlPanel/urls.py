@@ -32,8 +32,6 @@ urlpatterns = [
         path('login', loginPage, name='login'),
         path('signout', signout),
         path('logout', logout),
-        path('passwordReset', password_reset),
-        path('ajax_send_password_recovery', ajax_send_password_recovery),
         path('status', status),
         path('demo_editors', demo_editors, name='demo_editors'),
         path('add_demo_editor', add_demo_editor, name='add_demo_editor'),
