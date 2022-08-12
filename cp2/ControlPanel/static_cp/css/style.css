@@ -228,6 +228,14 @@ table {
     padding-bottom: 1rem;
 }
 
+.flex-center {
+    display: flex;
+    flex-direction: column;
+    place-content: center;
+    gap: 1rem;
+    line-height: 0.8rem;
+}
+
 #demoextras-texts > p {
     line-height: 2rem;
 }

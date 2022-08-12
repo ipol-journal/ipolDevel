@@ -20,7 +20,6 @@
     </ul>
     <form id="editDemoExtras" action="{% url 'add_extras' %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        <label>Select File </label>
         <input type="hidden" name="demo_id" value="{{ demo_id }}">
         <input type="file" name="demoextras">
         <button type="submit" id="save-btn" class="btn"><i class="fa-solid fa-upload"></i> Upload</button>

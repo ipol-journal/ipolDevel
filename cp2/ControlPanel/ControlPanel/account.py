@@ -58,14 +58,14 @@ def password_reset(request):
                     "uid": urlsafe_base64_encode(force_bytes(user.pk)),
                     "user": user,
                     'token': default_token_generator.make_token(user),
-                    'protocol': 'https',
+                    'protocol': request.scheme,
                     }
                     email = render_to_string(email_template_name, c)
                     try:
                         send_mail(subject, email, from_email, [user.email], fail_silently=False)
                     except BadHeaderError:
                         return HttpResponse('Invalid header found.')
-                    return redirect ("/password_reset/done/")
+                    return redirect('password_reset_done')
 
     password_reset_form = PasswordResetForm()
     return render(request=request, template_name="password/password_reset.html", context={"password_reset_form":password_reset_form})
