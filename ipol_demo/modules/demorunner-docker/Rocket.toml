@@ -1,6 +1,5 @@
 [default]
 compilation_root = "./compilation/"
-execution_root = "/home/ipol/ipolDevel/shared_folder/run/"
 docker_image_prefix = "ipol-demo-"
 docker_exec_prefix = "ipol-exec-"
 exec_workdir_in_docker = "/workdir/exec"
@@ -9,6 +8,7 @@ gpus = []
 env_vars = {"IPOL_URL"="https://ipolcore.ipol.im"}
 ssh_key_path = "id_ed25519"
 max_timeout = 600
+limits = {"file"="500MB", "data-form"="500MB"}
 
 [ipol-ipolcore]
 port = 3000
