@@ -8,6 +8,7 @@ The demoRunner module is responsible for running IPOL demos
 import codecs
 import configparser
 import errno
+import io
 import json
 import logging
 import os
@@ -17,7 +18,9 @@ import re
 import shlex
 import shutil
 import subprocess
+import tempfile
 import time
+import zipfile
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -148,7 +151,6 @@ class DemoRunner():
         self.compilation_lock_filename = cherrypy.config['compilation_lock_filename']
 
         base_dir = os.path.dirname(os.path.realpath(__file__))
-        self.share_running_dir = cherrypy.config['share.running.dir']
         self.main_bin_dir = os.path.join(base_dir, cherrypy.config['main.bin.dir'])
         self.main_log_dir = cherrypy.config['main.log.dir']
         self.main_log_name = cherrypy.config['main.log.name']
@@ -168,11 +170,6 @@ class DemoRunner():
 
         # Security: authorized IPs
         self.authorized_patterns = self.read_authorized_patterns()
-        if not os.path.isdir(self.share_running_dir):
-            error_message = "The folder does not exist: " + self.share_running_dir
-            self.write_log("__init__", error_message)
-            print(error_message)
-
 
     #####
     # web utilities
@@ -696,33 +693,31 @@ format(str(ex), str(ddl_build))
         return content
 
     @cherrypy.expose
-    def exec_and_wait(self, demo_id, key, params, ddl_run, timeout=60):
+    def exec_and_wait(self, demo_id, key, params, ddl_run, timeout=60, **kwargs):
         '''
         Run the algorithm
         '''
+        work_dir_handle = tempfile.TemporaryDirectory()
+        work_dir = work_dir_handle.name
+
+        inputs = (v for k, v in kwargs.items() if k.startswith('inputs.'))
+        for input in inputs:
+            path = os.path.join(work_dir, input.filename)
+            open(path, 'wb').write(input.file.read())
 
         # Statistics
         self.last_execution['demo_id'] = demo_id
         self.last_execution['key'] = key
         self.last_execution['date'] = time.strftime("%d/%m/%Y at %H:%M:%S")
 
-        ddl_run = json.loads(ddl_run)
         params = json.loads(params)
         path_with_the_binaries = os.path.join(self.main_bin_dir, demo_id + "/")
-        work_dir = os.path.join(self.share_running_dir, demo_id + '/' + key + "/")
         res_data = {}
         res_data["key"] = key
         res_data['params'] = params
         res_data['algo_info'] = {}
         # run the algorithm
         try:
-            if not os.path.isdir(work_dir):
-                res_data['status'] = 'KO'
-                err = 'Work directory does not exist: {}'.format(work_dir)
-                res_data['error'] = err
-                res_data['algo_info']['error_message'] = err
-                return json.dumps(res_data).encode()
-
             run_time = time.time()
             timeout = float(timeout)
             # A maximum of 10 min, regardless the config
@@ -742,19 +737,16 @@ format(str(ex), str(ddl_build))
                 err = "Bad run syntax (not a string): {}".format(str(ddl_run))
                 res_data['error'] = err
                 res_data['algo_info']['error_message'] = err
-                return json.dumps(res_data).encode()
-
-            res_data['algo_info']['error_message'] = " "
-            res_data['algo_info']['run_time'] = time.time() - run_time
-            res_data['status'] = 'OK'
-            return json.dumps(res_data).encode()
+            else:
+                res_data['algo_info']['error_message'] = " "
+                res_data['algo_info']['run_time'] = time.time() - run_time
+                res_data['status'] = 'OK'
 
         except IPOLTimeoutError:
             res_data['status'] = 'KO'
             res_data['error'] = 'IPOLTimeoutError'
             res_data['algo_info']['error_message'] = 'IPOLTimeoutError, Timeout={} s'.format(timeout)
             print("exec_and_wait IPOLTimeoutError, demo_id={}".format(demo_id))
-            return json.dumps(res_data).encode()
         except RuntimeError as ex:
             # Read stderr and stdout
             stderr_content = self.read_workdir_file(work_dir, "stderr.txt")
@@ -765,7 +757,6 @@ stderr: {}\nstdout: {}'.format(stderr_content, stdout_content)
             res_data['status'] = 'KO'
             res_data['error'] = str(ex)
             print(res_data)
-            return json.dumps(res_data).encode()
 
         except OSError as ex:
             error_str = "{} - errno={}, filename={}, ddl_run={}".format(str(ex), ex.errno, ex.filename, ddl_run)
@@ -774,7 +765,6 @@ stderr: {}\nstdout: {}'.format(stderr_content, stdout_content)
             res_data['algo_info']['error_message'] = error_str
             res_data['error'] = error_str
             print(res_data)
-            return json.dumps(res_data).encode()
         except KeyError as ex:
             error_str = "KeyError. Hint: variable not defined? - {}, ddl_run={}".format(str(ex), ddl_run)
             self.write_log("exec_and_wait", "KeyError, demo_id={}, {}".format(demo_id, error_str))
@@ -782,7 +772,6 @@ stderr: {}\nstdout: {}'.format(stderr_content, stdout_content)
             res_data['algo_info']['error_message'] = error_str
             res_data['error'] = error_str
             print(res_data)
-            return json.dumps(res_data).encode()
         except Exception as ex:
             error_str = "Uncatched Exception, demo_id={}".format(demo_id)
             self.logger.exception(error_str)
@@ -790,4 +779,22 @@ stderr: {}\nstdout: {}'.format(stderr_content, stdout_content)
             res_data['algo_info']['error_message'] = error_str
             res_data['error'] = 'Error: {}'.format(ex)
             print(res_data)
-            return json.dumps(res_data).encode()
+
+        # write in exec_info.json the status of the execution (error if any, run time, ...)
+        open(os.path.join(work_dir, "exec_info.json"), "w").write(json.dumps(res_data))
+
+        # create a zip in memory containing all the files in work_dir,
+        # including the input files sent in the payload to the execution,
+        # and additional files such as stdout.txt, stderr.txt and exec_info.json
+        fd = io.BytesIO()
+        with zipfile.ZipFile(fd, 'w', zipfile.ZIP_STORED) as zip:
+            for root, _, files in os.walk(work_dir):
+                for zip_file in files:
+                    path = os.path.join(root, zip_file)
+                    in_zip_path = path.replace(work_dir, './')
+                    zip.write(path, in_zip_path)
+
+        # send the zip as the reply to the request
+        cherrypy.response.headers['Content-Type'] = 'application/zip'
+        fd.seek(0)
+        return fd.read()

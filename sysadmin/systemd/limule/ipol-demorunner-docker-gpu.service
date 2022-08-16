@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 ExecStart=/home/ipol/ipolDevel/ipol_demo/modules/demorunner-docker/bin/ipol-demorunner
-ExecStartPre=-/home/ipol/.cargo/bin/cargo install --git https://github.com/kidanger/ipol-demorunner.git --rev a2788cedd2d12c6620fb5194746a613b7cbe5211 --root . --target-dir target --debug --force --locked
+ExecStartPre=-/home/ipol/.cargo/bin/cargo install --git https://github.com/kidanger/ipol-demorunner.git --rev 4f865887b52c534582e9d702d4d662634141d771 --root . --target-dir target --debug --force --locked
 TimeoutStartSec=300
 WorkingDirectory=/home/ipol/ipolDevel/ipol_demo/modules/demorunner-docker/
 Environment=ROCKET_PROFILE=ipol-limule-gpu

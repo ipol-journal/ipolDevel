@@ -8,6 +8,7 @@ import configparser
 import errno
 import glob
 import hashlib
+import io
 import json
 import logging
 import mimetypes
@@ -1179,23 +1180,40 @@ attached the failed experiment data.". \
             params[f'orig_input_{i}'] = input_item['origin']
             params[f'input_{i}'] = input_item['converted']
 
-        userdata = {'demo_id': demo_id, 'key': key, 'params': json.dumps(params), 'ddl_run': json.dumps(ddl_run)}
+        userdata = {
+            'demo_id': demo_id,
+            'key': key,
+            'params': json.dumps(params),
+            'ddl_run': ddl_run,
+        }
 
         if 'timeout' in ddl_general:
             userdata['timeout'] = ddl_general['timeout']
 
+        i = 0
+        inputs = {}
+        for root, _, files in os.walk(work_dir):
+            for file in files:
+                path = os.path.join(root, file)
+                relative_path = path.replace(work_dir, './')
+                fd = open(path, 'rb')
+                inputs[f'inputs.{i}'] = (relative_path, fd, 'application/octet-stream')
+
         url = f'api/demorunner/{dr_name}/exec_and_wait'
-        resp = self.post(url, data=userdata)
+        resp = self.post(url, data=userdata, files=inputs)
+
         if resp.status_code != 200:
             demo_state = self.get_demo_metadata(demo_id)["state"].lower()
-
             error = f'IPOLDemorunnerUnresponsive'
-
-            website_message = f'Demorunner {dr_name} not responding'
-
+            website_message = f'Demorunner {dr_name} not responding (error {resp.status_code})'
             raise IPOLDemoRunnerResponseError(website_message, demo_state, key, error)
+
+        zipcontent = io.BytesIO(resp.content)
+        zip = zipfile.ZipFile(zipcontent)
+        zip.extractall(work_dir)
+
         try:
-            demorunner_response = resp.json()
+            demorunner_response = json.load(open(os.path.join(work_dir, "exec_info.json")))
         except Exception as ex:
             resp_content = Core.get_response_content(resp)
             error_message = "**An internal error has occurred in the demo system, sorry for the inconvenience.\
@@ -1356,7 +1374,7 @@ attached the failed experiment data.". \
         except (IPOLCheckDDLError) as ex:
             error_message = "{} Demo #{}".format(str(ex), demo_id)
             if self.get_demo_metadata(demo_id)['state'].lower() == 'published':
-                self.send_runtime_error_email(demo_id, "<NA>", error_message, dr_name)
+                self.send_runtime_error_email(demo_id, "<NA>", error_message, "no-dr")
             return json.dumps({'error': error_message, 'status': 'KO'}).encode()
         except IPOLPrepareFolderError as ex:
             # Do not log: function prepare_folder_for_execution will decide when to log
@@ -1469,9 +1487,9 @@ attached the failed experiment data.". \
         return dic
 
     @staticmethod
-    def post(api_url, data=None):
+    def post(api_url, **kwargs):
         """
         General purpose function to make http requests.
         """
         base_url = os.environ.get('IPOL_URL', 'http://' + socket.getfqdn())
-        return requests.post(f'{base_url}/{api_url}', data=data)
+        return requests.post(f'{base_url}/{api_url}', **kwargs)
