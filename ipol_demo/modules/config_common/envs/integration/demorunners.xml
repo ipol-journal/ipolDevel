@@ -8,14 +8,12 @@
     <command>ping</command>
   </commands>
 
-
   <demorunner name="dr_integration">
     <module>demorunner</module>
     <server>http://integration.ipol.im/</server>
     <capability>DEBIAN_STABLE</capability>
     <serverSSH>ipol_integration</serverSSH>
-    <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
+    <serviceName>ipol-demorunner --user</serviceName>
   </demorunner>
-
 
 </data>

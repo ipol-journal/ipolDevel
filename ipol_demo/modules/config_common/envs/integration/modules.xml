@@ -7,7 +7,7 @@
     <module>archive</module>
     <server>integration.ipol.im</server>
     <serverSSH>ipol_integration</serverSSH>
-    <path>~/ipolDevel/ipol_demo/modules/archive/</path>
+    <serviceName>ipol-archive --user</serviceName>
     <command>start</command>
     <command>stop</command>
     <command>restart</command>
@@ -18,7 +18,7 @@
     <module>blobs</module>
     <server>integration.ipol.im</server>
     <serverSSH>ipol_integration</serverSSH>
-    <path>~/ipolDevel/ipol_demo/modules/blobs/</path>
+    <serviceName>ipol-blobs --user</serviceName>
     <command>start</command>
     <command>stop</command>
     <command>restart</command>
@@ -29,7 +29,7 @@
     <module>demoinfo</module>
     <server>integration.ipol.im</server>
     <serverSSH>ipol_integration</serverSSH>
-    <path>~/ipolDevel/ipol_demo/modules/demoinfo/</path>
+    <serviceName>ipol-demoinfo --user</serviceName>
     <command>start</command>
     <command>stop</command>
     <command>restart</command>
@@ -40,7 +40,7 @@
     <module>core</module>
     <server>integration.ipol.im</server>
     <serverSSH>ipol_integration</serverSSH>
-    <path>~/ipolDevel/ipol_demo/modules/core/</path>
+    <serviceName>ipol-core --user</serviceName>
     <command>start</command>
     <command>stop</command>
     <command>restart</command>
@@ -51,18 +51,18 @@
     <module>dispatcher</module>
     <server>integration.ipol.im</server>
     <serverSSH>ipol_integration</serverSSH>
-    <path>~/ipolDevel/ipol_demo/modules/dispatcher/</path>
+    <serviceName>ipol-dispatcher --user</serviceName>
     <command>start</command>
     <command>stop</command>
     <command>restart</command>
     <command>ping</command>
   </module>
-  
+
   <module name="conversion">
     <module>conversion</module>
     <server>integration.ipol.im</server>
     <serverSSH>ipol_integration</serverSSH>
-    <path>~/ipolDevel/ipol_demo/modules/conversion/</path>
+    <serviceName>ipol-conversion --user</serviceName>
     <command>start</command>
     <command>stop</command>
     <command>restart</command>
