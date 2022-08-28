@@ -281,14 +281,13 @@ class Terminal(object):
             status = response['status']
 
             if status == "OK":
-                print("{} ({}): \033[92mOK\033[0m".format(name, endpoint))
+                print(f"{name:<25} \033[92mOK\033[0m")
                 return True
             else:
-                print("{} ({}): \033[31;1m*** KO ***\033[0m".format(name, endpoint))
+                print(f"{name:<25} \033[31;1mKO\033[0m")
                 return False
         except Exception as ex:
-            # No JSON object could be decoded exception
-            print("{} ({}): \033[31;1mUnresponsive\033[0m".format(name, ex))
+            print(f"\033[31;1m{name} *** ERROR ***, {endpoint}, {ex.__class__.__name__}: {ex}\033[0m")
             return False
 
     def ping_all(self, dummy=None):
