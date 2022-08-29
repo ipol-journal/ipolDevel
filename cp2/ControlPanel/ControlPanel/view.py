@@ -529,8 +529,7 @@ def edit_demo(request):
     title = request.POST['demoTitle']
     state = request.POST['state']
     demo = {
-        'demo_id': demo_id,
-        'editorsdemoid': new_demo_id,
+        'demo_id': new_demo_id,
         'title': title,
         'state': state
     }
@@ -541,9 +540,15 @@ def edit_demo(request):
     }
 
     demoinfo_response = api_post('/api/demoinfo/update_demo', settings)
-    print(demoinfo_response)
+    settings ={
+        'old_demo_id': demo_id,
+        'new_demo_id': new_demo_id
+    }
+    blobs_response = api_post('/api/blobs/update_demo_id', settings)
+    archive_response = api_post('/api/archive/update_demo_id', settings)
+
     response = {}
-    if demoinfo_response.get('status') != 'OK':
+    if demoinfo_response.get('status') != 'OK' or blobs_response.get('status') != 'OK' or archive_response.get('status') != 'OK':
         response['status'] = 'KO'
         response['message'] = demoinfo_response.get('error')
         return HttpResponse(json.dumps(response), 'application/json')
