@@ -855,11 +855,11 @@ class DemoInfo():
 
         if 'creation' in demo_json:
             # Change creation date
-            d = Demo(demo_json.get('editorsdemoid'), demo_json.get('title'), demo_json.get('state'),
+            d = Demo(demo_json.get('demo_id'), demo_json.get('title'), demo_json.get('state'),
                      demo_json.get('creation'))
         else:
             # update Demo
-            d = Demo(demo_json.get('editorsdemoid'), demo_json.get('title'), demo_json.get('state'))
+            d = Demo(demo_json.get('demo_id'), demo_json.get('title'), demo_json.get('state'))
 
         try:
             old_editor_demoid = int(old_editor_demoid)
