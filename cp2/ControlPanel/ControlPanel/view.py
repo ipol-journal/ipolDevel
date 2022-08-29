@@ -411,6 +411,7 @@ def detailsBlob(request):
         for blobset in sets:
             if blobset['name'] == set_name and blob_pos in blobset['blobs']:
                 blob = blobset['blobs'][blob_pos]
+                thumbnail = blob['thumbnail'] if 'thumbnail' in blob else ''
                 vr = blob['vr'] if 'vr' in blob else ''
                 context = {
                     'demo_id': request.GET['demo_id'],
@@ -421,7 +422,7 @@ def detailsBlob(request):
                     'blob': blob['blob'],
                     'format': blob['format'],
                     'credit': blob['credit'],
-                    'thumbnail': blob['thumbnail'],
+                    'thumbnail': thumbnail,
                     'vr': vr,
                     'can_edit': can_edit
                 }
@@ -437,6 +438,7 @@ def detailsBlob(request):
         for blobset in sets:
             if blobset['name'] == set_name and blob_pos in blobset['blobs']:
                 blob = blobset['blobs'][blob_pos]
+                thumbnail = blob['thumbnail'] if 'thumbnail' in blob else ''
                 vr = blob['vr'] if 'vr' in blob else ''
                 context = {
                     'template_id': template_id,
@@ -448,7 +450,7 @@ def detailsBlob(request):
                     'blob': blob['blob'],
                     'format': blob['format'],
                     'credit': blob['credit'],
-                    'thumbnail': blob['thumbnail'],
+                    'thumbnail': thumbnail,
                     'vr': vr,
                 }
                 return render(request, 'detailsBlob.html', context)
