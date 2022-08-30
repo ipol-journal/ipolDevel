@@ -232,8 +232,8 @@ def demoinfo_read_demo(demo_id):
 
 def demoinfo_update_demo(demo, old_editor_demoid):
     demoinfo_params = {'demo': json.dumps(demo), 'old_editor_demoid': old_editor_demoid}
-    blobs_params = {'new_demo_id': demo['editorsdemoid'], 'old_demo_id': old_editor_demoid}
-    archive_params = {'new_demo_id': demo['editorsdemoid'], 'old_demo_id': old_editor_demoid}
+    blobs_params = {'new_demo_id': demo['demo_id'], 'old_demo_id': old_editor_demoid}
+    archive_params = {'new_demo_id': demo['demo_id'], 'old_demo_id': old_editor_demoid}
 
     demoinfo_resp = http_request('/api/demoinfo/update_demo', METHOD='POST', params=demoinfo_params, json=None)
     if json.loads(demoinfo_resp)['status'] == 'KO':

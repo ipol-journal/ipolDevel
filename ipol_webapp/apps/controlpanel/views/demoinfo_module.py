@@ -481,7 +481,7 @@ class DemoinfoUpdateDemo(NavbarReusableMixinMF, FormView):
 
                 demojson = {
                     "title": title,
-                    "editorsdemoid": editorsdemoid,
+                    "demo_id": editorsdemoid,
                     "state": state
                 }
 
