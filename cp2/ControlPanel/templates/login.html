@@ -1,6 +1,6 @@
 {% extends "base.html" %} {% block title %}Login{% endblock %} {% block bodyid %}Login{% endblock %} {% block header %} {% endblock %} {% block content %}
-<img src="/cp2/static/images/IPOL-header-logo.png" class="navbar-brand">
 <div class="container-login">
+    <img src="/cp2/static/images/IPOL-header-logo.png" class="navbar-brand">
     <h2 class="form_signin">Welcome to IPOL Editor's Control Panel</h2>
     <form action="{% url 'login' %}" method="post">
         {% csrf_token %} {{ form.as_p }}

@@ -5,9 +5,9 @@
 }
 
 #Login {
-    padding-top: 40px;
-    padding-bottom: 40px;
-    background-color: #eee;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .form_signin {
@@ -16,25 +16,30 @@
     font-weight: var(--fw-regular);
     line-height: 1.2;
     color: inherit;
-    font-size: 32px;
+    font-size: 2rem;
     margin-top: 20px;
-    margin-bottom: 15px;
+    margin-bottom: 1rem;
     text-align: center;
 }
 
-.container-login .form_action {
-    padding-top: 15px;
-}
-
 .container-login {
-    max-width: 300px;
-    padding-bottom: 15px;
+    max-width: 450px;
+    padding-bottom: 20%;
     text-align: center;
     display: flex;
     flex-direction: column;
     flex-wrap: nowrap;
     align-items: stretch;
     margin: 0 auto;
+    gap: 1rem;
+}
+
+.container-login h2 {
+    font-size: 2rem;
+}
+
+.container-login .form_action {
+    padding-top: 15px;
 }
 
 .container-login p label {
@@ -78,7 +83,7 @@ input[type="checkbox"] {
 }
 
 #password-reset-container {
-    max-width: 400px;
+    max-width: 450px;
     gap: 2rem;
 }
 
@@ -92,4 +97,14 @@ input[type="checkbox"] {
     padding: 0.5rem;
     border: 2px solid black;
     border-radius: 4px;
+}
+
+#new-password-form {
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: row;
+    gap: 2rem;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 1rem 0;
 }
