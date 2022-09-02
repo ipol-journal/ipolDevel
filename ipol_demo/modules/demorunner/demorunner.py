@@ -702,7 +702,10 @@ format(str(ex), str(ddl_build))
 
         inputs = (v for k, v in kwargs.items() if k.startswith('inputs.'))
         for input in inputs:
+            assert '..' not in input.filename
             path = os.path.join(work_dir, input.filename)
+            dirname = os.path.dirname(path)
+            os.makedirs(dirname, exist_ok=True)
             open(path, 'wb').write(input.file.read())
 
         # Statistics
