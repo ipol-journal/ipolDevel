@@ -1198,6 +1198,7 @@ attached the failed experiment data.". \
                 relative_path = path.replace(work_dir, './')
                 fd = open(path, 'rb')
                 inputs[f'inputs.{i}'] = (relative_path, fd, 'application/octet-stream')
+                i += 1
 
         url = f'api/demorunner/{dr_name}/exec_and_wait'
         resp = self.post(url, data=userdata, files=inputs)
