@@ -147,6 +147,7 @@ server {
 		# If the distribution is Debian you need the resolver		
 		# resolver 127.0.0.1;
 		proxy_pass   http://$host:9004;
+		proxy_buffering off;
 	}
 
 	# CONVERSION
