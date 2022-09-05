@@ -10,7 +10,6 @@
 
   <demorunner name="dr_integration">
     <module>demorunner</module>
-    <server>http://integration.ipol.im/</server>
     <capability>DEBIAN_STABLE</capability>
     <serverSSH>ipol_integration</serverSSH>
     <serviceName>ipol-demorunner --user</serviceName>
