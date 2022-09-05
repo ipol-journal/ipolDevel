@@ -7,6 +7,7 @@ import json
 import io
 import os
 import shutil
+import socket
 import sys
 import tarfile
 # Unit tests for the Blobs module
@@ -33,7 +34,6 @@ def load_demorunners(demorunners_file):
         for capability in demorunner.findall('capability'):
             list_tmp.append(capability.text)
 
-        dict_tmp["server"] = demorunner.find('server').text
         dict_tmp["serverSSH"] = demorunner.find('serverSSH').text
         dict_tmp["capability"] = list_tmp
         dict_tmp["name"] = demorunner.get('name')
@@ -67,6 +67,7 @@ class DemorunnerTests(unittest.TestCase):
 
     # Demo Runners
     demorunners = {}
+    base_url = os.environ.get('IPOL_URL', 'http://' + socket.getfqdn())
 
     #####################
     #       Tests       #
@@ -219,13 +220,12 @@ class DemorunnerTests(unittest.TestCase):
     #       TOOLS       #
     #####################
 
-    @staticmethod
-    def post_to_dr(demorunner, service, params=None, data=None, files=None, servicejson=None):
+    def post_to_dr(self, demorunner, service, params=None, data=None, files=None):
         """
         post
         """
-        url = '{}/api/demorunner/{}/{}'.format(demorunner['server'], demorunner['name'], service)
-        return requests.post(url, params=params, data=data, files=files, json=servicejson)
+        url = '{}/api/demorunner/{}/{}'.format(self.base_url, demorunner['name'], service)
+        return requests.post(url, params=params, data=data, files=files)
 
     def get_input_files(self):
         """
