@@ -31,7 +31,7 @@ from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 
 import sys
 
-ROOT = Path(__file__).parent.parent.parent.absolute()
+ROOT = os.path.expanduser("~/ipolDevel/")
 
 class Terminal(object):
     """
