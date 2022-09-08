@@ -1334,6 +1334,54 @@ class DemoInfo():
             data["error"] = error_string
         return json.dumps(data).encode()
 
+
+    @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
+    @authenticate
+    def update_editor_email(self, new_email, old_email, name):
+        """
+        Update editor if old email exists and new one doesn't
+        """
+
+        data = {}
+        conn = lite.connect(self.database_file)
+        old_editor = EditorDAO(conn).read_from_email(old_email)
+        new_email_exists = EditorDAO(conn).read_from_email(new_email)
+
+        if new_email_exists:
+            data["error"] = 'New email already exists in demoinfo'
+            data["status"] = 'KO'
+            return json.dumps(data).encode()
+        if not old_editor:
+            data["error"] = f'No editor found with provided email {old_email}'
+            data["status"] = "KO"
+            return json.dumps(data).encode()
+
+        e = Editor(name, new_email, old_editor.id, old_editor.creation)
+
+        # update editor
+        try:
+            conn = lite.connect(self.database_file)
+            editor_object = EditorDAO(conn)
+
+            if not editor_object.exist(e.id):
+                return json.dumps(data).encode()
+
+            editor_object.update(e)
+            conn.close()
+            data["status"] = "OK"
+        except Exception as ex:
+            error_string = "demoinfo update_author error %s" % str(ex)
+            print(error_string)
+            self.logger.exception(error_string)
+            try:
+                conn.close()
+            except Exception as ex:
+                pass
+            # raise Exception
+            data["error"] = error_string
+        return json.dumps(data).encode()
+
     @cherrypy.expose
     @authenticate
     def editor_list_pagination_and_filter(self, num_elements_page, page,
