@@ -119,6 +119,17 @@ $.fn.html_text = function (result, index) {
   $('.html_text_' + index).html(html_text);
 }
 
+$.fn.html_file = function (result, index) {
+  let elem = document.createElement("iframe");
+  elem.src = getFileURL(result.contents);
+  elem.onload = function() {
+    elem.style.height = elem.contentWindow.document.body.scrollHeight + "px";
+    elem.contentWindow.document.body.style.background = "none";
+  };
+  $('.result_' + index).append('<h3>' + result.label + '</h3>');
+  $('.result_' + index).append(elem);
+}
+
 $.fn.message = function (result, index) {
   $(this).append("<div class=message_" + index + " ></div>");
   $('.message_' + index).html(eval(result.contents));
