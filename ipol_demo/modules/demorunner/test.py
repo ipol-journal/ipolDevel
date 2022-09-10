@@ -163,8 +163,8 @@ class DemorunnerTests(unittest.TestCase):
         try:
             blob_image = Image.open(self.blob_path)
             width, height = blob_image.size
-            files = self.get_input_files()
             for dr in self.demorunners.values():
+                files = self.get_input_files()
                 self.create_extras_folder()
 
                 with open(self.ddl_file, 'r') as f:
