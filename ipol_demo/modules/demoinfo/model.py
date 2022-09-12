@@ -807,7 +807,8 @@ class EditorDAO():
         FROM editor WHERE mail=?''', (email,))
         self.conn.commit()
         row = self.cursor.fetchone()
-
+        if not row:
+            return None
         return Editor(row[0], row[1], row[2], row[3])
 
     def list(self):
