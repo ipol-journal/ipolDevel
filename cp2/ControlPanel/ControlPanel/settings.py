@@ -33,6 +33,19 @@ HOST_NAME = os.environ.get('IPOL_HOST', socket.getfqdn())
 IPOL_URL = os.environ.get('IPOL_URL', 'http://' + socket.getfqdn())
 ALLOWED_HOSTS = []
 
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 25
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+EMAIL_USE_TLS = True
+if HOST_NAME in ['127.0.0.1', 'localhost']:
+    # Mails shown on the terminal output
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    # Use system default mailing config
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
 dev_machines = ['127.0.0.1', 'localhost', 'integration.ipol.im']
 production_servers = ['ipolcore.ipol.im']
 
@@ -79,13 +92,6 @@ INSTALLED_APPS = [
     'ControlPanel',
     'gunicorn',
 ]
-
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'localhost'
-EMAIL_PORT = 25
-EMAIL_HOST_USER = ''
-EMAIL_HOST_PASSWORD = ''
-EMAIL_USE_TLS = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -162,3 +168,24 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': False,
+        },
+    },
+}
