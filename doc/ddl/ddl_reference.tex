@@ -673,6 +673,29 @@ It displays the given HTML-encoded content.
 }
 \end{lstlisting}
 
+%------ html_file  ------
+\subsection{ \emph{html\_file} type}
+
+It displays the given HTML file.
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
+\hline
+\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline
+\hline \hline
+ type      & html\_file  & yes \\ \hline
+ visible    & A Javascript expression evaluated as a boolean. & no \\ \hline
+ contents  & A string with a filename. & yes \\ \hline
+\caption{Properties of the \emph{html\_file} type in the results section.}
+\end{longtable}
+
+\paragraph{Example}:\\
+\begin{lstlisting}[language=json,firstnumber=1]
+{
+    "type"          : "html_file",
+    "contents"      : "output.html"
+}
+\end{lstlisting}
+
 
 %------------ text_file --------------------------
 \subsection{ \emph{text\_file} type}
