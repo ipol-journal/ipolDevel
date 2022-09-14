@@ -13,9 +13,10 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes
 from .forms import loginForm
 from django.core.mail import send_mail
-from django.contrib.auth.decorators import user_passes_test
 
-from ControlPanel.settings import HOST_NAME
+import logging
+
+logger = logging.getLogger(__name__)
 
 @csrf_protect
 def loginPage(request):
@@ -64,6 +65,7 @@ def password_reset(request):
                     try:
                         send_mail(subject, email, from_email, [user.email], fail_silently=False)
                     except BadHeaderError:
+                        logger.warning(f'Error sending email: {subject, email, from_email, [user.email]}')
                         return HttpResponse('Invalid header found.')
                     return redirect('password_reset_done')
 

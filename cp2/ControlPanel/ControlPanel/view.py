@@ -1,17 +1,14 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import never_cache
-from django.contrib.auth import logout as logoutMethod, authenticate, login as loginMethod
-from .forms import loginForm
-import json, requests
+import json
 from .utils import api_post, user_can_edit_demo
-from django.contrib.auth.decorators import user_passes_test
-from django.contrib.auth.models import User
-from django.core.files.uploadedfile import SimpleUploadedFile
 from ControlPanel.settings import HOST_NAME
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @login_required(login_url='login')
@@ -49,19 +46,6 @@ def homepage(request):
 @login_required(login_url='login')
 @csrf_protect
 def status(request):
-    # dr_response = api_post('/api/dispatcher/get_demorunners_stats')
-    # archive_stats = api_post('/api/archive/stats')
-    # blobs_stats = api_post('/api/blobs/stats')
-    # core = api_post('/api/core/ping')
-    # conversion = api_post('/api/conversion/ping')
-    # context = {
-    #     'dr': dr_response['demorunners'],
-    #     'archive': archive_stats,
-    #     'blobs': blobs_stats,
-    #     'core': core,
-    #     'conversion': conversion
-    # }
-    # print(context)
     return render(request, 'status.html')
 
 @login_required(login_url='login')

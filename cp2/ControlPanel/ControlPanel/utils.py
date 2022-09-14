@@ -6,7 +6,11 @@ from django.http import HttpRequest
 from django.http import HttpResponse, HttpResponseRedirect
 from django.db import connection
 from django.contrib.auth.models import User
-#function in order to know wich machine/server it's used for POST and GET methods (/api/....) 
+#function in order to know wich machine/server it's used for POST and GET methods (/api/....)
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 def api_post(resource, params=None, files=None, json=None):
     host = os.environ.get('IPOL_URL', f'http://{socket.gethostbyname(socket.getfqdn())}')
@@ -14,12 +18,15 @@ def api_post(resource, params=None, files=None, json=None):
     try:
         return response.json()
     except requests.exceptions.Timeout:
+        logger.warning(f'Request timeout: {resource}')
         # Maybe set up for a retry, or continue in a retry loop
         return {'status': 'KO'}
     except requests.exceptions.TooManyRedirects:
+        logger.warning(f'Too many redirects for request: {resource}')
         # Tell the user their URL was bad and try a different one
         return {'status': 'KO'}
     except requests.exceptions.RequestException as e:
+        logger.warning(f'Unknown error when requesting: {resource}')
         # catastrophic error. bail.
         raise SystemExit(e)
 
@@ -34,4 +41,3 @@ def user_can_edit_demo(user, demo_id):
             return True
     return False
 
-    
