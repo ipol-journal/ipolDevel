@@ -14,6 +14,7 @@ $(document).ready(function() {
     sessionStorage.clear();
     
     fetchData();
+    $("#demoTab")[0].href = 'demo.html?id=' + demo_id;
   } else
     showWrongDemoIdError();
 })
