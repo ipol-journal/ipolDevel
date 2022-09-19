@@ -45,6 +45,8 @@ from errors import (IPOLCheckDDLError, IPOLConversionError, IPOLCopyBlobsError,
                     IPOLReadDDLError, IPOLUploadedInputRejectedError,
                     IPOLWorkDirError)
 from ipolutils.evaluator.evaluator import IPOLEvaluateError, evaluate
+from ipolutils.read_text_file import read_commented_text_file
+ignored_ids_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'ignored_ids.txt')
 
 
 def authenticate(func):
@@ -859,10 +861,16 @@ class Core():
             for zip_file in files:
                 ziph.write(os.path.join(root, zip_file))
 
+
     def send_runtime_error_email(self, demo_id, key, message, demorunner):
         """
         Send email to editor when the execution fails
         """
+        
+        id_list = []
+        if os.path.exists(ignored_ids_file_path):
+            id_list = [int(id) for id in read_commented_text_file(ignored_ids_file_path)]
+
         try:
             demo_state = self.get_demo_metadata(demo_id)["state"].lower()
         except BrokenPipeError:
@@ -903,7 +911,10 @@ attached the failed experiment data.". \
         zipf = zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED)
         self.zipdir("{}/run/{}/{}".format(self.shared_folder_abs, demo_id, key), zipf)
         zipf.close()
-        self.send_email(subject, text, emails, config_emails['sender'], zip_filename=zip_filename)
+        
+        #Send email only if the demo is not in the ignored id list
+        if demo_id not in id_list:
+            self.send_email(subject, text, emails, config_emails['sender'], zip_filename=zip_filename)
         try:
             os.remove(zip_filename)
         except OSError:

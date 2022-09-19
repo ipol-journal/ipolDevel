@@ -127,3 +127,6 @@ media
 !.vscode/launch.json 
 !.vscode/extensions.json 
 .history
+
+#Core
+ipol_demo/modules/core/ignored_ids.txt
