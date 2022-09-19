@@ -252,7 +252,7 @@ def demoinfo_update_demo(demo, old_editor_demoid):
 
 def demoinfo_add_demo(editorsdemoid, title, state, editor):
 
-    params = {'editorsdemoid': editorsdemoid, 'title': title, 'state': state}
+    params = {'demo_id': editorsdemoid, 'title': title, 'state': state}
 
     add_demo_resp = http_request('/api/demoinfo/add_demo', METHOD='POST', params=params)
     if json.loads(add_demo_resp).get('status') == 'KO':
