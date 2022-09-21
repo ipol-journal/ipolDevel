@@ -46,8 +46,6 @@ from errors import (IPOLCheckDDLError, IPOLConversionError, IPOLCopyBlobsError,
                     IPOLWorkDirError)
 from ipolutils.evaluator.evaluator import IPOLEvaluateError, evaluate
 from ipolutils.read_text_file import read_commented_text_file
-ignored_ids_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'ignored_ids.txt')
-
 
 def authenticate(func):
     """
@@ -868,8 +866,8 @@ class Core():
         """
         
         id_list = []
-        if os.path.exists(ignored_ids_file_path):
-            id_list = [int(id) for id in read_commented_text_file(ignored_ids_file_path)]
+        if os.path.exists('ignored_ids.txt'):
+            id_list = [int(id) for id in read_commented_text_file('ignored_ids.txt')]
 
         try:
             demo_state = self.get_demo_metadata(demo_id)["state"].lower()
