@@ -1054,8 +1054,8 @@ attached the failed experiment data.". \
         Reads the response.content taking care that both the response or the
         response.content might not be present
         '''
-        if not response:
-            return "(no response)"
+        if response.status_code != 200:
+            return f"(http error {response.status_code}, reason: {response.reason})"
         try:
             if not response.content:
                 return "(no response.content)"
@@ -1225,15 +1225,9 @@ attached the failed experiment data.". \
         try:
             demorunner_response = json.load(open(os.path.join(work_dir, "exec_info.json")))
         except Exception as ex:
-            resp_content = Core.get_response_content(resp)
             error_message = "**An internal error has occurred in the demo system, sorry for the inconvenience.\
-                    The IPOL team has been notified and will fix the issue as soon as possible**. Bad format in the response \
-                        from DR server {} in demo #{}. {} - {}".format(dr_name, demo_id, resp_content, ex)
+                    The IPOL team has been notified and will fix the issue as soon as possible**. Bad format in the response from DR server {} in demo #{}. - {}".format(dr_name, demo_id, ex)
             self.logger.exception(error_message)
-            # nginx timeout
-            if resp_content and "Time-out" in resp_content:
-                raise IPOLExecutionError('timeout')
-            #Anything else
             raise IPOLExecutionError(error_message, error_message)
 
         if demorunner_response['status'] != 'OK':
