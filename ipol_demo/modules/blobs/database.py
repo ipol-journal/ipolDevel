@@ -57,23 +57,14 @@ def add_blob_to_demo(conn, editor_demo_id, blob_id, blob_set, blob_pos, blob_tit
         set_order = 1
         cursor = conn.cursor()
         cursor.execute("""
-                SELECT (CASE WHEN ? IN (SELECT blob_set
-                                                FROM demos_blobs
-                                                WHERE demo_id=(SELECT id
-                                                            FROM demos
-                                                            WHERE editor_demo_id=?)) THEN (SELECT set_order
-                                                FROM demos_blobs
-                                                WHERE demo_id=(SELECT id
-                                                            FROM demos
-                                                            WHERE editor_demo_id=?)
-                                                AND blob_set=?)
-                            ELSE MAX(set_order) + 1
-                            END) as so
-                FROM demos_blobs
-                WHERE demo_id=(SELECT id
-                                FROM demos
-                                WHERE editor_demo_id=?);
-            """, (blob_set, editor_demo_id, editor_demo_id, blob_set, editor_demo_id))
+            SELECT COALESCE((SELECT set_order 
+                             FROM demos_blobs
+                             WHERE demo_id=(SELECT id
+                                            FROM demos
+                                            WHERE editor_demo_id=?)
+                             AND blob_set=?), MAX(db.set_order) + 1, 1) AS set_order FROM demos AS d, demos_blobs AS db
+            WHERE d.id = db.demo_id AND d.editor_demo_id = ?
+            """, (editor_demo_id, blob_set, editor_demo_id))
         ret = cursor.fetchone()
         if ret[0]:
             set_order = ret[0]
@@ -157,17 +148,12 @@ def add_blob_to_template(conn, template_id, blob_id, pos_set, blob_set, blob_tit
         set_order = 1
         cursor = conn.cursor()
         cursor.execute("""
-                SELECT (CASE WHEN ? IN (SELECT blob_set
-                                                FROM templates_blobs
-                                                WHERE template_id=?) THEN (SELECT set_order
-                                                                            FROM templates_blobs
-                                                                            WHERE template_id=?
-                                                                            AND blob_set=?)
-                            ELSE MAX(set_order) + 1
-                            END) as so
-                FROM templates_blobs
-                WHERE template_id=?;
-            """, (blob_set, template_id, template_id, blob_set, template_id))
+            SELECT COALESCE((SELECT set_order 
+                             FROM templates_blobs
+                             WHERE template_id=?
+                             AND blob_set=?), MAX(db.set_order) + 1, 1) AS set_order FROM demos AS d, templates_blobs AS db
+            WHERE d.id = db.template_id
+            """, (template_id, blob_set))
         ret = cursor.fetchone()
         if ret[0]:
             set_order = ret[0]
