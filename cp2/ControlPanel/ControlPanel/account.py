@@ -12,7 +12,8 @@ from django.utils.http import urlsafe_base64_encode
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes
 from .forms import loginForm
-from django.core.mail import send_mail
+from django.core.mail import BadHeaderError, send_mail
+from smtplib import SMTPException
 
 import logging
 
@@ -67,6 +68,10 @@ def password_reset(request):
                     except BadHeaderError:
                         logger.warning(f'Error sending email: {subject, email, from_email, [user.email]}')
                         return HttpResponse('Invalid header found.')
+                    except SMTPException as e:
+                        logger.warning('SMTP exception, error sending email: ', e)
+                        print('There was an error sending an email: ', e)
+                        return HttpResponse('Error sending email.')
                     return redirect('password_reset_done')
 
     password_reset_form = PasswordResetForm()
