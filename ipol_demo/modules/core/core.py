@@ -1049,10 +1049,10 @@ attached the failed experiment data.". \
         return server_name
 
     @staticmethod
-    def get_response_content(response):
+    def get_response_error_or_content(response):
         '''
-        Reads the response.content taking care that both the response or the
-        response.content might not be present
+        Returns a string representation of the response in case an error
+        happens with the normal code path, or returns the content.
         '''
         if response.status_code != 200:
             return f"(http error {response.status_code}, reason: {response.reason})"
@@ -1081,7 +1081,7 @@ attached the failed experiment data.". \
         try:
             demorunner_response = dr_response.json()
         except Exception as ex:
-            dr_response_content = Core.get_response_content(dr_response)
+            dr_response_content = Core.get_response_error_or_content(dr_response)
             error_message = "**An internal error has occurrred in the demo system, sorry for the inconvenience.\
                 The IPOL Team has been notified and will fix the issue as soon as possible**. Bad format in the response \
                         from DR server {} in demo #{}. {} - {}".format(dr_name, demo_id, dr_response_content, ex)
