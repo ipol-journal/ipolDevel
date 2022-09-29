@@ -1353,8 +1353,14 @@ class DemoInfo():
             data["status"] = 'KO'
             return json.dumps(data).encode()
         if not old_editor:
-            data["error"] = f'No editor found with provided email {old_email}'
-            data["status"] = "KO"
+            resp = self.add_editor(name, new_email)
+            resp_json = json.loads(resp)
+            if resp_json['status'] != 'OK':
+                data["message"] = f'Editor could not be added with email {new_email}'
+                data["status"] = "KO"
+            else:
+                data["message"] = f'New editor added {new_email}'
+                data["status"] = "OK"
             return json.dumps(data).encode()
 
         e = Editor(name, new_email, old_editor.id, old_editor.creation)
