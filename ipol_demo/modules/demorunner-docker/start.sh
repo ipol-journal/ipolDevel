@@ -15,7 +15,7 @@ if ! command -v cargo &> /dev/null; then
     exit 1
 fi
 
-cargo install --git https://github.com/kidanger/ipol-demorunner.git --rev 2bb39ccd8193178055ee6802a702061dd6227666 --root . --target-dir target --debug --force --locked
+cargo install --git https://github.com/kidanger/ipol-demorunner.git --rev 7bf38a4cb007ea1113ba6a08f133d3c217a405fa --root . --target-dir target --debug --force --locked
 
 export ROCKET_PROFILE=ipol-$(hostname)
 bin/ipol-demorunner >logs 2>&1 &
