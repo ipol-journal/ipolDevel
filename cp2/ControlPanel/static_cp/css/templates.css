@@ -132,6 +132,9 @@ div.block {
     font-size: var(--fs-medium);
     font-weight: var(--fw-medium);
     text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .set-images {
