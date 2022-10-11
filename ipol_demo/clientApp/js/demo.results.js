@@ -123,7 +123,11 @@ $.fn.html_file = function (result, index) {
   let elem = document.createElement("iframe");
   elem.src = getFileURL(result.contents);
   elem.onload = function() {
-    elem.style.height = elem.contentWindow.document.body.scrollHeight + "px";
+    if (elem.contentWindow.document.body.scrollHeight != 0) {
+      elem.style.height = elem.contentWindow.document.body.scrollHeight + "px";
+    } else {
+      elem.style.minHeight = '500px';
+    }
     elem.contentWindow.document.body.style.background = "none";
   };
   $('.result_' + index).append('<h3>' + result.label + '</h3>');
