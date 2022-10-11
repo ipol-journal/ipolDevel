@@ -31,7 +31,7 @@ $(document).ready(function() {
                 dataType: 'json',
                 success: function(data) {
                     if (data.status === 'OK') {
-                        document.location.href = `showTemplates?template_id=${template_id}&template_name=${template_name}`
+                        document.location.href = `showTemplate?template_id=${template_id}&template_name=${template_name}`
                     } else {
                         alert("Error to add this Blob to the Template")
                     }
