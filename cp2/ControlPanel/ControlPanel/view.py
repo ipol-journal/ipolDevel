@@ -660,7 +660,8 @@ def ajax_add_demo_extras(request):
     return HttpResponseRedirect(f'/cp2/demoExtras?demo_id={demo_id}')
 
 @login_required(login_url='login')
-def ajax_delete_demo_extras(request, demo_id):
+def ajax_delete_demo_extras(request):
+    demo_id = request.GET['demo_id']
     if user_can_edit_demo(request.user, demo_id):
         response = api_post('/api/demoinfo/delete_demoextras', { 'demo_id': demo_id })
         # TODO
