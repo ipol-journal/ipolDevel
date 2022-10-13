@@ -11,7 +11,9 @@
     <h2>Template blobsets</h2>
     <div>
         <a class="btn" href="createBlob?template_id={{template_id}}&template_name={{template_name}}">Add new Blob</a>
-        <button id="deleteTemplate" class="btn btn-danger">Delete Template</button>
+        {% if can_edit %}
+            <button id="deleteTemplate" class="btn btn-danger">Delete Template</button>
+        {% endif %}
     </div>
 </div>
 {% if not template_sets %}

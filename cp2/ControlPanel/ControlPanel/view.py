@@ -208,11 +208,13 @@ def showTemplate(request):
 
     demos = api_post('/api/blobs/get_demos_using_the_template', { 'template_id': template_id })
     demos_using_template = demos['demos']
+    can_edit = request.user.is_superuser
     context = {
         'template_id': template_id,
         'template_name': template_name,
         'template_sets': template_sets,
-        'demos_using_template': demos_using_template
+        'demos_using_template': demos_using_template,
+        'can_edit': can_edit
     }
     return render(request, 'showTemplate.html', context)
 
