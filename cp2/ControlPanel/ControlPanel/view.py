@@ -51,7 +51,7 @@ def status(request):
 @login_required(login_url='login')
 def demo_editors(request):
     demo_id = request.GET['demo_id']
-    title = request.GET['title']
+    title = request.GET.get('title', '')
 
     demo_editors = api_post('/api/demoinfo/demo_get_editors_list', { 'demo_id': demo_id })
     editor_list = demo_editors['editor_list']
@@ -132,7 +132,7 @@ def remove_demo_editor(request):
 @csrf_protect
 def ajax_add_demo(request):
     state = request.POST['state'].lower()
-    title = request.POST['title']
+    title = request.POST.get('title', '')
     demo_id = request.POST['demo_id']
 
     settings = {'state': state, 'title': title, 'demo_id': demo_id, 'ddl': '{}'}
@@ -471,7 +471,7 @@ def ajax_edit_blob_template(request):
 @login_required(login_url='login')
 def showDemo(request):
     demo_id = request.GET['demo_id']
-    title = request.GET['title']
+    title = request.GET.get('title', '')
     demoinfo_response = api_post('/api/demoinfo/get_ddl', { 'demo_id': demo_id })
     ssh_response = api_post('/api/demoinfo/get_ssh_keys', { 'demo_id': demo_id })
     ddl = None
@@ -544,7 +544,7 @@ def edit_demo(request):
 @login_required(login_url='login')
 def ddl_history(request):
     demo_id = request.GET['demo_id']
-    title = request.GET['title']
+    title = request.GET.get('title', '')
 
     dll_history_response = api_post('/api/demoinfo/get_ddl_history', { 'demo_id': demo_id })
     ddl_history = dll_history_response['ddl_history']
@@ -605,7 +605,7 @@ def ajax_save_DDL(request):
 @login_required(login_url='login')
 def showBlobsDemo(request):
     demo_id = request.GET['demo_id']
-    title = request.GET['title']
+    title = request.GET.get('title', '')
     can_edit = user_can_edit_demo(request.user, demo_id)
     blobs = api_post('/api/blobs/get_demo_owned_blobs', { 'demo_id': demo_id})
     blob_sets = blobs['sets']
@@ -736,7 +736,7 @@ def ajax_edit_blob_demo(request):
 @login_required(login_url='login')
 def show_archive(request):
     demo_id = request.GET['demo_id']
-    title = request.GET['title']
+    title = request.GET.get('title', '')
 
     if 'page' in request.GET:
         page = request.GET['page']
@@ -766,7 +766,7 @@ def show_archive(request):
 @login_required(login_url='login')
 def show_experiment(request):
     demo_id = request.GET['demo_id']
-    title = request.GET['title']
+    title = request.GET.get('title', '')
 
     if 'experiment_id' in request.GET:
         experiment_id = request.GET['experiment_id']
