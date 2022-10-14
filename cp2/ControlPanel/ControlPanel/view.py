@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import never_cache
 import json
+import urllib
 from .utils import api_post, user_can_edit_demo
 from ControlPanel.settings import HOST_NAME
 import logging
@@ -640,7 +641,7 @@ def demoExtras(request):
     context = {
         'demo_id': demo_id,
         'extras_url': extras_url,
-        'extras_name': extras_name,
+        'extras_name': urllib.parse.unquote(extras_name),
         'hostname': HOST_NAME,
         'can_edit': user_can_edit_demo(request.user, demo_id)
     }
