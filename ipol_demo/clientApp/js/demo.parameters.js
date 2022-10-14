@@ -85,7 +85,7 @@ parameters.setParametersValues = function(params_values){
       $('#selection_collapsed_' + param.id).val(params_values[param.id]);
     }
     if(param.type == "checkbox"){
-      $('#' + param.id).prop('checked', (params_values[param.id]));
+      $('#checkbox_' + param.id).prop('checked', params_values[param.id]);
     }
     if(param.type == "text"){
       $('#text_' + param.id).val(params_values[param.id]);
