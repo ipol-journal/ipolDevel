@@ -20,6 +20,7 @@
     <module>demorunner</module>
     <capability>DEBIAN_STABLE</capability>
     <capability>CORE</capability>
+    <capability>mkdocker</capability>
     <serverSSH>ipol_core</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
   </demorunner>
