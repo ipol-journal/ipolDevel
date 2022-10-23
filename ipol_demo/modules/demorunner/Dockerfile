@@ -7,6 +7,9 @@ RUN pip3 install --no-cache-dir -r requirements.txt && rm requirements.txt
 # this is probably a bug
 ENV VIRTUAL_ENV=
 
+# give all permissions to /home/ipol in case a demo has to use ~/.cache or something else
+RUN mkdir -p /home/ipol && chmod -R 777 /home/ipol
+
 # to build:
 # DOCKER_BUILDKIT=1 docker build ipol_demo/modules/demorunner -t registry.ipol.im/ipol-debian-demorunner
 # docker push
