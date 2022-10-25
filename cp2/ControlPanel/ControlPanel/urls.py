@@ -33,6 +33,8 @@ urlpatterns = [
         path('signout', signout),
         path('logout', logout),
         path('status', status),
+        path('profile', profile, name='profile'),
+        path('save_profile', save_profile, name='save_profile'),
         path('demo_editors', demo_editors, name='demo_editors'),
         path('add_demo_editor', add_demo_editor, name='add_demo_editor'),
         path('remove_demo_editor', remove_demo_editor, name='remove_demo_editor'),

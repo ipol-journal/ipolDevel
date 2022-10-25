@@ -8,7 +8,15 @@
         <a href="status"><i class="fa-solid fa-server"></i>Status</a>
     </nav>
     <div class="nav-user">
-        <p><i class="fa-solid fa-circle-user"></i>Welcome {{ user }}</p>
-        <a href ="signout" id="logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i></i>Logout</a>
+        <div class="dropdown">
+            <button>
+                <i class="fa-solid fa-user"></i> {{ user.first_name }} {{ user.last_name }} <i class="fa-solid fa-caret-down"></i>
+            </button>
+            <div class="dropdown-content"> 
+                <a rel="noopener" href="profile">Account</a> 
+                <a rel="noopener" href="signout" id="logout-btn">Logout</a>
+            </div>
+        </div>
+        <!-- <p><i class="fa-solid fa-circle-user"></i>Welcome {{ user }}</p> -->
     </div>
 </div>

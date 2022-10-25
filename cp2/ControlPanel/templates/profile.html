@@ -1,0 +1,49 @@
+{% extends "base.html" %} {% block title %}demoExtras{% endblock %} {% block bodyid %}demoExtras{% endblock %}
+{% block header %}
+    {% include "header.html" %}
+{% endblock %} {% block content %} 
+<div id="demoextras-texts" class="container-centered">
+    <h1>Account information</h1>
+    <form action="save_profile" id="saveProfile-form" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="username_old" value="{{username}}">
+        <input type="hidden" name="firstName_old" value="{{firstName}}">
+        <input type="hidden" name="lastName_old" value="{{lastName}}">
+        <input type="hidden" name="email_old" value="{{email}}">
+        <div>
+            <label for="username">Username</label>
+            <input type="text" name="username" id="username-input" value="{{username}}">
+        </div>
+        <div>
+            <label for="email">Email</label>
+            <input type="email" name="email" id="email-input" value="{{email}}">
+        </div>
+        <div>
+            <label for="firstName">First Name</label>
+            <input type="text" name="firstName" id="firstName-input" value="{{firstName}}">
+        </div>
+        <div>
+            <label for="firstName">Last Name</label>
+            <input type="text" name="lastName" id="lastName-input" value="{{lastName}}">
+        </div>
+        <input type="submit" class="btn btn-submit" value="Save">
+    </form>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {{ message.tags }} alert-dismissible" role="alert" >
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="True">&times;</span>
+                </button>
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+<script>
+    $(document).ready(function () {
+        $(".alert").on('click', function() {
+            $(this).remove();
+        })
+    });
+</script>
+{% endblock %}

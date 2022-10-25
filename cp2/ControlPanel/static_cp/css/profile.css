@@ -1,0 +1,32 @@
+#saveProfile-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(24rem, 40%));
+    gap: 1rem;
+    justify-content: center;
+}
+
+#saveProfile-form > div {
+    display: grid;
+}
+
+#saveProfile-form label {
+    padding: 0.5rem 0;
+    font-size: 1.1rem;
+}
+#saveProfile-form input {
+    padding: 1rem;
+    border: 2px solid black;
+    border-radius: var(--border-radius);
+    font-size: 1.2rem;
+}
+
+#saveProfile-form input[type="submit"] {
+    width: 15rem;
+    padding: 0.5rem;
+    border: 2px solid var(--color-black);
+    border-radius: var(--border-radius);
+    align-self: flex-start;
+    margin: 1rem 0;
+    background-color: var(--color-blue);
+    color: var(--color-white);
+}

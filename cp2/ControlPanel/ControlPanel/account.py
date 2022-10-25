@@ -11,6 +11,8 @@ from django.db.models.query_utils import Q
 from django.utils.http import urlsafe_base64_encode
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes
+from django.contrib import messages
+
 from .forms import loginForm
 from django.core.mail import BadHeaderError, send_mail
 from smtplib import SMTPException
@@ -76,3 +78,31 @@ def password_reset(request):
 
     password_reset_form = PasswordResetForm()
     return render(request=request, template_name="password/password_reset.html", context={"password_reset_form":password_reset_form})
+
+@login_required(login_url='login')
+@csrf_protect
+def profile(request):
+    user = request.user
+    context = {
+        "username": user.username,
+        "email": user.email,
+        "firstName": user.first_name,
+        "lastName": user.last_name
+    }
+    return render(request=request, template_name="profile.html", context=context)
+
+@login_required(login_url='login')
+@csrf_protect
+def save_profile(request):
+    profiles = User.objects.filter(email=request.user.email)
+    if not profiles.exists():
+        return
+    for profile in profiles:
+        profile.username = request.POST.get('username', '')
+        profile.first_name = request.POST.get('firstName', '')
+        profile.last_name = request.POST.get('lastName', '')
+        profile.email = request.POST.get('email', '')
+        profile.save()
+
+    messages.success(request, 'Your profile has been changed successfully!')
+    return HttpResponseRedirect(f'/cp2/profile')
