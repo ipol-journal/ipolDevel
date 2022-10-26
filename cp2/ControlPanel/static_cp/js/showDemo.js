@@ -23,6 +23,7 @@ let editors = '';
 
 $(document).ready(function() {
 	 showDDL();
+	 update_edit_demo();
 	 aceEditor.on('input', function(){
 		checkChanges();
 	})
@@ -121,7 +122,8 @@ function update_edit_demo() {
 		  url: 'showDemo/ajax_user_can_edit_demo',
 		  success: function(data) {
 				if (!data.can_edit) {
-					 $('#save-btn').addClass('btn-disabled');
+					$('#save-btn').addClass('btn-disabled');
+					aceEditor.setReadOnly(true);
 				}
 		  },
 	 });
@@ -141,6 +143,7 @@ function showDDL() {
 				aceEditor.setValue(data.last_demodescription.ddl, -1);
 				last_DDL_saved = aceEditor.getValue();
 				aceEditor.session.getUndoManager().markClean();
+				aceEditor.getSession().setUndoManager(new ace.UndoManager());
 			} else {
 				toast(`Error: ${data.error}`);
 				aceEditor.setValue({}, -1);
