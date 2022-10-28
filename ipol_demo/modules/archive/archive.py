@@ -941,6 +941,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
             experiment_id_list = cursor_db.fetchall()
 
             if not experiment_id_list:
+                status['message'] = 'No archives found'
                 return json.dumps(status).encode()
 
             # Delete experiments and files

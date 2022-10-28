@@ -43,7 +43,7 @@ from errors import (IPOLCheckDDLError, IPOLConversionError, IPOLCopyBlobsError,
                     IPOLKeyError, IPOLMissingRequiredInputError,
                     IPOLPrepareFolderError, IPOLProcessInputsError,
                     IPOLReadDDLError, IPOLUploadedInputRejectedError,
-                    IPOLWorkDirError)
+                    IPOLWorkDirError, IPOLDeleteDemoError)
 from ipolutils.evaluator.evaluator import IPOLEvaluateError, evaluate
 from ipolutils.read_text_file import read_commented_text_file
 
@@ -864,7 +864,7 @@ class Core():
         """
         Send email to editor when the execution fails
         """
-        
+
         id_list = []
         if os.path.exists('ignored_ids.txt'):
             id_list = [int(id) for id in read_commented_text_file('ignored_ids.txt')]
@@ -909,7 +909,7 @@ attached the failed experiment data.". \
         zipf = zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED)
         self.zipdir("{}/run/{}/{}".format(self.shared_folder_abs, demo_id, key), zipf)
         zipf.close()
-        
+
         #Send email only if the demo is not in the ignored id list
         if demo_id not in id_list:
             self.send_email(subject, text, emails, config_emails['sender'], zip_filename=zip_filename)
@@ -1489,6 +1489,36 @@ attached the failed experiment data.". \
 
         open_file.close()
         return dic
+
+    @cherrypy.expose
+    def delete_demo(self, demo_id):
+        """
+        Delete the specified demo
+        """
+        data = {}
+        data['status'] = 'OK'
+        userdata = {'demo_id': demo_id}
+
+        try:
+            # delete demo, blobs and extras associated to it
+            for api in ['/api/demoinfo/delete_demo', '/api/blobs/delete_demo', '/api/demoinfo/delete_demoextras']:
+                if self.post(api, data=userdata).json()['status'] != 'OK':
+                    data['status'] = 'KO'
+                    data['error'] = f"Couldn't delete the demo {demo_id}"
+                    return json.dumps(data).encode()
+
+            #delete the archive
+            result = self.post('/api/archive/delete_demo', data=userdata).json()
+            if result['status'] != 'OK' and result['message'] != 'No archives found':
+                data['status'] = 'KO'
+                data['error'] = f"Couldn't delete the demo completely"
+                return json.dumps(data).encode()
+
+        except Exception as ex:
+            error_message = f"Failed to delete demo {demo_id}, {ex}"
+            raise IPOLDeleteDemoError(error_message)
+
+        return json.dumps(data).encode()
 
     @staticmethod
     def post(api_url, **kwargs):

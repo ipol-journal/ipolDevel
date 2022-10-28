@@ -163,7 +163,7 @@ def ajax_delete_demo(request):
 
     if user_can_edit_demo(request.user, demo_id):
         settings = {'demo_id': demo_id}
-        response_api = api_post("/api/demoinfo/delete_demo", settings, json='{}')
+        response_api = api_post("/api/core/delete_demo", settings, json='{}')
         result = response_api
 
     response = {}
