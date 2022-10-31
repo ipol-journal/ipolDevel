@@ -155,7 +155,7 @@ function record(data) {
 
   if (ddl.archive.enable_reconstruct && data.execution) {
     let link = `/demo/clientApp/demo.html?id=${demo_id}&archive=${data.id}`
-    html += `<button class="reconstruct-btn btn" onclick="window.location.href ='${link}'">Reconstruct</button>`;
+    html += `<a class="btn reconstruct-btn" href="${link}">Reconstruct</a>`;
   }
 
   html += '</div>';
