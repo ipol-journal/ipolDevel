@@ -8,14 +8,6 @@
     <command>ping</command>
   </commands>
 
-  <demorunner name="dr1">
-    <module>demorunner</module>
-    <capability>DEBIAN_STABLE</capability>
-    <capability>DR1</capability>
-    <serverSSH>ipol_dr1</serverSSH>
-    <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
-  </demorunner>
-
   <demorunner name="dr_core">
     <module>demorunner</module>
     <capability>DEBIAN_STABLE</capability>
