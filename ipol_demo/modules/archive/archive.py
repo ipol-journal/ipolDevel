@@ -876,6 +876,37 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
         return json.dumps(data).encode()
 
     @cherrypy.expose
+    def executions_per_demo(self):
+        """
+        return the number of executions per demo
+        """
+        data = {}
+        data["status"] = "KO"
+        conn = None
+        try:
+            conn = lite.connect(self.database_file)
+            cursor_db = conn.cursor()
+
+            cursor_db.execute("""
+                SELECT id_demo, COUNT(*)
+                FROM experiments
+                GROUP BY id_demo
+            """)
+            results = {id: nb for id, nb in cursor_db.fetchall()}
+            data["result"] = results
+            data["status"] = "OK"
+
+        except Exception as ex:
+            message = "Failure in stats function. Error: {}".format(ex)
+            print(message)
+            self.logger.exception(message)
+        finally:
+            if conn is not None:
+                conn.close()
+
+        return json.dumps(data).encode()
+
+    @cherrypy.expose
     @staticmethod
     def index():
         """
