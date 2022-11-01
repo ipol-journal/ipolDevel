@@ -38,6 +38,7 @@ def homepage(request):
         "page": page,
         "next_page_number": demos['next_page_number'],
         "previous_page_number": demos['previous_page_number'],
+        "qfilter": qfilter,
     }
     return render(request, 'homepage.html', context)
 
