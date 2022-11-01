@@ -1,0 +1,15 @@
+[Unit]
+Description=Run demorunner
+After=network.target
+
+[Service]
+ExecStart=/bin/bash -c "source ./venv/bin/activate && python main.py demorunner.conf"
+WorkingDirectory=/home/ipol/ipolDevel/ipol_demo/modules/demorunner/
+Environment=IPOL_HOST=ipolcore.ipol.im
+Environment=IPOL_URL=https://ipolcore.ipol.im
+RestartSec=10
+Restart=always
+SyslogIdentifier=ipol-demorunner
+
+[Install]
+WantedBy=default.target
