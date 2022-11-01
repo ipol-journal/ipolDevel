@@ -31,16 +31,13 @@ def homepage(request):
         'qfilter': qfilter
     }
     demos = api_post('/api/demoinfo/demo_list_pagination_and_filter', settings)
-    
-    host_url = request.build_absolute_uri()
-    host_url = host_url[:host_url.rfind('/cp2')]
+
 
     context = {
         "demos": demos['demo_list'],
         "page": page,
         "next_page_number": demos['next_page_number'],
         "previous_page_number": demos['previous_page_number'],
-        "host_url": host_url
     }
     return render(request, 'homepage.html', context)
 
@@ -481,9 +478,6 @@ def showDemo(request):
     available_editors = api_post('/api/demoinfo/demo_get_available_editors_list', { 'demo_id': demo_id })
     available_editors = available_editors['editor_list']
 
-    host_url = request.build_absolute_uri()
-    host_url = host_url[:host_url.rfind('/cp2')]
-
     if demoinfo_response['status'] == 'OK':
         ddl = demoinfo_response['last_demodescription']
     else:
@@ -504,7 +498,6 @@ def showDemo(request):
         'editors_list': editor_list,
         'available_editors': available_editors,
         'ssh_pubkey': pubkey,
-        'host_url': host_url,
     }
 
     return render(request, 'showDemo.html', context)

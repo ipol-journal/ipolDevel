@@ -15,7 +15,7 @@
             {% for key, blob in set.blobs.items %}
             <div id="slide-{{set.name}}-{{key}}">
                 <button class="btn-delete" name="{{set.name}}" blobPos="{{key}}">X</button>
-                <a href="detailsBlob?&demo_id={{demo_id}}&title={{title}}&set={{set.name}}&pos={{key}}">
+                <a href="detailsBlob?demo_id={{demo_id}}&title={{title}}&set={{set.name}}&pos={{key}}">
                     {% if blob.thumbnail %}
                     <img src="{{blob.thumbnail}}">
                     {% else %}
