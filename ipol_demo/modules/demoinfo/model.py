@@ -300,6 +300,24 @@ class DemoDAO():
             demo_list.append(d)
         return demo_list
 
+    def list_by_editorid(self, editorid: int):
+        """
+        Return a list of demos.
+        """
+        demo_list = list()
+
+        self.cursor.execute('''SELECT d.editor_demo_id, d.title, s.name, d.creation, d.modification
+                            FROM demo as d, state as s
+                            JOIN demo_editor as de on d.ID == de.demoID
+                            WHERE d.stateID = s.ID AND de.editorId = ?
+                            ORDER BY d.modification DESC''', (editorid,))
+
+        self.conn.commit()
+        for row in self.cursor.fetchall():
+            d = Demo(row[0], row[1], row[2], row[3], row[4])
+            demo_list.append(d)
+        return demo_list
+
     def exist(self, editor_demo_id):
         """
         Returns whether the demo exists or not

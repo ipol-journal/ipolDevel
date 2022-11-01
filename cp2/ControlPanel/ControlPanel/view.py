@@ -32,9 +32,20 @@ def homepage(request):
     }
     demos = api_post('/api/demoinfo/demo_list_pagination_and_filter', settings)
 
+    # display the editor's demos
+    if page == 1 and not qfilter:
+        editor_info = api_post('/api/demoinfo/get_editor', { 'email': request.user.email })
+        editor_id = editor_info['editor']['id']
+        params = {
+            "editorid": editor_id,
+        }
+        own_demos = api_post('/api/demoinfo/demo_list_by_editorid', params)["demo_list"]
+    else:
+        own_demos = []
 
     context = {
         "demos": demos['demo_list'],
+        "own_demos": own_demos,
         "page": page,
         "next_page_number": demos['next_page_number'],
         "previous_page_number": demos['previous_page_number'],

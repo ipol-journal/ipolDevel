@@ -441,6 +441,37 @@ class DemoInfo():
         return json.dumps(data).encode()
 
     @cherrypy.expose
+    def demo_list_by_editorid(self, editorid):
+        """
+        return the list of demos matching the editor `editorid`
+        """
+        data = {}
+        data["status"] = "KO"
+        demo_list = list()
+
+        try:
+            conn = lite.connect(self.database_file)
+            demo_dao = DemoDAO(conn)
+            for d in demo_dao.list_by_editorid(editorid):
+                demo_list.append(d.__dict__)
+
+            data["demo_list"] = demo_list
+            data["status"] = "OK"
+            conn.close()
+        except Exception as ex:
+            error_string = "demoinfo demo_list_by_editorid error %s" % str(ex)
+            print(error_string)
+            self.logger.exception(error_string)
+            try:
+                conn.close()
+            except Exception as ex:
+                pass
+            # raise Exception
+            data["error"] = error_string
+
+        return json.dumps(data).encode()
+
+    @cherrypy.expose
     def demo_list_pagination_and_filter(self, num_elements_page, page, qfilter=None):
         """
         return a paginated and filtered list of demos
