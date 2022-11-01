@@ -67,6 +67,7 @@ def demo_editors(request):
     editor_list = demo_editors['editor_list']
     available_editors = api_post('/api/demoinfo/demo_get_available_editors_list', { 'demo_id': demo_id })
     available_editors = available_editors['editor_list']
+    available_editors = sorted(available_editors, key=lambda e: e['name'])
 
     can_edit = user_can_edit_demo(request.user, demo_id)
 
@@ -489,6 +490,7 @@ def showDemo(request):
     editor_list = demo_editors['editor_list']
     available_editors = api_post('/api/demoinfo/demo_get_available_editors_list', { 'demo_id': demo_id })
     available_editors = available_editors['editor_list']
+    available_editors = sorted(available_editors, key=lambda e: e['name'])
 
     if demoinfo_response['status'] == 'OK':
         ddl = demoinfo_response['last_demodescription']
