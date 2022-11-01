@@ -1,0 +1,13 @@
+[Unit]
+Description=sshfs from green to ipolcore
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/sshfs ipolcore.ipol.im:/home/ipol/ipolDevel/shared_folder /home/ipol/ipolDevel/shared_folder -f -o uid=1008,gid=1008,allow_other,reconnect
+ExecStopPost=/usr/bin/fusermount -u /home/ipol/ipolDevel/shared_folder
+RestartSec=20
+Restart=always
+
+[Install]
+WantedBy=default.target
+
