@@ -779,7 +779,11 @@ def show_experiment(request):
     if 'experiment_id' in request.GET:
         experiment_id = request.GET['experiment_id']
         archive_response = api_post('/api/archive/get_experiment', { 'experiment_id': experiment_id })
-        experiment = archive_response['experiment']
+        if 'experiment' in archive_response:
+            experiment = archive_response['experiment']
+        else:
+            message = 'Experiment not found'
+            return render(request, 'error.html', {'error_code': 404, 'message': message})
 
     archive_response = api_post('/api/archive/get_page', { 'demo_id': demo_id })
     meta = archive_response['meta']

@@ -1,0 +1,14 @@
+{% extends "base.html" %} {% block title %}createBlob{% endblock %} {% block bodyid %}createBlob{% endblock %} 
+
+{% block header %}
+    {% include "header.html" %}
+{% endblock %}  {% block content %}
+<div class="empty-container">
+    <h1>Error {{error_code}}</h1>
+    <h1>The resource you were looking for is not found</h1>
+    {% if message %}
+        <p class="not-found-message">{{message}}</p>
+    {% endif %}
+</div>
+
+{% endblock %}

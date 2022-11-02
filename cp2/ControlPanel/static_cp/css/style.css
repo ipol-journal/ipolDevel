@@ -454,3 +454,7 @@ article a {
     font-size: 2rem;
     padding-bottom: 5px;
 }
+
+.not-found-message {
+    font-size: var(--fs-medium);
+}
