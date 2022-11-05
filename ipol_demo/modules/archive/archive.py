@@ -600,10 +600,11 @@ class Archive():
         try:
             cursor_db = conn.cursor()
             cursor_db.execute("""
-                SELECT blb.hash, blb.type, cor.name, blb.id FROM blobs blb
-                INNER JOIN correspondence cor ON blb.id=cor.id_blob
-                INNER JOIN experiments exp ON cor.id_experiment=exp.id
-                WHERE id_experiment = ? ORDER by cor.order_exp """, (id_exp,))
+                SELECT blb.hash, blb.type, cor.name, blb.id
+                FROM blobs blb
+                JOIN correspondence cor ON blb.id=cor.id_blob
+                WHERE id_experiment = ?
+                ORDER by cor.order_exp """, (id_exp,))
 
             all_rows = cursor_db.fetchall()
 
