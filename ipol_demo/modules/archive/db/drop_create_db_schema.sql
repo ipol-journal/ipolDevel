@@ -18,3 +18,4 @@ CREATE TABLE IF NOT EXISTS correspondence (
                             order_exp INTEGER,
                             FOREIGN KEY(`id_experiment`) REFERENCES experiments ( id ) ON DELETE CASCADE,
                             FOREIGN KEY(`id_blob`) REFERENCES blobs ( id ) ON DELETE CASCADE);
+CREATE INDEX IF NOT EXISTS correspondence_id_experiment ON correspondence (id_experiment);
