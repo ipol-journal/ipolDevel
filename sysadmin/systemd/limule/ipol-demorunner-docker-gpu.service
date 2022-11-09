@@ -8,6 +8,7 @@ ExecStartPre=-/home/ipol/.cargo/bin/cargo install --git https://github.com/kidan
 TimeoutStartSec=300
 WorkingDirectory=/home/ipol/ipolDevel/ipol_demo/modules/demorunner-docker/
 Environment=ROCKET_PROFILE=ipol-limule-gpu
+Environment=ROCKET_ADDRESS=0.0.0.0
 RestartSec=10
 Restart=always
 SyslogIdentifier=demorunner-docker-gpu
