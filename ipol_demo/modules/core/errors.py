@@ -122,8 +122,3 @@ class IPOLDemoRunnerResponseError(Exception):
         self.demo_state = demo_state
         self.key = key
         self.error = error
-
-class IPOLDeleteDemoError(Exception):
-    """
-    IPOLDeleteDemoError
-    """

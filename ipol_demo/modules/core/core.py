@@ -43,7 +43,7 @@ from errors import (IPOLCheckDDLError, IPOLConversionError, IPOLCopyBlobsError,
                     IPOLKeyError, IPOLMissingRequiredInputError,
                     IPOLPrepareFolderError, IPOLProcessInputsError,
                     IPOLReadDDLError, IPOLUploadedInputRejectedError,
-                    IPOLWorkDirError, IPOLDeleteDemoError)
+                    IPOLWorkDirError)
 from ipolutils.evaluator.evaluator import IPOLEvaluateError, evaluate
 from ipolutils.read_text_file import read_commented_text_file
 
@@ -1491,6 +1491,7 @@ attached the failed experiment data.". \
         return dic
 
     @cherrypy.expose
+    @authenticate
     def delete_demo(self, demo_id):
         """
         Delete the specified demo
@@ -1498,25 +1499,29 @@ attached the failed experiment data.". \
         data = {}
         data['status'] = 'OK'
         userdata = {'demo_id': demo_id}
+        error_message = ''
 
         try:
             # delete demo, blobs and extras associated to it
             for api in ['/api/demoinfo/delete_demo', '/api/blobs/delete_demo', '/api/demoinfo/delete_demoextras']:
                 if self.post(api, data=userdata).json()['status'] != 'OK':
-                    data['status'] = 'KO'
-                    data['error'] = f"Couldn't delete the demo {demo_id}"
-                    return json.dumps(data).encode()
+                    error_message += f"API call {api} failed.'\n"
 
             #delete the archive
-            result = self.post('/api/archive/delete_demo', data=userdata).json()
-            if result['status'] != 'OK' and result['message'] != 'No archives found':
+            res_archive = self.post('/api/archive/delete_demo', data=userdata).json()
+            if res_archive['status'] != 'OK' and res_archive['message'] != 'No archives found':
+                error_message += f"API call /api/archive/delete_demo failed. {demo_id}"
+
+            if error_message:
                 data['status'] = 'KO'
-                data['error'] = f"Couldn't delete the demo completely"
-                return json.dumps(data).encode()
+                data['error'] = f"Failed to delete demo: {demo_id}."
+                self.send_internal_error_email(error_message)
 
         except Exception as ex:
-            error_message = f"Failed to delete demo {demo_id}, {ex}"
-            raise IPOLDeleteDemoError(error_message)
+            error_message = f"Failed to delete demo {demo_id}. Error: {ex}"
+            data['status'] = 'KO'
+            data['error'] = error_message
+            self.send_internal_error_email(error_message)
 
         return json.dumps(data).encode()
 
