@@ -854,6 +854,45 @@ Some package updates require user input to decide wether to keep or renew the po
 \end{verbatim}
 
 
+\section{Wireguard}
+
+To avoid exposing internal services to the Internet and mitigate network issues, wireguard is used.
+The VPN is used for both the HTTP API calls and the sshfs mounts.
+core is set to the address 10.0.0.1, and the other servers are 10.0.0.2, etc.
+
+The configuration is done through the file {\tt /etc/wireguard/wg0.conf} on each server.
+systemd and wg-quick are used to manage the wireguard tunnels ({\tt systemctl start wg-quick@wg0.service}).
+Follow the usual tutorials to set up the public/private wireguard keys.
+
+Example for core:
+\begin{verbatim}
+[Interface]
+PrivateKey = <private key of core>
+Address = 10.0.0.1/24
+ListenPort = 51820
+
+[Peer]
+# server1
+PublicKey = <public key of server1>
+AllowedIPs = 10.0.0.2/32
+\end{verbatim}
+
+Example for server1:
+\begin{verbatim}
+[Interface]
+Address = 10.0.0.2/24
+PrivateKey = <private key of server1>
+ListenPort = 51820
+
+[Peer]
+# core
+PublicKey = <public key of core>
+Endpoint = <ip of core>:51820
+AllowedIPs = 10.0.0.1/32
+PersistentKeepalive = 20  # fixes issues with some NAT
+\end{verbatim}
+
+
 \section{Troubleshooting}
 
 \textbf{After a new release of Debian Stable the binaries of the demos no longer work}
