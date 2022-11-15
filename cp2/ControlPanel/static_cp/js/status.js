@@ -12,10 +12,12 @@
     //-----------------------------------------DR-----------------------------------------//
     function chargeDR(data) {
         for (const dr of data.demorunners) {
-            let workload = dr.workload || 'N/A'
             let DRStatus = '<i class="fa-solid fa-triangle-exclamation">';
+            let workload = dr.workload
             if (dr.status == 'OK') {
                 DRStatus = '<i class="fa-solid fa-check">';
+            } else {
+                workload = 'N/A'
             }
             $('#dr-table').append(`
                 <tr>
