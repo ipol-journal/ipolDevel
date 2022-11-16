@@ -6,8 +6,7 @@ After=network.target
 ExecStart=/bin/bash -c "source venv/bin/activate && ./gunicorn_start_cp2"
 WorkingDirectory=/home/ipol/ipolDevel/cp2/
 Environment=IPOL_HOST=ipolcore.ipol.im
-Environment=IPOL_URL=http://ipolcore.ipol.im
-User=ipol
+Environment=IPOL_URL=https://ipolcore.ipol.im
 RestartSec=10
 Restart=always
 SyslogIdentifier=ipol-cp2
