@@ -14,7 +14,7 @@
     <capability>CORE</capability>
     <capability>mkdocker</capability>
     <serverSSH>ipol_core</serverSSH>
-    <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
+    <serviceName>ipol-demorunner --user</serviceName>
   </demorunner>
 
   <demorunner name="dr_green">

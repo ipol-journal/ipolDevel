@@ -6,7 +6,7 @@
   <module name="archive">
     <module>archive</module>
     <serverSSH>ipol_core</serverSSH>
-    <path>~/ipolDevel/ipol_demo/modules/archive/</path>
+    <serviceName>ipol-archive --user</serviceName>
     <command>start</command>
     <command>stop</command>
     <command>restart</command>
@@ -16,7 +16,7 @@
   <module name="blobs">
     <module>blobs</module>
     <serverSSH>ipol_core</serverSSH>
-    <path>~/ipolDevel/ipol_demo/modules/blobs/</path>
+    <serviceName>ipol-blobs --user</serviceName>
     <command>start</command>
     <command>stop</command>
     <command>restart</command>
@@ -26,7 +26,7 @@
   <module name="demoinfo">
     <module>demoinfo</module>
     <serverSSH>ipol_core</serverSSH>
-    <path>~/ipolDevel/ipol_demo/modules/demoinfo/</path>
+    <serviceName>ipol-demoinfo --user</serviceName>
     <command>start</command>
     <command>stop</command>
     <command>restart</command>
@@ -36,7 +36,7 @@
   <module name="core">
     <module>core</module>
     <serverSSH>ipol_core</serverSSH>
-    <path>~/ipolDevel/ipol_demo/modules/core/</path>
+    <serviceName>ipol-core --user</serviceName>
     <command>start</command>
     <command>stop</command>
     <command>restart</command>
@@ -46,7 +46,7 @@
   <module name="dispatcher">
     <module>dispatcher</module>
     <serverSSH>ipol_core</serverSSH>
-    <path>~/ipolDevel/ipol_demo/modules/dispatcher/</path>
+    <serviceName>ipol-dispatcher --user</serviceName>
     <command>start</command>
     <command>stop</command>
     <command>restart</command>
@@ -56,7 +56,7 @@
   <module name="conversion">
     <module>conversion</module>
     <serverSSH>ipol_core</serverSSH>
-    <path>~/ipolDevel/ipol_demo/modules/conversion/</path>
+    <serviceName>ipol-conversion --user</serviceName>
     <command>start</command>
     <command>stop</command>
     <command>restart</command>
