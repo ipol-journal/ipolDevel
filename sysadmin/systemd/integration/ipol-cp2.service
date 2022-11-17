@@ -7,7 +7,6 @@ ExecStart=/bin/bash -c "source venv/bin/activate && ./gunicorn_start_cp2"
 WorkingDirectory=/home/ipol/ipolDevel/cp2/
 Environment=IPOL_HOST=integration.ipol.im
 Environment=IPOL_URL=http://integration.ipol.im
-User=ipol
 RestartSec=10
 Restart=always
 SyslogIdentifier=ipol-cp2
