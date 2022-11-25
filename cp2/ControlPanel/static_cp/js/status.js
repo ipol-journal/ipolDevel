@@ -33,7 +33,7 @@
         $.ajax({
             type: 'GET',
             dataType: 'json',
-            url: '/api/dispatcher/get_demorunners_stats',
+            url: '/api/core/get_demorunners_stats',
             success: function(data) {
                 $('#DR').prepend(`<h2>Demorunner module:</i></h2>`);
                 chargeDR(data);
@@ -127,23 +127,6 @@
             },
             error: function() {
                 $('#Core').html('<h2>Core does not respond! <i class="fa-solid fa-triangle-exclamation"></i></h2>')
-            }
-        });
-        return false;
-    });
-
-    //-----------------------------------------Dispatcher-----------------------------------------//
-
-    $(function() {
-        $.ajax({
-            type: 'GET',
-            dataType: 'json',
-            url: '/api/dispatcher/ping',
-            success: function(data) {
-                estate(data, "Dispatcher", "Dispatcher");
-            },
-            error: function() {
-                $('#Dispatcher').html('<h2>Dispatcher does not respond! <i class="fa-solid fa-triangle-exclamation"></i></h2>')
             }
         });
         return false;

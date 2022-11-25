@@ -34,6 +34,7 @@ from random import random
 import cherrypy
 import magic
 import requests
+from result import Ok, Err, Result
 from archive import send_to_archive
 from errors import (IPOLCheckDDLError, IPOLConversionError, IPOLCopyBlobsError,
                     IPOLDecodeInterfaceRequestError, IPOLDemoExtrasError,
@@ -46,6 +47,11 @@ from errors import (IPOLCheckDDLError, IPOLConversionError, IPOLCopyBlobsError,
                     IPOLWorkDirError)
 from ipolutils.evaluator.evaluator import IPOLEvaluateError, evaluate
 from ipolutils.read_text_file import read_commented_text_file
+
+import sys
+ROOT = os.path.dirname(os.path.abspath(__file__)) + "/../../.."
+sys.path.append(os.path.abspath(ROOT))
+from ipol_demo.modules.dispatcher import dispatcher
 
 def authenticate(func):
     """
@@ -155,6 +161,11 @@ class Core():
 
         except Exception:
             self.logger.exception("__init__")
+
+        self.dispatcher = dispatcher.Dispatcher(
+            base_url=os.environ['IPOL_URL'],
+            demorunners_file=cherrypy.config["demorunners_file"],
+        )
 
     def read_authorized_patterns(self):
         """
@@ -1029,24 +1040,20 @@ attached the failed experiment data.". \
         This function returns the demorunner that fits with the requirements of a given demo
         and according to the dispatcher policies
         """
-        if 'requirements' in general_info:
-            requirements = {'requirements': general_info['requirements']}
-        else:
-            requirements = None
+        requirements = general_info.get('requirements', '')
+        result = self.dispatcher.get_suitable_demorunner(requirements)
 
-        resp = self.post('api/dispatcher/get_suitable_demorunner', data=requirements).json()
-        if resp['status'] != 'OK':
-            if 'unresponsive_dr' in resp:
-                self.send_demorunner_unresponsive_email(resp['unresponsive_dr'])
-            if 'requirements' in general_info:
-                requirement_names = general_info['requirements']
-                error_message = f'No DR satisfies the requirements: {requirement_names}'
-            else:
-                error_message = f'No DR available'
+        if isinstance(result, Err):
+            err = result.value
+
+            if isinstance(err, dispatcher.UnresponsiveDemorunnerError):
+                self.send_demorunner_unresponsive_email(err.dr_name)
+
+            error_message = err.error()
             raise IPOLFindSuitableDR(error_message)
 
-        server_name = resp['dr_name']
-        return server_name
+        else:
+            return result.value
 
     @staticmethod
     def get_response_error_or_content(response):
@@ -1524,6 +1531,13 @@ attached the failed experiment data.". \
             self.send_internal_error_email(error_message)
 
         return json.dumps(data).encode()
+
+    @cherrypy.expose
+    def get_demorunners_stats(self):
+        """
+        Get workload of all DRs.
+        """
+        return self.dispatcher.get_demorunners_stats()
 
     @staticmethod
     def post(api_url, **kwargs):

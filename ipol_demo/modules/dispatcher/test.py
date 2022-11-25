@@ -47,22 +47,13 @@ class DispatcherTests(unittest.TestCase):
     #####################
     #       Tests       #
     #####################
-    def test_ping(self):
-        """
-        Test ping
-        """
-        status = None
-        try:
-            ping = '{}/api/dispatcher/ping'.format(self.BASE_URL)
-            response = requests.get(ping).json()
-            status = response.get('status')
-        finally:
-            self.assertEqual(status, 'OK')
-
     def test_find_suitable_demorunner(self):
         """
         Test get suitable demorunner
         """
+        if True:
+            # test broken since the endpoint get_suitable_demorunner was removed
+            return
         try:
             suitable_dr = '{}/api/dispatcher/get_suitable_demorunner'.format(self.BASE_URL)
             response = requests.get(suitable_dr).json()
@@ -75,6 +66,9 @@ class DispatcherTests(unittest.TestCase):
         Test get suitable demorunner with requirements according to
         local demorunners.xml
         """
+        if True:
+            # test broken since the endpoint get_suitable_demorunner was removed
+            return
         status = 'OK'
         try:
             suitable_dr = '{}/api/dispatcher/get_suitable_demorunner'.format(self.BASE_URL)
@@ -92,6 +86,9 @@ class DispatcherTests(unittest.TestCase):
         """
         Test get demorunner stats
         """
+        if True:
+            # test broken since the endpoint get_demorunners_stats was removed
+            return
         status = 'KO'
         try:
             dr_stats = '{}/api/dispatcher/get_demorunners_stats'.format(self.BASE_URL)
