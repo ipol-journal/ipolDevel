@@ -21,15 +21,37 @@
     <form id="editDemoExtras" action="{% url 'add_extras' %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="hidden" name="demo_id" value="{{ demo_id }}">
-        <input type="file" name="demoextras">
+        <label class="file">
+            <input type="file" id="file" name="demoextras" aria-label="File browser for demoextras">
+            <span class="file-custom"></span>
+        </label>
         <button type="submit" id="save-btn" class="btn"><i class="fa-solid fa-upload"></i> Upload</button>
     </form>
     {% if extras_name %}
-    <div class="extras-info">
-        <p>{{ extras_name }}</p>
-        <a href="{{ extras_url }}" class="btn"><i class="fa-solid fa-download"></i> Download file</a>
-        <a href="{% url 'delete_extras' %}?demo_id={{ demo_id }}" id="delete-btn" class="btn btn-danger"><i class="fa-regular fa-trash-can"></i> Delete file</a>
-    </div>
+    <section>
+        <h1>Uploaded demoextras</h1>
+        <div class="extras-info">
+            <p class="demoextras-name">{{ extras_name }}</p>
+            <p class="demoextras-date">{{ date }}</p>
+            <p class="demoextras-size">{{ size |filesizeformat }}</p>
+            <a href="{{ extras_url }}" class="btn"><i class="fa-solid fa-download"></i> Download file</a>
+            <a href="{% url 'delete_extras' %}?demo_id={{ demo_id }}" id="delete-btn" class="btn btn-danger"><i class="fa-regular fa-trash-can"></i> Delete file</a>
+        </div>
+    </section>
     {% endif %}
 </div>
+<script>
+    $(document).ready(function () {
+        $('.file-custom').attr('data-value','Choose file...');
+        $('#file').on('change', function() {
+            let filename = $(this).prop('files')[0].name;
+            if (filename.length > 30) {
+                filename = "..." + filename.slice(filename.length - 30, filename.length);
+            } else {
+                filename = filename.slice(filename.length - 30, filename.length);
+            }
+            $('.file-custom').attr('data-value', filename);
+        })
+    });
+</script>
 {% endblock %}

@@ -17,6 +17,8 @@ from .forms import loginForm
 from django.core.mail import BadHeaderError, send_mail
 from smtplib import SMTPException
 
+from .utils import api_post
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -95,14 +97,24 @@ def profile(request):
 @csrf_protect
 def save_profile(request):
     profiles = User.objects.filter(email=request.user.email)
-    if not profiles.exists():
-        return
-    for profile in profiles:
-        profile.username = request.POST.get('username', '')
-        profile.first_name = request.POST.get('firstName', '')
-        profile.last_name = request.POST.get('lastName', '')
-        profile.email = request.POST.get('email', '')
-        profile.save()
+    demoinfo_editor = api_post('/api/demoinfo/get_editor', {'email': request.POST.get('email', '')})
+    editor_exists = demoinfo_editor['editor']
 
-    messages.success(request, 'Your profile has been changed successfully!')
+    if not profiles.exists():
+        messages.warning(request, 'The profile you are trying to modify does not exist')
+        return HttpResponseRedirect(f'/cp2/profile')
+    if editor_exists:
+        for profile in profiles:
+            profile.username = request.POST.get('username', '')
+            profile.first_name = request.POST.get('firstName', '')
+            profile.last_name = request.POST.get('lastName', '')
+    else:
+        for profile in profiles:
+            profile.username = request.POST.get('username', '')
+            profile.first_name = request.POST.get('firstName', '')
+            profile.last_name = request.POST.get('lastName', '')
+            profile.email = request.POST.get('email', '')
+
+    profile.save()
+    messages.success(request, 'Your profile has been changed successfully.')
     return HttpResponseRedirect(f'/cp2/profile')

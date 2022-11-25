@@ -52,7 +52,7 @@ input.printSets = function(sets) {
   }
 
   var setsContainer = document.getElementById("sets");
-  var isFirefox = typeof InstallTrigger !== 'undefined';
+  var isFirefox = !!document.mozCancelFullScreen;
   if (isFirefox) {
     setsContainer.addEventListener("DOMMouseScroll", scrollHorizontally, false);
   }

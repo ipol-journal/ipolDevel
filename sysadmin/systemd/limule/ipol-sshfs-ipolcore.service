@@ -3,7 +3,7 @@ Description=sshfs from limule to ipolcore
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/sshfs ipolcore.ipol.im:/home/ipol/ipolDevel/shared_folder /home/ipol/ipolDevel/shared_folder -f -o uid=1005,gid=1005,allow_other,reconnect
+ExecStart=/usr/bin/sshfs 10.0.0.1:/home/ipol/ipolDevel/shared_folder /home/ipol/ipolDevel/shared_folder -f -o uid=1005,gid=1005,allow_other,reconnect
 ExecStopPost=/usr/bin/fusermount -u /home/ipol/ipolDevel/shared_folder
 RestartSec=20
 Restart=always

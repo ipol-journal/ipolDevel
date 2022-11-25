@@ -29,49 +29,54 @@
         {% endif %}
     </div>
 </div>
-<div id="demos-list">
-    {% if own_demos %}
+<div id="demo-list-container">
     <h2>Your demos</h2>
-    {% endif %}
-    {% for demo in own_demos %}
-    <div class="demo-card">
-        <div class="demo-title">
-            <p>Demo title:</p>
-            <h1>{{ demo.title|truncatechars:100 }}</h1>
-            <p class="demo-id">ID: {{ demo.editorsdemoid }}</p>
+    <div id="demos-list">
+        {% if own_demos %}
+        {% endif %}
+        {% for demo in own_demos %}
+        <div class="demo-card">
+            <div class="demo-title">
+                <p>Demo title:</p>
+                <h1>{{ demo.title|truncatechars:100 }}</h1>
+                <p class="demo-id">ID: {{ demo.editorsdemoid }}</p>
+            </div>
+            <div class="demo-info">
+                <p class="demo-state">State: {{ demo.state }}</p>
+                {% if demo.modification %}
+                <p class="demo-date">Last modification: {{ demo.modification|parse_iso|date:"d M Y" }}</p>
+                {% endif %}
+            </div>
+            <div class="card-buttons">
+                <a href="/demo/clientApp/demo.html?id={{ demo.editorsdemoid }}" class="btn" target="_blank"><i class="fa-solid fa-link"></i> Open demo</a>
+                <a href="showDemo?demo_id={{ demo.editorsdemoid }}&title={{ demo.title }}" class="btn"><i class="fa-solid fa-pen-to-square"></i> Edit demo</a>
+            </div>
         </div>
-        <div class="demo-info">
-            <p class="demo-state">State: {{ demo.state }}</p>
-            {% if demo.modification %}
-            <p class="demo-date">Last modification: {{ demo.modification|parse_iso|date:"d M Y" }}</p>
-            {% endif %}
-        </div>
-        <div class="card-buttons">
-            <a href="/demo/clientApp/demo.html?id={{ demo.editorsdemoid }}" class="btn" target="_blank"><i class="fa-solid fa-link"></i> Open demo</a>
-            <a href="showDemo?demo_id={{ demo.editorsdemoid }}&title={{ demo.title }}" class="btn"><i class="fa-solid fa-pen-to-square"></i> Edit demo</a>
-        </div>
+        {% endfor %}
     </div>
-    {% endfor %}
     <h2>All demos</h2>
-    {% for demo in demos %}
-    <div class="demo-card">
-        <div class="demo-title">
-            <p>Demo title:</p>
-            <h1>{{ demo.title|truncatechars:100 }}</h1>
-            <p class="demo-id">ID: {{ demo.editorsdemoid }}</p>
+    <div id="demos-list">
+
+        {% for demo in demos %}
+        <div class="demo-card">
+            <div class="demo-title">
+                <p>Demo title:</p>
+                <h1>{{ demo.title|truncatechars:100 }}</h1>
+                <p class="demo-id">ID: {{ demo.editorsdemoid }}</p>
+            </div>
+            <div class="demo-info">
+                <p class="demo-state">State: {{ demo.state }}</p>
+                {% if demo.modification %}
+                <p class="demo-date">Last modification: {{ demo.modification|parse_iso|date:"d M Y" }}</p>
+                {% endif %}
+            </div>
+            <div class="card-buttons">
+                <a href="/demo/clientApp/demo.html?id={{ demo.editorsdemoid }}" class="btn" target="_blank"><i class="fa-solid fa-link"></i> Open demo</a>
+                <a href="showDemo?demo_id={{ demo.editorsdemoid }}&title={{ demo.title }}" class="btn"><i class="fa-solid fa-pen-to-square"></i> Edit demo</a>
+            </div>
         </div>
-        <div class="demo-info">
-            <p class="demo-state">State: {{ demo.state }}</p>
-            {% if demo.modification %}
-            <p class="demo-date">Last modification: {{ demo.modification|parse_iso|date:"d M Y" }}</p>
-            {% endif %}
-        </div>
-        <div class="card-buttons">
-            <a href="/demo/clientApp/demo.html?id={{ demo.editorsdemoid }}" class="btn" target="_blank"><i class="fa-solid fa-link"></i> Open demo</a>
-            <a href="showDemo?demo_id={{ demo.editorsdemoid }}&title={{ demo.title }}" class="btn"><i class="fa-solid fa-pen-to-square"></i> Edit demo</a>
-        </div>
+        {% endfor %}
     </div>
-    {% endfor %}
 </div>
 <div class="addDemos">
     <button href="" id="show"><i class="fa-solid fa-plus"></i></button>

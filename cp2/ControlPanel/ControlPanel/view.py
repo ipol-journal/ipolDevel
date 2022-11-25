@@ -643,12 +643,13 @@ def demoExtras(request):
     extras_url = None
     if 'url' in response:
         extras_name = response['url'].split('/')[-1]
+        extras_name = urllib.parse.unquote(extras_name)
         extras_url = response['url']
 
     context = {
         'demo_id': demo_id,
         'extras_url': extras_url,
-        'extras_name': urllib.parse.unquote(extras_name),
+        'extras_name': extras_name,
         'hostname': HOST_NAME,
         'can_edit': user_can_edit_demo(request.user, demo_id)
     }
