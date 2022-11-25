@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.contrib.auth.decorators import login_required
@@ -634,18 +635,27 @@ def showBlobsDemo(request):
 @login_required(login_url='login')
 def demoExtras(request):
     demo_id = request.GET['demo_id']
+    title = request.GET['title']
     response = api_post('/api/demoinfo/get_demo_extras_info', {'demo_id': demo_id })
     extras_name = None
     extras_url = None
+    date = None
+    size = None
     if 'url' in response:
         extras_name = response['url'].split('/')[-1]
         extras_name = urllib.parse.unquote(extras_name)
         extras_url = response['url']
+        timestamp = response['date']
+        date = datetime.fromtimestamp(timestamp)
+        size = response['size']
 
     context = {
         'demo_id': demo_id,
+        'title': title,
         'extras_url': extras_url,
         'extras_name': extras_name,
+        'date': date,
+        'size': size,
         'hostname': HOST_NAME,
         'can_edit': user_can_edit_demo(request.user, demo_id)
     }

@@ -3,6 +3,7 @@
     {% include "header.html" %}
 {% endblock %} {% block content %} 
 <div id="demoextras-texts" class="container-centered">
+    <a href="showDemo?demo_id={{demo_id}}&title={{title}}" class="btn mg-0">Go back to demo</a>
     <h1>Manage Demo Extras {{ demo_id }}</h1>
     {% if not can_edit %}
     <div id="can_edit">
