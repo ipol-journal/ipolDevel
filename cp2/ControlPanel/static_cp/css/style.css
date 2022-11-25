@@ -30,7 +30,7 @@
     --color-button-close: #aaaaaa;
     --color-button-remove: #ce3c6f;
 
-    --color-disabled: #444343ba;
+    --color-disabled: #b4b4b4;
 
     --color-danger: #ce3c6f;
     --color-black: #000000;
@@ -155,7 +155,6 @@ button:disabled {
     background-color: var(--color-lightgray);
     border-color: var(--color-disabled);
     color: var(--color-disabled);
-    /* color: var(--color-darkgray); */
     cursor: not-allowed;
     pointer-events: none;
 }
