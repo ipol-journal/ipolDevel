@@ -2,57 +2,62 @@
 # -*- coding:utf-8 -*-
 """
 Dispatcher: choose the best demorunner according to a policy
-
-All exposed WS return JSON with a status OK/KO, along with an error
-description if that's the case.
 """
 
-import configparser
 import json
 import logging
-import os
-import re
-import sys
 import xml.etree.ElementTree as ET
+from dataclasses import dataclass
 import requests
-import cherrypy
+from result import Ok, Err, Result
 
-from policy import Policy
-from demorunnerinfo import DemoRunnerInfo
+from .policy import Policy
+from .demorunnerinfo import DemoRunnerInfo
 
 
-def authenticate(func):
+def init_logging():
     """
-    Wrapper to authenticate before using an exposed function
+    Initialize the error logs of the module.
     """
+    logger = logging.getLogger("dispatcher_log")
 
-    def authenticate_and_call(*args, **kwargs):
-        """
-        Invokes the wrapped function if authenticated
-        """
-        if "X-Real-IP" in cherrypy.request.headers \
-                and is_authorized_ip(cherrypy.request.headers["X-Real-IP"]):
-            return func(*args, **kwargs)
-        error = {"status": "KO", "error": "Authentication Failed"}
-        return json.dumps(error).encode()
+    logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter(
+        '%(asctime)s; [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S')
+    handler.setFormatter(formatter)
 
-    def is_authorized_ip(ip):
-        """
-        Validates the given IP
-        """
-        dispatcher = Dispatcher.get_instance()
-        patterns = []
-        # Creates the patterns  with regular expressions
-        for authorized_pattern in dispatcher.authorized_patterns:
-            patterns.append(re.compile(authorized_pattern.replace(
-                ".", "\\.").replace("*", "[0-9a-zA-Z]+")))
-        # Compare the IP with the patterns
-        for pattern in patterns:
-            if pattern.match(ip) is not None:
-                return True
-        return False
+    logger.addHandler(handler)
+    return logger
 
-    return authenticate_and_call
+
+class DispatcherError:
+    def error(self) -> str:
+        raise NotImplementedError
+
+
+@dataclass
+class UnresponsiveDemorunnerError(DispatcherError):
+    dr_name: str
+
+    def error(self) -> str:
+        return f"Demorunner '{self.dr_name}' is unresponsive."
+
+
+class NoDemorunnerAvailableError(DispatcherError):
+
+    def error(self) -> str:
+        return 'No DR available.'
+
+
+@dataclass
+class NoSuitableDemorunnerForRequirementsError(DispatcherError):
+
+    requirements: str
+
+    def error(self) -> str:
+        return f'No DR satisfies the requirements: {self.requirements}.'
 
 
 class Dispatcher():
@@ -60,95 +65,36 @@ class Dispatcher():
     The Dispatcher chooses the best DR according to a policy
     """
 
-    instance = None
+    def __init__(self,
+                 base_url: str,
+                 demorunners_file: str,
+                 policy: str = "lowest_workload",
+                 ):
+        self.base_url = base_url
+        self.logger = init_logging()
+        self.policy = Policy.factory(policy)
+        self.demorunners = self.parse_demorunners(demorunners_file)
 
-    @staticmethod
-    def get_instance():
-        """
-        Singleton pattern
-        """
-        if Dispatcher.instance is None:
-            Dispatcher.instance = Dispatcher()
-        return Dispatcher.instance
-
-    def __init__(self):
-        """
-        Initialize Dispatcher class
-        """
-        self.base_directory = os.getcwd()
-        self.logs_dir = cherrypy.config.get("logs_dir")
-        self.authorized_patterns_file = cherrypy.config.get("authorized_patterns_file")
-        self.base_url = os.environ.get('IPOL_URL')
-
-        # Default policy: lowest_workload
-        self.policy = Policy.factory('lowest_workload')
-
-        self.demorunners = []
-        self.demorunners_file = cherrypy.config.get("demorunners_file")
-        self.refresh_demorunners()
-
-        # Logs
-        try:
-            if not os.path.exists(self.logs_dir):
-                os.makedirs(self.logs_dir)
-            self.logger = self.init_logging()
-        except Exception as e:
-            self.logger.exception("Failed to create log dir (using file dir) : {}".format(e))
-
-        # Security: authorized IPs
-        self.authorized_patterns = self.read_authorized_patterns()
-
-    def read_authorized_patterns(self):
-        """
-        Read from the IPs conf file
-        """
-        # Check if the config file exists
-        authorized_patterns_path = os.path.join(self.authorized_patterns_file)
-        if not os.path.isfile(authorized_patterns_path):
-            self.error_log("read_authorized_patterns",
-                           "Can't open {}".format(authorized_patterns_path))
-            return []
-
-        # Read config file
-        try:
-            cfg = configparser.ConfigParser()
-            cfg.read([authorized_patterns_path])
-            patterns = []
-            for item in cfg.items('Patterns'):
-                patterns.append(item[1])
-            return patterns
-        except configparser.Error:
-            self.logger.exception("Bad format in {}".format(authorized_patterns_path))
-            return []
-
-    @cherrypy.expose
-    def refresh_demorunners(self):
+    def parse_demorunners(self, demorunners_file):
         """
         Update dispatcher's DRs information
         """
-        data = {"status": "KO"}
-        self.demorunners = []
-        demorunners = ET.parse(self.demorunners_file).getroot()
+        root = ET.parse(demorunners_file).getroot()
 
-        try:
-            for demorunner in demorunners.findall('demorunner'):
-                capabilities = []
-                for capability in demorunner.findall('capability'):
-                    capabilities.append(capability.text)
+        demorunners = []
+        for element in root.findall('demorunner'):
+            capabilities = []
+            for capability in element.findall('capability'):
+                capabilities.append(capability.text)
 
-                self.demorunners.append(DemoRunnerInfo(
-                    demorunner.get('name'),
-                    demorunner.find('serverSSH').text,
-                    capabilities
-                ))
-        except Exception as ex:
-            print(ex)
-            self.logger.exception("refresh_demorunners")
+            demorunners.append(DemoRunnerInfo(
+                element.get('name'),
+                element.find('serverSSH').text,
+                capabilities
+            ))
 
-        data["status"] = "OK"
-        return json.dumps(data).encode()
+        return demorunners
 
-    @cherrypy.expose
     def get_demorunners_stats(self):
         """
         Get statistic information of all DRs.
@@ -185,21 +131,6 @@ class Dispatcher():
         return json.dumps({'status': 'OK', 'demorunners': demorunners}).encode()
 
     # ---------------------------------------------------------------------------
-    def init_logging(self):
-        """
-        Initialize the error logs of the module.
-        """
-        logger = logging.getLogger("dispatcher_log")
-
-        logger.setLevel(logging.DEBUG)
-        handler = logging.FileHandler(os.path.join(self.logs_dir, 'error.log'))
-        formatter = logging.Formatter(
-            '%(asctime)s; [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S')
-        handler.setFormatter(formatter)
-
-        logger.addHandler(handler)
-        return logger
 
     def error_log(self, function_name, error):
         """
@@ -209,49 +140,7 @@ class Dispatcher():
         self.logger.error(error_string)
 
     # ---------------------------------------------------------------------------
-    @staticmethod
-    @cherrypy.expose
-    def index():
-        """
-        index of the module.
-        """
-        return "Dispatcher module"
 
-    @staticmethod
-    @cherrypy.expose
-    def default(attr):
-        """
-        Default method invoked when asked for non-existing service.
-        """
-        data = {"status": "KO", "message": "Unknown service '{}'".format(attr)}
-        return json.dumps(data).encode()
-
-    @staticmethod
-    @cherrypy.expose
-    def ping():
-        """
-        Ping service: answer with a PONG.
-        """
-        data = {"status": "OK", "ping": "pong"}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @authenticate
-    def shutdown(self):
-        """
-        Shutdown the module.
-        """
-        data = {"status": "KO"}
-        try:
-            cherrypy.engine.exit()
-            data["status"] = "OK"
-        except Exception as ex:
-            self.logger.error("Failed to shutdown : {}".format(ex))
-            sys.exit(1)
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @authenticate
     def set_policy(self, policy):
         """
         Change the current execution policy. If the given name is not a known policy, it will remain unchanged.
@@ -270,22 +159,21 @@ class Dispatcher():
 
         return json.dumps(data).encode()
 
-    @cherrypy.expose
-    def get_suitable_demorunner(self, requirements=None):
+    def get_suitable_demorunner(self, requirements: str) -> Result[str, DispatcherError]:
         """
-        Return an active DR which meets the requirements
+        Return an active DR which meets the requirements, or a DispatcherError.
         """
-        data = {"status": "KO"}
-        if self.demorunners is None:
-            self.refresh_demorunners()
-
         # Get a demorunner for the requirements
         dr_workloads = self.demorunners_workload()
         chosen_dr = self.policy.execute(self.demorunners, dr_workloads, requirements)
+
         if not chosen_dr:
-            message = f'No DR available with requirement {requirements}' if requirements else 'No DR available'
-            self.error_log("get_suitable_demorunner", message)
-            return json.dumps(data).encode()
+            if requirements:
+                err = NoSuitableDemorunnerForRequirementsError(requirements)
+            else:
+                err = NoDemorunnerAvailableError()
+            self.error_log("get_suitable_demorunner", err.error())
+            return Err(err)
 
         dr_name = chosen_dr.name
 
@@ -296,12 +184,9 @@ class Dispatcher():
             self.error_log("get_suitable_demorunner",
                            "Module {} unresponsive".format(dr_name))
             print("Module {} unresponsive".format(dr_name))
-            data['unresponsive_dr'] = dr_name
-            return json.dumps(data).encode()
+            return Err(UnresponsiveDemorunnerError(dr_name))
 
-        data['dr_name'] = dr_name
-        data['status'] = "OK"
-        return json.dumps(data).encode()
+        return Ok(dr_name)
 
     def demorunners_workload(self):
         """

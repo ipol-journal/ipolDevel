@@ -8,3 +8,4 @@ pylint==2.9.6
 python-magic==0.4.24
 requests==2.26.0
 tifffile==2021.8.8
+result==0.8.0
