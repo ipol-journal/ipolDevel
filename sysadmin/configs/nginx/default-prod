@@ -1,11 +1,3 @@
-upstream ipol_webapp_server {
-  # fail_timeout=0 means we always retry an upstream even if it failed
-  # to return a good HTTP response (in case the Unicorn master nukes a
-  # single worker for timing out).
-
-  server unix:/home/ipol/ipolDevel/ipol_webapp/run/gunicorn.sock fail_timeout=0;
-}
-
 # This is used by named sections since they can't have alias, but proxy
 # It simply serves static files
 server {
@@ -52,8 +44,6 @@ server {
 
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-
-    access_log  /home/ipol/ipolDevel/ipol_webapp/logs/host.access.log  main;
 
     # robots.txt
     location /robots.txt {
@@ -198,17 +188,6 @@ server {
 
 
     # CP
-    location /cp/ {
-        resolver 127.0.0.1;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header Host $http_host;
-        if (!-f $request_filename) {
-            proxy_pass http://ipol_webapp_server;
-            break;
-        }
-        proxy_pass  http://$host:8001;
-    }
-    
     location /  {
         return  301 /demo/;
         proxy_pass  http://ipolcore.ipol.im:8080;
