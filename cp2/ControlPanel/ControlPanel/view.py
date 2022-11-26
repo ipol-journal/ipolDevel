@@ -14,12 +14,8 @@ logger = logging.getLogger(__name__)
 
 @login_required(login_url='login')
 def homepage(request):
+    qfilter = request.GET.get('qfilter', '')
     try:
-        qfilter = request.GET.get('qfilter')
-    except:
-        qfilter = ""
-    try:
-        qfilter = request.GET.get('qfilter')
         page = request.GET.get('page')
         page = int(page)
     except:
