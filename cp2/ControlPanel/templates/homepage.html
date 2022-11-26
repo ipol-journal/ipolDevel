@@ -30,10 +30,9 @@
     </div>
 </div>
 <div id="demo-list-container">
+    {% if own_demos %}
     <h2>Your demos</h2>
     <div id="demos-list">
-        {% if own_demos %}
-        {% endif %}
         {% for demo in own_demos %}
         <div class="demo-card">
             <div class="demo-title">
@@ -54,6 +53,7 @@
         </div>
         {% endfor %}
     </div>
+    {% endif %}
     <h2>All demos</h2>
     <div id="demos-list">
 
