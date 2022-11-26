@@ -1,0 +1,26 @@
+The IPOL demo system is a free software project contributed by several persons.
+
+In alphabetical order:
+    Matías Abal
+    Jérémy Anger
+    José Arrecio
+    Martín Arévalo
+    Miguel Colom
+    Carlos Escobar
+    Vincent Firmin
+    Frédéric Glorieux
+    Stéphane Gratias
+    Karl Krissian
+    Héctor Macías
+    Alexis Mongin
+    Nelson Monzón
+    Jyotsna Rajan
+You can always get an updated list with "git shortlog -sne".
+
+The IPOL demo system project is under the responsibility of Miguel Colom (the "coordinator"), who is in charge of the team of engineers that makes IPOL a reality.
+
+In order to protect the intellectual property of all authors and to properly acknowledge them, note that you are not allowed to remove any authors from this list, or to change any roles without the permission of the coordinator.
+
+Changing the A-GPL license, adding new licenses, or negotiating any dual licensing is also not allowed without the explicit agreement of the coordinator.
+
+The contributions of all authors is considered their inalienable intellectual property unless *explicitly* transferred.
