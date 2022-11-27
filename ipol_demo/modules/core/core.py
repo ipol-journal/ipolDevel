@@ -50,6 +50,7 @@ from ipolutils.evaluator.evaluator import IPOLEvaluateError, evaluate
 from ipolutils.read_text_file import read_commented_text_file
 
 from dispatcher import dispatcher
+from ipol_demo.modules.conversion import conversion
 
 def authenticate(func):
     """
@@ -182,6 +183,7 @@ class Core():
             demorunners=dispatcher.parse_demorunners(demorunners_path),
             policy=dispatcher.make_policy(policy)
         )
+        self.converter = conversion.Converter()
 
     def get_dispatcher_api(self) -> DispatcherAPI:
         return DispatcherAPI(self.dispatcher)
@@ -1153,11 +1155,8 @@ attached the failed experiment data.". \
         try:
             inputs_names = self.copy_blobs(work_dir, demo_id, origin, blobs, blobset_id, ddl_inputs)
             self.copy_inpainting_data(work_dir, blobs, ddl_inputs)
-            params_conv = {'work_dir': work_dir}
-            params_conv['inputs_description'] = json.dumps(ddl_inputs)
-            params_conv['crop_info'] = json.dumps(crop_info)
-            resp = self.post('api/conversion/convert', data=params_conv)
-            resp = resp.json()
+            resp = self.converter.convert(work_dir=work_dir, input_list=ddl_inputs, crop_info=crop_info)
+
             # something went wrong in conversion module, transmit error
             if resp['status'] != 'OK':
                 raise IPOLConversionError(resp['error'])
@@ -1550,6 +1549,15 @@ attached the failed experiment data.". \
             self.send_internal_error_email(error_message)
 
         return json.dumps(data).encode()
+
+    @cherrypy.expose
+    def convert_tiff_to_png(self, img):
+        """
+        Converts the input TIFF to PNG.
+        This is used by the web interface for visualization purposes
+        """
+        data = self.converter.convert_tiff_to_png(img)
+        return json.dumps(data, indent=4).encode()
 
     @staticmethod
     def post(api_url, **kwargs):
