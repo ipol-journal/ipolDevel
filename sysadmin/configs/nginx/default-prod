@@ -175,14 +175,6 @@ server {
         proxy_buffering off;
     }
 
-    # CONVERSION
-    location /api/conversion/ {
-        rewrite ^/api/conversion/(.*) /$1 break;
-        resolver 127.0.0.1;
-        proxy_pass  http://$host:9003;
-    }
-
-
     # CP
     location /  {
         return  301 /demo/;

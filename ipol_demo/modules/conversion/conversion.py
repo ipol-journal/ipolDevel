@@ -1,184 +1,30 @@
-#!/usr/bin/env python3
-# -*- coding:utf-8 -*-
 """
 IPOL Conversion module, services to convert blobs.
 """
 
 import base64
 import binascii
-import configparser
 import errno
 import glob
-import json
 import logging
 import math
 import mimetypes
 import os
-import re
-import sys
 
-import cherrypy
 import numpy as np
-from errors import IPOLConvertInputError, IPOLCropInputError
+from .errors import IPOLConvertInputError, IPOLCropInputError
 from ipolutils.errors import IPOLImageReadError
 from ipolutils.evaluator.evaluator import evaluate
 from ipolutils.image.Image import Image
 from ipolutils.video.Video import Video
 
 
-def authenticate(func):
-    """
-    Wrapper to authenticate before using an exposed function
-    """
-
-    def authenticate_and_call(*args, **kwargs):
-        """
-        Invokes the wrapped function if authenticated
-        """
-        if "X-Real-IP" in cherrypy.request.headers \
-                and is_authorized_ip(cherrypy.request.headers["X-Real-IP"]):
-            return func(*args, **kwargs)
-        error = {"status": "KO", "error": "Authentication Failed"}
-        return json.dumps(error).encode()
-
-    def is_authorized_ip(ip):
-        """
-        Validates the given IP
-        """
-        conversion = Conversion.get_instance()
-        patterns = []
-        # Creates the patterns  with regular expressions
-        for authorized_pattern in conversion.authorized_patterns:
-            patterns.append(re.compile(authorized_pattern.replace(
-                ".", "\\.").replace("*", "[0-9a-zA-Z]+")))
-        # Compare the IP with the patterns
-        for pattern in patterns:
-            if pattern.match(ip) is not None:
-                return True
-        return False
-
-    return authenticate_and_call
-
-
-class Conversion():
-    """
-    The Conversion module
-    """
-
-    instance = None
-
-    @staticmethod
-    def get_instance():
-        """
-        Singleton pattern
-        """
-        if Conversion.instance is None:
-            Conversion.instance = Conversion()
-        return Conversion.instance
+class Converter():
 
     def __init__(self):
-        """
-        Constructor.
-        """
-        self.base_directory = os.getcwd()
-        self.logs_dir = cherrypy.config.get("logs_dir")
-        self.host_name = cherrypy.config.get("server.socket_host")
-        self.config_common_dir = cherrypy.config.get("config_common_dir")
-        # the run directory in shared_folder, realpath ensure normalization (security tests)
-        self.run_dir = os.path.realpath(cherrypy.config.get("run_dir"))
+        self.logger = init_logging()
 
-        # Logs
-        try:
-            if not os.path.exists(self.logs_dir):
-                os.makedirs(self.logs_dir)
-            self.logger = self.init_logging()
-        except Exception as ex:
-            self.logger.exception("Failed to create log dir (using file dir). {}: {}".format(type(ex).__name__, str(ex)))
-
-        # Security: authorized IPs
-        self.authorized_patterns = self.read_authorized_patterns()
-
-    def read_authorized_patterns(self):
-        """
-        Read from the IPs conf file
-        """
-        # Check if the config file exists
-        authorized_patterns_path = os.path.join(self.config_common_dir, "authorized_patterns.conf")
-        if not os.path.isfile(authorized_patterns_path):
-            self.logger.error("read_authorized_patterns: Can't open {}".format(authorized_patterns_path))
-            return []
-
-        # Read config file
-        try:
-            cfg = configparser.ConfigParser()
-            cfg.read([authorized_patterns_path])
-            patterns = []
-            for item in cfg.items('Patterns'):
-                patterns.append(item[1])
-            return patterns
-        except configparser.Error:
-            self.logger.exception("Bad format in {}".format(authorized_patterns_path))
-            return []
-
-    def init_logging(self):
-        """
-        Initialize the error logs of the module.
-        """
-        logger = logging.getLogger("conversion_log")
-
-        logger.setLevel(logging.DEBUG)
-        handler = logging.FileHandler(os.path.join(self.logs_dir, 'error.log'))
-        formatter = logging.Formatter(
-            '%(asctime)s; [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S')
-        handler.setFormatter(formatter)
-
-        logger.addHandler(handler)
-        return logger
-
-    @staticmethod
-    @cherrypy.expose
-    def index():
-        """
-        Index page of the module.
-        """
-        return "Conversion module"
-
-    @staticmethod
-    @cherrypy.expose
-    def default(attr):
-        """
-        Default method invoked when asked for non-existing service.
-        """
-        data = {'status': 'KO', "message": "Unknown service '{}'".format(attr)}
-        return json.dumps(data).encode()
-
-    @staticmethod
-    @cherrypy.expose
-    def ping():
-        """
-        Ping service: answer with a PONG.
-        """
-        data = {'status': 'OK', "ping": "pong"}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @authenticate
-    def shutdown(self):
-        """
-        Shutdown the module.
-        """
-        data = {'status': 'KO'}
-        try:
-            cherrypy.engine.exit()
-            data['status'] = 'OK'
-        except Exception as ex:
-            self.logger.exception("Failed to shutdown. {}: {}".format(type(ex).__name__, str(ex)))
-            sys.exit(1)
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    def convert(self, work_dir, inputs_description, crop_info=None):
+    def convert(self, work_dir, input_list, crop_info=None):
         """
         Pre-process the input data in their working directory, according to the DDL specs and optional crop.
         """
@@ -188,13 +34,19 @@ class Conversion():
         # 1:  Conversion with information loss performed (ex: image resizing)
         # 2:  Conversion is not authorized by DDL
         # Info is a dictionary for each input, with return code and possible error
+
+        def make_KO_response(message, work_dir):
+            """
+            Return a JSON KO response with an error message.
+            """
+            response = {'status':'KO'}
+            # do not send full path to client
+            response['error'] = message.replace(work_dir, '<work_dir>')
+            return response
+
         info = {}
         # Global try, will stop at first exception in an input
         try:
-            input_list = json.loads(inputs_description)
-            if crop_info is not None:
-                crop_info = json.loads(crop_info)
-
             for i, input_desc in enumerate(input_list):
                 # before transformation success, default return code is failure
                 info[i] = {'code': -1}
@@ -218,50 +70,41 @@ class Conversion():
                 # check input type
                 input_type = input_desc['type']
                 if input_desc.get('type') == 'image':
-                    info[i]['code'], info[i]['modifications'] = self.convert_image(input_file, input_desc, crop_info)
+                    info[i]['code'], info[i]['modifications'] = self._convert_image(input_file, input_desc, crop_info)
                 elif input_desc.get('type') == "data":
-                    info[i]['code'] = self.add_ext_to_data(input_file, input_desc)
+                    info[i]['code'] = self._add_ext_to_data(input_file, input_desc)
                 elif input_desc.get('type') == "video":
-                    info[i]['code'] = self.convert_video(input_file, input_desc)
+                    info[i]['code'] = self._convert_video(input_file, input_desc)
                 else:
                     info[i]['error'] = "{}: unknown input type".format(input_type)
 
         except (IPOLConvertInputError, IPOLCropInputError) as ex:
             self.logger.exception(ex)
             message = "Input #{}. {}".format(i, str(ex))
-            return self.make_KO_response(message, work_dir)
+            return make_KO_response(message, work_dir)
         except (IPOLImageReadError) as ex:
             message = "Input #{}. {}".format(i, str(ex))
-            return self.make_KO_response(message, work_dir)
+            return make_KO_response(message, work_dir)
         except OSError as ex:
             # Do not log if it's an unsupported file format
             if ex.errno != errno.ENODATA or 'imread' not in ex.strerror:
                 self.logger.exception(ex)
             message = "Input #{}. {}: {}".format(i, type(ex).__name__, str(ex))
-            return self.make_KO_response(message, work_dir)
+            return make_KO_response(message, work_dir)
         except RuntimeError as ex:
             self.logger.exception(ex)
             message = "Input #{}. {}: {}".format(i, type(ex).__name__, str(ex))
-            return self.make_KO_response(message, work_dir)
+            return make_KO_response(message, work_dir)
         except Exception as ex:
             self.logger.exception(ex)
             message = "Internal error. Input #{}. {}: {}. File: {}".format(i, type(ex).__name__, str(ex), input_file)
-            return self.make_KO_response(message, work_dir)
+            return make_KO_response(message, work_dir)
+
         # globally OK (no exception), but for some input, a return code could be -1
-        return json.dumps({'status': 'OK', 'info': info}).encode()
+        return {'status': 'OK', 'info': info}
 
     @staticmethod
-    def make_KO_response(message, work_dir):
-        """
-        Return a JSON KO response with an error message.
-        """
-        response = {'status':'KO'}
-        # do not send full path to client
-        response['error'] = message.replace(work_dir, '<work_dir>')
-        return json.dumps(response, indent=4).encode()
-
-    @staticmethod
-    def convert_image(input_file, input_desc, crop_info=None):
+    def _convert_image(input_file, input_desc, crop_info=None):
         """
         Convert image if needed
         """
@@ -309,7 +152,7 @@ class Conversion():
         return 0, []
 
     @staticmethod
-    def convert_video(input_file, input_desc):
+    def _convert_video(input_file, input_desc):
         """
         Convert video
         """
@@ -329,7 +172,7 @@ class Conversion():
         return code, modifications
 
     @staticmethod
-    def add_ext_to_data(input_file, input_desc):
+    def _add_ext_to_data(input_file, input_desc):
         """
         Add the specified extension to the data file
         """
@@ -341,7 +184,6 @@ class Conversion():
         os.rename(input_file, input_with_extension)
         return 0 # return code
 
-    @cherrypy.expose
     def convert_tiff_to_png(self, img):
         """
         Converts the input TIFF to PNG.
@@ -360,7 +202,7 @@ class Conversion():
         except Exception:
             message = "TIFF to PNG for client, conversion failure."
             self.logger.exception(message)
-        return json.dumps(data, indent=4).encode()
+        return data
 
 class ConverterImage():
     """
@@ -522,3 +364,20 @@ class ConverterEncoding(ConverterImage):
     def convert(self):
         # nothing to do here, will be done when saving the image
         return "encoding: {} --> {}".format(self.src_type.split('/')[1], self.dst_type.split('/')[1])
+
+
+def init_logging():
+    """
+    Initialize the error logs of the module.
+    """
+    logger = logging.getLogger("dispatcher")
+
+    logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter(
+        '%(asctime)s; [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S')
+    handler.setFormatter(formatter)
+
+    logger.addHandler(handler)
+    return logger

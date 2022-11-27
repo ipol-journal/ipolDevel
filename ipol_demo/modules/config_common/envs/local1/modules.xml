@@ -47,15 +47,4 @@
     <command>ping</command>
   </module>
 
-  <module name="conversion">
-    <module>conversion</module>
-    <server>127.0.1.1</server>
-    <serverSSH>localhost</serverSSH>
-    <path>~/ipolDevel/ipol_demo/modules/conversion/</path>
-    <command>start</command>
-    <command>stop</command>
-    <command>restart</command>
-    <command>ping</command>
-  </module>
-
 </data>

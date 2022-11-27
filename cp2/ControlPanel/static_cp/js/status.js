@@ -131,20 +131,3 @@
         });
         return false;
     });
-
-    //-----------------------------------------Conversion----------------------------------------//
-
-    $(function() {
-        $.ajax({
-            type: 'GET',
-            dataType: 'json',
-            url: '/api/conversion/ping',
-            success: function(data) {
-                estate(data, "Conversion", "Conversion");
-            },
-            error: function(e) {
-                $('#Conversion').html('<h2>Conversion does not respond! <i class="fa-solid fa-triangle-exclamation"></i></h2>')
-            }
-        });
-        return false;
-    });

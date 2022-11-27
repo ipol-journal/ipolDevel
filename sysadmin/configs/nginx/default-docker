@@ -145,14 +145,6 @@ server {
 		proxy_buffering off;
 	}
 
-	# CONVERSION
-	location /api/conversion/ {
-		rewrite ^/api/conversion/(.*) /$1 break;
-		# If the distribution is Debian you need the resolver		
-		# resolver 127.0.0.1;
-		proxy_pass   http://$host:9003;
-	}
-
 	location /  {
 		return  301 /demo/;
 		# If the distribution is Debian you need the resolver		
