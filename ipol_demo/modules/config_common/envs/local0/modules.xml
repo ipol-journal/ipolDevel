@@ -47,17 +47,6 @@
     <command>ping</command>
   </module>
 
-  <module name="dispatcher">
-    <module>dispatcher</module>
-    <server>127.0.0.1</server>
-    <serverSSH>localhost</serverSSH>
-    <path>~/ipolDevel/ipol_demo/modules/dispatcher/</path>
-    <command>start</command>
-    <command>stop</command>
-    <command>restart</command>
-    <command>ping</command>
-  </module>
-  
   <module name="conversion">
     <module>conversion</module>
     <server>127.0.0.1</server>
