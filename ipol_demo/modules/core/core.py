@@ -162,9 +162,14 @@ class Core():
         except Exception:
             self.logger.exception("__init__")
 
+        base_url = os.environ['IPOL_URL']
+        demorunners_path = cherrypy.config["demorunners_file"]
+        policy = cherrypy.config["dispatcher_policy"]
         self.dispatcher = dispatcher.Dispatcher(
-            base_url=os.environ['IPOL_URL'],
-            demorunners_file=cherrypy.config["demorunners_file"],
+            workload_provider=dispatcher.APIWorkloadProvider(base_url),
+            ping_provider=dispatcher.APIPingProvider(base_url),
+            demorunners=dispatcher.parse_demorunners(demorunners_path),
+            policy=dispatcher.make_policy(policy)
         )
 
     def read_authorized_patterns(self):
@@ -1537,7 +1542,8 @@ attached the failed experiment data.". \
         """
         Get workload of all DRs.
         """
-        return self.dispatcher.get_demorunners_stats()
+        stats = self.dispatcher.get_demorunners_stats()
+        return json.dumps({'status': 'OK', 'demorunners': stats}).encode()
 
     @staticmethod
     def post(api_url, **kwargs):

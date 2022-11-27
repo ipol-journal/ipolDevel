@@ -167,9 +167,8 @@ def read_demorunners():
             capabilities.append(capability.text)
 
         demorunner = DemoRunnerInfo(
-            demorunner.get('name'),
-            demorunner.find('serverSSH').text,
-            capabilities
+            name=demorunner.get('name'),
+            capabilities=capabilities,
         )
 
         demorunners.append(demorunner)

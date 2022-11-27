@@ -1,35 +1,16 @@
-#!/usr/bin/env python3
-# -*- coding:utf-8 -*-
 """
 Dispatcher: choose the best demorunner according to a policy
 """
 
-import json
 import logging
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 import requests
 from result import Ok, Err, Result
 
-from .policy import Policy
+from .policy import Policy, LowestWorkloadPolicy, RandomPolicy, SequentialPolicy
 from .demorunnerinfo import DemoRunnerInfo
 
-
-def init_logging():
-    """
-    Initialize the error logs of the module.
-    """
-    logger = logging.getLogger("dispatcher_log")
-
-    logger.setLevel(logging.DEBUG)
-    handler = logging.StreamHandler()
-    formatter = logging.Formatter(
-        '%(asctime)s; [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S')
-    handler.setFormatter(formatter)
-
-    logger.addHandler(handler)
-    return logger
 
 
 class DispatcherError:
@@ -60,11 +41,191 @@ class NoSuitableDemorunnerForRequirementsError(DispatcherError):
         return f'No DR satisfies the requirements: {self.requirements}.'
 
 
-def parse_demorunners(demorunners_file) -> list[DemoRunnerInfo]:
+class WorkloadProvider:
+
+    def get_workload(self, demorunner: DemoRunnerInfo) -> Result[float, str]:
+        raise NotImplementedError
+
+
+@dataclass
+class APIWorkloadProvider(WorkloadProvider):
+    base_url: str
+    timeout: float = 3.0
+
+    def get_workload(self, demorunner: DemoRunnerInfo) -> Result[float, str]:
+        name = demorunner.name
+        url = f'{self.base_url}/api/demorunner/{name}/get_workload'
+
+        try:
+            resp = requests.get(url, timeout=self.timeout)
+            resp.raise_for_status()
+        except requests.RequestException as e:
+            return Err(repr(e))
+
+        try:
+            response = resp.json()
+        except requests.JSONDecodeError as e:
+            return Err(repr(e))
+
+        if response['status'] != 'OK':
+            return Err("KO response")
+
+        workload = response['workload']
+        return Ok(workload)
+
+
+class PingProvider:
+
+    def ping(self, demorunner: DemoRunnerInfo) -> Result[None, str]:
+        raise NotImplementedError
+
+
+@dataclass
+class APIPingProvider(PingProvider):
+    base_url: str
+    timeout: float = 3.0
+
+    def ping(self, demorunner: DemoRunnerInfo) -> Result[None, str]:
+        name = demorunner.name
+        url = f'{self.base_url}/api/demorunner/{name}/ping'
+
+        try:
+            resp = requests.get(url, timeout=self.timeout)
+            resp.raise_for_status()
+        except requests.RequestException as e:
+            return Err(repr(e))
+
+        try:
+            response = resp.json()
+        except requests.JSONDecodeError as e:
+            return Err(repr(e))
+
+        if response['status'] != 'OK':
+            return Err("KO response")
+
+        return Ok()
+
+
+def make_policy(name: str) -> Policy:
     """
-    Update dispatcher's DRs information
+    Factory Method
     """
-    root = ET.parse(demorunners_file).getroot()
+    if name == "random":
+        return RandomPolicy()
+    if name == "sequential":
+        return SequentialPolicy()
+    if name == "lowest_workload":
+        return LowestWorkloadPolicy()
+
+    assert False
+
+
+class Dispatcher:
+    """
+    The Dispatcher chooses the best DR according to a policy
+    """
+
+    def __init__(self,
+                 workload_provider: WorkloadProvider,
+                 ping_provider: PingProvider,
+                 demorunners: list[DemoRunnerInfo],
+                 policy: Policy = LowestWorkloadPolicy(),
+                 ):
+        self.workload_provider = workload_provider
+        self.ping_provider = ping_provider
+        self.demorunners = demorunners
+        self.policy = policy
+        self.logger = init_logging()
+
+    def get_demorunners_stats(self) -> list[dict]:
+        """
+        Get statistic information of all DRs.
+        This is mainly used by external monitoring tools.
+        """
+        stats = []
+        for dr in self.demorunners:
+            result = self.workload_provider.get_workload(dr)
+
+            if isinstance(result, Ok):
+                workload = round(result.value, 2)
+                stats.append({
+                    'status': 'OK',
+                    'name': dr.name,
+                    'workload': workload,
+                })
+            else:
+                stats.append({
+                    'status': 'KO',
+                    'name': dr.name,
+                    'message': result.value,
+                })
+
+        return stats
+
+    def get_suitable_demorunner(self, requirements: str) -> Result[str, DispatcherError]:
+        """
+        Return an active DR which meets the requirements, or a DispatcherError.
+        """
+        dr_workloads = self.demorunners_workload()
+        valid_drs = [dr for dr in self.demorunners if dr.name in dr_workloads]
+        chosen_dr = self.policy.execute(valid_drs, dr_workloads, requirements)
+
+        if chosen_dr is None:
+            if requirements:
+                err = NoSuitableDemorunnerForRequirementsError(requirements)
+            else:
+                err = NoDemorunnerAvailableError()
+            self.logger.warning(err.error())
+            return Err(err)
+
+        ping_result = self.ping_provider.ping(chosen_dr)
+
+        dr_name = chosen_dr.name
+        if ping_result.is_err():
+            self.logger.warning(f"Couldn't reach {dr_name}: {ping_result.value}")
+            return Err(UnresponsiveDemorunnerError(dr_name))
+
+        return Ok(dr_name)
+
+    def demorunners_workload(self) -> dict[str, float]:
+        """
+        Get the workload of each DR
+        """
+        dr_workload = {}
+        for dr_info in self.demorunners:
+            name = dr_info.name
+
+            result = self.workload_provider.get_workload(dr_info)
+
+            if isinstance(result, Ok):
+                dr_workload[name] = result.value
+            else:
+                self.logger.warning(f"Cannot get workload of {name}: {result.value}")
+
+        return dr_workload
+
+
+def init_logging():
+    """
+    Initialize the error logs of the module.
+    """
+    logger = logging.getLogger("dispatcher")
+
+    logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter(
+        '%(asctime)s; [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S')
+    handler.setFormatter(formatter)
+
+    logger.addHandler(handler)
+    return logger
+
+def parse_demorunners(demorunners_path) -> list[DemoRunnerInfo]:
+    """
+    Parse a demorunners.xml file.
+    """
+    root = ET.parse(demorunners_path).getroot()
 
     demorunners = []
     for element in root.findall('demorunner'):
@@ -73,117 +234,8 @@ def parse_demorunners(demorunners_file) -> list[DemoRunnerInfo]:
             capabilities.append(capability.text)
 
         demorunners.append(DemoRunnerInfo(
-            element.get('name'),
-            element.find('serverSSH').text,
-            capabilities
+            name=element.get('name'),
+            capabilities=capabilities,
         ))
 
     return demorunners
-
-
-class Dispatcher():
-    """
-    The Dispatcher chooses the best DR according to a policy
-    """
-
-    def __init__(self,
-                 base_url: str,
-                 demorunners_file: str,
-                 policy: str = "lowest_workload",
-                 ):
-        self.base_url = base_url
-        self.logger = init_logging()
-        self.policy = Policy.factory(policy)
-        self.demorunners = parse_demorunners(demorunners_file)
-
-    def get_demorunners_stats(self):
-        """
-        Get statistic information of all DRs.
-        This is mainly used by external monitoring tools.
-        """
-        demorunners = []
-        for dr in self.demorunners:
-            try:
-                url = f'{self.base_url}/api/demorunner/{dr.name}/get_workload'
-                response = requests.get(url, timeout=3)
-                if not response:
-                    demorunners.append({'status': 'KO', 'name': dr.name})
-                    continue
-
-                json_response = response.json()
-                if json_response.get('status') == 'OK':
-                    workload = float('%.2f' % (json_response.get('workload')))
-                    demorunners.append({'status': 'OK',
-                                        'name': dr.name,
-                                        'workload': workload})
-                else:
-                    demorunners.append({'name': dr.name, 'status': 'KO'})
-
-            except requests.ConnectionError:
-                self.logger.exception("Couldn't reach DR={}".format(dr.name))
-                demorunners.append({'status': 'KO', 'name': dr.name})
-                continue
-            except Exception as ex:
-                message = "Couldn't get the DRs workload. Error = {}".format(ex)
-                print(message)
-                self.logger.exception(message)
-                return json.dumps({'status': 'KO', 'message': message}).encode()
-
-        return json.dumps({'status': 'OK', 'demorunners': demorunners}).encode()
-
-    def get_suitable_demorunner(self, requirements: str) -> Result[str, DispatcherError]:
-        """
-        Return an active DR which meets the requirements, or a DispatcherError.
-        """
-        # Get a demorunner for the requirements
-        dr_workloads = self.demorunners_workload()
-        chosen_dr = self.policy.execute(self.demorunners, dr_workloads, requirements)
-
-        if not chosen_dr:
-            if requirements:
-                err = NoSuitableDemorunnerForRequirementsError(requirements)
-            else:
-                err = NoDemorunnerAvailableError()
-            self.logger.error(err.error())
-            return Err(err)
-
-        dr_name = chosen_dr.name
-
-        # Check if the DR is up.
-        url = f'{self.base_url}/api/demorunner/{dr_name}/ping'
-        dr_response = requests.get(url, timeout=3)
-        if not dr_response:
-            self.error_log("get_suitable_demorunner",
-                           "Module {} unresponsive".format(dr_name))
-            print("Module {} unresponsive".format(dr_name))
-            return Err(UnresponsiveDemorunnerError(dr_name))
-
-        return Ok(dr_name)
-
-    def demorunners_workload(self):
-        """
-        Get the workload of each DR
-        """
-        dr_workload = {}
-        for dr_info in self.demorunners:
-            name = dr_info.name
-            try:
-                url = f'{self.base_url}/api/demorunner/{name}/get_workload'
-                resp = requests.get(url, timeout=3)
-                if not resp:
-                    self.logger.error(f"No response from DR={name}")
-                    continue
-
-                response = resp.json()
-                if response.get('status', '') == 'OK':
-                    dr_workload[dr_info.name] = response.get('workload')
-                else:
-                    self.logger.error(f"get_workload KO response for DR={name}")
-            except requests.ConnectionError:
-                self.logger.error(f"get_workload ConnectionError for DR={name}")
-                continue
-            except Exception:
-                self.logger.exception(f"Error when obtaining the workload of {name}")
-                continue
-
-        return dr_workload
