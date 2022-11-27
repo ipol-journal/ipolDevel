@@ -1155,27 +1155,12 @@ attached the failed experiment data.". \
         try:
             inputs_names = self.copy_blobs(work_dir, demo_id, origin, blobs, blobset_id, ddl_inputs)
             self.copy_inpainting_data(work_dir, blobs, ddl_inputs)
-            resp = self.converter.convert(work_dir=work_dir, input_list=ddl_inputs, crop_info=crop_info)
+            result = self.converter.convert(work_dir=work_dir, input_list=ddl_inputs, crop_info=crop_info)
 
-            # something went wrong in conversion module, transmit error
-            if resp['status'] != 'OK':
-                raise IPOLConversionError(resp['error'])
+            if isinstance(result, Err):
+                raise IPOLConversionError(result.value)
 
-            conversion_info = resp['info']
-            messages = []
-            for input_key in conversion_info:
-                if conversion_info[input_key]['code'] == -1:# Conversion error
-                    error = conversion_info[input_key]['error']
-                    error_message = "Input #{}. {}".format(input_key, error)
-                    raise IPOLConversionError(error_message)
-                if conversion_info[input_key]['code'] == 2:# Conversion forbidden
-                    error_message = "Input #{} needs to be pre-processed, but this is forbidden in this demo.".format(input_key)
-                    raise IPOLConversionError(error_message)
-                if conversion_info[input_key]['code'] == 1:# Conversion done
-                    modifications_str = ', '.join(conversion_info[input_key]['modifications'])
-                    message = "Input #{} has been preprocessed {{{}}}.".format(input_key, modifications_str)
-                    messages.append(message)
-            return work_dir, key, messages, inputs_names
+            conversion_info = result.unwrap()
         except IPOLConversionError as ex:
             raise IPOLPrepareFolderError(str(ex))
         except IPOLInputUploadTooLargeError as ex:
@@ -1204,6 +1189,25 @@ attached the failed experiment data.". \
             log_message = (error_message+". {}: {}").format(type(ex).__name__, str(ex))
             self.logger.exception(log_message)
             raise IPOLPrepareFolderError(error_message, log_message)
+
+        messages = []
+
+        for input_key, conv_info in conversion_info.items():
+            if conv_info.code == conversion.ConversionStatus.Error:
+                error = conv_info.error
+                error_message = f"Input #{input_key}: {error}"
+                raise IPOLPrepareFolderError(error_message)
+
+            if conv_info.code == conversion.ConversionStatus.NeededButForbidden:
+                error_message = f"Input #{input_key} needs to be pre-processed, but this is forbidden in this demo."
+                raise IPOLPrepareFolderError(error_message)
+
+            if conv_info.code == conversion.ConversionStatus.Done:
+                modifications_str = ', '.join(conv_info.modifications)
+                message = "Input #{} has been preprocessed {{{}}}.".format(input_key, modifications_str)
+                messages.append(message)
+
+        return work_dir, key, messages, inputs_names
 
     def execute_experiment(self, dr_name, demo_id, key, params, inputs_names, ddl_run, ddl_general, work_dir):
         """
