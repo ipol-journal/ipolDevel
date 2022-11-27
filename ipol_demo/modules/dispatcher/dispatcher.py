@@ -60,6 +60,27 @@ class NoSuitableDemorunnerForRequirementsError(DispatcherError):
         return f'No DR satisfies the requirements: {self.requirements}.'
 
 
+def parse_demorunners(demorunners_file) -> list[DemoRunnerInfo]:
+    """
+    Update dispatcher's DRs information
+    """
+    root = ET.parse(demorunners_file).getroot()
+
+    demorunners = []
+    for element in root.findall('demorunner'):
+        capabilities = []
+        for capability in element.findall('capability'):
+            capabilities.append(capability.text)
+
+        demorunners.append(DemoRunnerInfo(
+            element.get('name'),
+            element.find('serverSSH').text,
+            capabilities
+        ))
+
+    return demorunners
+
+
 class Dispatcher():
     """
     The Dispatcher chooses the best DR according to a policy
@@ -73,27 +94,7 @@ class Dispatcher():
         self.base_url = base_url
         self.logger = init_logging()
         self.policy = Policy.factory(policy)
-        self.demorunners = self.parse_demorunners(demorunners_file)
-
-    def parse_demorunners(self, demorunners_file):
-        """
-        Update dispatcher's DRs information
-        """
-        root = ET.parse(demorunners_file).getroot()
-
-        demorunners = []
-        for element in root.findall('demorunner'):
-            capabilities = []
-            for capability in element.findall('capability'):
-                capabilities.append(capability.text)
-
-            demorunners.append(DemoRunnerInfo(
-                element.get('name'),
-                element.find('serverSSH').text,
-                capabilities
-            ))
-
-        return demorunners
+        self.demorunners = parse_demorunners(demorunners_file)
 
     def get_demorunners_stats(self):
         """
@@ -130,35 +131,6 @@ class Dispatcher():
 
         return json.dumps({'status': 'OK', 'demorunners': demorunners}).encode()
 
-    # ---------------------------------------------------------------------------
-
-    def error_log(self, function_name, error):
-        """
-        Write an error log in the logs_dir defined in archive.conf
-        """
-        error_string = function_name + ": " + error
-        self.logger.error(error_string)
-
-    # ---------------------------------------------------------------------------
-
-    def set_policy(self, policy):
-        """
-        Change the current execution policy. If the given name is not a known policy, it will remain unchanged.
-        """
-        data = {"status": "OK"}
-
-        orig_policy = self.policy
-
-        self.policy = Policy.factory(policy)
-
-        if self.policy is None:
-            data["status"] = "KO"
-            data["message"] = "Policy {} is not a known policy".format(policy)
-            self.error_log("set_policy", "Policy {} is not a known policy".format(policy))
-            self.policy = orig_policy
-
-        return json.dumps(data).encode()
-
     def get_suitable_demorunner(self, requirements: str) -> Result[str, DispatcherError]:
         """
         Return an active DR which meets the requirements, or a DispatcherError.
@@ -172,7 +144,7 @@ class Dispatcher():
                 err = NoSuitableDemorunnerForRequirementsError(requirements)
             else:
                 err = NoDemorunnerAvailableError()
-            self.error_log("get_suitable_demorunner", err.error())
+            self.logger.error(err.error())
             return Err(err)
 
         dr_name = chosen_dr.name
@@ -194,30 +166,24 @@ class Dispatcher():
         """
         dr_workload = {}
         for dr_info in self.demorunners:
+            name = dr_info.name
             try:
-                url = f'{self.base_url}/api/demorunner/{dr_info.name}/get_workload'
+                url = f'{self.base_url}/api/demorunner/{name}/get_workload'
                 resp = requests.get(url, timeout=3)
                 if not resp:
-                    error_message = "No response from DR='{}'".format(dr_info.name)
-                    self.error_log("demorunners_workload", error_message)
+                    self.logger.error(f"No response from DR={name}")
                     continue
 
                 response = resp.json()
                 if response.get('status', '') == 'OK':
                     dr_workload[dr_info.name] = response.get('workload')
                 else:
-                    error_message = "get_workload KO response for DR='{}'".format(
-                        dr_info.name)
-                    self.error_log("demorunners_workload", error_message)
+                    self.logger.error(f"get_workload KO response for DR={name}")
             except requests.ConnectionError:
-                error_message = "get_workload ConnectionError for DR='{}'".format(
-                    dr_info.name)
-                self.error_log("demorunners_workload", error_message)
+                self.logger.error(f"get_workload ConnectionError for DR={name}")
                 continue
             except Exception:
-                error_message = "Error when obtaining the workload of '{}'".format(
-                    dr_info)
-                self.logger.exception(error_message)
+                self.logger.exception(f"Error when obtaining the workload of {name}")
                 continue
 
         return dr_workload
