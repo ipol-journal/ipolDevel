@@ -43,16 +43,6 @@
     <command>ping</command>
   </module>
 
-  <module name="dispatcher">
-    <module>dispatcher</module>
-    <serverSSH>ipol_integration</serverSSH>
-    <serviceName>ipol-dispatcher --user</serviceName>
-    <command>start</command>
-    <command>stop</command>
-    <command>restart</command>
-    <command>ping</command>
-  </module>
-
   <module name="conversion">
     <module>conversion</module>
     <serverSSH>ipol_integration</serverSSH>
