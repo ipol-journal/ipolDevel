@@ -1,107 +1,180 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Dispatcher test
-"""
-# Unit tests for the Blobs module
+from dataclasses import dataclass
 import os
-import socket
+
 import sys
-import unittest
-import xml.etree.ElementTree as ET
-
-import requests
+from typing import Optional
+from result import Ok, Err, Result
 
 
-def load_demorunners(demorunners_file):
+ROOT = os.path.dirname(os.path.abspath(__file__)) + "/../../.."
+sys.path.append(os.path.abspath(ROOT))
+
+from ipol_demo.modules.dispatcher.dispatcher import Dispatcher, PingProvider, UnresponsiveDemorunnerError, NoDemorunnerAvailableError, NoSuitableDemorunnerForRequirementsError, WorkloadProvider
+from ipol_demo.modules.dispatcher.demorunnerinfo import DemoRunnerInfo
+from ipol_demo.modules.dispatcher.policy import RandomPolicy
+
+
+@dataclass
+class TestWorkloadProvider(WorkloadProvider):
+    __test__ = False
+
+    workloads: Optional[dict[str, Result[float,str]]] = None
+
+    def get_workload(self, demorunner: DemoRunnerInfo) -> Result[float, str]:
+        if self.workloads:
+            return self.workloads[demorunner.name]
+        return Ok(1)
+
+
+@dataclass
+class TestPingProvider(PingProvider):
+    __test__ = False
+
+    response: Result[None,str] = Ok()
+
+    def ping(self, demorunner: DemoRunnerInfo) -> Result[None, str]:
+        return self.response
+
+
+def test_find_suitable_demorunner_empty_requirements():
     """
-    Read demorunners xml
+    Dispatcher should find a demorunner when requirements are empty and there is one demorunner without capabilities.
     """
-    dict_demorunners = {}
-    tree = ET.parse(demorunners_file)
-    root = tree.getroot()
+    workload_provider = TestWorkloadProvider()
+    ping_provider = TestPingProvider()
+    demorunners = [
+        DemoRunnerInfo(name="dr1", capabilities=[]),
+        DemoRunnerInfo(name="dr2", capabilities=["c1!"]),
+    ]
+    dispatcher = Dispatcher(workload_provider, ping_provider, demorunners)
 
-    for demorunner in root.findall('demorunner'):
-        dict_tmp = {}
-        capabilities = []
+    r = dispatcher.get_suitable_demorunner(requirements='')
+    dr = r.unwrap()
+    assert dr == "dr1"
 
-        for capability in demorunner.findall('capability'):
-            capabilities.append(capability.text)
 
-        dict_tmp["serverSSH"] = demorunner.find('serverSSH').text
-        dict_tmp["capabilities"] = ','.join(capabilities)
-
-        dict_demorunners[demorunner.get('name')] = dict_tmp
-
-    return dict_demorunners
-
-class DispatcherTests(unittest.TestCase):
+def test_find_suitable_demorunner_matches_capabilities():
     """
-    Dispatcher tests
+    Dispatcher should matches capabilities and requirements.
+    Demorunners failing to return their workload should be ignored.
     """
-    BASE_URL = os.environ.get('IPOL_URL', 'http://' + socket.getfqdn())
-    module = 'dispatcher'
+    workload_provider = TestWorkloadProvider(workloads={
+        "dr1": Ok(1),
+        "dr2": Ok(1),
+        "dr3": Ok(1),
+        "dr4": Ok(1),
+        "broken": Err("a"),
+    })
+    ping_provider = TestPingProvider()
+    demorunners = [
+        DemoRunnerInfo(name="dr1", capabilities=[]),
+        DemoRunnerInfo(name="dr2", capabilities=["c1!"]),
+        DemoRunnerInfo(name="dr3", capabilities=["c1!", "c2!"]),
+        DemoRunnerInfo(name="dr4", capabilities=["c1", "c2"]),
+        DemoRunnerInfo(name="broken", capabilities=["c1", "c2"]),
+    ]
+    dispatcher = Dispatcher(workload_provider, ping_provider, demorunners, policy=RandomPolicy())
 
-    demorunners = []
+    matches = set()
+    for _ in range(1000):
+        matches.add(dispatcher.get_suitable_demorunner(requirements='').unwrap())
+    assert matches == {'dr1', 'dr4'}
 
-    #####################
-    #       Tests       #
-    #####################
-    def test_find_suitable_demorunner(self):
-        """
-        Test get suitable demorunner
-        """
-        if True:
-            # test broken since the endpoint get_suitable_demorunner was removed
-            return
-        try:
-            suitable_dr = '{}/api/dispatcher/get_suitable_demorunner'.format(self.BASE_URL)
-            response = requests.get(suitable_dr).json()
-            status = response.get('status')
-        finally:
-            self.assertEqual(status, 'OK')
+    matches = set()
+    for _ in range(1000):
+        matches.add(dispatcher.get_suitable_demorunner(requirements='c1').unwrap())
+    assert matches == {'dr2', 'dr4'}
 
-    def test_find_demorunner_with_requirement(self):
-        """
-        Test get suitable demorunner with requirements according to
-        local demorunners.xml
-        """
-        if True:
-            # test broken since the endpoint get_suitable_demorunner was removed
-            return
-        status = 'OK'
-        try:
-            suitable_dr = '{}/api/dispatcher/get_suitable_demorunner'.format(self.BASE_URL)
-            for demorunner in self.demorunners:
-                capabilities = self.demorunners[demorunner]['capabilities'].split(',')
-                capabilities_as_requirements = [cap.rstrip('!') for cap in capabilities]
-                payload = {'requirements': ','.join(capabilities_as_requirements)}
-                response = requests.get(suitable_dr, params=payload).json()
-                if response.get('status') != 'OK':
-                    status = response.get('status')
-        finally:
-            self.assertEqual(status, 'OK')
+    matches = set()
+    for _ in range(1000):
+        matches.add(dispatcher.get_suitable_demorunner(requirements='c2').unwrap())
+    assert matches == {'dr4'}
 
-    def test_get_demorunner_stats(self):
-        """
-        Test get demorunner stats
-        """
-        if True:
-            # test broken since the endpoint get_demorunners_stats was removed
-            return
-        status = 'KO'
-        try:
-            dr_stats = '{}/api/dispatcher/get_demorunners_stats'.format(self.BASE_URL)
-            response = requests.get(dr_stats).json()
-            for dr in response.get('demorunners'):
-                if dr['status'] == 'OK' and 'workload' in dr:
-                    status = 'OK'
-        finally:
-            self.assertEqual(status, 'OK')
+    matches = set()
+    for _ in range(1000):
+        matches.add(dispatcher.get_suitable_demorunner(requirements='c1,c2').unwrap())
+    assert matches == {'dr3', 'dr4'}
 
-if __name__ == '__main__':
-    shared_folder = sys.argv.pop()
-    demorunners = sys.argv.pop()
-    resources_path = sys.argv.pop()
-    DispatcherTests.demorunners = load_demorunners(demorunners)
-    unittest.main()
+
+def test_find_suitable_demorunner_empty_requirements_nodr():
+    """
+    Dispatcher should return a NoDemorunnerAvailableError error if there are no 'default' demorunner.
+    """
+    workload_provider = TestWorkloadProvider()
+    ping_provider = TestPingProvider()
+    demorunners = [
+        DemoRunnerInfo(name="dr2", capabilities=["c1!"]),
+    ]
+    dispatcher = Dispatcher(workload_provider, ping_provider, demorunners)
+
+    r = dispatcher.get_suitable_demorunner(requirements='')
+    err = r.unwrap_err()
+    assert isinstance(err, NoDemorunnerAvailableError)
+
+
+def test_find_suitable_demorunner_invalid_requirements():
+    """
+    Dispatcher should return a NoSuitableDemorunnerForRequirementsError if there are not demorunner that can satisfy some requirements.
+    """
+    workload_provider = TestWorkloadProvider()
+    ping_provider = TestPingProvider()
+    demorunners = [
+        DemoRunnerInfo(name="dr1", capabilities=[]),
+    ]
+    dispatcher = Dispatcher(workload_provider, ping_provider, demorunners)
+
+    r = dispatcher.get_suitable_demorunner(requirements='c2')
+    err = r.unwrap_err()
+    assert isinstance(err, NoSuitableDemorunnerForRequirementsError)
+
+
+def test_find_suitable_demorunner_unresponsive():
+    """
+    Dispatcher should return a UnresponsiveDemorunnerError if the DR is unreachable by a ping.
+    """
+    workload_provider = TestWorkloadProvider()
+    ping_provider = TestPingProvider(response=Err("a"))
+    demorunners = [
+        DemoRunnerInfo(name="dr1", capabilities=[]),
+    ]
+    dispatcher = Dispatcher(workload_provider, ping_provider, demorunners)
+
+    r = dispatcher.get_suitable_demorunner(requirements='')
+    err = r.unwrap_err()
+    assert isinstance(err, UnresponsiveDemorunnerError)
+
+
+def test_get_demorunners_stats():
+    """
+    Dispatcher should return the stats of each demorunners.
+    """
+    workload_provider = TestWorkloadProvider(workloads={"dr1": Ok(2), "dr2": Ok(4), "dr3": Err("a")})
+    ping_provider = TestPingProvider(response=Err("a"))
+    demorunners = [
+        DemoRunnerInfo(name="dr1", capabilities=[]),
+        DemoRunnerInfo(name="dr2", capabilities=[]),
+        DemoRunnerInfo(name="dr3", capabilities=[]),
+    ]
+    dispatcher = Dispatcher(workload_provider, ping_provider, demorunners)
+
+    stats = dispatcher.get_demorunners_stats()
+    assert len(stats) == 3
+    assert {'name': 'dr1', 'status': 'OK', 'workload': 2} in stats
+    assert {'name': 'dr2', 'status': 'OK', 'workload': 4} in stats
+    assert {'name': 'dr3', 'status': 'KO', 'message': 'a'} in stats
+
+def test_demorunners_workload():
+    """
+    Dispatcher should return the workload of each demorunners, except failing ones.
+    """
+    workload_provider = TestWorkloadProvider(workloads={"dr1": Ok(2), "dr2": Ok(4), "dr3": Err("a")})
+    ping_provider = TestPingProvider(response=Err("a"))
+    demorunners = [
+        DemoRunnerInfo(name="dr1", capabilities=[]),
+        DemoRunnerInfo(name="dr2", capabilities=[]),
+        DemoRunnerInfo(name="dr3", capabilities=[]),
+    ]
+    dispatcher = Dispatcher(workload_provider, ping_provider, demorunners)
+
+    workloads = dispatcher.demorunners_workload()
+    assert workloads == {'dr1': 2, 'dr2': 4}
