@@ -4,12 +4,16 @@ IPOL Conversion module, services to convert blobs.
 
 import base64
 import binascii
+from dataclasses import dataclass
+from enum import Enum
 import errno
 import glob
 import logging
 import math
 import mimetypes
 import os
+from typing import Optional
+from result import Ok, Err, Result
 
 import numpy as np
 from .errors import IPOLConvertInputError, IPOLCropInputError
@@ -19,92 +23,116 @@ from ipolutils.image.Image import Image
 from ipolutils.video.Video import Video
 
 
+class ConversionStatus(Enum):
+    Error = -1
+    NotNeededOrWithoutLoss = 0
+    Done = 1
+    NeededButForbidden = 2
+
+@dataclass
+class ConversionInfo:
+    code: ConversionStatus
+    modifications: list[str]
+    error: Optional[str]
+
+
 class Converter():
 
     def __init__(self):
         self.logger = init_logging()
 
-    def convert(self, work_dir, input_list, crop_info=None):
+    def convert(self, work_dir: str, input_list, crop_info) -> Result[dict[int,ConversionInfo], str]:
         """
         Pre-process the input data in their working directory, according to the DDL specs and optional crop.
         """
-        # For each file processed, return a code
-        # -1: exception, response KO
-        # 0:  No conversion needed or converted without information loss
-        # 1:  Conversion with information loss performed (ex: image resizing)
-        # 2:  Conversion is not authorized by DDL
-        # Info is a dictionary for each input, with return code and possible error
-
-        def make_KO_response(message, work_dir):
-            """
-            Return a JSON KO response with an error message.
-            """
-            response = {'status':'KO'}
-            # do not send full path to client
-            response['error'] = message.replace(work_dir, '<work_dir>')
-            return response
+        def hide_workdir(message):
+            return message.replace(work_dir, '<work_dir>')
 
         info = {}
-        # Global try, will stop at first exception in an input
-        try:
-            for i, input_desc in enumerate(input_list):
-                # before transformation success, default return code is failure
-                info[i] = {'code': -1}
-                # Search for a file for this input
-                pattern = os.path.join(work_dir, 'input_{}'.format(i)) + '.*'
-                input_files = glob.glob(pattern)
-                # no file found, is this input optional?
-                if not input_files:
-                    # optional is said by {"required": False}, absence of required field means: required
-                    if not input_desc.get('required', True):
-                        del info[i] # input[i] not present but not required, do nothing
-                        continue
-                    # An input is required and is absent, warn but no exception
-                    info[i]['error'] = "Input required, but file not found in: {}".format(pattern)
+
+        for i, input_desc in enumerate(input_list):
+            assert 'type' in input_desc
+
+            # before transformation success, default return code is failure
+            code = ConversionStatus.Error
+            error = None
+            modifications = []
+
+            # Search for a file for this input
+            pattern = os.path.join(work_dir, 'input_{}'.format(i)) + '.*'
+            input_files = glob.glob(pattern)
+
+            # no file found, is this input optional?
+            if not input_files:
+                if not input_desc.get('required', True):
+                    # input[i] not present but not required, do nothing
                     continue
+
+                # An input is required and is absent, warn but no exception
+                error = f"Input required, but file not found in: {pattern}"
+
+            else:
                 input_file = input_files[0]
+
                 # Is file too large for expected input in DDL?
                 if input_desc.get('max_weight') and os.path.getsize(input_file) > evaluate(input_desc.get('max_weight')):
-                    info[i]['error'] = "File too large: {}".format(input_file)
-                    continue
-                # check input type
-                input_type = input_desc['type']
-                if input_desc.get('type') == 'image':
-                    info[i]['code'], info[i]['modifications'] = self._convert_image(input_file, input_desc, crop_info)
-                elif input_desc.get('type') == "data":
-                    info[i]['code'] = self._add_ext_to_data(input_file, input_desc)
-                elif input_desc.get('type') == "video":
-                    info[i]['code'] = self._convert_video(input_file, input_desc)
+                    error = f"File too large: {input_file}"
+
+                # convert the file
                 else:
-                    info[i]['error'] = "{}: unknown input type".format(input_type)
+                    result = self._convert_file(input_desc, input_file, crop_info)
+
+                    if isinstance(result, Ok):
+                        code, modifications = result.value
+                    else:
+                        # exit early, critical issue with the conversion
+                        message = hide_workdir(result.unwrap_err())
+                        return Err(f"Input {i}: {message}")
+
+            info[i] = ConversionInfo(
+                code=code,
+                modifications=modifications,
+                error=error,
+            )
+
+        # globally OK (no exception), but for some input, a return code could be -1
+        return Ok(info)
+
+    def _convert_file(self, input_desc, input_file, crop_info) -> Result[tuple[ConversionStatus,list[str]], str]:
+        input_type = input_desc['type']
+        try:
+            if input_type == 'image':
+                code, modifications = self._convert_image(input_file, input_desc, crop_info)
+            elif input_type == "data":
+                code = self._add_ext_to_data(input_file, input_desc)
+                modifications = []
+            elif input_type == "video":
+                code, modifications = self._convert_video(input_file, input_desc)
+            else:
+                return Err(f"{input_type}: unknown input type")
 
         except (IPOLConvertInputError, IPOLCropInputError) as ex:
             self.logger.exception(ex)
-            message = "Input #{}. {}".format(i, str(ex))
-            return make_KO_response(message, work_dir)
+            return Err(repr(ex))
         except (IPOLImageReadError) as ex:
-            message = "Input #{}. {}".format(i, str(ex))
-            return make_KO_response(message, work_dir)
+            return Err(repr(ex))
         except OSError as ex:
             # Do not log if it's an unsupported file format
             if ex.errno != errno.ENODATA or 'imread' not in ex.strerror:
                 self.logger.exception(ex)
-            message = "Input #{}. {}: {}".format(i, type(ex).__name__, str(ex))
-            return make_KO_response(message, work_dir)
+            return Err(repr(ex))
         except RuntimeError as ex:
             self.logger.exception(ex)
-            message = "Input #{}. {}: {}".format(i, type(ex).__name__, str(ex))
-            return make_KO_response(message, work_dir)
+            return Err(repr(ex))
         except Exception as ex:
             self.logger.exception(ex)
-            message = "Internal error. Input #{}. {}: {}. File: {}".format(i, type(ex).__name__, str(ex), input_file)
-            return make_KO_response(message, work_dir)
+            return Err(repr(ex))
 
-        # globally OK (no exception), but for some input, a return code could be -1
-        return {'status': 'OK', 'info': info}
+        else:
+            return Ok((code, modifications))
 
     @staticmethod
-    def _convert_image(input_file, input_desc, crop_info=None):
+    def _convert_image(input_file, input_desc, crop_info=None) -> tuple[ConversionStatus, list[str]]:
         """
         Convert image if needed
         """
@@ -132,7 +160,7 @@ class Converter():
             if not task.need_conversion():
                 continue
             if not task.can_convert():
-                return 2, [] # Conversion needed but forbidden
+                return ConversionStatus.NeededButForbidden, []
 
             info_loss = task.information_loss()
             message = task.convert()
@@ -148,11 +176,11 @@ class Converter():
         elif input_file != dst_file:
             os.rename(input_file, dst_file)
         if lossy_modification:
-            return 1, messages
-        return 0, []
+            return ConversionStatus.Done, messages
+        return ConversionStatus.NotNeededOrWithoutLoss, []
 
     @staticmethod
-    def _convert_video(input_file, input_desc):
+    def _convert_video(input_file, input_desc) -> tuple[ConversionStatus, list[str]]:
         """
         Convert video
         """
@@ -162,17 +190,29 @@ class Converter():
         max_frames = int(evaluate(input_desc.get('max_frames')))
         max_pixels = int(evaluate(input_desc.get('max_pixels')))
         if as_frames:
-            code = video.extract_frames(max_frames=max_frames, max_pixels=max_pixels)
+            result = video.extract_frames(max_frames=max_frames, max_pixels=max_pixels)
+            if result == 1:
+                code = ConversionStatus.Done
+            elif result == 0:
+                code = ConversionStatus.NotNeededOrWithoutLoss
+            else:
+                assert False
             modifications.append('extracted to frames')
         else:
-            code = video.create_avi(max_frames=max_frames, max_pixels=max_pixels)
+            result = video.create_avi(max_frames=max_frames, max_pixels=max_pixels)
+            if result == 1:
+                code = ConversionStatus.Done
+            elif result == 0:
+                code = ConversionStatus.NotNeededOrWithoutLoss
+            else:
+                assert False
             modifications.append('AVI created')
             modifications.append('huffman encoded')
 
         return code, modifications
 
     @staticmethod
-    def _add_ext_to_data(input_file, input_desc):
+    def _add_ext_to_data(input_file, input_desc) -> ConversionStatus:
         """
         Add the specified extension to the data file
         """
@@ -182,7 +222,7 @@ class Converter():
         filename_no_ext, _ = os.path.splitext(input_file)
         input_with_extension = filename_no_ext + ext
         os.rename(input_file, input_with_extension)
-        return 0 # return code
+        return ConversionStatus.NotNeededOrWithoutLoss
 
     def convert_tiff_to_png(self, img):
         """
@@ -253,6 +293,7 @@ class ConverterDepth(ConverterImage):
     def information_loss(self):
         if not self.dst_dtype:
             return False
+
         info_level = {
             np.dtype(np.uint8): 1,
             np.dtype(np.uint16): 2,
@@ -260,7 +301,14 @@ class ConverterDepth(ConverterImage):
             np.dtype(np.float16): 4,
             np.dtype(np.float32): 5
         }
-        return info_level.get(self.im.data.dtype) > info_level.get(self.dst_dtype)
+
+        in_level = info_level.get(self.im.data.dtype)
+        out_level = info_level[self.dst_dtype]
+
+        if not in_level:
+            return True
+
+        return in_level > out_level
 
     def need_conversion(self):
         if not self.dst_dtype:
