@@ -11,11 +11,12 @@ In alphabetical order:
     Frédéric Glorieux
     Stéphane Gratias
     Karl Krissian
+    Nicolas Limare
     Héctor Macías
     Alexis Mongin
     Nelson Monzón
     Jyotsna Rajan
-You can always get an updated list with "git shortlog -sne".
+You can always get a more updated list with "git shortlog -sne".
 
 The IPOL demo system project is under the responsibility of Miguel Colom (the "coordinator"), who is in charge of the team of engineers that makes IPOL a reality.
 
