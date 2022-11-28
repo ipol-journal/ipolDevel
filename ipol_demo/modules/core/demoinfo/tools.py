@@ -1,11 +1,4 @@
-
-"""
-Little tools.
-"""
-
 import json
-
-__author__ = 'josearrecio'
 
 def is_json(myjson):
     """

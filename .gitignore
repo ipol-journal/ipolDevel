@@ -20,9 +20,6 @@ ipol_demo/modules/archive/blobs_thumbs/*
 # Shared folder
 shared_folder/
 
-# Demoextras in demoinfo
-ipol_demo/modules/demoinfo/demoExtras/*
-
 # DDLs from the ddl tool
 tools/DDL/DDLs
 
