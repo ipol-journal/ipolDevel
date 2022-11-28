@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding:utf-8 -*-
-
 """
 IPOL Core module
 """
@@ -16,7 +13,6 @@ import mimetypes
 import os
 import re
 import shutil
-# To send emails
 import smtplib
 import socket
 import tarfile
@@ -51,6 +47,7 @@ from ipolutils.read_text_file import read_commented_text_file
 
 from dispatcher import dispatcher
 from conversion import conversion
+from demoinfo import demoinfo
 
 def authenticate(func):
     """
@@ -111,6 +108,141 @@ class ConversionAPI:
         """
         data = self.converter.convert_tiff_to_png(img)
         return json.dumps(data, indent=4).encode()
+
+
+@dataclass
+class DemoInfoAPI:
+    demoinfo: demoinfo.DemoInfo
+
+    @cherrypy.expose
+    @authenticate
+    def delete_demoextras(self, demo_id):
+        return self.demoinfo.delete_demoextras(demo_id)
+
+    @cherrypy.expose
+    @authenticate
+    def add_demoextras(self, demo_id, demoextras, demoextras_name):
+        return self.demoinfo.add_demoextras(demo_id, demoextras, demoextras_name)
+
+    @cherrypy.expose
+    def get_demo_extras_info(self, demo_id):
+        return self.demoinfo.get_demo_extras_info(demo_id)
+
+    @cherrypy.expose
+    def demo_list(self):
+        return self.demoinfo.demo_list()
+
+    @cherrypy.expose
+    def demo_list_by_editorid(self, editorid):
+        return self.demoinfo.demo_list_by_editorid(editorid)
+
+    @cherrypy.expose
+    def demo_list_pagination_and_filter(self, num_elements_page, page, qfilter=None):
+        return self.demoinfo.demo_list_pagination_and_filter(num_elements_page, page, qfilter)
+
+    @cherrypy.expose
+    @authenticate
+    def demo_get_editors_list(self, demo_id):
+        return self.demoinfo.demo_get_editors_list(demo_id)
+
+    @cherrypy.expose
+    @authenticate
+    def demo_get_available_editors_list(self, demo_id):
+        return self.demoinfo.demo_get_available_editors_list(demo_id)
+
+    @cherrypy.expose
+    def read_demo_metainfo(self, demoid):
+        return self.demoinfo.read_demo_metainfo(demoid)
+
+    @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])  # allow only post
+    @authenticate
+    def add_demo(self, demo_id, title, state, ddl_id=None, ddl=None):
+        return self.demoinfo.add_demo(demo_id, title, state, ddl_id, ddl)
+
+    @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])  # allow only post
+    @authenticate
+    def delete_demo(self, demo_id):
+        return self.demoinfo.delete_demo(demo_id)
+
+    @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])  # allow only post
+    @authenticate
+    def update_demo(self, demo, old_editor_demoid):
+        return self.demoinfo.update_demo(demo, old_editor_demoid)
+
+    @cherrypy.expose
+    @authenticate
+    def editor_list(self):
+        return self.demoinfo.editor_list()
+
+    @cherrypy.expose
+    @authenticate
+    def get_editor(self, email):
+        return self.demoinfo.get_editor(email)
+
+    @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
+    @authenticate
+    def update_editor_email(self, new_email, old_email, name):
+        return self.demoinfo.update_editor_email(new_email, old_email, name)
+
+    @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])  # allow only post
+    @authenticate
+    def add_editor(self, name, mail):
+        return self.demoinfo.add_editor(name, mail)
+
+    @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])  # allow only post
+    @authenticate
+    def add_editor_to_demo(self, demo_id, editor_id):
+        return self.demoinfo.add_editor_to_demo(demo_id, editor_id)
+
+    @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])  # allow only post
+    @authenticate
+    def remove_editor_from_demo(self, demo_id, editor_id):
+        return self.demoinfo.remove_editor_from_demo(demo_id, editor_id)
+
+    @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])  # allow only post
+    @authenticate
+    def remove_editor(self, editor_id):
+        return self.demoinfo.remove_editor(editor_id)
+
+    @cherrypy.expose
+    @authenticate
+    def get_ddl_history(self, demo_id):
+        return self.demoinfo.get_ddl_history(demo_id)
+
+    @cherrypy.expose
+    @authenticate
+    def get_ddl(self, demo_id, sections=None):
+        return self.demoinfo.get_ddl(demo_id, sections)
+
+    @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])  # allow only post
+    @authenticate
+    def save_ddl(self, demoid):
+        cl = cherrypy.request.headers['Content-Length']
+        ddl = cherrypy.request.body.read(int(cl)).decode()
+        return self.demoinfo.save_ddl(demoid, ddl)
+
+    @cherrypy.expose
+    def get_interface_ddl(self, demo_id, sections=None):
+        return self.demoinfo.get_interface_ddl(demo_id, sections)
+
+    @cherrypy.expose
+    @authenticate
+    def get_ssh_keys(self, demo_id):
+        return self.demoinfo.get_ssh_keys(demo_id)
+
+    @cherrypy.expose
+    @authenticate
+    def reset_ssh_keys(self, demo_id):
+        return self.demoinfo.reset_ssh_keys(demo_id)
 
 class Core():
     """
@@ -196,13 +328,24 @@ class Core():
             demorunners=dispatcher.parse_demorunners(demorunners_path),
             policy=dispatcher.make_policy(policy)
         )
+
         self.converter = conversion.Converter()
+
+        demoinfo_db = cherrypy.config["demoinfo_db"]
+        demoinfo_dl_extras_dir = cherrypy.config["demoinfo_dl_extras_dir"]
+        self.demoinfo = demoinfo.DemoInfo(
+            dl_extras_dir=demoinfo_dl_extras_dir ,
+            database_path=demoinfo_db,
+        )
 
     def get_dispatcher_api(self) -> DispatcherAPI:
         return DispatcherAPI(self.dispatcher)
 
     def get_conversion_api(self) -> ConversionAPI:
         return ConversionAPI(self.converter)
+
+    def get_demoinfo_api(self) -> DemoInfoAPI:
+        return DemoInfoAPI(self.demoinfo)
 
     def read_authorized_patterns(self):
         """

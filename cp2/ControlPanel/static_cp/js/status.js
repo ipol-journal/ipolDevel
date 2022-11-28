@@ -72,7 +72,6 @@
 
     function chargeDI(data) {
         $('#DI').append('<p>Number of demos: ' + data.nb_demos + '</p>');
-        $('#DI').append('<p>Number of authors: ' + data.nb_authors + '</p>');
         $('#DI').append('<p>Number of editors: ' + data.nb_editors + '</p>');
     }
 
@@ -82,7 +81,6 @@
             dataType: 'json',
             url: '/api/demoinfo/stats',
             success: function(data) {
-                estate(data, "DI", "DemoInfo");
                 chargeDI(data);
             },
             error: function() {
