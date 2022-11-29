@@ -98,12 +98,16 @@ def profile(request):
 def save_profile(request):
     profiles = User.objects.filter(email=request.user.email)
     demoinfo_editor = api_post('/api/demoinfo/get_editor', {'email': request.POST.get('email', '')})
-    editor_exists = demoinfo_editor['editor']
+    new_email_exists = demoinfo_editor['editor']
 
     if not profiles.exists():
         messages.warning(request, 'The profile you are trying to modify does not exist')
         return HttpResponseRedirect(f'/cp2/profile')
-    if editor_exists:
+    email_changed = request.user.email != request.POST.get('email', '')
+    if new_email_exists and email_changed:
+        messages.warning(request, 'New email is already in use.')
+        return HttpResponseRedirect(f'/cp2/profile')
+    if new_email_exists:
         for profile in profiles:
             profile.username = request.POST.get('username', '')
             profile.first_name = request.POST.get('firstName', '')
