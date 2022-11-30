@@ -1,6 +1,6 @@
 % Project management and development methodology
 
-\section{Development Methodology and Project Management}
+\section{Project management}
 \label{sec:methodology}
 The current IPOL project tries to follow the best practices in software engineering. Specifically, for this kind of project we found that Continuous Integration was a good choice in order to achieve fast delivery of results and ensuring quality. Continuous Integration is a methodology for software development proposed by Martin Fowler~\cite{fowler2006continuous} which consists on making automatic integrations of each increment achieved in a project as often as possible in order to detect failures as soon as possible. This integration includes the compilation and software testing of the entire project.
 
@@ -14,40 +14,30 @@ Quality is perhaps the most important requirement in the software guidelines of 
 %
 Refactoring~\cite{fowler1999refactoring} is performed regularly and documentation is as important as the source code. In fact, any discrepancy between the source code and the documentation is considered as a bug.
 
-Another tool used by the team is Trello. It allows to track the tasks of the project accoding to their current state (not assigned, assigned but not stated, assigned and in development, and finished). When a task arrives to the ``Finished" step, it is reviewed by the Project Director and archived (task totally finished) or moved back to development if more work is needed.
+Another tool used by the team is Trello. It allows to track the tasks of the project accoding to their current state (not assigned, assigned but not stated, assigned and in development, and finished). When a task arrives to the ``Finished" step, it is reviewed by the Project Coordinator and archived (task totally finished) or moved back to development if more work is needed.
 
-\begin{comment}
-[ToDo]: move this to Sysadmin doc
-The {\tt prod} branch was created with:
-\begin{verbatim}
-git checkout -b prod
-git push --set-upstream origin prod
-\end{verbatim}
+\subsection{Development methodology}
+In the git repository there are two different branches:
+\begin{itemize}
+	\item \textbf{devel}, to develop new features or any changes; and
+	\item \textbf{master}, where contribution are integrated.
+\end{itemize}
 
-The .git/config ends up as:
+The devel branch must be always in a \emph{green} state, meaning that any contributions added to devel might be added immediately to master. The Integration server has devel checkout out, and the production servers have master.
 
-\begin{verbatim}
-[core]
-	repositoryformatversion = 0
-	filemode = true
-	bare = false
-	logallrefupdates = true
-[remote "origin"]
-	url = git@github.com:mcolom/ipolDevel.git
-	fetch = +refs/heads/*:refs/remotes/origin/*
-[branch "master"]
-	remote = origin
-	merge = refs/heads/master
-[branch "prod"]
-	remote = origin
-	merge = refs/heads/prod
-\end{verbatim}
+The way to contribute to the project is as follows:
+\begin{enumerate}
+	\item Create a feature branch (FB) from devel;
+	\item Commit your contributions to the FB;
+	\item When ready, make a pull request (PR) from your FB to the devel branch;
+	\item When your contribution has been validated, you can merge the FB into devel;
+	\item Make the Integration server pull the last changes with the IPOL's terminal tool;
+	\item Make any changes in the Integration server if needed (changing nginx configs, updating virtual environments, or others);
+	\item Test carefully in the Integration server that everything works correctly, especially your contribution;
+	\item When ready, you can merge master from devel, pull the changes in prod with the IPOL's terminal, and check again that everything works as expected.
+\end{enumerate}
 
-To merge {\tt prod} with {\tt master:}
-\begin{verbatim}
-git checkout prod
-git merge master
-git push
-git checkout master
-\end{verbatim}
-\end{comment}
+For minor contributions, you can proceed directly without waiting for the approval of the coordinator.
+For contributions which are major, you need to discuss them first with the team internally, and wait until an official meeting with all the team is made to decide if it is accepted. The coordinator will have the last word.
+
+The validation by the peers should be complete. Team should check that there is not a solution which might be more suitable, if refactoring is neeed, that the documentation has been modified accordingly, or that the configurations have been updated, to cite some examples.
