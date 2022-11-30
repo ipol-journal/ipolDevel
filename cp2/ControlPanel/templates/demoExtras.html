@@ -48,8 +48,6 @@
             let filename = $(this).prop('files')[0].name;
             if (filename.length >= 30) {
                 filename = "..." + filename.slice(filename.length - 30, filename.length);
-            } else {
-                filename = filename;
             }
             $('.file-custom').attr('data-value', filename);
             $('#save-btn').prop('disabled', false);
