@@ -1504,7 +1504,8 @@ attached the failed experiment data.". \
         try:
             # delete demo, blobs and extras associated to it
             for api in ['/api/demoinfo/delete_demo', '/api/blobs/delete_demo', '/api/demoinfo/delete_demoextras']:
-                if self.post(api, data=userdata).json()['status'] != 'OK':
+                res_api = self.post(api, data=userdata).json()
+                if res_api['status'] != 'OK':
                     error_message += f"API call {api} failed.'\n"
 
             #delete the archive
