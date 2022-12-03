@@ -14,10 +14,11 @@ import cv2
 from ipolutils.image.Image import Image
 from ipolutils.video.Video import Video
 
-ROOT = os.path.dirname(os.path.abspath(__file__)) + "/../../.."
-sys.path.append(os.path.abspath(ROOT))
+from conversion.conversion import ConversionStatus, Converter
 
-from ipol_demo.modules.conversion.conversion import ConversionStatus, Converter
+
+# used to find test resources in ci_tests/resources/
+ROOT = os.path.dirname(os.path.abspath(__file__)) + "/../../../.."
 
 
 #####################

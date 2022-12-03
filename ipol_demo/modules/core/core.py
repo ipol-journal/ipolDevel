@@ -50,7 +50,7 @@ from ipolutils.evaluator.evaluator import IPOLEvaluateError, evaluate
 from ipolutils.read_text_file import read_commented_text_file
 
 from dispatcher import dispatcher
-from ipol_demo.modules.conversion import conversion
+from conversion import conversion
 
 def authenticate(func):
     """
@@ -98,6 +98,19 @@ class DispatcherAPI:
         stats = self.dispatcher.get_demorunners_stats()
         return json.dumps({'status': 'OK', 'demorunners': stats}).encode()
 
+
+@dataclass
+class ConversionAPI:
+    converter: conversion.Converter
+
+    @cherrypy.expose
+    def convert_tiff_to_png(self, img):
+        """
+        Converts the input TIFF to PNG.
+        This is used by the web interface for visualization purposes
+        """
+        data = self.converter.convert_tiff_to_png(img)
+        return json.dumps(data, indent=4).encode()
 
 class Core():
     """
@@ -187,6 +200,9 @@ class Core():
 
     def get_dispatcher_api(self) -> DispatcherAPI:
         return DispatcherAPI(self.dispatcher)
+
+    def get_conversion_api(self) -> ConversionAPI:
+        return ConversionAPI(self.converter)
 
     def read_authorized_patterns(self):
         """
@@ -1553,15 +1569,6 @@ attached the failed experiment data.". \
             self.send_internal_error_email(error_message)
 
         return json.dumps(data).encode()
-
-    @cherrypy.expose
-    def convert_tiff_to_png(self, img):
-        """
-        Converts the input TIFF to PNG.
-        This is used by the web interface for visualization purposes
-        """
-        data = self.converter.convert_tiff_to_png(img)
-        return json.dumps(data, indent=4).encode()
 
     @staticmethod
     def post(api_url, **kwargs):

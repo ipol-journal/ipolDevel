@@ -95,7 +95,7 @@ function checkTiff(){
 }
 
 function convertTiffToPng(upload, index){
-  var path = "/api/core/convert_tiff_to_png";
+  var path = "/api/conversion/convert_tiff_to_png";
   try {
     jQuery.ajaxSetup({ async: false });
     $.post(path, { img: upload.blob.split(',')[1] },

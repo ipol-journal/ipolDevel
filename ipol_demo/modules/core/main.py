@@ -71,4 +71,5 @@ if __name__ == '__main__':
 
     core = Core.get_instance()
     cherrypy.tree.mount(core.get_dispatcher_api(), '/api/dispatcher', config=CONF_FILE_ABS)
+    cherrypy.tree.mount(core.get_conversion_api(), '/api/conversion', config=CONF_FILE_ABS)
     cherrypy.quickstart(core, config=CONF_FILE_ABS)

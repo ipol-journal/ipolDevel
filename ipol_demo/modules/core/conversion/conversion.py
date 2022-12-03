@@ -16,7 +16,7 @@ from typing import Optional
 from result import Ok, Err, Result
 
 import numpy as np
-from .errors import IPOLConvertInputError, IPOLCropInputError
+from conversion.errors import IPOLConvertInputError, IPOLCropInputError
 from ipolutils.errors import IPOLImageReadError
 from ipolutils.evaluator.evaluator import evaluate
 from ipolutils.image.Image import Image
