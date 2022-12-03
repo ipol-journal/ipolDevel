@@ -5,7 +5,7 @@ Dispatcher policy model classes.
 import random
 from typing import Optional
 
-from .demorunnerinfo import DemoRunnerInfo
+from dispatcher.demorunnerinfo import DemoRunnerInfo
 
 
 def get_suitable_demorunners(requirements: str, demorunners: list[DemoRunnerInfo]) -> list[DemoRunnerInfo]:
