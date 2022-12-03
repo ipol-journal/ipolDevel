@@ -5,6 +5,7 @@
 IPOL Core module
 """
 import configparser
+from dataclasses import dataclass
 import errno
 import glob
 import hashlib
@@ -83,7 +84,20 @@ def authenticate(func):
 
     return authenticate_and_call
 
-# -------------------------------------------------------------------------------
+
+@dataclass
+class DispatcherAPI:
+    dispatcher: dispatcher.Dispatcher
+
+    @cherrypy.expose
+    def get_demorunners_stats(self):
+        """
+        Get workload of all DRs.
+        """
+        stats = self.dispatcher.get_demorunners_stats()
+        return json.dumps({'status': 'OK', 'demorunners': stats}).encode()
+
+
 class Core():
     """
     Core index used as the root app
@@ -168,6 +182,9 @@ class Core():
             demorunners=dispatcher.parse_demorunners(demorunners_path),
             policy=dispatcher.make_policy(policy)
         )
+
+    def get_dispatcher_api(self) -> DispatcherAPI:
+        return DispatcherAPI(self.dispatcher)
 
     def read_authorized_patterns(self):
         """
@@ -1533,14 +1550,6 @@ attached the failed experiment data.". \
             self.send_internal_error_email(error_message)
 
         return json.dumps(data).encode()
-
-    @cherrypy.expose
-    def get_demorunners_stats(self):
-        """
-        Get workload of all DRs.
-        """
-        stats = self.dispatcher.get_demorunners_stats()
-        return json.dumps({'status': 'OK', 'demorunners': stats}).encode()
 
     @staticmethod
     def post(api_url, **kwargs):
