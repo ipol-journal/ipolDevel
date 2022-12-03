@@ -1,17 +1,10 @@
 from dataclasses import dataclass
-import os
-
-import sys
 from typing import Optional
 from result import Ok, Err, Result
 
-
-ROOT = os.path.dirname(os.path.abspath(__file__)) + "/../../.."
-sys.path.append(os.path.abspath(ROOT))
-
-from ipol_demo.modules.dispatcher.dispatcher import Dispatcher, PingProvider, UnresponsiveDemorunnerError, NoDemorunnerAvailableError, NoSuitableDemorunnerForRequirementsError, WorkloadProvider
-from ipol_demo.modules.dispatcher.demorunnerinfo import DemoRunnerInfo
-from ipol_demo.modules.dispatcher.policy import RandomPolicy
+from dispatcher.dispatcher import Dispatcher, PingProvider, UnresponsiveDemorunnerError, NoDemorunnerAvailableError, NoSuitableDemorunnerForRequirementsError, WorkloadProvider
+from dispatcher.demorunnerinfo import DemoRunnerInfo
+from dispatcher.policy import RandomPolicy
 
 
 @dataclass

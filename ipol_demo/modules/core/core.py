@@ -48,10 +48,7 @@ from errors import (IPOLCheckDDLError, IPOLConversionError, IPOLCopyBlobsError,
 from ipolutils.evaluator.evaluator import IPOLEvaluateError, evaluate
 from ipolutils.read_text_file import read_commented_text_file
 
-import sys
-ROOT = os.path.dirname(os.path.abspath(__file__)) + "/../../.."
-sys.path.append(os.path.abspath(ROOT))
-from ipol_demo.modules.dispatcher import dispatcher
+from dispatcher import dispatcher
 
 def authenticate(func):
     """

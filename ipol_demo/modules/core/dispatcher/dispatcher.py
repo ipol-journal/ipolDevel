@@ -8,8 +8,8 @@ from dataclasses import dataclass
 import requests
 from result import Ok, Err, Result
 
-from .policy import Policy, LowestWorkloadPolicy, RandomPolicy, SequentialPolicy
-from .demorunnerinfo import DemoRunnerInfo
+from dispatcher.policy import Policy, LowestWorkloadPolicy, RandomPolicy, SequentialPolicy
+from dispatcher.demorunnerinfo import DemoRunnerInfo
 
 
 
