@@ -68,4 +68,7 @@ if __name__ == '__main__':
     cherrypy.config.update(LOCAL_CONF_FILE)
     cherrypy.log.error_log.setLevel('ERROR')
     cherrypy.tools.cgitb = cherrypy.Tool('before_error_response', err_tb)
-    cherrypy.quickstart(Core.get_instance(), config=CONF_FILE_ABS)
+
+    core = Core.get_instance()
+    cherrypy.tree.mount(core.get_dispatcher_api(), '/api/dispatcher', config=CONF_FILE_ABS)
+    cherrypy.quickstart(core, config=CONF_FILE_ABS)

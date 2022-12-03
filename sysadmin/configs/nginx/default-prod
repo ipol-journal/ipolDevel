@@ -116,7 +116,10 @@ server {
         resolver 127.0.0.1;
         proxy_pass  http://$host:8080;
     }
-    #
+    location /api/dispatcher/ {
+        proxy_pass  http://$host:8080;
+    }
+
     # shared_folder, run static data
     location /api/core/shared_folder/run/ {
         expires 24h;
