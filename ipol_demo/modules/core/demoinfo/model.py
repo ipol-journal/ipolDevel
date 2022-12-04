@@ -16,13 +16,9 @@ import sqlite3 as lite
 #####################
 
 class Demo():
-    """
-    Class representing a demo.
-    """
-
-    editorsdemoid = None
-    title = None
-    state = None
+    editorsdemoid: int
+    title: str
+    state: str
     creation = None
     modification = None
 
@@ -32,10 +28,6 @@ class Demo():
                  state,
                  creation=None,
                  modification=None):
-        """
-        Constructor.
-        """
-
         self.editorsdemoid = editorsdemoid
         self.title = title
         self.state = state
@@ -50,26 +42,16 @@ class Demo():
             self.modification = datetime.datetime.now()
 
     def __eq__(self, other):
-        """
-        Equality operator overloading.
-        """
         return self.__dict__ == other.__dict__
 
 
 class Author():
-    """
-    Object representing an author.
-    """
     id = None
     name = None
     mail = None
     creation = None
 
-    # And(inst(basestring),len_between(4,100)),
     def __init__(self, name, mail, the_id=None, creation=None):
-        """
-        Constructor.
-        """
         self.id = the_id
         self.name = name
         self.mail = mail
@@ -79,12 +61,6 @@ class Author():
             self.creation = datetime.datetime.now()
 
     def __eq__(self, other):
-        """
-        Equality operator overloading.
-        """
-        # print "eq"
-        # print self.__dict__
-        # print other.__dict__
         return self.__dict__ == other.__dict__
 
 
@@ -240,7 +216,6 @@ class DemoDAO():
         """
         update a demo.
         """
-
         nowtmstmp = datetime.datetime.now()
         self.cursor.execute('''SELECT ID
                             FROM state
@@ -249,13 +224,11 @@ class DemoDAO():
         state_id = self.cursor.fetchone()[0]
 
         if demo.creation:
-
             self.cursor.execute('''
             UPDATE demo SET editor_demo_id=?,title=?,
             stateID=?,modification=?,creation=? WHERE demo.editor_demo_id=?''',
                                 (demo.editorsdemoid, demo.title, state_id, nowtmstmp,
                                  demo.creation, old_editor_demo_id))
-
         else:
             self.cursor.execute('''
             UPDATE demo SET editor_demo_id=?,title=?,
@@ -472,7 +445,7 @@ class DemoDemoDescriptionDAO():
         self.conn.commit()
         row = self.cursor.fetchone()
         if row:
-            return {'ddl': row[0]}
+            return row[0]
         return None
 
     def read_demo_demodescriptions(self, editorsdemoid):
@@ -981,33 +954,19 @@ def initDb(database_name):
     """
     Initialize the database (could be replaced by SOUTH migrations)
     """
-    status = True
-    dbname = database_name
+    conn = lite.connect(database_name)
+    cursor_db = conn.cursor()
+    cursor_db.execute(""" PRAGMA foreign_keys=ON""")
 
-    try:
-        conn = lite.connect(dbname)
-        cursor_db = conn.cursor()
-        cursor_db.execute(""" PRAGMA foreign_keys=ON""")
+    # init state test, workshop, preprint, published
+    cursor_db.execute('''INSERT INTO state (name,description) VALUES(?, ?)''',
+                      ('published', 'published',))
+    cursor_db.execute('''INSERT INTO state (name,description) VALUES(?, ?)''',
+                      ('preprint', 'preprint',))
+    cursor_db.execute('''INSERT INTO state (name,description) VALUES(?, ?)''',
+                      ('workshop', 'workshop',))
+    cursor_db.execute('''INSERT INTO state (name,description) VALUES(?, ?)''',
+                      ('test', 'test',))
 
-        # init state test, workshop, preprint, published
-        cursor_db.execute('''INSERT INTO state (name,description) VALUES(?, ?)''',
-                          ('published', 'published',))
-        cursor_db.execute('''INSERT INTO state (name,description) VALUES(?, ?)''',
-                          ('preprint', 'preprint',))
-        cursor_db.execute('''INSERT INTO state (name,description) VALUES(?, ?)''',
-                          ('workshop', 'workshop',))
-        cursor_db.execute('''INSERT INTO state (name,description) VALUES(?, ?)''',
-                          ('test', 'test',))
-
-        conn.commit()
-        conn.close()
-
-    except Exception as ex:
-
-        error_string = ("initDb e:%s" % (str(ex)))
-        print(error_string)
-        status = False
-
-    print("DB Initialized")
-
-    return status
+    conn.commit()
+    conn.close()
