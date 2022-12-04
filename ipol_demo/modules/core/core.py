@@ -259,22 +259,6 @@ class Core():
             Core.instance = Core()
         return Core.instance
 
-    def init_logging(self):
-        """
-        Initialize the error logs of the module.
-        """
-        logs_dir_abs = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'logs')
-        self.mkdir_p(logs_dir_abs)
-        logger = logging.getLogger(logs_dir_abs)
-        logger.setLevel(logging.ERROR)
-        handler = logging.FileHandler(os.path.join(logs_dir_abs, 'core_error.log'))
-        formatter = logging.Formatter(
-            '%(asctime)s ERROR in %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S')
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-        return logger
-
     def error_log(self, function_name, error):
         """
         Write an error log in the logs_dir defined in demo.conf
@@ -291,7 +275,7 @@ class Core():
 
             self.server_environment = cherrypy.config.get('env')
 
-            self.logger = self.init_logging()
+            self.logger = init_logging()
             self.project_folder = cherrypy.config.get("project_folder")
             self.blobs_folder = cherrypy.config.get("blobs_folder")
 
@@ -1720,3 +1704,20 @@ attached the failed experiment data.". \
         """
         base_url = os.environ.get('IPOL_URL', 'http://' + socket.getfqdn())
         return requests.post(f'{base_url}/{api_url}', **kwargs)
+
+
+def init_logging():
+    """
+    Initialize the error logs of the module.
+    """
+    logger = logging.getLogger("core")
+
+    logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter(
+        '%(asctime)s; [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S')
+    handler.setFormatter(formatter)
+
+    logger.addHandler(handler)
+    return logger
