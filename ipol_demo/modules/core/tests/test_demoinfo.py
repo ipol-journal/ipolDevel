@@ -1,637 +1,213 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Demoinfo Test
-"""
-import json
 import os
-# Unit tests for the DemoInfo module
-import socket
-import sys
-import unittest
-
-import requests
-
-
-class DemoinfoTests(unittest.TestCase):
-    """
-    Demoinfo unit tests
-    """
-    BASE_URL = os.environ.get('IPOL_URL', 'http://' + socket.getfqdn())
-    module = 'demoinfo'
-
-    # Demo
-    demo_id = -1
-    demo_title = 'Demo test'
-    state = 'test'
-
-    # Editor
-    editor_name = 'Editor Test'
-    editor_email = 'editortestmail@email.com'
-
-    # These variables are initialized in the __main__
-    ddl_file = None
-    demo_extras_file = None
-
-    #####################
-    #       Tests       #
-    #####################
-    def setUp(self):
-        """
-        Clean the DB from the tests
-        """
-        # Delete demo test
-        self.delete_demo(self.demo_id)
-
-        # Delete editor test
-        response = self.editor_list()
-        for editor in response.get('editor_list'):
-            if editor.get('name') == self.editor_name:
-                self.remove_editor(editor.get('id'))
-
-    def test_ping(self):
-        """
-        Test ping
-        """
-        status = None
-        try:
-            response = self.post(self.module, 'ping')
-            json_response = response.json()
-            status = json_response.get('status')
-        finally:
-            self.assertEqual(status, 'OK')
-
-    def test_add_and_delete_demo(self):
-        """
-        Test add and delete demo
-        """
-        add_status = None
-        read_status = None
-        name = None
-        delete_status = None
-        try:
-            json_response = self.add_demo(self.demo_id, self.demo_title, self.state)
-            add_status = json_response.get('status')
-
-            json_response = self.read_demo_metainfo(self.demo_id)
-            read_status = json_response.get('status')
-            name = json_response.get('title')
-
-            json_response = self.delete_demo(self.demo_id)
-            delete_status = json_response.get('status')
-
-        finally:
-            self.assertEqual(add_status, 'OK')
-            self.assertEqual(read_status, 'OK')
-            self.assertEqual(name, self.demo_title)
-            self.assertEqual(delete_status, 'OK')
-
-    def test_add_same_demo_again(self):
-        """
-        Test add same demo again
-        """
-        status = None
-        try:
-
-            self.add_demo(self.demo_id, self.demo_title, self.state)
-
-            json_response = self.add_demo(self.demo_id, self.demo_title, self.state)
-            status = json_response.get('status')
-
-            self.delete_demo(self.demo_id)
-
-        finally:
-            self.assertEqual(status, 'KO')
-
-    def test_delete_non_existent_demo(self):
-        """
-        Test delete non existent demo
-        """
-        status = None
-        try:
-            json_response = self.delete_demo(self.demo_id)
-            status = json_response.get('status')
-        finally:
-            self.assertEqual(status, 'OK')
-
-    def test_add_ddl_to_new_demo(self):
-        """
-        Test add ddl to new demo
-        """
-        add_status = None
-        get_status = None
-        ddl_read = None
-        ddl = None
-        try:
-            self.add_demo(self.demo_id, self.demo_title, self.state)
-
-            ddl = self.read_ddl()
-            json_response = self.save_ddl(self.demo_id, ddl)
-            add_status = json_response.get('status')
-
-            # Check if added correctly
-            json_response = self.get_ddl(self.demo_id)
-            get_status = json_response.get('status')
-            ddl_read = json_response.get('last_demodescription').get('ddl')
-
-            self.delete_demo(self.demo_id)
-        finally:
-            self.assertEqual(add_status, 'OK')
-            self.assertEqual(get_status, 'OK')
-            self.assertEqual(json.loads(ddl), json.loads(ddl_read))
-
-    def test_add_ddl_to_non_existent_demo(self):
-        """
-        Test add ddl to non existent demo
-        """
-        status = None
-        try:
-            ddl = self.read_ddl()
-            json_response = self.save_ddl(self.demo_id, ddl)
-            status = json_response.get('status')
-        finally:
-            self.assertEqual(status, 'KO')
-
-    def test_add_demoextras_to_new_demo(self):
-        """
-        Test add demoextras to new demo
-        """
-        add_status = None
-        get_status = None
-        demo_extras = None
-        size = None
-        try:
-            self.add_demo(self.demo_id, self.demo_title, self.state)
-
-            with open(self.demo_extras_file, 'rb') as demo_extras:
-                demo_extras_name = os.path.basename(demo_extras.name)
-                json_response = self.add_demoextras(self.demo_id, demo_extras, demo_extras_name)
-                add_status = json_response.get('status')
-                extras_name = demo_extras.name
-
-            # Check if added correctly
-            json_response = self.get_demoextras_info(self.demo_id)
-            get_status = json_response.get('status')
-            size = json_response.get('size')
-
-            self.delete_demo(self.demo_id)
-        finally:
-            self.assertEqual(add_status, 'OK')
-            self.assertEqual(get_status, 'OK')
-            self.assertEqual(size, os.stat(extras_name).st_size)
-
-    def test_add_demoextras_to_non_existent_demo(self):
-        """
-        Test add demoextras to non existent demo
-        """
-        status = None
-        try:
-            with open(self.demo_extras_file, 'rb') as demo_extras:
-                demo_extras_name = os.path.basename(demo_extras.name)
-                json_response = self.add_demoextras(self.demo_id, demo_extras, demo_extras_name)
-                status = json_response.get('status')
-        finally:
-            self.assertEqual(status, 'KO')
-
-    def test_demo_list(self):
-        """
-        Test demo list
-        """
-        status = None
-        demo_list = None
-        try:
-            json_response = self.demo_list()
-            status = json_response.get('status')
-            demo_list = json_response.get('demo_list')
-        finally:
-            self.assertEqual(status, 'OK')
-            self.assertTrue(isinstance(demo_list, list))
-
-    def test_update_demo(self):
-        """
-        Test update demo
-        """
-        update_status = None
-        read_status = None
-        title = None
-        new_title = self.demo_title + "2"
-        state = None
-        new_state = 'published'
-        try:
-            self.add_demo(self.demo_id, self.demo_title, self.state)
-            new_demo = {
-                "title": new_title,
-                "demo_id": self.demo_id,
-                "state": new_state}
-            json_response = self.update_demo(new_demo, self.demo_id)
-            update_status = json_response.get('status')
-
-            json_response = self.read_demo_metainfo(self.demo_id)
-            read_status = json_response.get('status')
-            title = json_response.get('title')
-            state = json_response.get('state')
-
-            self.delete_demo(self.demo_id)
-        finally:
-            self.assertEqual(update_status, 'OK')
-            self.assertEqual(read_status, 'OK')
-            self.assertEqual(title, new_title)
-            self.assertEqual(state, new_state)
-
-    def test_add_and_delete_editor(self):
-        """
-        Test add and delete editor
-        """
-        add_status = None
-        del_status = None
-        editor_id = None
-        try:
-            json_response = self.add_editor(self.editor_name, self.editor_email)
-            add_status = json_response.get('status')
-            editor_id = json_response.get('editorid')
-
-            json_response = self.remove_editor(editor_id)
-            del_status = json_response.get('status')
-        finally:
-            self.assertEqual(add_status, 'OK')
-            self.assertTrue(isinstance(editor_id, int))
-            self.assertEqual(del_status, 'OK')
-
-    def test_add_already_existing_editor(self):
-        """
-        Test add already existing editor
-        """
-        status = None
-        try:
-            json_response = self.add_editor(self.editor_name, self.editor_email)
-            editor_id = json_response.get('editorid')
-
-            json_response = self.add_editor(self.editor_name, self.editor_email)
-            status = json_response.get('status')
-
-            self.remove_editor(editor_id)
-        finally:
-            self.assertEqual(status, 'KO')
-
-    def test_editor_list(self):
-        """
-        Test editor list
-        """
-        status = None
-        editor_list = None
-        try:
-            json_response = self.editor_list()
-            status = json_response.get('status')
-            editor_list = json_response.get('editor_list')
-        finally:
-            self.assertEqual(status, 'OK')
-            self.assertTrue(isinstance(editor_list, list))
-
-    def test_read_editor(self):
-        """
-        Test read editor
-        """
-        status = None
-        name = None
-        email = None
-        try:
-            json_response = self.add_editor(self.editor_name, self.editor_email)
-            editor_id = json_response.get('editorid')
-
-            json_response = self.read_editor(editor_id)
-            status = json_response.get('status')
-            name = json_response.get('name')
-            email = json_response.get('mail')
-
-            self.remove_editor(editor_id)
-        finally:
-            self.assertEqual(status, 'OK')
-            self.assertEqual(name, self.editor_name)
-            self.assertEqual(email, self.editor_email)
-
-    def test_read_non_existent_editor(self):
-        """
-        Test read non existent editor
-        """
-        status = None
-        try:
-            json_response = self.read_editor(0)
-            status = json_response.get('status')
-        finally:
-            self.assertEqual(status, 'KO')
-
-    def test_add_editor_to_demo(self):
-        """
-        Test add editor to demo
-        """
-        status = None
-        try:
-            json_response = self.add_editor(self.editor_name, self.editor_email)
-            editor_id = json_response.get('editorid')
-
-            self.add_demo(self.demo_id, self.demo_title, self.state)
-
-            json_response = self.add_editor_to_demo(self.demo_id, editor_id)
-            status = json_response.get('status')
-
-            self.remove_editor(editor_id)
-
-            self.delete_demo(self.demo_id)
-
-        finally:
-            self.assertEqual(status, 'OK')
-
-    def test_add_editor_to_non_existent_demo(self):
-        """
-        Test add editor to non existent demo
-        """
-        status = None
-        try:
-            json_response = self.add_editor(self.editor_name, self.editor_email)
-            editor_id = json_response.get('editorid')
-
-            json_response = self.add_editor_to_demo(self.demo_id, editor_id)
-            status = json_response.get('status')
-
-            self.remove_editor(editor_id)
-
-        finally:
-            self.assertEqual(status, 'KO')
-
-    def test_add_non_existent_editor_to_demo(self):
-        """
-        Test add non existent editor to demo
-        """
-        status = None
-        try:
-
-            self.add_demo(self.demo_id, self.demo_title, self.state)
-
-            json_response = self.add_editor_to_demo(self.demo_id, 0)
-            status = json_response.get('status')
-
-            self.delete_demo(self.demo_id)
-
-        finally:
-            self.assertEqual(status, 'KO')
-
-    def test_demo_get_editor_list(self):
-        """
-        Test demo get editor list
-        """
-        status = None
-        editor_list = None
-        editor_name = None
-        editor_email = None
-
-        try:
-            json_response = self.add_editor(self.editor_name, self.editor_email)
-            editor_id = json_response.get('editorid')
-
-            self.add_demo(self.demo_id, self.demo_title, self.state)
-
-            self.add_editor_to_demo(self.demo_id, editor_id)
-
-            json_response = self.demo_get_editors_list(self.demo_id)
-            status = json_response.get('status')
-            editor_list = json_response.get('editor_list')
-            editor_name = editor_list[0].get('name')
-            editor_email = editor_list[0].get('mail')
-
-            self.remove_editor(editor_id)
-
-            self.delete_demo(self.demo_id)
-
-        finally:
-            self.assertEqual(status, 'OK')
-            self.assertEqual(len(editor_list), 1)
-            self.assertEqual(editor_name, self.editor_name)
-            self.assertEqual(editor_email, self.editor_email)
-
-    def test_demo_get_editor_list_in_non_existent_demo(self):
-        """
-        Test demo get editor list in non existent demo
-        """
-        status = None
-
-        try:
-            json_response = self.demo_get_editors_list(self.demo_id)
-            status = json_response.get('status')
-
-        finally:
-            self.assertEqual(status, 'KO')
-
-    def test_remove_editor_from_demo(self):
-        """
-        Test remove editor from demo
-        """
-        status = None
-        editor_list = None
-        try:
-            json_response = self.add_editor(self.editor_name, self.editor_email)
-            editor_id = json_response.get('editorid')
-
-            self.add_demo(self.demo_id, self.demo_title, self.state)
-
-            self.add_editor_to_demo(self.demo_id, editor_id)
-
-            json_response = self.remove_editor_from_demo(self.demo_id, editor_id)
-            status = json_response.get('status')
-
-            json_response = self.demo_get_editors_list(self.demo_id)
-            editor_list = json_response.get('editor_list')
-
-            self.remove_editor(editor_id)
-
-            self.delete_demo(self.demo_id)
-
-        finally:
-            self.assertEqual(status, 'OK')
-            self.assertEqual(len(editor_list), 0)
-
-    def test_remove_editor_from_non_existent_demo(self):
-        """
-        Test remove editor from non existent demo
-        """
-        status = None
-        try:
-            json_response = self.add_editor(self.editor_name, self.editor_email)
-            editor_id = json_response.get('editorid')
-
-            json_response = self.remove_editor_from_demo(self.demo_id, editor_id)
-            status = json_response.get('status')
-
-            self.remove_editor(editor_id)
-
-        finally:
-            self.assertEqual(status, 'KO')
-
-    def test_remove_non_existent_editor_from_demo(self):
-        """
-        Test remove non existent editor from demo
-        """
-        status = None
-        try:
-            self.add_demo(self.demo_id, self.demo_title, self.state)
-
-            json_response = self.remove_editor_from_demo(self.demo_id, 0)
-            status = json_response.get('status')
-
-            self.delete_demo(self.demo_id)
-
-        finally:
-            self.assertEqual(status, 'KO')
-
-    #####################
-    #       TOOLS       #
-    #####################
-
-    def post(self, module, service, params=None, data=None, files=None, servicejson=None):
-        """
-        post
-        """
-        url = '{}/api/{}/{}'.format(self.BASE_URL, module, service)
-        return requests.post(url, params=params, data=data, files=files, json=servicejson)
-
-    def read_ddl(self):
-        """
-        read ddl
-        """
-        with open(self.ddl_file, 'r') as f:
-            ddl = f.read()
-        return ddl
-
-    def add_demo(self, demo_id, title, state):
-        """
-        add demo
-        """
-        params = {'demo_id': demo_id, 'title': title, 'state': state}
-        response = self.post(self.module, 'add_demo', params=params)
-        return response.json()
-
-    def read_demo_metainfo(self, demo_id):
-        """
-        read demo metainfo
-        """
-        params = {'demoid': demo_id}
-        response = self.post(self.module, 'read_demo_metainfo', params=params)
-        return response.json()
-
-    def delete_demo(self, demo_id):
-        """
-        delete demo
-        """
-        params = {'demo_id': demo_id}
-        response = self.post(self.module, 'delete_demo', params=params)
-        return response.json()
-
-    def save_ddl(self, demo_id, ddl):
-        """
-        save ddl
-        """
-        params = {'demoid': demo_id}
-        response = self.post(self.module, 'save_ddl', params=params, servicejson=json.loads(ddl))
-        return response.json()
-
-    def get_ddl(self, demo_id):
-        """
-        get ddl
-        """
-        params = {'demo_id': demo_id}
-        response = self.post(self.module, 'get_ddl', params=params)
-        return response.json()
-
-    def add_demoextras(self, demo_id, demo_extras, demo_extras_name):
-        """
-        add demoextras
-        """
-        files = {'demoextras': demo_extras}
-        params = {'demo_id': demo_id, 'demoextras_name': demo_extras_name}
-        response = self.post(self.module, 'add_demoextras', params=params, files=files)
-        return response.json()
-
-    def get_demoextras_info(self, demo_id):
-        """
-        get demoextras info
-        """
-        params = {'demo_id': demo_id}
-        response = self.post(self.module, 'get_demo_extras_info', params=params)
-        return response.json()
-
-    def demo_list(self):
-        """
-        demo list
-        """
-        response = self.post(self.module, 'demo_list')
-        return response.json()
-
-    def update_demo(self, new_demo, demo_id):
-        """
-        update demo
-        """
-        params = {'demo': json.dumps(new_demo), 'old_editor_demoid': demo_id}
-        response = self.post(self.module, 'update_demo', params=params)
-        return response.json()
-
-    def add_editor(self, name, email):
-        """
-        add editor
-        """
-        params = {'name': name, 'mail': email}
-        response = self.post(self.module, 'add_editor', params=params)
-        return response.json()
-
-    def remove_editor(self, editor_id):
-        """
-        remove editor
-        """
-        params = {'editor_id': editor_id}
-        response = self.post(self.module, 'remove_editor', params=params)
-        return response.json()
-
-    def editor_list(self):
-        """
-        editor list
-        """
-        response = self.post(self.module, 'editor_list')
-        return response.json()
-
-    def read_editor(self, editor_id):
-        """
-        read editor
-        """
-        params = {'editorid': editor_id}
-        response = self.post(self.module, 'read_editor', params=params)
-        return response.json()
-
-    def add_editor_to_demo(self, demo_id, editor_id):
-        """
-        add editor to demo
-        """
-        params = {'demo_id': demo_id, 'editor_id': editor_id}
-        response = self.post(self.module, 'add_editor_to_demo', params=params)
-        return response.json()
-
-    def demo_get_editors_list(self, demo_id):
-        """
-        demo get editors list
-        """
-        params = {'demo_id': demo_id}
-        response = self.post(self.module, 'demo_get_editors_list', params=params)
-        return response.json()
-
-    def remove_editor_from_demo(self, demo_id, editor_id):
-        """
-        remove editor from demo
-        """
-        params = {'demo_id': demo_id, 'editor_id': editor_id}
-        response = self.post(self.module, 'remove_editor_from_demo', params=params)
-        return response.json()
-
-if __name__ == '__main__':
-    shared_folder = sys.argv.pop()
-    demorunners = sys.argv.pop()
-    resources_path = sys.argv.pop()
-    DemoinfoTests.ddl_file = os.path.join(resources_path, 'test_ddl.txt')
-    DemoinfoTests.demo_extras_file = os.path.join(resources_path, 'test_demo_extras.tar.gz')
-    unittest.main()
+import json
+import pytest
+
+from demoinfo.demoinfo import DemoInfo
+
+demo_id = 0
+demo_title = 'Demo test'
+state = 'test'
+
+editor_name = 'Editor Test'
+editor_email = 'editortestmail@email.com'
+
+ROOT = os.path.dirname(os.path.abspath(__file__)) + "/../../../.."
+demo_extras_file = os.path.join(ROOT, 'ci_tests/resources/test_demo_extras.tar.gz')
+
+@pytest.fixture
+def ddl() -> str:
+    ddl_file = os.path.join(ROOT, 'ci_tests/resources/test_ddl.txt')
+    with open(ddl_file, 'r') as f:
+        ddl = f.read()
+    return ddl
+
+@pytest.fixture
+def demoinfo(tmpdir) -> DemoInfo:
+    db_path = str(tmpdir / "db.db")
+    return DemoInfo(
+        dl_extras_dir=str(tmpdir),
+        database_path=db_path,
+        base_url="http://localhost",
+    )
+
+def test_add_and_delete_demo(demoinfo: DemoInfo):
+    demoinfo.add_demo(demo_id, demo_title, state).unwrap()
+
+    result = demoinfo.read_demo_metainfo(demo_id)
+    info = result.unwrap()
+    assert info["title"] == demo_title
+
+    demoinfo.delete_demo(demo_id).unwrap()
+
+def test_add_same_demo_again(demoinfo: DemoInfo):
+    demoinfo.add_demo(demo_id, demo_title, state).unwrap()
+
+    result = demoinfo.add_demo(demo_id, demo_title, state)
+    assert result.is_err()
+
+def test_delete_non_existent_demo(demoinfo: DemoInfo):
+    demoinfo.delete_demo(demo_id).unwrap()
+
+def test_add_ddl_to_new_demo(demoinfo: DemoInfo, ddl: str):
+    demoinfo.add_demo(demo_id, demo_title, state).unwrap()
+    demoinfo.save_ddl(demo_id, ddl).unwrap()
+
+    ddl_read = demoinfo.get_ddl(demo_id).unwrap()
+    assert json.loads(ddl_read) == json.loads(ddl)
+
+def test_get_interface_ddl(demoinfo: DemoInfo, ddl: str):
+    demoinfo.add_demo(demo_id, demo_title, state).unwrap()
+    demoinfo.save_ddl(demo_id, ddl).unwrap()
+
+    ddl_read = demoinfo.get_interface_ddl(demo_id, sections="inputs,archive").unwrap()
+    assert set(ddl_read.keys()) == {"inputs", "archive"}
+
+    ddl_read = demoinfo.get_interface_ddl(demo_id, sections="inputs,archive,build,unknown").unwrap()
+    assert set(ddl_read.keys()) == {"inputs", "archive"}
+
+    ddl_read = demoinfo.get_interface_ddl(demo_id).unwrap()
+    assert set(ddl_read.keys()) == {"general", "archive", "results", "inputs", "params"}
+
+    result = demoinfo.get_interface_ddl(demo_id + 2)
+    assert result.is_err()
+
+def test_add_ddl_to_non_existent_demo(demoinfo, ddl):
+    result = demoinfo.save_ddl(demo_id, ddl)
+    assert result.is_err()
+
+def test_add_demoextras_to_new_demo(demoinfo: DemoInfo):
+    demoinfo.add_demo(demo_id, demo_title, state).unwrap()
+
+    with open(demo_extras_file, 'rb') as demo_extras:
+        demo_extras_name = os.path.basename(demo_extras.name)
+        demoinfo.add_demoextras(demo_id, demo_extras.read(), demo_extras_name).unwrap()
+        extras_name = demo_extras.name
+
+    result = demoinfo.get_demo_extras_info(demo_id)
+    info = result.unwrap()
+    assert info is not None
+    assert info['size'] == os.stat(extras_name).st_size
+
+def test_add_demoextras_to_non_existent_demo(demoinfo: DemoInfo):
+    with open(demo_extras_file, 'rb') as demo_extras:
+        demo_extras_name = os.path.basename(demo_extras.name)
+        result = demoinfo.add_demoextras(demo_id, demo_extras.read(), demo_extras_name)
+        assert result.is_err()
+
+def test_demo_list(demoinfo: DemoInfo):
+    result = demoinfo.demo_list()
+    result.unwrap()
+
+def test_update_demo(demoinfo: DemoInfo):
+    new_title = demo_title + "2"
+    new_state = 'published'
+    demoinfo.add_demo(demo_id, demo_title, state).unwrap()
+    new_demo = {
+        "title": new_title,
+        "demo_id": demo_id,
+        "state": new_state,
+    }
+    demoinfo.update_demo(new_demo, demo_id).unwrap()
+
+    result = demoinfo.read_demo_metainfo(demo_id)
+    info = result.unwrap()
+
+    assert new_state == info['state']
+    assert new_title == info['title']
+
+def test_add_and_delete_editor(demoinfo: DemoInfo):
+    editor_id = demoinfo.add_editor(editor_name, editor_email).unwrap()
+
+    demoinfo.remove_editor(editor_id).unwrap()
+
+def test_add_already_existing_editor(demoinfo: DemoInfo):
+    demoinfo.add_editor(editor_name, editor_email).unwrap()
+
+    result = demoinfo.add_editor(editor_name, editor_email)
+    assert result.is_err()
+
+def test_editor_list(demoinfo: DemoInfo):
+    result = demoinfo.editor_list()
+    editor_list = result.unwrap()
+    assert len(editor_list) == 0
+
+    demoinfo.add_editor(editor_name, editor_email).unwrap()
+
+    result = demoinfo.editor_list()
+    editor_list = result.unwrap()
+    assert len(editor_list) == 1
+
+def test_add_editor_to_demo(demoinfo: DemoInfo):
+    editor_id = demoinfo.add_editor(editor_name, editor_email).unwrap()
+    demoinfo.add_demo(demo_id, demo_title, state).unwrap()
+
+    demoinfo.add_editor_to_demo(demo_id, editor_id).unwrap()
+
+def test_add_editor_to_non_existent_demo(demoinfo: DemoInfo):
+    editor_id = demoinfo.add_editor(editor_name, editor_email).unwrap()
+
+    result = demoinfo.add_editor_to_demo(demo_id, editor_id)
+    assert result.is_err()
+
+def test_add_non_existent_editor_to_demo(demoinfo: DemoInfo):
+    demoinfo.add_demo(demo_id, demo_title, state).unwrap()
+
+    result = demoinfo.add_editor_to_demo(demo_id, 0)
+    assert result.is_err()
+
+def test_demo_get_editor_list(demoinfo: DemoInfo):
+    editor_id = demoinfo.add_editor(editor_name, editor_email).unwrap()
+
+    demoinfo.add_demo(demo_id, demo_title, state).unwrap()
+
+    demoinfo.add_editor_to_demo(demo_id, editor_id).unwrap()
+
+    result = demoinfo.demo_get_editors_list(demo_id)
+    editor_list = result.unwrap()
+
+    assert len(editor_list) == 1
+    assert editor_name == editor_list[0].get('name')
+    assert editor_email == editor_list[0].get('mail')
+
+def test_demo_get_editor_list_in_non_existent_demo(demoinfo: DemoInfo):
+    result = demoinfo.demo_get_editors_list(demo_id)
+    assert result.is_err()
+
+def test_remove_editor_from_demo(demoinfo: DemoInfo):
+    editor_id = demoinfo.add_editor(editor_name, editor_email).unwrap()
+
+    demoinfo.add_demo(demo_id, demo_title, state).unwrap()
+
+    demoinfo.add_editor_to_demo(demo_id, editor_id).unwrap()
+
+    demoinfo.remove_editor_from_demo(demo_id, editor_id).unwrap()
+
+    result = demoinfo.demo_get_editors_list(demo_id)
+    editor_list = result.unwrap()
+    assert editor_list == []
+
+def test_remove_editor_from_non_existent_demo(demoinfo: DemoInfo):
+    editor_id = demoinfo.add_editor(editor_name, editor_email).unwrap()
+
+    result = demoinfo.remove_editor_from_demo(demo_id, editor_id)
+    assert result.is_err()
+
+def test_remove_non_existent_editor_from_demo(demoinfo: DemoInfo):
+    demoinfo.add_demo(demo_id, demo_title, state).unwrap()
+
+    result = demoinfo.remove_editor_from_demo(demo_id, 0)
+    assert result.is_err()
+
+def test_ssh_keys(demoinfo: DemoInfo):
+    demoinfo.add_demo(demo_id, demo_title, state).unwrap()
+
+    pub, priv = demoinfo.get_ssh_keys(demo_id).unwrap()
+    pub2, priv2 = demoinfo.get_ssh_keys(demo_id).unwrap()
+    assert pub == pub2
+    assert priv == priv2
+
+    demoinfo.reset_ssh_keys(demo_id).unwrap()
+
+    pub3, priv3 = demoinfo.get_ssh_keys(demo_id).unwrap()
+    assert pub != pub3
+    assert priv != priv3

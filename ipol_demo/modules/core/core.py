@@ -27,6 +27,7 @@ from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from random import random
+from typing import Any
 
 import cherrypy
 import magic
@@ -117,132 +118,330 @@ class DemoInfoAPI:
     @cherrypy.expose
     @authenticate
     def delete_demoextras(self, demo_id):
-        return self.demoinfo.delete_demoextras(demo_id)
+        result = self.demoinfo.delete_demoextras(demo_id)
+
+        if result.is_ok():
+            data = {'status': 'OK'}
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
     def add_demoextras(self, demo_id, demoextras, demoextras_name):
-        return self.demoinfo.add_demoextras(demo_id, demoextras, demoextras_name)
+        demo_id = int(demo_id)
+        demoextras = demoextras.file.read()
+        result = self.demoinfo.add_demoextras(demo_id, demoextras, demoextras_name)
+        if isinstance(result, Ok):
+            data = {'status': 'OK'}
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     def get_demo_extras_info(self, demo_id):
-        return self.demoinfo.get_demo_extras_info(demo_id)
+        demo_id = int(demo_id)
+        result = self.demoinfo.get_demo_extras_info(demo_id)
+        if isinstance(result, Ok):
+            data = {'status': 'OK'}
+            if result.value is not None:
+                data.update(**result.value)
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     def demo_list(self):
-        return self.demoinfo.demo_list()
+        result = self.demoinfo.demo_list()
+        if isinstance(result, Ok):
+            data = {
+                'demo_list': result.value,
+                'status': 'OK',
+            }
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     def demo_list_by_editorid(self, editorid):
-        return self.demoinfo.demo_list_by_editorid(editorid)
+        editorid = int(editorid)
+        result = self.demoinfo.demo_list_by_editorid(editorid)
+        if isinstance(result, Ok):
+            data = {
+                'demo_list': result.value,
+                'status': 'OK',
+            }
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     def demo_list_pagination_and_filter(self, num_elements_page, page, qfilter=None):
-        return self.demoinfo.demo_list_pagination_and_filter(num_elements_page, page, qfilter)
+        num_elements_page = int(num_elements_page)
+        page = int(page)
+        result = self.demoinfo.demo_list_pagination_and_filter(num_elements_page, page, qfilter)
+        if isinstance(result, Ok):
+            data = {'status': 'OK'}
+            data.update(**result.value)
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
     def demo_get_editors_list(self, demo_id):
-        return self.demoinfo.demo_get_editors_list(demo_id)
+        demo_id = int(demo_id)
+        result = self.demoinfo.demo_get_editors_list(demo_id)
+        if isinstance(result, Ok):
+            data = {
+                'editor_list': result.value,
+                'status': 'OK',
+            }
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
     def demo_get_available_editors_list(self, demo_id):
-        return self.demoinfo.demo_get_available_editors_list(demo_id)
+        demo_id = int(demo_id)
+        result = self.demoinfo.demo_get_available_editors_list(demo_id)
+        if isinstance(result, Ok):
+            data = {
+                'editor_list': result.value,
+                'status': 'OK',
+            }
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     def read_demo_metainfo(self, demoid):
-        return self.demoinfo.read_demo_metainfo(demoid)
+        demoid = int(demoid)
+        result = self.demoinfo.read_demo_metainfo(demoid)
+        if isinstance(result, Ok):
+            data = {'status': 'OK'}
+            data.update(**result.value)
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
     @authenticate
-    def add_demo(self, demo_id, title, state, ddl_id=None, ddl=None):
-        return self.demoinfo.add_demo(demo_id, title, state, ddl_id, ddl)
+    def add_demo(self, demo_id, title, state, ddl=None):
+        demo_id = int(demo_id)
+        result = self.demoinfo.add_demo(demo_id, title, state, ddl)
+        if isinstance(result, Ok):
+            data = {'status': 'OK', 'demo_id': result.value}
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
     @authenticate
     def delete_demo(self, demo_id):
-        return self.demoinfo.delete_demo(demo_id)
+        demo_id = int(demo_id)
+        result = self.demoinfo.delete_demo(demo_id)
+        if isinstance(result, Ok):
+            data = {'status': 'OK'}
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
     @authenticate
-    def update_demo(self, demo, old_editor_demoid):
-        return self.demoinfo.update_demo(demo, old_editor_demoid)
+    def update_demo(self, demo: str, old_editor_demoid: int):
+        old_editor_demoid = int(old_editor_demoid)
+        demo_dict = json.loads(demo)
+        assert 'demo_id' in demo_dict
+        assert 'title' in demo_dict
+        assert 'state' in demo_dict
+        result = self.demoinfo.update_demo(demo_dict, old_editor_demoid)
+        if isinstance(result, Ok):
+            data = {'status': 'OK'}
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
     def editor_list(self):
-        return self.demoinfo.editor_list()
+        result = self.demoinfo.editor_list()
+        if isinstance(result, Ok):
+            data = {'status': 'OK', 'editor_list': result.value}
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
     def get_editor(self, email):
-        return self.demoinfo.get_editor(email)
+        result = self.demoinfo.get_editor(email)
+        if isinstance(result, Ok):
+            data: dict[str, Any] = {'status': 'OK'}
+            if editor := result.value:
+                data['editor'] = editor
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])
     @authenticate
     def update_editor_email(self, new_email, old_email, name):
-        return self.demoinfo.update_editor_email(new_email, old_email, name)
+        result = self.demoinfo.update_editor_email(new_email, old_email, name)
+        if isinstance(result, Ok):
+            data = {'status': 'OK'}
+            if message := result.value:
+                data['message'] = message
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
     @authenticate
     def add_editor(self, name, mail):
-        return self.demoinfo.add_editor(name, mail)
+        result = self.demoinfo.add_editor(name, mail)
+        if isinstance(result, Ok):
+            data = {'status': 'OK'}
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
     @authenticate
     def add_editor_to_demo(self, demo_id, editor_id):
-        return self.demoinfo.add_editor_to_demo(demo_id, editor_id)
+        demo_id = int(demo_id)
+        editor_id = int(editor_id)
+        result = self.demoinfo.add_editor_to_demo(demo_id, editor_id)
+        if isinstance(result, Ok):
+            data = {'status': 'OK'}
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
     @authenticate
     def remove_editor_from_demo(self, demo_id, editor_id):
-        return self.demoinfo.remove_editor_from_demo(demo_id, editor_id)
+        demo_id = int(demo_id)
+        editor_id = int(editor_id)
+        result = self.demoinfo.remove_editor_from_demo(demo_id, editor_id)
+        if isinstance(result, Ok):
+            data = {'status': 'OK'}
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
     @authenticate
     def remove_editor(self, editor_id):
-        return self.demoinfo.remove_editor(editor_id)
+        editor_id = int(editor_id)
+        result = self.demoinfo.remove_editor(editor_id)
+        if isinstance(result, Ok):
+            data = {'status': 'OK'}
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
     def get_ddl_history(self, demo_id):
-        return self.demoinfo.get_ddl_history(demo_id)
+        demo_id = int(demo_id)
+        result = self.demoinfo.get_ddl_history(demo_id)
+        if isinstance(result, Ok):
+            data = {'status': 'OK', 'ddl_history': result.value}
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
-    def get_ddl(self, demo_id, sections=None):
-        return self.demoinfo.get_ddl(demo_id, sections)
+    def get_ddl(self, demo_id):
+        demo_id = int(demo_id)
+        result = self.demoinfo.get_ddl(demo_id)
+        if isinstance(result, Ok):
+            data = {
+                'status': 'OK',
+                'last_demodescription': {
+                    'ddl': result.value,
+                 }
+            }
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
     @authenticate
     def save_ddl(self, demoid):
+        demoid = int(demoid)
         cl = cherrypy.request.headers['Content-Length']
         ddl = cherrypy.request.body.read(int(cl)).decode()
-        return self.demoinfo.save_ddl(demoid, ddl)
+        result = self.demoinfo.save_ddl(demoid, ddl)
+        if isinstance(result, Ok):
+            data = {'status': 'OK'}
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     def get_interface_ddl(self, demo_id, sections=None):
-        return self.demoinfo.get_interface_ddl(demo_id, sections)
+        demo_id = int(demo_id)
+        result = self.demoinfo.get_interface_ddl(demo_id, sections)
+        if isinstance(result, Ok):
+            data = {
+                'status': 'OK',
+                'last_demodescription': {
+                    'ddl': result.value,
+                 }
+            }
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
     def get_ssh_keys(self, demo_id):
-        return self.demoinfo.get_ssh_keys(demo_id)
+        demo_id = int(demo_id)
+        result = self.demoinfo.get_ssh_keys(demo_id)
+        if isinstance(result, Ok):
+            pubkey, privkey = result.value
+            data = {
+                'status': 'OK',
+                'pubkey': pubkey,
+                'privkey': privkey,
+            }
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
     def reset_ssh_keys(self, demo_id):
-        return self.demoinfo.reset_ssh_keys(demo_id)
+        demo_id = int(demo_id)
+        result = self.demoinfo.reset_ssh_keys(demo_id)
+        if isinstance(result, Ok):
+            data = {'status': 'OK'}
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
+
+    @cherrypy.expose
+    def stats(self):
+        result = self.demoinfo.stats()
+        if isinstance(result, Ok):
+            data = {'status': 'OK'}
+            data.update(**result.value)
+        else:
+            data = {'status': 'KO', 'error': result.value}
+        return json.dumps(data).encode()
 
 class Core():
     """
@@ -270,38 +469,33 @@ class Core():
         """
         Constructor
         """
-        try:
-            ### Read the configuration file
+        ### Read the configuration file
+        self.server_environment = cherrypy.config.get('env')
 
-            self.server_environment = cherrypy.config.get('env')
+        self.logger = init_logging()
+        self.project_folder = cherrypy.config.get("project_folder")
+        self.blobs_folder = cherrypy.config.get("blobs_folder")
 
-            self.logger = init_logging()
-            self.project_folder = cherrypy.config.get("project_folder")
-            self.blobs_folder = cherrypy.config.get("blobs_folder")
+        self.shared_folder_rel = cherrypy.config.get("shared_folder")
+        self.shared_folder_abs = os.path.join(self.project_folder, self.shared_folder_rel)
+        self.demo_extras_main_dir = os.path.join(
+            self.shared_folder_abs,
+            cherrypy.config.get("demoExtrasDir"))
+        self.dl_extras_dir = os.path.join(self.shared_folder_abs,
+                                          cherrypy.config.get("dl_extras_dir"))
+        self.share_run_dir_rel = cherrypy.config.get("running.dir")
+        self.share_run_dir_abs = os.path.join(
+            self.shared_folder_abs, self.share_run_dir_rel)
 
-            self.shared_folder_rel = cherrypy.config.get("shared_folder")
-            self.shared_folder_abs = os.path.join(self.project_folder, self.shared_folder_rel)
-            self.demo_extras_main_dir = os.path.join(
-                self.shared_folder_abs,
-                cherrypy.config.get("demoExtrasDir"))
-            self.dl_extras_dir = os.path.join(self.shared_folder_abs,
-                                              cherrypy.config.get("dl_extras_dir"))
-            self.share_run_dir_rel = cherrypy.config.get("running.dir")
-            self.share_run_dir_abs = os.path.join(
-                self.shared_folder_abs, self.share_run_dir_rel)
+        # Security: authorized IPs
+        self.authorized_patterns_file = cherrypy.config.get("authorized_patterns_file")
+        self.authorized_patterns = self.read_authorized_patterns()
 
-            # Security: authorized IPs
-            self.authorized_patterns_file = cherrypy.config.get("authorized_patterns_file")
-            self.authorized_patterns = self.read_authorized_patterns()
-
-            # create needed directories
-            self.mkdir_p(self.share_run_dir_abs)
-            self.mkdir_p(self.shared_folder_abs)
-            self.mkdir_p(self.dl_extras_dir)
-            self.mkdir_p(self.demo_extras_main_dir)
-
-        except Exception:
-            self.logger.exception("__init__")
+        # create needed directories
+        self.mkdir_p(self.share_run_dir_abs)
+        self.mkdir_p(self.shared_folder_abs)
+        self.mkdir_p(self.dl_extras_dir)
+        self.mkdir_p(self.demo_extras_main_dir)
 
         base_url = os.environ['IPOL_URL']
         demorunners_path = cherrypy.config["demorunners_file"]
@@ -318,8 +512,9 @@ class Core():
         demoinfo_db = cherrypy.config["demoinfo_db"]
         demoinfo_dl_extras_dir = cherrypy.config["demoinfo_dl_extras_dir"]
         self.demoinfo = demoinfo.DemoInfo(
-            dl_extras_dir=demoinfo_dl_extras_dir ,
+            dl_extras_dir=demoinfo_dl_extras_dir,
             database_path=demoinfo_db,
+            base_url=base_url,
         )
 
     def get_dispatcher_api(self) -> DispatcherAPI:
@@ -371,12 +566,10 @@ class Core():
         """
         Index page
         """
-        resp = self.post('api/demoinfo/demo_list')
-        response = resp.json()
-        status = response['status']
+        result = self.demoinfo.demo_list()
 
         cherrypy.response.headers['Content-Type'] = 'text/html'
-        if status != 'OK':
+        if result.is_err():
             self.send_internal_error_email("Unable to get the list of demos")
             string = """
                  <!DOCTYPE html>
@@ -392,7 +585,7 @@ class Core():
                  """
             return string
 
-        demo_list = response['demo_list']
+        demo_list = result.value
 
         # Get all publication states
         demos_by_state = OrderedDict()
@@ -790,20 +983,20 @@ class Core():
         except Exception as ex:
             raise IPOLDemoExtrasError(ex)
 
-    def ensure_extras_updated(self, demo_id):
+    def ensure_extras_updated(self, demo_id: int):
         """
         Ensure that the demo extras of a given demo are updated with respect to demoinfo information.
         and exists in the core folder.
         """
         try:
-            resp = self.post('api/demoinfo/get_demo_extras_info', data={"demo_id": demo_id})
-            demoinfo_resp = resp.json()
+            result = self.demoinfo.get_demo_extras_info(demo_id)
 
-            if demoinfo_resp['status'] != 'OK':
-                raise IPOLDemoExtrasError("Failed to obtain demoExtras info")
+            if isinstance(result, Err):
+                raise IPOLDemoExtrasError(f"Failed to obtain demoExtras info ({result.value})")
 
             demoextras_compress_dir = os.path.join(self.dl_extras_dir, str(demo_id))
-            if 'url' not in demoinfo_resp:
+            info = result.value
+            if info is None:
                 if os.path.exists(demoextras_compress_dir):
                     shutil.rmtree(demoextras_compress_dir)
                 if os.path.exists(os.path.join(self.demo_extras_main_dir, str(demo_id))):
@@ -818,8 +1011,8 @@ class Core():
             if demoextras_file:
                 demoextras_file = demoextras_file[0]
 
-                demoinfo_demoextras_date = demoinfo_resp['date']
-                demoinfo_demoextras_size = demoinfo_resp['size']
+                demoinfo_demoextras_date = info['date']
+                demoinfo_demoextras_size = info['size']
                 extras_stat = os.stat(demoextras_file)
                 core_demoextras_date = extras_stat.st_ctime
                 core_demoextras_size = extras_stat.st_size
@@ -833,13 +1026,14 @@ class Core():
                 self.mkdir_p(demoextras_compress_dir)
 
             # Download new demoextras
-            demoextras_name = os.path.basename(demoinfo_resp['url'])
+            demoextras_name = os.path.basename(info['url'])
             demoextras_filename = urllib.parse.unquote(os.path.join(demoextras_compress_dir, demoextras_name))
-            self.download(demoinfo_resp['url'], demoextras_filename)
-            self.set_dl_extras_date(demoextras_filename, demoinfo_resp['date'])
+            self.download(info['url'], demoextras_filename)
+            self.set_dl_extras_date(demoextras_filename, info['date'])
             self.extract_demo_extras(demo_id, demoextras_filename)
 
         except Exception as ex:
+            self.logger.exception(ex)
             error_message = "Error processing the demoExtras of demo #{}: {}".format(demo_id, ex)
             raise IPOLDemoExtrasError(error_message)
 
@@ -1178,25 +1372,15 @@ attached the failed experiment data.". \
         return clientdata['demo_id'], origin, clientdata.get('params', None), \
                   clientdata.get('crop_info', None), clientdata.get('private_mode', None), blobs, blobset_id
 
-    def read_ddl(self, demo_id):
+    def read_ddl(self, demo_id: int) -> dict:
         """
         This function returns the DDL after checking its syntax.
         """
-        userdata = {'demo_id': demo_id}
-        demoinfo_resp = self.post('api/demoinfo/get_ddl', data=userdata)
-        try:
-            demoinfo_response = demoinfo_resp.json()
-        except Exception as ex:
-            error_message = f"Couldn't get DDL for demo {demo_id}, {ex}"
-            raise IPOLReadDDLError(error_message)
+        result = self.demoinfo.get_ddl(demo_id)
+        if isinstance(result, Err):
+            raise IPOLReadDDLError(f"Couldn't get DDL for demo {demo_id}: {result.value}")
 
-        if demoinfo_response['status'] != 'OK':
-            error_message = "Demoinfo answered KO."
-            error_code = demoinfo_response['error_code']
-            raise IPOLReadDDLError(error_message, error_code)
-
-        last_demodescription = demoinfo_response['last_demodescription']
-        ddl = json.loads(last_demodescription['ddl'], object_pairs_hook=OrderedDict)
+        ddl = json.loads(result.value)
         return ddl
 
     def find_suitable_demorunner(self, general_info):

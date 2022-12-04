@@ -141,7 +141,7 @@ def ajax_add_demo(request):
     demo_id = request.POST['demo_id']
 
     settings = {'state': state, 'title': title, 'demo_id': demo_id, 'ddl': '{}'}
-    result = api_post("/api/demoinfo/add_demo", settings, json='{}')
+    result = api_post("/api/demoinfo/add_demo", settings)
 
     editor_info = api_post('/api/demoinfo/get_editor', { 'email': request.user.email })
     editor_id = editor_info['editor']['id']

@@ -12,14 +12,13 @@ user = getpass.getuser()
 system_test = '/home/{}/ipolDevel/ci_tests/system.py'.format(user)
 archive_test = '/home/{}/ipolDevel/ipol_demo/modules/archive/test.py'.format(user)
 blobs_test = '/home/{}/ipolDevel/ipol_demo/modules/blobs/test.py'.format(user)
-demoinfo_test = '/home/{}/ipolDevel/ipol_demo/modules/demoinfo/test.py'.format(user)
 demorunner_test = '/home/{}/ipolDevel/ipol_demo/modules/demorunner/test.py'.format(user)
 
 resources = '/home/{}/ipolDevel/ci_tests/resources'.format(user)
 demorunners = '/home/{}/ipolDevel/ipol_demo/modules/config_common/demorunners.xml'.format(user)
 shared_folder = '/home/{}/ipolDevel/shared_folder'.format(user)
 
-tests = [demoinfo_test, blobs_test, archive_test, demorunner_test, system_test]
+tests = [blobs_test, archive_test, demorunner_test, system_test]
 
 def start():
     """
