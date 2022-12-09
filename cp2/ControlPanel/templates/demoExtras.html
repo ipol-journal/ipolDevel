@@ -20,14 +20,33 @@
         <li>zip -r demoExtras.zip source_dir</li>
     </ul>
     <form id="editDemoExtras" action="{% url 'add_extras' %}" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <input type="hidden" name="demo_id" value="{{ demo_id }}">
-        <label class="file">
+        <div class="extras-input-container">
+            {% csrf_token %}
+            <input type="hidden" name="demo_id" value="{{ demo_id }}">
+            <input type="hidden" name="title" value="{{ title }}">
             <input type="file" id="file" name="demoextras" aria-label="File browser for demoextras">
-            <span class="file-custom"></span>
-        </label>
-        <button type="submit" id="save-btn" class="btn" disabled><i class="fa-solid fa-upload"></i> Upload</button>
+            <label class="file-label" for="file">
+                <p class="extras-file-icon"><i class="fa-solid fa-file-arrow-up"></i></p>
+                <div>
+                    <strong>Choose a file</strong>
+                    <span class="file-custom"> or drag it here</span>
+                </div>
+            </label>
+            <button type="submit" id="save-btn" class="btn" disabled><i class="fa-solid fa-upload"></i> Upload</button>
+        </div>
     </form>
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert {{ message.tags }} alert-dismissible" role="alert" >
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="True">&times;</span>
+                </button>
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
     {% if extras_name %}
     <section>
         <h1>Uploaded demoextras</h1>
@@ -41,17 +60,5 @@
     </section>
     {% endif %}
 </div>
-<script>
-    $(document).ready(function () {
-        $('.file-custom').attr('data-value','Choose file...');
-        $('#file').on('change', function() {
-            let filename = $(this).prop('files')[0].name;
-            if (filename.length >= 30) {
-                filename = "..." + filename.slice(filename.length - 30, filename.length);
-            }
-            $('.file-custom').attr('data-value', filename);
-            $('#save-btn').prop('disabled', false);
-        })
-    });
-</script>
+<script type="text/javascript" src="/cp2/static/js/demoExtras.js"></script>
 {% endblock %}
