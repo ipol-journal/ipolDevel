@@ -5,11 +5,10 @@
 {% endblock %}  {% block content %}
 <h1>Experiment {{experiment.id}}</h1>
 <div class="archive-head">
-    <h2>{{title}}</h2>
     {% block searchExperimentForm %}
         {% include "searchExperimentForm.html" %}
     {% endblock%}
-    <a href="showArchive?demo_id={{demo_id}}&title={{title}}" class="btn btn-nav">Back to archive</a>
+    <a href="showArchive?demo_id={{demo_id}}" class="btn btn-nav">Back to archive</a>
 </div>
 
 <div class="experiment-container">

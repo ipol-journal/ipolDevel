@@ -13,13 +13,13 @@
         <h3>Title: {{ title }}</h3>
         <div id="demo-buttons">
             <div class="optionLine">
-                <a id="demoExtras" href="demoExtras?demo_id={{ demo_id }}&title={{title}}" class="btn">
+                <a id="demoExtras" href="demoExtras?demo_id={{ demo_id }}" class="btn">
                     <i class="fa-solid fa-file-import"></i> Demo Extras
                 </a>
                 <a href="showArchive?demo_id={{ demo_id }}&title={{title}}" class="btn">
                     <i class="fa-solid fa-box-archive"></i> Archive
                 </a>
-                <a id="showBlobsDemo" href="showBlobsDemo?demo_id={{ demo_id }}&title={{title}}" class="btn">
+                <a id="showBlobsDemo" href="showBlobsDemo?demo_id={{ demo_id }}" class="btn">
                     <i class="fa-solid fa-images"></i> Blobs
                 </a>
                 {% if can_edit %}
@@ -64,7 +64,7 @@
                     </dialog>
                 </div>
                 <dialog id="editors-dialog">
-                    <h1>{{ title }} editors</h1>
+                    <h1>Editors</h1>
                     {% for editor in editors_list %}
                     <div id="editor-{{editor.id}}" class="di-flex editor">
                         <p>{{editor.name}}</p>

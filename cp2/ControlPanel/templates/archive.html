@@ -5,24 +5,22 @@
 {% endblock %}  {% block content %}
 <h1>Archive</h1>
 <div class="archive-head">
-    <h2>{{title}}</h2>
     {% block searchExperimentForm %}
         {% include "searchExperimentForm.html" %}
     {% endblock%}
     <div class="archive-pagination">
         {% if page|add:"0" > 1 %}
-        <a href="showArchive?demo_id={{demo_id}}&title={{title}}&page={{page|add:'-1'}}" class="btn btn-nav">Previous page</a>
+        <a href="showArchive?demo_id={{demo_id}}&page={{page|add:'-1'}}" class="btn btn-nav">Previous page</a>
         {% endif %}
         <form action="showArchive" id="pagination-form">
             <input type="hidden" name="demo_id" value="{{demo_id}}">
-            <input type="hidden" name="title" value="{{title}}">
             <div class="page-input">
                 <input id="page-input" type="number" name="page" placeholder="Page" max="{{meta.number_of_pages}}">
                 <i class="fa-solid fa-magnifying-glass"></i>
             </div>
         </form>
         {% if page|add:"0" < meta.number_of_pages %}
-        <a href="showArchive?demo_id={{demo_id}}&title={{title}}&page={{page|add:'1'}}" class="btn btn-nav">Next page</a>
+        <a href="showArchive?demo_id={{demo_id}}&page={{page|add:'1'}}" class="btn btn-nav">Next page</a>
         {% endif %}
     </div>
 </div>
@@ -35,10 +33,10 @@
 {% endfor %}
 <div class="archive-pagination push-right">
     {% if page|add:"0" > 1 %}
-    <a href="showArchive?demo_id={{demo_id}}&title={{title}}&page={{page|add:'-1'}}">Previous page: {{page|add:"-1"}}</a>
+    <a href="showArchive?demo_id={{demo_id}}&page={{page|add:'-1'}}">Previous page: {{page|add:"-1"}}</a>
     {% endif %}
     {% if page|add:"0" < meta.number_of_pages %}
-    <a href="showArchive?demo_id={{demo_id}}&title={{title}}&page={{page|add:'1'}}">Next page: {{page|add:"1"}}</a>
+    <a href="showArchive?demo_id={{demo_id}}&page={{page|add:'1'}}">Next page: {{page|add:"1"}}</a>
     {% endif %}
 </div>
 </div>

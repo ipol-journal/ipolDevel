@@ -6,7 +6,7 @@
 
 <div class="head">
     <h2>Demo blobsets</h2>
-    <a id="addBlob" class="btn btn-add" href="createBlob?demo_id={{demo_id}}&title={{title}}">Add new Blob</a>
+    <a id="addBlob" class="btn btn-add" href="createBlob?demo_id={{demo_id}}">Add new Blob</a>
 </div>
 <div class="set-container">
     {% for set in blob_sets %}
@@ -15,7 +15,7 @@
             {% for key, blob in set.blobs.items %}
             <div id="slide-{{set.name}}-{{key}}">
                 <button class="btn-delete" name="{{set.name}}" blobPos="{{key}}">X</button>
-                <a href="detailsBlob?demo_id={{demo_id}}&title={{title}}&set={{set.name}}&pos={{key}}">
+                <a href="detailsBlob?demo_id={{demo_id}}&set={{set.name}}&pos={{key}}">
                     {% if blob.thumbnail %}
                     <img src="{{blob.thumbnail}}">
                     {% else %}
@@ -56,7 +56,7 @@
     </div>
 </div>
 
-<a href="showDemo?&demo_id={{demo_id}}&title={{title}}" class="btn">Return to the editor</a>
+<a href="showDemo?demo_id={{demo_id}}" class="btn">Return to the editor</a>
 
 <script type="text/javascript" src="/cp2/static/js/showBlobsDemo.js"></script>
 {% endblock %}

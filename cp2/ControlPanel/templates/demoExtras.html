@@ -3,7 +3,7 @@
     {% include "header.html" %}
 {% endblock %} {% block content %} 
 <div id="demoextras-texts" class="container-centered">
-    <a href="showDemo?demo_id={{demo_id}}&title={{title}}" class="btn mg-0">Go back to demo</a>
+    <a href="/cp2/showDemo?demo_id={{demo_id}}" class="btn mg-0">Go back to demo</a>
     <h1>Manage Demo Extras {{ demo_id }}</h1>
     {% if not can_edit %}
     <div id="can_edit">
@@ -28,6 +28,9 @@
         </label>
         <button type="submit" id="save-btn" class="btn" disabled><i class="fa-solid fa-upload"></i> Upload</button>
     </form>
+    {% if error %}
+    <h2 style="color:red">{{ error }}</h2>
+    {% endif %}
     {% if extras_name %}
     <section>
         <h1>Uploaded demoextras</h1>

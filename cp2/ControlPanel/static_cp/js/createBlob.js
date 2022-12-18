@@ -67,7 +67,7 @@ $(document).ready(function() {
                 dataType: 'json',
                 success: function(data) {
                     if (data.status === 'OK') {
-                        document.location.href = `showBlobsDemo?demo_id=${demo_id}&title=${title}`
+                        document.location.href = `showBlobsDemo?demo_id=${demo_id}`
                     } else {
                         alert("Error to add this Blob to the demo")
                     }
