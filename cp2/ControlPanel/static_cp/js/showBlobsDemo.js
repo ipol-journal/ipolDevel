@@ -2,7 +2,6 @@ var templates_used = [];
 var csrftoken = getCookie('csrftoken');
 var section = document.querySelector('section');
 var demo_id = getParameterByName('demo_id');
-var title = getParameterByName('title');
 var templateSelection;
 
 function add_template_to_demo(selected_template) {
@@ -39,7 +38,7 @@ $("button.unlink-template").click(function () {
         dataType: 'json',
         success: function(data) {
             if (data.status === 'OK') {
-                document.location.href = `showBlobsDemo?demo_id=${demo_id}&title=${title}`;
+                document.location.href = `showBlobsDemo?demo_id=${demo_id}`;
             } else {
                 alert("Error to delete this template from the demo");
             }
@@ -87,7 +86,7 @@ $("button.btn-delete").click(function () {
         url: 'removeBlob/ajax_remove_blob_from_demo',
         success: function(data) {
             if (data.status === 'OK') {
-                document.location.href = `showBlobsDemo?demo_id=${demo_id}&title=${title}`
+                document.location.href = `showBlobsDemo?demo_id=${demo_id}`
             } else {
                 alert("Error to delete this Blob");
             }

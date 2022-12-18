@@ -74,7 +74,7 @@ $(document).ready(function(){
                     if (template_id) {
                         document.location.href = `showTemplate?template_id=${template_id}&template_name=${template_name}`;
                     } else {
-                        document.location.href = `showBlobsDemo?demo_id=${demo_id}&title=${title}`;
+                        document.location.href = `showBlobsDemo?demo_id=${demo_id}`;
                     }
                 } else {
                     alert("Error to add this Blob to the Template")

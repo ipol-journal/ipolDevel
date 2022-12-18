@@ -4,7 +4,7 @@
 {% endblock %}
 {% block content %}
 <div class="editors-view">
-    <h1>{{ title }} editors</h1>
+    <h1>Editors</h1>
     <h2>Add demo editor</h2>
     <form id="add-editor-form" autocomplete="off" action="{% url 'add_demo_editor' %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
