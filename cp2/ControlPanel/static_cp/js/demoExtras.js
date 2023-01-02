@@ -83,7 +83,6 @@ $(document).ready(function () {
                 body: formData
             })
                 .then(response => {
-                    console.log(response)
                     window.location.replace(response.url)
                 })
         }
