@@ -28,7 +28,6 @@ $(document).ready(function () {
 
     // drag&drop files if the feature is available
     if(isAdvancedUpload) {
-        form.classList.add('has-advanced-upload'); // letting the CSS part to know drag&drop is supported by the browser
 
         [ 'drag', 'dragstart', 'dragend', 'dragover', 'dragenter', 'dragleave', 'drop' ].forEach(function(event) {
             form.addEventListener(event, function(e)
