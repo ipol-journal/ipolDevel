@@ -58,7 +58,6 @@ def status(request):
 @login_required(login_url='login')
 def demo_editors(request):
     demo_id = request.GET['demo_id']
-    title = request.GET.get('title', '')
 
     demo_editors = api_post('/api/demoinfo/demo_get_editors_list', { 'demo_id': demo_id })
     editor_list = demo_editors['editor_list']
@@ -70,7 +69,6 @@ def demo_editors(request):
 
     context = {
         'demo_id': demo_id,
-        'title': title,
         'can_edit': can_edit,
         'editors_list': editor_list,
         'available_editors': available_editors
@@ -123,7 +121,6 @@ def remove_demo_editor(request):
         'editor_id': editor_id
     }
     if user_can_edit_demo(request.user, demo_id):
-        print(settings)
         demoinfo_response = api_post('/api/demoinfo/remove_editor_from_demo', settings)
 
     response = {}
@@ -140,7 +137,7 @@ def remove_demo_editor(request):
 @csrf_protect
 def ajax_add_demo(request):
     state = request.POST['state'].lower()
-    title = request.POST.get('title', '')
+    title = request.POST['title']
     demo_id = request.POST['demo_id']
 
     settings = {'state': state, 'title': title, 'demo_id': demo_id, 'ddl': '{}'}
@@ -161,7 +158,7 @@ def ajax_add_demo(request):
         }, status=400)
     else:
         response['status'] = 'OK'
-        return HttpResponseRedirect(f'/cp2/showDemo?demo_id={demo_id}&title={title}')
+        return HttpResponseRedirect(f'/cp2/showDemo?demo_id={demo_id}')
 
 @login_required(login_url='login')
 @csrf_protect
@@ -343,7 +340,6 @@ def CreateBlob(request):
 
 @login_required(login_url='login')
 def ajax_add_blob_demo(request):
-    print(request.POST)
     blob_set = request.POST['SET']
     pos_set = request.POST['PositionSet']
     title = request.POST['Title']
@@ -479,7 +475,6 @@ def ajax_edit_blob_template(request):
 @login_required(login_url='login')
 def showDemo(request):
     demo_id = request.GET['demo_id']
-    title = request.GET.get('title', '')
     demoinfo_response = api_post('/api/demoinfo/get_ddl', { 'demo_id': demo_id })
     ssh_response = api_post('/api/demoinfo/get_ssh_keys', { 'demo_id': demo_id })
     ddl = None
@@ -500,6 +495,9 @@ def showDemo(request):
         pubkey = ssh_response['pubkey']
 
     can_edit = user_can_edit_demo(request.user, demo_id)
+
+    metainfo_response = api_post('/api/demoinfo/read_demo_metainfo', { 'demoid': demo_id })
+    title = metainfo_response.get('title', '')
 
     context = {
         'demo_id': demo_id,
@@ -544,7 +542,7 @@ def edit_demo(request):
         response['message'] = demoinfo_response.get('error')
         return HttpResponse(json.dumps(response), 'application/json')
     else:
-        return HttpResponseRedirect(f'/cp2/showDemo?demo_id={new_demo_id}&title={title}')
+        return HttpResponseRedirect(f'/cp2/showDemo?demo_id={new_demo_id}')
 
 @login_required(login_url='login')
 def ddl_history(request):
@@ -610,7 +608,6 @@ def ajax_save_DDL(request):
 @login_required(login_url='login')
 def showBlobsDemo(request):
     demo_id = request.GET['demo_id']
-    title = request.GET.get('title', '')
     can_edit = user_can_edit_demo(request.user, demo_id)
     blobs = api_post('/api/blobs/get_demo_owned_blobs', { 'demo_id': demo_id})
     blob_sets = blobs['sets']
@@ -624,7 +621,6 @@ def showBlobsDemo(request):
     context = {
         'can_edit': can_edit,
         'demo_id': demo_id,
-        'title': title,
         'blob_sets': blob_sets,
         'demo_used_templates': demo_used_templates,
         'template_list': template_list
@@ -632,32 +628,39 @@ def showBlobsDemo(request):
 
     return render(request, 'showBlobsDemo.html', context)
 
-@login_required(login_url='login')
-def demoExtras(request):
-    demo_id = request.GET['demo_id']
-    title = request.GET['title']
+def get_demo_extras_info(demo_id: int) -> dict:
     response = api_post('/api/demoinfo/get_demo_extras_info', {'demo_id': demo_id })
+    size = response.get('size')
+    extras_url = response.get('url')
+
     extras_name = None
-    extras_url = None
-    date = None
-    size = None
-    if 'url' in response:
+    if extras_url:
         extras_name = response['url'].split('/')[-1]
         extras_name = urllib.parse.unquote(extras_name)
-        extras_url = response['url']
+
+    date = None
+    if 'date' in response:
         timestamp = response['date']
         date = datetime.fromtimestamp(timestamp)
-        size = response['size']
 
-    context = {
+    info = {
         'demo_id': demo_id,
-        'title': title,
         'extras_url': extras_url,
         'extras_name': extras_name,
         'date': date,
         'size': size,
-        'hostname': HOST_NAME,
-        'can_edit': user_can_edit_demo(request.user, demo_id)
+    }
+    return info
+
+@login_required(login_url='login')
+def demoExtras(request):
+    demo_id = request.GET['demo_id']
+    info = get_demo_extras_info(int(demo_id))
+
+    context = {
+        'demo_id': demo_id,
+        'can_edit': user_can_edit_demo(request.user, demo_id),
+        **info,
     }
     return render(request, 'demoExtras.html', context)
 
@@ -667,14 +670,26 @@ def ajax_add_demo_extras(request):
     demo_id = request.POST['demo_id']
     file = request.FILES['demoextras']
     filename = request.FILES['demoextras'].name
+
+    context = {
+        'demo_id': demo_id,
+        'can_edit': user_can_edit_demo(request.user, demo_id),
+    }
+
     if user_can_edit_demo(request.user, demo_id):
-        params = { 
+        params = {
             'demo_id': demo_id,
             'demoextras_name': filename
-            }
+        }
         files = { 'demoextras': file}
-        api_post('/api/demoinfo/add_demoextras', params= params, files= files)
-    return HttpResponseRedirect(f'/cp2/demoExtras?demo_id={demo_id}')
+        response = api_post('/api/demoinfo/add_demoextras', params=params, files=files)
+        if response['status'] == 'KO':
+            context['error'] = response.get('error', "Could not add the demoextras")
+
+    info = get_demo_extras_info(int(demo_id))
+    context.update(**info)
+
+    return render(request, 'demoExtras.html', context)
 
 @login_required(login_url='login')
 def ajax_delete_demo_extras(request):
@@ -781,7 +796,6 @@ def show_archive(request):
 @login_required(login_url='login')
 def show_experiment(request):
     demo_id = request.GET['demo_id']
-    title = request.GET.get('title', '')
 
     if 'experiment_id' in request.GET:
         experiment_id = request.GET['experiment_id']
@@ -796,7 +810,6 @@ def show_experiment(request):
     meta = archive_response['meta']
 
     context = {
-        'title': title,
         'demo_id': demo_id,
         'experiment': experiment,
         'meta': meta,
