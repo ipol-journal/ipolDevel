@@ -2,7 +2,6 @@ $(document).ready(function () {
     let form = document.querySelectorAll('#editDemoExtras')[0];
     let input		 = form.querySelector('input[type="file"]'),
         label		 = form.querySelector('label'),
-        errorMsg	 = form.querySelector('.file-upload-error'),
         droppedFiles = false,
         showFiles	 = function(files) {
             label.textContent = files[ 0 ].name;
@@ -55,7 +54,7 @@ $(document).ready(function () {
         $('.extras-input-container').removeClass('di-none');
         $('.file-upload-uploading').addClass('di-none');
     }
-    showUploadingMessage = (errorMsg) => {
+    showUploadingMessage = () => {
         $('.extras-input-container').addClass('di-none');
         $('.file-upload-uploading').removeClass('di-none');
         $('.file-upload-error').addClass('di-none');
