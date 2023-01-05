@@ -23,17 +23,15 @@
         <div class="extras-input-container">
             {% csrf_token %}
             <input type="hidden" name="demo_id" value="{{ demo_id }}">
-            <input type="hidden" name="title" value="{{ title }}">
             <input type="file" id="file" name="demoextras" aria-label="File browser for demoextras">
             <label class="file-label" for="file">
                 <p class="extras-file-icon"><i class="fa-solid fa-file-arrow-up"></i></p>
-                <div>
-                    <strong>Choose a file</strong>
-                    <span class="file-custom"> or drag it here</span>
-                </div>
+                <span class="file-custom"><strong>Choose a file</strong> or drag it here</span>
             </label>
             <button type="submit" id="save-btn" class="btn" disabled><i class="fa-solid fa-upload"></i> Upload</button>
         </div>
+        <div class="file-upload-uploading di-none">Uploading... <i class="fa-solid fa-spinner"></i></div>
+        <div class="file-upload-error di-none"><i class="fa-solid fa-circle-exclamation"></i> Error, try again later or contact the admins</div>
     </form>
     {% if error %}
     <h2 style="color:red">{{ error }}</h2>

@@ -252,13 +252,18 @@ table {
     margin: 1rem 0;
     padding: 1rem 0;
     display: flex;
-    gap: 1rem;
+    flex-direction: column;
     outline: 2px dashed #92b0b3;
     outline-offset: -10px;
     -webkit-transition: outline-offset .15s ease-in-out, background-color .15s linear;
     transition: outline-offset .15s ease-in-out, background-color .15s linear;
     align-items: center;
     justify-content: center;
+}
+
+#editDemoExtras > div {
+    padding: 0.7rem;
+    margin: 0.7rem;
 }
 
 .extras-file-icon {
@@ -318,6 +323,20 @@ table {
     filter: alpha(opacity=0);
     opacity: 0;
 }
+
+.file-upload-uploading > i {
+    animation: spin 1s ease infinite;
+}
+
+@keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+  
+    100% {
+      transform: rotate(360deg);
+    }
+  }
 
 .extras-info {
     display: flex;
