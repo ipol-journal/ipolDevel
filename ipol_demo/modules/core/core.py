@@ -492,10 +492,10 @@ class Core():
         self.authorized_patterns = self.read_authorized_patterns()
 
         # create needed directories
-        self.mkdir_p(self.share_run_dir_abs)
-        self.mkdir_p(self.shared_folder_abs)
-        self.mkdir_p(self.dl_extras_dir)
-        self.mkdir_p(self.demo_extras_main_dir)
+        os.makedirs(self.share_run_dir_abs, exist_ok=True)
+        os.makedirs(self.shared_folder_abs, exist_ok=True)
+        os.makedirs(self.dl_extras_dir, exist_ok=True)
+        os.makedirs(self.demo_extras_main_dir, exist_ok=True)
 
         base_url = os.environ['IPOL_URL']
         demorunners_path = cherrypy.config["demorunners_file"]
@@ -547,19 +547,6 @@ class Core():
         except configparser.Error:
             self.logger.exception("Bad format in {}".format(self.authorized_patterns_file))
             return []
-
-    @staticmethod
-    def mkdir_p(path):
-        """
-        Create a directory given a path.
-        It's like a "mkdir -p" command.
-        """
-        try:
-            os.makedirs(path)
-        except OSError as exc:
-            # Better safe than sorry
-            if not (exc.errno == errno.EEXIST and os.path.isdir(path)):
-                raise
 
     @cherrypy.expose
     def index(self, code_starts=None):
@@ -978,7 +965,7 @@ class Core():
             if os.path.isdir(demo_extras_folder):
                 shutil.rmtree(demo_extras_folder)
 
-            self.mkdir_p(demo_extras_folder)
+            os.makedirs(demo_extras_folder, exist_ok=True)
             self.extract(compressed_file, demo_extras_folder)
         except Exception as ex:
             raise IPOLDemoExtrasError(ex)
@@ -1003,7 +990,7 @@ class Core():
                     shutil.rmtree(os.path.join(self.demo_extras_main_dir, str(demo_id)))
                 return
 
-            self.mkdir_p(demoextras_compress_dir)
+            os.makedirs(demoextras_compress_dir, exist_ok=True)
 
             demoextras_file = glob.glob(demoextras_compress_dir+"/*")
 
@@ -1023,7 +1010,7 @@ class Core():
                     return
                 # Remove old extras file to download a new version
                 shutil.rmtree(demoextras_compress_dir)
-                self.mkdir_p(demoextras_compress_dir)
+                os.makedirs(demoextras_compress_dir, exist_ok=True)
 
             # Download new demoextras
             demoextras_name = os.path.basename(info['url'])
@@ -1069,7 +1056,7 @@ class Core():
                                  self.share_run_dir_abs,
                                  str(demo_id),
                                  key)
-        self.mkdir_p(demo_path)
+        os.makedirs(demo_path, exist_ok=True)
         return demo_path
 
     def get_demo_metadata(self, demo_id):
