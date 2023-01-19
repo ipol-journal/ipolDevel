@@ -1,4 +1,11 @@
 $(document).ready(function () {
+    $('#file').on('change', function() {
+        let label = document.querySelector('.file-label');
+        let filename = $(this).prop('files')[0].name;
+        label.textContent = filename;
+        $('#save-btn').prop('disabled', false);
+    })
+
     let form = document.querySelectorAll('#editDemoExtras')[0];
     let input		 = form.querySelector('input[type="file"]'),
         label		 = form.querySelector('label'),
