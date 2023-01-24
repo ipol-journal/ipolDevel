@@ -518,7 +518,7 @@ def edit_demo(request):
     title = request.POST['demoTitle']
     state = request.POST['state']
     demo = {
-        'demo_id': new_demo_id,
+        'demo_id': int(new_demo_id),
         'title': title,
         'state': state
     }
