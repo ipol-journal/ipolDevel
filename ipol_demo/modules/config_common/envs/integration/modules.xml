@@ -23,16 +23,6 @@
     <command>ping</command>
   </module>
 
-  <module name="demoinfo">
-    <module>demoinfo</module>
-    <serverSSH>ipol_integration</serverSSH>
-    <serviceName>ipol-demoinfo --user</serviceName>
-    <command>start</command>
-    <command>stop</command>
-    <command>restart</command>
-    <command>ping</command>
-  </module>
-
   <module name="core">
     <module>core</module>
     <serverSSH>ipol_integration</serverSSH>

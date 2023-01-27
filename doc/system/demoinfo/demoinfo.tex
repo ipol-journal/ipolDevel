@@ -18,8 +18,7 @@ This module store the textual description of the demo and allows to ask for spec
 This Module is made of:
 \begin{itemize}
   \item model.py where the db structure, the DAO (Data access object) classes and some helper classes (Demo, Author and Editor) are defined. It provides a layer of abstraction over the DB.
-  \item demoinfo.conf it's the cherrypy config for the webservices module.
-  \item demoinfo.py it's the webservices module.
+  \item demoinfo.py it's the module.
 \end{itemize}
 
 \subsection{The model (database) structure}
@@ -35,14 +34,6 @@ The model of this module id made of the following tables:
 Note that states is the table for the demo's state (published, preprint, \dots)
 The Demodescription table is where the DDL of each demo is stored.
 A demo may be created without a DDL (but you will need to provide one so you can run it)
-
-\subsection{Web services available}
-This module provides a set of webservices, those that return data can be called with GET or other HTML methods, those that delete,create or update data can be called only by POST.
-These webservices are shown grouped by functionality,
-
-\miguel{This is NOT the right way to document a module. The documentation should explain \emph{why} and \emph{how}. Here it follows a list of functions with parameters, which is clearly not what we want. The list of services can be obtained from the source code and the docstrings documentation will be updated. With these descriptions here we can not ensure that the information is updated. Please always avoid having lists of functions or detailed database diagrams which are likely to be deprecated quickly. Instead, explain the solution and its architecture, not useless implementation details.}
-
-DEMO
 
 \begin{itemize}
 \item  demo\_list(self)

@@ -25,17 +25,6 @@
     <command>ping</command>
   </module>
 
-  <module name="demoinfo">
-    <module>demoinfo</module>
-    <server>127.0.0.1</server>
-    <serverSSH>localhost</serverSSH>
-    <path>~/ipolDevel/ipol_demo/modules/demoinfo/</path>
-    <command>start</command>
-    <command>stop</command>
-    <command>restart</command>
-    <command>ping</command>
-  </module>
-
   <module name="core">
     <module>core</module>
     <server>127.0.0.1</server>
