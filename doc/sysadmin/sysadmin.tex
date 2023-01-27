@@ -722,7 +722,7 @@ When you ping them all, they should be marked "OK"
 \begin{verbatim}[firstnumber=1,breaklines]
   IPOL> pingall
 \end{verbatim}
-If core and demoinfo are still unresponsive, create empty files /home/ipol/ipolDevel/ipol\_demo/modules/core/local.conf and /home/ipol/ipolDevel/ipol\_demo/modules/demoinfo/local.conf.
+If core is still unresponsive, create empty files /home/ipol/ipolDevel/ipol\_demo/modules/core/local.conf.
 
 You can now leave the terminal, cd to ipol\_webapp, create its venv, activate it, install its 
 requirements and make its migrations.
@@ -745,10 +745,9 @@ still in \emph{\~/ipolDevel/ipol\_webapp}:
 
 Choose a username, email address, and a password of your choice.
 
-\textbf{Important}: the only thing left to do is to download the staticData and db folders for the demoInfo
-and blobs modules. 
+\textbf{Important}: the only thing left to do is to download the staticData and db folders for the core and blobs modules.
 Then extract the content of these folders respectively in \emph{$./ipol\_demo/modules/blobs$}
-and in \emph{$./ipol\_demo/modules/demoInfo$} so that both of them have a staticData and db folders
+and in \emph{$./ipol\_demo/modules/core$} so that both of them have a staticData and db folders
 with the new files. Paths are relative to ipolDevel's repository root.
 
 You can now run cpanel with:

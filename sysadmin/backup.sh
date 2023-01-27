@@ -8,7 +8,7 @@ ipolDevelCopyPath=${backupsFolder}/ipolDevelCopy
 yearPeriod=$(date +"%Y-%q")
 
 # Backup modules databases
-modulesWithDB=("archive" "blobs" "demoinfo")
+modulesWithDB=("archive" "blobs" "core")
 modulesPath="/home/ipol/ipolDevel/ipol_demo/modules/"
 for module in ${modulesWithDB[@]}; do
   sqlite3 $modulesPath"$module"/db/$module.db ".backup '${modulesPath}${module}/db/${module}_backup.db'"

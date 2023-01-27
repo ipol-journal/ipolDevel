@@ -1,7 +1,3 @@
-"""
-DemoInfo: an information container module
-"""
-
 import glob
 import json
 import logging
