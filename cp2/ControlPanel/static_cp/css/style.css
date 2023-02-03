@@ -236,6 +236,11 @@ table {
     padding-bottom: 1rem;
 }
 
+.content-center{
+    display: flex;
+    place-content: center;
+}
+
 .flex-center {
     display: flex;
     flex-direction: column;

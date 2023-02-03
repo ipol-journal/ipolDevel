@@ -360,7 +360,7 @@ def ajax_add_blob_demo(request):
         else:
             response['status'] = 'OK'
             return HttpResponse(json.dumps(response), 'application/json')
-    else: 
+    else:
         return render(request, 'homepage.html')
 
 
