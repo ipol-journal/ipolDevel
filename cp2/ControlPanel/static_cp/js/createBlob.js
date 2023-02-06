@@ -3,98 +3,11 @@ var csrftoken = getCookie('csrftoken');
 var blobImage;
 var template_id = getParameterByName('template_id');
 var template_name = getParameterByName('template_name');
+var demo_id = getParameterByName('demo_id');
 let files = new Map();
 let vrs = new Map();
 
 $(document).ready(function() {
-	if (template_id) {
-		var form = document.getElementById('editBlobForm');
-		form.onsubmit = function(e) {
-			e.preventDefault();
-			let formData = new FormData();
-			formData.append('Title', $('#title').val());
-			formData.append('SET', $('#set').val());
-			formData.append('PositionSet', $('#positionSet').val());
-			formData.append('Credit', $('#credit').val());
-			formData.append('Tags', $('#tags').val());
-			formData.append('TemplateSelection', template_id);
-			formData.append('Blobs', blobImage, blobImage.name);
-			if (VRImage) {
-				formData.append('VR', VRImage, VRImage.name);
-			}
-			formData.append('csrfmiddlewaretoken', csrftoken);
-			$.ajax({
-				url: 'createBlob/ajax',
-				data: formData,
-				cache: false,
-				contentType: false,
-				processData: false,
-				type: 'POST',
-				dataType: 'json',
-				success: function(data) {
-					if (data.status === 'OK') {
-						document.location.href = `showTemplate?template_id=${template_id}&template_name=${template_name}`
-					} else {
-						alert("Error to add this Blob to the Template")
-					}
-				},
-			})
-		}
-		// } else {
-		//     let demo_id = getParameterByName('demo_id');
-		//     update_edit_demo();
-		//     var form = document.getElementById('editBlobForm');
-		//     form.onsubmit = function(e) {
-		//         e.preventDefault();
-		//         var formData = new FormData();
-		//         formData.append('SET', $('#set').val());
-		//         formData.append('PositionSet', $('#positionSet').val());
-		//         formData.append('Credit', $('#credit').val());
-		//         formData.append('Tags', $('#tags').val());
-		//         formData.append('demo_id', demo_id);
-		//         formData.append('Blobs', blobImage, blobImage.name);
-		//         if (VRImage) {
-		//             formData.append('VR', VRImage, VRImage.name);
-		//         }
-		//         formData.append('csrfmiddlewaretoken', csrftoken);
-		//         $.ajax({
-		//             url: 'createBlob/ajax_demo',
-		//             data: formData,
-		//             cache: false,
-		//             contentType: false,
-		//             processData: false,
-		//             type: 'POST',
-		//             dataType: 'json',
-		//             success: function(data) {
-		//                 if (data.status === 'OK') {
-		//                     document.location.href = `showBlobsDemo?demo_id=${demo_id}`
-		//                 } else {
-		//                     alert("Error to add this Blob to the demo")
-		//                 }
-		//             },
-		//         })
-		//     }
-		
-		function update_edit_demo() {
-			$.ajax({
-				data: ({
-					demoID: demo_id,
-					csrfmiddlewaretoken: csrftoken,
-				}),
-				dataType: 'json',
-				type: 'POST',
-				url: 'showDemo/ajax_user_can_edit_demo',
-				success: function(data) {
-					if (data.can_edit === 'NO') {
-						alert("You are not allowed to edit this blob")
-						$('#ButtonAddBlob').remove();
-					}
-					
-				},
-			});
-		};
-	}
-
 	function handleFileSelect(event) {
 		event.stopPropagation();
 		event.preventDefault();
@@ -186,17 +99,22 @@ $(document).ready(function() {
 		let blobs = document.querySelectorAll('#upload-list > div');
 		let blobUploads = [];
 		blobs.forEach((blob, i) => {
-			blobUploads[i] = sendBlob(blob, i);
+			blobUploads[i] = sendBlobs(blob, i);
 		});
 		Promise.allSettled(blobUploads)
-			.then(response => {
-				console.log(response);
+			.then(results => {
+				if (template_id) {
+					window.location.href = `showTemplate?template_id=${template_id}&template_name=${template_name}`;
+				} else {
+					window.location.href = `showBlobsDemo?demo_id=${demo_id}`;
+				}
 			})
-			.catch(error => console.log(error));
+			.catch(error => {
+				console.log(error);
+			});
 	}
 
-	async function sendBlob(blob, i) {
-		console.log(blob, blob.querySelector('.preview'));
+	async function sendBlobs(blob, i) {
 		const formData = new FormData();
 
 		formData.append('csrfmiddlewaretoken', csrftoken);
@@ -204,13 +122,21 @@ $(document).ready(function() {
 		formData.append('SET', blob.querySelector('.set').value);
 		formData.append('PositionSet', blob.querySelector('.position').value);
 		formData.append('Credit', blob.querySelector('.credit').value);
-		formData.append('demo_id', getParameterByName('demo_id'));
 		formData.append('Blobs', files.get(i), 'asd');
 		if (vrs.get(i)) {
 			formData.append('VR', vrs.get(i), 'vr');
 		}
-
-		let url = 'createBlob/ajax_demo';
+		let url = '';
+		if (template_id) {
+			url = 'createBlob/template'
+			destination = 'TemplateSelection';
+			id = template_id;
+		} else {
+			url = 'createBlob/demo';
+			destination = 'demo_id';
+			id = demo_id;
+		}
+		formData.append(destination, id);
 		return fetch(url, {
 			method: 'POST',
 			body: formData
@@ -218,7 +144,6 @@ $(document).ready(function() {
 	}
 
 	function clearPreview(event) {
-		console.log(this);
 		let id = parseInt(this.getAttribute('data-id'));
 		document.querySelector(`#vr-${id}`).remove();
 		vrs.delete(id);
