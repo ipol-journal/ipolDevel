@@ -10,8 +10,10 @@
 {% endif %}
 <div id="upload-container" class="upload-container container-centered">
     <h1>Drop your files here</h1>
-    <input type="file" id="upload-input" multiple />
-    <button class="upload-button">Or pick one</button>
+    <input type="file" id="upload-input" aria-label="Pick a file" multiple />
+    <label for="file-selector" class="file-selector-label" onclick="$('#upload-input').click();">
+      <p>Or pick one</p>
+    </label>
 </div>
 <div id="" class="container-centered content-center">
   <button id="add-blobs-btn" class="btn btn-add centered" disabled>Upload</button>

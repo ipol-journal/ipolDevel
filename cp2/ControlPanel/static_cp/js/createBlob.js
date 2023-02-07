@@ -16,7 +16,7 @@ $(document).ready(function() {
 		addBtn.disabled = false;
 		addBtn.addEventListener("click", uploadBlobs, false);
 
-		let blobs = event.dataTransfer.files;
+		let blobs = event.dataTransfer?.files || [...document.querySelector("#upload-input").files];
 
 		[...blobs].forEach((file, i) => {
 			let reader = new FileReader();
@@ -182,6 +182,8 @@ $(document).ready(function() {
 	}
 	
 	let dropZone = document.getElementById("upload-container");
+	let uploadButton = document.querySelector("#upload-input");
+	uploadButton.addEventListener("change", handleFileSelect, false);
 	dropZone.addEventListener("dragover", handleDragOver, false);
 	dropZone.addEventListener("drop", handleFileSelect, false);
 });

@@ -103,3 +103,10 @@
     min-height: 0;
     max-height: 100%;
 }
+
+.file-selector-label {
+    padding: 0.5rem;
+    background-color: var(--color-black);
+    color: var(--color-white);
+    border-radius: var(--border-radius);
+}
