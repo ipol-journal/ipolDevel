@@ -49,7 +49,6 @@ $(document).ready(function() {
 				let position = document.createElement("input");
 				position.type = "number";
 				position.classList.add("position");
-				position.value = i;
 				position.placeholder = "Position in set";
 				details.appendChild(position);
 				

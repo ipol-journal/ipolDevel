@@ -104,6 +104,17 @@
     max-height: 100%;
 }
 
+.blob-upload-info {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: 1rem;
+    margin: 0 auto;
+    width: 80%;
+    padding: 1rem;
+}
+
 .file-selector-label {
     padding: 0.5rem;
     background-color: var(--color-black);
