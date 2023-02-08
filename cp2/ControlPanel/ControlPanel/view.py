@@ -350,18 +350,18 @@ def ajax_add_blob_demo(request):
         files['blob_vr'] = request.FILES['VR'].file
 
     response = {}
-    if user_can_edit_demo(request.user, demo_id):
-        settings = {'demo_id' : demo_id, 'blob_set' : blob_set, 'pos_set' : pos_set, 'title' : title, 'credit' : credit}
-        response_api = api_post("/api/blobs/add_blob_to_demo",settings , files)
-        result = response_api
-        if result.get('status') != 'OK':
-            response['status'] = 'KO'
-            return HttpResponse(json.dumps(response), 'application/json')
-        else:
-            response['status'] = 'OK'
-            return HttpResponse(json.dumps(response), 'application/json')
-    else:
+    if not user_can_edit_demo(request.user, demo_id):
         return render(request, 'homepage.html')
+
+    settings = {'demo_id' : demo_id, 'blob_set' : blob_set, 'pos_set' : pos_set, 'title' : title, 'credit' : credit}
+    response_api = api_post("/api/blobs/add_blob_to_demo",settings , files)
+    result = response_api
+    if result.get('status') != 'OK':
+        response['status'] = 'KO'
+        return HttpResponse(json.dumps(response), 'application/json')
+    else:
+        response['status'] = 'OK'
+        return HttpResponse(json.dumps(response), 'application/json')
 
 
 @login_required(login_url='login')

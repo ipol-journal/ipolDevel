@@ -4,9 +4,9 @@
     {% include "header.html" %}
 {% endblock %}  {% block content %}
 {% if template_name %}
-<h1>Add Blob to: {{ template_name }}</h1>
+<h1>Add Blob to {{ template_name }}</h1>
 {% elif demo_id %}
-<h1>Add Blob to demo: {{ demo_id }}</h1>
+<h1>Add Blob to demo {{ demo_id }}</h1>
 {% endif %}
 <section class="blob-upload-info">
   <h1>Usage:</h1>
@@ -15,8 +15,8 @@
     <li>1. Drag and drop files into the box</li>
     <li>2. Click the button and choose however many files as you need</li>
   </ul>
-  <p>To save the blobs in the system, click on the upload button.</p>
-  <p>When dropping multiple files it will autofill the name of the files being dropped.</p>
+  <p>Then click on the upload button.</p>
+  <p>When dropping multiple files, it will autofill their names.</p>
 </section>
 <div id="upload-container" class="upload-container container-centered">
     <h1>Drop your files here</h1>
