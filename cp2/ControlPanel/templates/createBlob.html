@@ -4,25 +4,30 @@
     {% include "header.html" %}
 {% endblock %}  {% block content %}
 {% if template_name %}
-<h1>Add Blob to: {{ template_name }}</h1>
+<h1>Add Blob to {{ template_name }}</h1>
 {% elif demo_id %}
-<h1>Add Blob to: {{ demo_id }}</h1>
+<h1>Add Blob to demo {{ demo_id }}</h1>
 {% endif %}
-<div id="DetailsBlob">
-    {% block blobForm %}
-        {% include "editBlobForm.html" %}
-    {% endblock%}
-    <div id="blobRepresentation">
-        <div id="blobThumbnail">
-            <p>Blob</p>
-            <img id="thumbnail" title="Blob" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onError=setBrokenImage(this)>
-        </div>
-        <div id="vrThumbnail">
-            <p>Visual representation</p>
-            <img id="thumbnail_vr" title="Visual Representation" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onError=setBrokenImage(this)>
-        </div>
-    </div>
+<section class="blob-upload-info">
+  <h1>Usage:</h1>
+  <p>In order to upload new blobs you may use any of the following methods:</p>
+  <ul>
+    <li>1. Drag and drop files into the box</li>
+    <li>2. Click the button and choose however many files as you need</li>
+  </ul>
+  <p>Then click on the upload button.</p>
+  <p>When dropping multiple files, it will autofill their names.</p>
+</section>
+<div id="upload-container" class="upload-container container-centered">
+    <h1>Drop your files here</h1>
+    <input type="file" id="upload-input" aria-label="Pick a file" multiple />
+    <label for="file-selector" class="file-selector-label" onclick="$('#upload-input').click();">
+      <p>Or pick one</p>
+    </label>
 </div>
-
+<div id="" class="container-centered content-center">
+  <button id="add-blobs-btn" class="btn btn-add centered" disabled>Upload</button>
+</div>
+<div id="upload-list" class="upload-list container-centered"></div>
 <script type="text/javascript" src="static/js/createBlob.js"></script>
 {% endblock %}
