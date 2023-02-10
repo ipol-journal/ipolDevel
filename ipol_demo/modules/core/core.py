@@ -241,18 +241,6 @@ class DemoInfoAPI:
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
     @authenticate
-    def delete_demo(self, demo_id):
-        demo_id = int(demo_id)
-        result = self.demoinfo.delete_demo(demo_id)
-        if isinstance(result, Ok):
-            data = {'status': 'OK'}
-        else:
-            data = {'status': 'KO', 'error': result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @cherrypy.tools.allow(methods=['POST'])  # allow only post
-    @authenticate
     def update_demo(self, demo: str, old_editor_demoid: int):
         old_editor_demoid = int(old_editor_demoid)
         demo_dict = json.loads(demo)
@@ -1834,11 +1822,13 @@ attached the failed experiment data.". \
         return dic
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])  # allow only post
     @authenticate
     def delete_demo(self, demo_id):
         """
         Delete the specified demo
         """
+        demo_id = int(demo_id)
         data = {}
         data['status'] = 'OK'
         userdata = {'demo_id': demo_id}
@@ -1846,9 +1836,16 @@ attached the failed experiment data.". \
 
         try:
             # delete demo, blobs and extras associated to it
-            for api in ['/api/demoinfo/delete_demo', '/api/blobs/delete_demo', '/api/demoinfo/delete_demoextras']:
-                if self.post(api, data=userdata).json()['status'] != 'OK':
-                    error_message += f"API call {api} failed.'\n"
+            result = self.demoinfo.delete_demo(demo_id)
+            if not isinstance(result, Ok):
+                error_message += f"Error when removing demo: {result.value} \n"
+
+            result = self.demoinfo.delete_demoextras(demo_id)
+            if not isinstance(result, Ok):
+                error_message += f"Error when removing demoextras: {result.value} \n"
+
+            if self.post('/api/blobs/delete_demo', data=userdata).json()['status'] != 'OK':
+                error_message += f"API call /blobs/delete_demo failed.'\n"
 
             #delete the archive
             res_archive = self.post('/api/archive/delete_demo', data=userdata).json()
