@@ -118,8 +118,8 @@ function addToParamsObject(param) {
 
 function addMaxMin(param, index) {
   if (param.values.max || param.values.min) $('.param-content-' + index).append("<div id=maxmin-" + index + " class=maxmin ></div>");
-  if (param.values.max) $('#maxmin-' + index).append("<span> Max: " + param.values.max + "</span>");
-  if (param.values.min) $('#maxmin-' + index).append("<span> Min: " + param.values.min + "</span>");
+  if ('max' in param.values) $('#maxmin-' + index).append("<span> Max: " + param.values.max + "</span>");
+  if ('min' in param.values) $('#maxmin-' + index).append("<span> Min: " + param.values.min + "</span>");
 }
 
 function updateParamsArrayValue(param_id, value) {
