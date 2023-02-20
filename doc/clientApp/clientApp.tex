@@ -25,7 +25,8 @@
 \usepackage{ifpdf}
 \usepackage[hyphens]{url}
 \usepackage{color}
-\usepackage[hidelinks]{hyperref}
+%\usepackage[hidelinks]{hyperref}
+\usepackage{hyperref}
 \usepackage{multirow}
 \usepackage{datetime}
 \usepackage{comment}
@@ -171,9 +172,17 @@ This document contains the technical documentation for the Demo Web interface 3.
 %\maketitle
 \newpage
 
+{
+\hypersetup{linkbordercolor=white}
+% or \hypersetup{linkcolor=black}, if the colorlinks=true option of hyperref is used
 \tableofcontents
+}
 \newpage
+
+{
+\hypersetup{linkbordercolor=white}
 \listoffigures
+}
 \newpage
 
 % The Demo Description Lines (DDL) and automatic demo generation

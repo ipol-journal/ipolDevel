@@ -160,7 +160,7 @@ allows choosing a set with any combination of images, audio and video. Depending
 If a set contains multiple images, the user will be able to compare and make zoom using any image on the set. If the user chooses a set with only 
 one image blob, options will depend on DDL limitations and will include zoom and crop features, as well as mask editing.
 
-\section{Implementation of Features}
+\section{Implementation of features}
 This section describes how particular features on the web interface are implemented.
 
 %
@@ -194,3 +194,20 @@ There are two ways to reconstruct an experiment from the archive:
 	\item Clicking the button on the archive page of the specific experiment.
 	\item Using the URL with the parameter  "archive=XXX". Useful to share results.
 \end{itemize}
+
+\subsection{Interactive world map}
+Demos working with satellite images often need that the user selects a zone on a map which can be interactively zoomed in and out. The zone is typically defined by a polygon drawn over the map.
+
+The data format is \href{https://geojson.org/}{GeoJSON}, since its specification has been standardized by the IETF as \href{https://www.rfc-editor.org/rfc/rfc7946}{RFC 7946}.
+
+
+
+
+
+
+
+
+
+
+
+
