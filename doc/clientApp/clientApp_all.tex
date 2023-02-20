@@ -197,14 +197,18 @@ There are two ways to reconstruct an experiment from the archive:
 
 \subsection{Interactive world map}
 Demos working with satellite images often need that the user selects a zone on a map which can be interactively zoomed in and out. The zone is typically defined by a polygon drawn over the map.
+%
+The data format is \href{https://geojson.org/}{GeoJSON}, since its specification has been standardized by the \href{https://www.ietf.org/}{IETF} as \href{https://www.rfc-editor.org/rfc/rfc7946}{RFC 7946}.
 
-The data format is \href{https://geojson.org/}{GeoJSON}, since its specification has been standardized by the IETF as \href{https://www.rfc-editor.org/rfc/rfc7946}{RFC 7946}.
+The \href{https://www.mapbox.com/}{Mapbox} company offers several map services under the \emph{pay-as-you-go} modality, including the interactive widget Mapbox GL JS which can be included in websites. The control is \href{https://docs.mapbox.com/mapbox-gl-js/api/}{properly documented}, including \href{https://docs.mapbox.com/help/tutorials/?product=Mapbox+GL+JS}{tutorials} and \href{https://docs.mapbox.com/mapbox-gl-js/example/}{examples}.
 
+To add the map on a website one needs to obtain an access token, include the mapbox-gl JS libraries and instantiate a new mapboxgl.Map object. Please look at the Mapbox's \href{https://docs.mapbox.com/mapbox-gl-js/example/simple-map/}{example}. The Map object has a programatic \href{https://docs.mapbox.com/mapbox-gl-js/api/map/}{JS API} several methods and properties to easily interact with it.
 
+Polygons can be drawn with the \href{https://github.com/mapbox/mapbox-gl-draw}{mapbox-gl-draw} library and it is possible to programatically interact with them, as shown in the \href{https://docs.mapbox.com/mapbox-gl-js/example/mapbox-gl-draw/}{example}.
 
+The latitude and longitude of the polygon vertices is encoded in the GeoJSON response without further processing needed from the IPOL's side. However, it's simply to obtain both the pixel locations and their corresponding longitude and latitude from events, as shown \href{https://docs.mapbox.com/mapbox-gl-js/example/mouse-position/}{here}.
 
-
-
+Although not used in IPOL demos so far, the \href{http://turfjs.org/}{TURF} library should be considered if more complex operations (such as computing areas inside polygons, or determining if a point is inside a polygon, among many others) are needed in the future.
 
 
 
