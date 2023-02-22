@@ -696,12 +696,18 @@ class Blobs():
         thumbnail_url = '/api/blobs/' + thumb_physical_dir
         blob_url = '/api/blobs/' + blob_physical_dir
 
+        vr_path = os.path.join(vr_physical_dir, blob['hash'] + blob['extension'])
+        vr_mtime = ''
+        if os.path.exists(vr_path):
+            vr_mtime = os.path.getmtime(vr_path)
+
         blob_info = {'id': blob['id'],
                      'title': blob['title'],
                      'blob': os.path.join(blob_url, blob['hash'] + blob['extension']),
                      'format': blob['format'],
                      'credit': blob['credit'],
-                     'pos_set': blob['pos_set']}
+                     'pos_set': blob['pos_set'],
+                     'vr_mtime': vr_mtime}
 
         if self.blob_has_thumbnail(blob['hash']):
             blob_info['thumbnail'] = os.path.join(self.module_dir, thumbnail_url, blob['hash'] + '.jpg')

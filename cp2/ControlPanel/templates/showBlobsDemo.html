@@ -17,7 +17,8 @@
                 <button class="btn-delete" name="{{set.name}}" blobPos="{{key}}">X</button>
                 <a href="detailsBlob?demo_id={{demo_id}}&set={{set.name}}&pos={{key}}">
                     {% if blob.thumbnail %}
-                    <img src="{{blob.thumbnail}}">
+                    <!-- Vr file modification time to avoid browser cache -->
+                    <img src="{{blob.thumbnail}}?{{blob.vr_mtime}}">
                     {% else %}
                     <img src="/cp2/static/images/non_viewable_inputs.png">
                     {% endif %}

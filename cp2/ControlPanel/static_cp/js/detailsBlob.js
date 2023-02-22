@@ -105,7 +105,8 @@ function update_edit_demo() {
 };
 function vrVisibility (blob) {
     if (blob.vr) {
-        document.getElementById("thumbnail_vr").src = blob.vr;
+        // Vr file modification time query parameter to avoid browser cache
+        document.getElementById("thumbnail_vr").src = `${blob.vr}?${blob.vr_mtime}`;
         document.getElementById("thumbnail_vr").style = "visibility : visible"
     }
     else {
