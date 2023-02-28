@@ -39,9 +39,7 @@ class IntegrationTests(unittest.TestCase):
         Clean the DB from the tests
         """
         # Delete demo test
-        self.delete_demo_in_demoinfo(self.demo_id)
-        self.delete_demo_in_archive(self.demo_id)
-        self.delete_demo_in_blobs(self.demo_id)
+        self.delete_demo(self.demo_id)
 
     def test_execution_with_blobset(self):
         """
@@ -54,8 +52,7 @@ class IntegrationTests(unittest.TestCase):
         add_blob_status = None
         blob_id = None
         run_status = None
-        delete_demo_demoinfo_status = None
-        delete_demo_blobs_status = None
+        delete_demo_status = None
         try:
             # Create Demo
             response = self.create_demo(self.demo_id, self.demo_title, self.demo_state)
@@ -87,11 +84,8 @@ class IntegrationTests(unittest.TestCase):
             run_status = response.get('status')
 
             # Delete demo in Demoinfo and Blobs
-            response = self.delete_demo_in_demoinfo(self.demo_id)
-            delete_demo_demoinfo_status = response.get('status')
-
-            response = self.delete_demo_in_blobs(self.demo_id)
-            delete_demo_blobs_status = response.get('status')
+            response = self.delete_demo(self.demo_id)
+            delete_demo_status = response.get('status')
 
         finally:
             self.assertEqual(create_demo_status, 'OK')
@@ -100,8 +94,7 @@ class IntegrationTests(unittest.TestCase):
             self.assertEqual(add_blob_status, 'OK')
             self.assertTrue(isinstance(blob_id, int))
             self.assertEqual(run_status, 'OK')
-            self.assertEqual(delete_demo_demoinfo_status, 'OK')
-            self.assertEqual(delete_demo_blobs_status, 'OK')
+            self.assertEqual(delete_demo_status, 'OK')
 
     def test_execution_with_upload(self):
         """
@@ -115,9 +108,7 @@ class IntegrationTests(unittest.TestCase):
         experiments = None
         n_experiments = None
         archive_status = None
-        delete_demo_archive_status = None
-        delete_demo_demoinfo_status = None
-        delete_demo_blobs_status = None
+        delete_demo_status = None
         try:
             # Create Demo
             response = self.create_demo(self.demo_id, self.demo_title, self.demo_state)
@@ -151,15 +142,9 @@ class IntegrationTests(unittest.TestCase):
             except Exception:
                 pass
 
-            # Delete demo in Archive, Demoinfo and Blobs
-            response = self.delete_demo_in_archive(self.demo_id)
-            delete_demo_archive_status = response.get('status')
-
-            response = self.delete_demo_in_demoinfo(self.demo_id)
-            delete_demo_demoinfo_status = response.get('status')
-
-            response = self.delete_demo_in_blobs(self.demo_id)
-            delete_demo_blobs_status = response.get('status')
+            # Delete demo
+            response = self.delete_demo(self.demo_id)
+            delete_demo_status = response.get('status')
 
         finally:
             self.assertEqual(create_demo_status, 'OK')
@@ -169,9 +154,7 @@ class IntegrationTests(unittest.TestCase):
             self.assertEqual(archive_status, 'OK')
             self.assertTrue(isinstance(experiments, list))
             self.assertTrue(n_experiments > 0)
-            self.assertEqual(delete_demo_archive_status, 'OK')
-            self.assertEqual(delete_demo_demoinfo_status, 'OK')
-            self.assertEqual(delete_demo_blobs_status, 'OK')
+            self.assertEqual(delete_demo_status, 'OK')
 
     #####################
     #       TOOLS       #
@@ -255,31 +238,19 @@ class IntegrationTests(unittest.TestCase):
         response = self.post('core', 'run', data={"clientData": json.dumps(params)}, files=files)
         return response.json()
 
-    def delete_demo_in_demoinfo(self, demo_id):
+    def delete_demo(self, demo_id):
         """
         Delete demo from demoinfo
         """
         params = {'demo_id': demo_id}
-        response = self.post('demoinfo', 'delete_demo', params=params)
-        return response.json()
-
-    def delete_demo_in_blobs(self, demo_id):
-        """
-        Delete demo from blobs
-        """
-        params = {'demo_id': demo_id}
-        response = self.post('blobs', 'delete_demo', params=params)
+        response = self.post('core', 'delete_demo', params=params)
         return response.json()
 
     def get_archive_experiments_by_page(self, demo_id, page=None):
         if page is None: page = 0
         params = {'demo_id': demo_id, 'page': page}
         response = self.post('archive', 'get_page', params=params)
-        return response.json()
-
-    def delete_demo_in_archive(self, demo_id):
-        params = {'demo_id': demo_id}
-        response = self.post('archive', 'delete_demo', params=params)
+        print(response.json())
         return response.json()
 
 
