@@ -250,7 +250,6 @@ class IntegrationTests(unittest.TestCase):
         if page is None: page = 0
         params = {'demo_id': demo_id, 'page': page}
         response = self.post('archive', 'get_page', params=params)
-        print(response.json())
         return response.json()
 
 
