@@ -596,9 +596,9 @@ class Core():
             for demo_data in demos_by_state[publication_state]:
                 editorsdemoid = str(demo_data['editorsdemoid'])
 
-                demos_string += "Demo #{0} {1}: <a href='/demo/clientApp/demo.html?id={0}' target='_blank'>{2}</a><br>".format(
+                demos_string += "Demo #{0}{1}: <a href='/demo/clientApp/demo.html?id={0}' target='_blank'>{2}</a><br>".format(
                     editorsdemoid,
-                    "(private)" if editorsdemoid.startswith("33333") else "",
+                    " (private)" if editorsdemoid.startswith("33333") else "",
                     demo_data['title'])
 
         string = """
