@@ -6,13 +6,20 @@ profile = "black"
 py_version = 39
 
 [tool.ruff]
-# because of cp2/ControlPanel/ControlPanel/urls.py
-ignore = ["F405"]
+ignore = [
+    # because of cp2/ControlPanel/ControlPanel/urls.py
+    "F405",
+    "F403",
+    # because we don't package the modules, so we have to do bad things with sys.path
+    "E402",
+]
 
 exclude = [
     # unmaintained scripts
     "tools/migrations/",
     "sysadmin/",
+    # python 2
+    "ipol_demo/modules/demorunner/Tools/PythonTools/ply2obj.py",
 ]
 
 # for now we don't force black formatting

@@ -18,7 +18,7 @@ def homepage(request):
     try:
         page = request.GET.get('page')
         page = int(page)
-    except:
+    except Exception:
         page = 1
 
     settings = {
@@ -299,6 +299,7 @@ def ajax_remove_blob_from_demo(request):
     pos_set = request.POST['pos_set']
     
     if not user_can_edit_demo(request.user, demo_id):
+        response = {}
         response['status'] = 'KO'
         response['message'] = 'User not allowed'
         return HttpResponse(json.dumps(response), 'application/json')

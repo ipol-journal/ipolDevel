@@ -12,8 +12,8 @@ from functools import reduce
 # TINY STUFF
 #
 
-def prod(l):
-    return reduce(lambda a, b: a * b, l, 1)
+def prod(lst):
+    return reduce(lambda a, b: a * b, lst, 1)
 
 #
 # BASE_APP REUSE

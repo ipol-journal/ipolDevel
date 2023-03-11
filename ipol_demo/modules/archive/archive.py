@@ -281,9 +281,9 @@ class Archive():
         where the full path /tmp/a/b/ has been created
         returns this new_path and the subdirectory (a/b/) if depth = 2
         """
-        l = min(len(hash_name), depth)
+        length = min(len(hash_name), depth)
 
-        subdirs = '/'.join(list(hash_name[:l]))
+        subdirs = '/'.join(list(hash_name[:length]))
         new_directory_name = main_directory + subdirs + '/'
 
         if not os.path.isdir(new_directory_name):
