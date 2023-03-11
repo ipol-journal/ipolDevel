@@ -1,9 +1,11 @@
+import logging
 import os
-import requests
 import socket
+
+import requests
+
 #function in order to know wich machine/server it's used for POST and GET methods (/api/....)
 
-import logging
 
 logger = logging.getLogger(__name__)
 

@@ -1,5 +1,6 @@
 import json
 
+
 def is_json(myjson):
     """
     verify if string is in json format

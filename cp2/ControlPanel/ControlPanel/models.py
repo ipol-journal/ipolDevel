@@ -1,12 +1,13 @@
+import logging
+
 from django.conf import settings
 from django.contrib.auth.models import User as usera
-from .utils import api_post
-
-import logging
+from django.db.models.signals import post_delete, pre_save
 
 #signals
 from django.dispatch import receiver
-from django.db.models.signals import pre_save, post_delete
+
+from .utils import api_post
 
 User = settings.AUTH_USER_MODEL
 logger = logging.getLogger(__name__)

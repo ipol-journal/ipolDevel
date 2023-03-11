@@ -19,7 +19,6 @@ import os
 import sys
 
 import cherrypy
-
 from core import Core
 
 

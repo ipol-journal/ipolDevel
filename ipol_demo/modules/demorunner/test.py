@@ -3,13 +3,14 @@
 """
 Demorunner test
 """
-import json
 import io
+import json
 import os
 import shutil
 import socket
 import sys
 import tarfile
+
 # Unit tests for the Blobs module
 import unittest
 import xml.etree.ElementTree as ET

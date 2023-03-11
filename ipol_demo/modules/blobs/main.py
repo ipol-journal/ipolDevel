@@ -12,7 +12,6 @@ import os
 import sys
 
 import cherrypy
-
 from blobs import Blobs
 
 

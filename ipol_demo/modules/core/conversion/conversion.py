@@ -4,16 +4,15 @@ IPOL Conversion module, services to convert blobs.
 
 import base64
 import binascii
-from dataclasses import dataclass
-from enum import Enum
 import errno
 import glob
 import logging
 import math
 import mimetypes
 import os
+from dataclasses import dataclass
+from enum import Enum
 from typing import Optional
-from result import Ok, Err, Result
 
 import numpy as np
 from conversion.errors import IPOLConvertInputError, IPOLCropInputError
@@ -21,6 +20,7 @@ from ipolutils.errors import IPOLImageReadError
 from ipolutils.evaluator.evaluator import evaluate
 from ipolutils.image.Image import Image
 from ipolutils.video.Video import Video
+from result import Err, Ok, Result
 
 
 class ConversionStatus(Enum):

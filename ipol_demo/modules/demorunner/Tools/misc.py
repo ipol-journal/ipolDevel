@@ -2,10 +2,10 @@
 various help tools for the IPOL demo environment
 """
 
+import gzip as _gzip
 import os
 import time
 from datetime import datetime
-import gzip as _gzip
 from functools import reduce
 
 #
