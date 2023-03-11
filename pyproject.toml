@@ -1,0 +1,20 @@
+[tool.black]
+target_version = ['py39']
+
+[tool.isort]
+profile = "black"
+py_version = 39
+
+[tool.ruff]
+# because of cp2/ControlPanel/ControlPanel/urls.py
+ignore = ["F405"]
+
+exclude = [
+    # unmaintained scripts
+    "tools/migrations/",
+    "sysadmin/",
+]
+
+# for now we don't force black formatting
+# once we do, we can remove this line
+line-length = 200
