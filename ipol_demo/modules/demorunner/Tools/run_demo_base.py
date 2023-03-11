@@ -13,8 +13,6 @@ from .error import VirtualEnvError
 # -----------------------------------------------------------------------------
 
 
-
-
 class IPOLTimeoutError(Exception):
     def __init__(self, value=None):
         self.value = value
@@ -25,7 +23,6 @@ class IPOLTimeoutError(Exception):
 
 # -------------------------------------------------------------------------------
 class RunDemoBase:
-
     # -----------------------------------------------------------------------------
     def __init__(self, base_dir, work_dir, logger, timeout):
         self.base_dir = base_dir
@@ -33,9 +30,11 @@ class RunDemoBase:
         self.logger = logger
         self.timeout = timeout
 
-        self.ipol_scripts = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'PythonTools/')
-        self.bin_dir = os.path.join(base_dir, 'bin/')
-        self.dl_dir = os.path.join(base_dir, 'dl/')
+        self.ipol_scripts = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "PythonTools/"
+        )
+        self.bin_dir = os.path.join(base_dir, "bin/")
+        self.dl_dir = os.path.join(base_dir, "dl/")
         self.MATLAB_path = None
         self.extra_path = None
         self.demo_id = None
@@ -103,12 +102,12 @@ class RunDemoBase:
 
     # -----------------------------------------------------------------------------
     def run_algorithm(self, cmd, lock):
-        '''
+        """
         Executes an algorithm given a command line.
-        '''
+        """
         # Open stderr and stdlog files
-        stderr_file = open(os.path.join(self.work_dir, "stderr.txt"), 'w')
-        stdout_file = open(os.path.join(self.work_dir, "stdout.txt"), 'w')
+        stderr_file = open(os.path.join(self.work_dir, "stderr.txt"), "w")
+        stdout_file = open(os.path.join(self.work_dir, "stdout.txt"), "w")
 
         # We need to lock the working directory change and
         # creating on the process to prevent that another thread
@@ -116,7 +115,13 @@ class RunDemoBase:
         with lock:
             os.chdir(self.work_dir)
             prog_name_and_params = cmd.split()
-            p = self.run_proc(prog_name_and_params, stdout=stdout_file, stderr=stderr_file) if prog_name_and_params else None
+            p = (
+                self.run_proc(
+                    prog_name_and_params, stdout=stdout_file, stderr=stderr_file
+                )
+                if prog_name_and_params
+                else None
+            )
 
         # Execute it
         if p:
@@ -136,13 +141,13 @@ class RunDemoBase:
         newenv = os.environ.copy()
         # add local environment settings
         newenv.update(env)
-        
-        newenv.update({'demoextras': self.get_demoExtras_main_folder()})
-        newenv.update({'matlab_path': self.get_MATLAB_path()})
-        newenv.update({'bin': self.bin_dir})
+
+        newenv.update({"demoextras": self.get_demoExtras_main_folder()})
+        newenv.update({"matlab_path": self.get_MATLAB_path()})
+        newenv.update({"bin": self.bin_dir})
 
         if "VIRTUAL_ENV" not in newenv:
-            raise VirtualEnvError('Running without a virtualenv')
+            raise VirtualEnvError("Running without a virtualenv")
         # Check if there are extra paths
         extra_path = self.get_extra_path()
         if not extra_path:
@@ -153,12 +158,18 @@ class RunDemoBase:
         path += ":" + self.get_MATLAB_path()
         path += ":" + self.ipol_scripts  # scripts of PythonTools
 
-        newenv.update({'PATH': path, 'LD_LIBRARY_PATH': self.bin_dir})
+        newenv.update({"PATH": path, "LD_LIBRARY_PATH": self.bin_dir})
 
         # run
         cmd = shlex.split(" ".join(args))
-        return Popen(cmd, stdin=stdin, stdout=stdout, stderr=stderr,
-                     env=newenv, cwd=self.work_dir)
+        return Popen(
+            cmd,
+            stdin=stdin,
+            stdout=stdout,
+            stderr=stderr,
+            env=newenv,
+            cwd=self.work_dir,
+        )
 
     # -----------------------------------------------------------------------------
     def wait_proc(self, process):
@@ -186,8 +197,8 @@ class RunDemoBase:
                 for p in process_list:
                     try:
                         self.kill_child_processes(p.pid)
-                        p.kill()   # Send signal to kill the process
-                        p.communicate() # Needed to avoid that the process is left as a zombie
+                        p.kill()  # Send signal to kill the process
+                        p.communicate()  # Needed to avoid that the process is left as a zombie
                     except OSError:
                         # could not stop the process
                         # probably self-terminated

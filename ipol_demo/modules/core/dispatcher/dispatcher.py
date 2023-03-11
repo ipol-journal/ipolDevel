@@ -31,22 +31,19 @@ class UnresponsiveDemorunnerError(DispatcherError):
 
 
 class NoDemorunnerAvailableError(DispatcherError):
-
     def error(self) -> str:
-        return 'No DR available.'
+        return "No DR available."
 
 
 @dataclass
 class NoSuitableDemorunnerForRequirementsError(DispatcherError):
-
     requirements: str
 
     def error(self) -> str:
-        return f'No DR satisfies the requirements: {self.requirements}.'
+        return f"No DR satisfies the requirements: {self.requirements}."
 
 
 class WorkloadProvider:
-
     def get_workload(self, demorunner: DemoRunnerInfo) -> Result[float, str]:
         raise NotImplementedError
 
@@ -58,7 +55,7 @@ class APIWorkloadProvider(WorkloadProvider):
 
     def get_workload(self, demorunner: DemoRunnerInfo) -> Result[float, str]:
         name = demorunner.name
-        url = f'{self.base_url}/api/demorunner/{name}/get_workload'
+        url = f"{self.base_url}/api/demorunner/{name}/get_workload"
 
         try:
             resp = requests.get(url, timeout=self.timeout)
@@ -71,15 +68,14 @@ class APIWorkloadProvider(WorkloadProvider):
         except requests.JSONDecodeError as e:
             return Err(repr(e))
 
-        if response['status'] != 'OK':
+        if response["status"] != "OK":
             return Err("KO response")
 
-        workload = response['workload']
+        workload = response["workload"]
         return Ok(workload)
 
 
 class PingProvider:
-
     def ping(self, demorunner: DemoRunnerInfo) -> Result[None, str]:
         raise NotImplementedError
 
@@ -91,7 +87,7 @@ class APIPingProvider(PingProvider):
 
     def ping(self, demorunner: DemoRunnerInfo) -> Result[None, str]:
         name = demorunner.name
-        url = f'{self.base_url}/api/demorunner/{name}/ping'
+        url = f"{self.base_url}/api/demorunner/{name}/ping"
 
         try:
             resp = requests.get(url, timeout=self.timeout)
@@ -104,7 +100,7 @@ class APIPingProvider(PingProvider):
         except requests.JSONDecodeError as e:
             return Err(repr(e))
 
-        if response['status'] != 'OK':
+        if response["status"] != "OK":
             return Err("KO response")
 
         return Ok()
@@ -129,12 +125,13 @@ class Dispatcher:
     The Dispatcher chooses the best DR according to a policy
     """
 
-    def __init__(self,
-                 workload_provider: WorkloadProvider,
-                 ping_provider: PingProvider,
-                 demorunners: list[DemoRunnerInfo],
-                 policy: Policy = LowestWorkloadPolicy(),
-                 ):
+    def __init__(
+        self,
+        workload_provider: WorkloadProvider,
+        ping_provider: PingProvider,
+        demorunners: list[DemoRunnerInfo],
+        policy: Policy = LowestWorkloadPolicy(),
+    ):
         self.workload_provider = workload_provider
         self.ping_provider = ping_provider
         self.demorunners = demorunners
@@ -152,21 +149,27 @@ class Dispatcher:
 
             if isinstance(result, Ok):
                 workload = round(result.value, 2)
-                stats.append({
-                    'status': 'OK',
-                    'name': dr.name,
-                    'workload': workload,
-                })
+                stats.append(
+                    {
+                        "status": "OK",
+                        "name": dr.name,
+                        "workload": workload,
+                    }
+                )
             else:
-                stats.append({
-                    'status': 'KO',
-                    'name': dr.name,
-                    'message': result.value,
-                })
+                stats.append(
+                    {
+                        "status": "KO",
+                        "name": dr.name,
+                        "message": result.value,
+                    }
+                )
 
         return stats
 
-    def get_suitable_demorunner(self, requirements: str) -> Result[str, DispatcherError]:
+    def get_suitable_demorunner(
+        self, requirements: str
+    ) -> Result[str, DispatcherError]:
         """
         Return an active DR which meets the requirements, or a DispatcherError.
         """
@@ -218,12 +221,14 @@ def init_logging():
     logger.setLevel(logging.DEBUG)
     handler = logging.StreamHandler()
     formatter = logging.Formatter(
-        '%(asctime)s; [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S')
+        "%(asctime)s; [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
     handler.setFormatter(formatter)
 
     logger.addHandler(handler)
     return logger
+
 
 def parse_demorunners(demorunners_path) -> list[DemoRunnerInfo]:
     """
@@ -232,14 +237,16 @@ def parse_demorunners(demorunners_path) -> list[DemoRunnerInfo]:
     root = ET.parse(demorunners_path).getroot()
 
     demorunners = []
-    for element in root.findall('demorunner'):
+    for element in root.findall("demorunner"):
         capabilities = []
-        for capability in element.findall('capability'):
+        for capability in element.findall("capability"):
             capabilities.append(capability.text)
 
-        demorunners.append(DemoRunnerInfo(
-            name=element.get('name'),
-            capabilities=capabilities,
-        ))
+        demorunners.append(
+            DemoRunnerInfo(
+                name=element.get("name"),
+                capabilities=capabilities,
+            )
+        )
 
     return demorunners

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class DemoRunnerInfo():
+class DemoRunnerInfo:
     """
     Demorunner information object
     """

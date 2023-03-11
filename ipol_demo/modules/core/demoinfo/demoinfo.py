@@ -26,16 +26,11 @@ from .tools import generate_ssh_keys, is_json
 
 
 class DemoInfo:
-
-    def __init__(self,
-                 dl_extras_dir: str,
-                 database_path: str,
-                 base_url: str
-                 ):
+    def __init__(self, dl_extras_dir: str, database_path: str, base_url: str):
         self.logger = init_logging()
 
-        if not dl_extras_dir.endswith('/'):
-            dl_extras_dir += '/'
+        if not dl_extras_dir.endswith("/"):
+            dl_extras_dir += "/"
         self.dl_extras_dir = dl_extras_dir
         os.makedirs(self.dl_extras_dir, exist_ok=True)
         self.base_url = base_url
@@ -57,7 +52,9 @@ class DemoInfo:
             db = sqlite3.connect(self.database_file)
 
             curdir = os.path.dirname(__file__)
-            with open(os.path.join(curdir, 'db/drop_create_db_schema.sql'), 'r') as sql_file:
+            with open(
+                os.path.join(curdir, "db/drop_create_db_schema.sql"), "r"
+            ) as sql_file:
                 sql_script = sql_file.read()
 
             cursor = db.cursor()
@@ -71,16 +68,14 @@ class DemoInfo:
         Get the URL of the demo's demoExtras
         """
         demoextras_folder = os.path.join(self.dl_extras_dir, str(demo_id))
-        demoextras_file = glob.glob(demoextras_folder+"/*")
+        demoextras_file = glob.glob(demoextras_folder + "/*")
 
         if not demoextras_file:
             return None
         demoextras_name = pathname2url(os.path.basename(demoextras_file[0]))
         return "{}/api/demoinfo/{}{}/{}".format(
-            self.base_url,
-            self.dl_extras_dir,
-            demo_id,
-            demoextras_name)
+            self.base_url, self.dl_extras_dir, demo_id, demoextras_name
+        )
 
     def delete_demoextras(self, demo_id: int) -> Result[None, str]:
         """
@@ -95,7 +90,9 @@ class DemoInfo:
             return Err(str(ex))
         return Ok()
 
-    def add_demoextras(self, demo_id, demoextras: bytes, demoextras_name) -> Result[None, str]:
+    def add_demoextras(
+        self, demo_id, demoextras: bytes, demoextras_name
+    ) -> Result[None, str]:
         """
         Add a new demoExtras file to a demo
         """
@@ -117,13 +114,7 @@ class DemoInfo:
             self.logger.exception(ex)
             return Err(str(ex))
 
-        accepted_types = (
-            "zip",
-            "tar",
-            "gzip",
-            "x-tar",
-            "x-bzip2"
-        )
+        accepted_types = ("zip", "tar", "gzip", "x-tar", "x-bzip2")
         _, type_of_file = mime_type.split("/")
         if type_of_file.lower() not in accepted_types:
             return Err(f"Unexpected type: {mime_type}")
@@ -135,7 +126,7 @@ class DemoInfo:
                 shutil.rmtree(demoextras_folder)
 
             os.makedirs(demoextras_folder)
-            with open(destination, 'wb') as f:
+            with open(destination, "wb") as f:
                 f.write(demoextras)
         except OSError as ex:
             self.logger.exception(ex)
@@ -155,7 +146,7 @@ class DemoInfo:
             return Ok(None)
 
         demoextras_folder = os.path.join(self.dl_extras_dir, str(demo_id))
-        demoExtras_path = glob.glob(demoextras_folder+"/*")[0]
+        demoExtras_path = glob.glob(demoextras_folder + "/*")[0]
 
         try:
             file_stats = os.stat(demoExtras_path)
@@ -164,9 +155,9 @@ class DemoInfo:
             return Err(str(ex))
 
         info = {
-            'date': file_stats.st_mtime,
-            'size': file_stats.st_size,
-            'url': demoExtras_url,
+            "date": file_stats.st_mtime,
+            "size": file_stats.st_size,
+            "url": demoExtras_url,
         }
         return Ok(info)
 
@@ -204,7 +195,9 @@ class DemoInfo:
 
         return Ok(demo_list)
 
-    def demo_list_pagination_and_filter(self, num_elements_page: int, page: int, qfilter: Optional[str]=None) -> Result[dict, str]:
+    def demo_list_pagination_and_filter(
+        self, num_elements_page: int, page: int, qfilter: Optional[str] = None
+    ) -> Result[dict, str]:
         """
         return a paginated and filtered list of demos
         """
@@ -225,7 +218,11 @@ class DemoInfo:
 
         # filter or return all
         for demo in complete_demo_list:
-            if qfilter is None or qfilter.lower() in demo.title.lower() or qfilter == str(demo.editorsdemoid):
+            if (
+                qfilter is None
+                or qfilter.lower() in demo.title.lower()
+                or qfilter == str(demo.editorsdemoid)
+            ):
                 demo_list.append(demo.__dict__)
 
         # if demos found, return pagination
@@ -250,7 +247,7 @@ class DemoInfo:
                 previous_page_number = None
 
             start_element = (page - 1) * num_elements_page
-            demo_list = demo_list[start_element: start_element + num_elements_page]
+            demo_list = demo_list[start_element : start_element + num_elements_page]
         else:
             totalpages = None
 
@@ -303,7 +300,6 @@ class DemoInfo:
             self.logger.exception(ex)
             return Err(str(ex))
 
-
         available_editor_list = []
         for a in list_of_all_editors:
             if a not in list_of_editors_assigned_to_this_demo:
@@ -327,20 +323,22 @@ class DemoInfo:
             return Err(f"no demo retrieved for the demoid {demoid}")
 
         info = {
-            'editorsdemoid': demo.editorsdemoid,
-            'title': demo.title,
-            'state': demo.state,
-            'creation': demo.creation,
-            'modification': demo.modification,
+            "editorsdemoid": demo.editorsdemoid,
+            "title": demo.title,
+            "state": demo.state,
+            "creation": demo.creation,
+            "modification": demo.modification,
         }
         return Ok(info)
 
-    def add_demo(self, demo_id: int, title: str, state: str, ddl: Optional[str]=None) -> Result[int, str]:
+    def add_demo(
+        self, demo_id: int, title: str, state: str, ddl: Optional[str] = None
+    ) -> Result[int, str]:
         """
         Create a demo
         """
         if ddl is None:
-            ddl = '{}'
+            ddl = "{}"
 
         try:
             conn = sqlite3.connect(self.database_file)
@@ -391,13 +389,15 @@ class DemoInfo:
         """
         Update the demo.
         """
-        d = Demo(demo['demo_id'], demo['title'], demo['state'])
+        d = Demo(demo["demo_id"], demo["title"], demo["state"])
 
         try:
             conn = sqlite3.connect(self.database_file)
             dao = DemoDAO(conn)
             if old_editor_demoid != d.editorsdemoid and dao.exist(d.editorsdemoid):
-                return Err(f"cannot rename demo {old_editor_demoid}, target demo ID {d.editorsdemoid} is already taken")
+                return Err(
+                    f"cannot rename demo {old_editor_demoid}, target demo ID {d.editorsdemoid} is already taken"
+                )
 
             dao.update(d, old_editor_demoid)
             conn.close()
@@ -457,7 +457,9 @@ class DemoInfo:
             editor = editor.__dict__
         return Ok(editor)
 
-    def update_editor_email(self, new_email: str, old_email: str, name: str) -> Result[Optional[str], str]:
+    def update_editor_email(
+        self, new_email: str, old_email: str, name: str
+    ) -> Result[Optional[str], str]:
         """
         Update editor if old email exists and new one doesn't
         """
@@ -473,7 +475,7 @@ class DemoInfo:
             if not old_editor:
                 resp = self.add_editor(name, new_email)
                 resp_json = json.loads(resp)
-                if resp_json['status'] != 'OK':
+                if resp_json["status"] != "OK":
                     return Err(f"Editor could not be added with email {new_email}")
                 else:
                     return Ok(f"New editor added {new_email}")
@@ -529,7 +531,9 @@ class DemoInfo:
 
         return Ok()
 
-    def remove_editor_from_demo(self, demo_id: int, editor_id: int) -> Result[None, str]:
+    def remove_editor_from_demo(
+        self, demo_id: int, editor_id: int
+    ) -> Result[None, str]:
         """
         Remove the given editor from the given demo.
         """
@@ -599,7 +603,9 @@ class DemoInfo:
 
         return json.dumps(data).encode()
 
-    def get_interface_ddl(self, demo_id: int, sections: Optional[str]=None) -> Result[dict, str]:
+    def get_interface_ddl(
+        self, demo_id: int, sections: Optional[str] = None
+    ) -> Result[dict, str]:
         """
         Read the DDL of the specified demo without unneeded or private fields. Used by the website interface.
         """
@@ -620,10 +626,10 @@ class DemoInfo:
         ddl = json.loads(ddl, object_pairs_hook=OrderedDict)
 
         # remove sections that shouldn't be obtained by the web interface
-        if 'build' in ddl:
-            del ddl['build']
-        if 'run' in ddl:
-            del ddl['run']
+        if "build" in ddl:
+            del ddl["build"]
+        if "run" in ddl:
+            del ddl["run"]
 
         # keep only the sections given as a parameter
         if sections:
@@ -638,7 +644,7 @@ class DemoInfo:
         Returns DDL sections
         """
         sections = OrderedDict()
-        for section in ddl_sections.split(','):
+        for section in ddl_sections.split(","):
             if ddl.get(section):
                 sections[section] = ddl.get(section)
         return sections
@@ -699,7 +705,9 @@ class DemoInfo:
                 return Err(f"There is no demo with the demo ID {demoid}")
 
             state = demo_dao.read(demoid).state
-            if state != "published":  # If the demo is not published the DDL is overwritten
+            if (
+                state != "published"
+            ):  # If the demo is not published the DDL is overwritten
                 ddddao = DemoDemoDescriptionDAO(conn)
                 demodescription = ddddao.get_ddl(demoid)
                 dao = DemoDescriptionDAO(conn)
@@ -725,7 +733,7 @@ class DemoInfo:
 
         return Ok()
 
-    def get_ssh_keys(self, demo_id: int) -> Result[tuple[str,str],str]:
+    def get_ssh_keys(self, demo_id: int) -> Result[tuple[str, str], str]:
         """
         Returns the ssh keys for a given demo_id.
         """
@@ -747,8 +755,8 @@ class DemoInfo:
             self.logger.exception(ex)
             return Err(str(ex))
 
-        pubkey = pubkey.decode('utf-8')
-        privkey = privkey.decode('utf-8')
+        pubkey = pubkey.decode("utf-8")
+        privkey = privkey.decode("utf-8")
         return Ok((pubkey, privkey))
 
     def reset_ssh_keys(self, demo_id: int) -> Result[None, str]:
@@ -780,9 +788,9 @@ class DemoInfo:
             conn = sqlite3.connect(self.database_file)
             cursor_db = conn.cursor()
 
-            cursor_db.execute('SELECT COUNT(*) FROM demo')
+            cursor_db.execute("SELECT COUNT(*) FROM demo")
             stats["nb_demos"] = cursor_db.fetchone()[0]
-            cursor_db.execute('SELECT COUNT(*) FROM editor')
+            cursor_db.execute("SELECT COUNT(*) FROM editor")
             stats["nb_editors"] = cursor_db.fetchone()[0]
 
             conn.close()
@@ -802,8 +810,9 @@ def init_logging():
     logger.setLevel(logging.DEBUG)
     handler = logging.StreamHandler()
     formatter = logging.Formatter(
-        '%(asctime)s; [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S')
+        "%(asctime)s; [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
     handler.setFormatter(formatter)
 
     logger.addHandler(handler)

@@ -22,35 +22,42 @@ import cherrypy
 from core import Core
 
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 def CORS():
     """
     CORS
     """
-    cherrypy.response.headers["Access-Control-Allow-Origin"] = "*" # mean: CORS to
+    cherrypy.response.headers["Access-Control-Allow-Origin"] = "*"  # mean: CORS to
 
-#-------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------
 def err_tb():
     """
     replace the default error response
     with an cgitb HTML traceback
     """
     import cgitb
+
     tb = cgitb.html(sys.exc_info())
+
     def set_tb():
-        """ set the traceback output """
+        """set the traceback output"""
         cherrypy.response.body = tb
-        cherrypy.response.headers['Content-Length'] = None
-    cherrypy.request.hooks.attach('after_error_response', set_tb)
+        cherrypy.response.headers["Content-Length"] = None
+
+    cherrypy.request.hooks.attach("after_error_response", set_tb)
 
 
-if __name__ == '__main__':
-
-    cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS)
+if __name__ == "__main__":
+    cherrypy.tools.CORS = cherrypy.Tool("before_handler", CORS)
 
     ## config file and location settings
 
-    CONF_FILE_REL = sys.argv[1] if len(sys.argv) == 2 and os.path.isfile(sys.argv[1]) else "core.conf"
+    CONF_FILE_REL = (
+        sys.argv[1]
+        if len(sys.argv) == 2 and os.path.isfile(sys.argv[1])
+        else "core.conf"
+    )
     LOCAL_CONF_REL = "local.conf"
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -65,11 +72,15 @@ if __name__ == '__main__':
         sys.exit(-1)
     cherrypy.config.update(CONF_FILE_ABS)
     cherrypy.config.update(LOCAL_CONF_FILE)
-    cherrypy.log.error_log.setLevel('ERROR')
-    cherrypy.tools.cgitb = cherrypy.Tool('before_error_response', err_tb)
+    cherrypy.log.error_log.setLevel("ERROR")
+    cherrypy.tools.cgitb = cherrypy.Tool("before_error_response", err_tb)
 
     core = Core.get_instance()
-    cherrypy.tree.mount(core.get_dispatcher_api(), '/api/dispatcher', config=CONF_FILE_ABS)
-    cherrypy.tree.mount(core.get_conversion_api(), '/api/conversion', config=CONF_FILE_ABS)
-    cherrypy.tree.mount(core.get_demoinfo_api(), '/api/demoinfo', config=CONF_FILE_ABS)
+    cherrypy.tree.mount(
+        core.get_dispatcher_api(), "/api/dispatcher", config=CONF_FILE_ABS
+    )
+    cherrypy.tree.mount(
+        core.get_conversion_api(), "/api/conversion", config=CONF_FILE_ABS
+    )
+    cherrypy.tree.mount(core.get_demoinfo_api(), "/api/demoinfo", config=CONF_FILE_ABS)
     cherrypy.quickstart(core, config=CONF_FILE_ABS)

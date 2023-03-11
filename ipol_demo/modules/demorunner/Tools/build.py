@@ -18,23 +18,30 @@ from .error import VirtualEnvError
 
 TIME_FMT = "%a, %d %b %Y %H:%M:%S %Z"
 
+
 class IPOLInvalidPath(Exception):
     """
     IPOLInvalidPath
     """
+
     pass
+
 
 class IPOLHTTPMissingHeader(Exception):
     """
     IPOLHTTPMissingHeader
     """
+
     pass
+
 
 class IPOLCompilationError(Exception):
     """
     IPOLCompilationError
     """
+
     pass
+
 
 def download(url, fname, username=None, password=None):
     """
@@ -56,7 +63,9 @@ def download(url, fname, username=None, password=None):
         url_handle = urllib.request.urlopen(url)
     else:
         request = urllib.request.Request(url)
-        base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
+        base64string = base64.encodestring("%s:%s" % (username, password)).replace(
+            "\n", ""
+        )
         request.add_header("Authorization", "Basic %s" % base64string)
         url_handle = urllib.request.urlopen(request)
     if not os.path.isfile(fname):
@@ -67,20 +76,20 @@ def download(url, fname, username=None, password=None):
         # only retrieve if a newer version is available
         url_info = url_handle.info()
 
-        if 'last-modified' not in url_info:
+        if "last-modified" not in url_info:
             raise IPOLHTTPMissingHeader("Missing 'last-modified' HTTP header")
 
-        last_modified = url_info['last-modified']
+        last_modified = url_info["last-modified"]
         url_ctime = datetime.datetime.strptime(last_modified, TIME_FMT)
 
-        url_size = int(url_info['content-length'])
+        url_size = int(url_info["content-length"])
         file_utc_ctime = datetime.datetime.utcfromtimestamp(os.path.getmtime(fname))
         file_size = os.path.getsize(fname)
 
         need_download = url_size != file_size or url_ctime > file_utc_ctime
         if need_download:
             # download
-            file_handle = open(fname, 'wb')
+            file_handle = open(fname, "wb")
             file_handle.write(url_handle.read())
             file_handle.close()
             print("Retrieved")
@@ -98,7 +107,7 @@ def extract(fname, target):
     @return: the archive content
     """
     extension = os.path.splitext(fname)[1]
-    if extension == '.zip':
+    if extension == ".zip":
         ar = zipfile.ZipFile(fname)
         content = ar.namelist()
 
@@ -139,7 +148,7 @@ def extract(fname, target):
             if member.endswith(os.path.sep):
                 os.mkdir(os.path.join(target, member))
             else:
-                f = open(os.path.join(target, member), 'wb')
+                f = open(os.path.join(target, member), "wb")
                 f.write(ar.read(member))
                 f.close()
 
@@ -156,14 +165,12 @@ def run(command, stdout, cwd=None):
     @return: the exit code
     """
     if "VIRTUAL_ENV" not in os.environ.copy():
-        raise VirtualEnvError('Running without a virtualenv')
+        raise VirtualEnvError("Running without a virtualenv")
     # open the log file and write the command
-    with open(stdout, 'w') as logfile:
-        logfile.write("%s : %s\n" % (time.strftime(TIME_FMT),
-                                     command))
-    with open(stdout, 'a') as logfile:
-        process = Popen(command, shell=True, stdout=logfile, stderr=logfile,
-                        cwd=cwd)
+    with open(stdout, "w") as logfile:
+        logfile.write("%s : %s\n" % (time.strftime(TIME_FMT), command))
+    with open(stdout, "a") as logfile:
+        process = Popen(command, shell=True, stdout=logfile, stderr=logfile, cwd=cwd)
     process.wait()
     if 0 != process.returncode:
         raise IPOLCompilationError

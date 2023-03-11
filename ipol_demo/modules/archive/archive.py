@@ -42,8 +42,9 @@ def authenticate(func):
         """
         Invokes the wrapped function if authenticated
         """
-        if "X-Real-IP" in cherrypy.request.headers \
-                and is_authorized_ip(cherrypy.request.headers["X-Real-IP"]):
+        if "X-Real-IP" in cherrypy.request.headers and is_authorized_ip(
+            cherrypy.request.headers["X-Real-IP"]
+        ):
             return func(*args, **kwargs)
         error = {"status": "KO", "error": "Authentication Failed"}
         return json.dumps(error).encode()
@@ -56,8 +57,11 @@ def authenticate(func):
         patterns = []
         # Creates the patterns  with regular expressions
         for authorized_pattern in archive.authorized_patterns:
-            patterns.append(re.compile(authorized_pattern.replace(
-                ".", "\\.").replace("*", "[0-9a-zA-Z]+")))
+            patterns.append(
+                re.compile(
+                    authorized_pattern.replace(".", "\\.").replace("*", "[0-9a-zA-Z]+")
+                )
+            )
         # Compare the IP with the patterns
         for pattern in patterns:
             if pattern.match(ip) is not None:
@@ -67,11 +71,12 @@ def authenticate(func):
     return authenticate_and_call
 
 
-class Archive():
+class Archive:
     """
     This class implement an archive system for experiments and
     calculations done with the IPOL demo image system.
     """
+
     #####
     # initialization and static methods.
     #####
@@ -106,17 +111,19 @@ class Archive():
         """
         Check if needed datas exist correctly in the config of cherrypy.
         """
-        return "blobs_dir" in cherrypy.config and \
-               "database_dir" in cherrypy.config and \
-               "blobs_thumbs_dir" in cherrypy.config and \
-               "logs_dir" in cherrypy.config
+        return (
+            "blobs_dir" in cherrypy.config
+            and "database_dir" in cherrypy.config
+            and "blobs_thumbs_dir" in cherrypy.config
+            and "logs_dir" in cherrypy.config
+        )
 
     @staticmethod
     def get_hash_blob(path):
         """
         Return sha1 hash of given blob
         """
-        with open(path, 'rb') as the_file:
+        with open(path, "rb") as the_file:
             return hashlib.sha1(the_file.read()).hexdigest()
 
     @staticmethod
@@ -126,7 +133,7 @@ class Archive():
         """
         mime = magic.Magic(mime=True)
         fileformat = mime.from_file(the_file)
-        fileformat = fileformat.split('/')[0]
+        fileformat = fileformat.split("/")[0]
         return fileformat
 
     def __init__(self):
@@ -148,8 +155,9 @@ class Archive():
         self.config_common_dir = cherrypy.config.get("config_common_dir")
 
         try:
-            self.number_of_experiments_by_pages = \
-                int(cherrypy.config.get("number_of_experiments_by_pages"))
+            self.number_of_experiments_by_pages = int(
+                cherrypy.config.get("number_of_experiments_by_pages")
+            )
         except Exception:
             self.number_of_experiments_by_pages = 10
 
@@ -183,9 +191,14 @@ class Archive():
         Read from the IPs conf file
         """
         # Check if the config file exists
-        authorized_patterns_path = os.path.join(self.config_common_dir, "authorized_patterns.conf")
+        authorized_patterns_path = os.path.join(
+            self.config_common_dir, "authorized_patterns.conf"
+        )
         if not os.path.isfile(authorized_patterns_path):
-            self.error_log("read_authorized_patterns", "File {} doesn't exist".format(authorized_patterns_path))
+            self.error_log(
+                "read_authorized_patterns",
+                "File {} doesn't exist".format(authorized_patterns_path),
+            )
             return []
 
         # Read config file
@@ -193,7 +206,7 @@ class Archive():
             cfg = configparser.ConfigParser()
             cfg.read([authorized_patterns_path])
             patterns = []
-            for item in cfg.items('Patterns'):
+            for item in cfg.items("Patterns"):
                 patterns.append(item[1])
             return patterns
         except configparser.Error:
@@ -206,8 +219,10 @@ class Archive():
         """
         logger = logging.getLogger("archive_log")
         logger.setLevel(logging.ERROR)
-        handler = logging.FileHandler(os.path.join(self.logs_dir, 'error.log'))
-        formatter = logging.Formatter('%(asctime)s ERROR in %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        handler = logging.FileHandler(os.path.join(self.logs_dir, "error.log"))
+        formatter = logging.Formatter(
+            "%(asctime)s ERROR in %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+        )
         handler.setFormatter(formatter)
         logger.addHandler(handler)
         return logger
@@ -218,11 +233,10 @@ class Archive():
         If the file is empty, the system delete it and create a new one.
         """
         if os.path.isfile(self.database_file):
-
             file_info = os.stat(self.database_file)
 
             if file_info.st_size == 0:
-                print(str(self.database_file) + ' is empty. Removing the file...')
+                print(str(self.database_file) + " is empty. Removing the file...")
                 try:
                     self.error_log("init_database", "Database file was empty")
                     os.remove(self.database_file)
@@ -234,16 +248,16 @@ class Archive():
                 print("Creating a correct new database")
 
         if not os.path.isfile(self.database_file):
-
             try:
                 conn = lite.connect(self.database_file)
                 cursor_db = conn.cursor()
 
                 sql_buffer = ""
 
-                with open(self.database_dir + '/drop_create_db_schema.sql', 'r') as sql_file:
+                with open(
+                    self.database_dir + "/drop_create_db_schema.sql", "r"
+                ) as sql_file:
                     for line in sql_file:
-
                         sql_buffer += line
                         if lite.complete_statement(sql_buffer):
                             sql_buffer = sql_buffer.strip()
@@ -283,8 +297,8 @@ class Archive():
         """
         length = min(len(hash_name), depth)
 
-        subdirs = '/'.join(list(hash_name[:length]))
-        new_directory_name = main_directory + subdirs + '/'
+        subdirs = "/".join(list(hash_name[:length]))
+        new_directory_name = main_directory + subdirs + "/"
 
         if not os.path.isdir(new_directory_name):
             os.makedirs(new_directory_name)
@@ -315,17 +329,27 @@ class Archive():
         """
         try:
             cursor_db = conn.cursor()
-            #First, we check if the blob is already in the database
-            query = cursor_db.execute("""
+            # First, we check if the blob is already in the database
+            query = cursor_db.execute(
+                """
                 SELECT id FROM blobs WHERE hash = ?
-                """, (hash_file,))
+                """,
+                (hash_file,),
+            )
             row = query.fetchone()
             if row is not None:
                 return int(row[0])
 
-            cursor_db.execute("""
+            cursor_db.execute(
+                """
                 INSERT INTO blobs(hash, type, format) VALUES(?, ?, ?)
-                """, (hash_file, type_file, format_file,))
+                """,
+                (
+                    hash_file,
+                    type_file,
+                    format_file,
+                ),
+            )
             # get id of the blob previously inserted
             return int(str(cursor_db.lastrowid))
         except Exception as ex:
@@ -341,7 +365,9 @@ class Archive():
         # List of copied files. Useful to delete them if an exception is thrown
         # copied_files = []
         try:
-            thumb_key = list(key for key, value in blob_dict.items() if 'thumbnail' in key)
+            thumb_key = list(
+                key for key, value in blob_dict.items() if "thumbnail" in key
+            )
             if thumb_key:
                 blob_thumbnail_name = thumb_key[0]
                 blob_thumbnail_path = blob_dict[blob_thumbnail_name]
@@ -358,15 +384,21 @@ class Archive():
             format_file = Archive.file_format(blob_path)
 
             _, type_file = os.path.splitext(blob_path)
-            type_file = type_file.split('.')[1]
+            type_file = type_file.split(".")[1]
             type_file.lower()
 
-            id_blob = self.add_blob_in_the_database(conn, hash_file, type_file, format_file)
-            #copy the files in their respective folders
-            path_new_blob = self.copy_file_in_folder(blob_path, self.blobs_dir, hash_file, type_file)
+            id_blob = self.add_blob_in_the_database(
+                conn, hash_file, type_file, format_file
+            )
+            # copy the files in their respective folders
+            path_new_blob = self.copy_file_in_folder(
+                blob_path, self.blobs_dir, hash_file, type_file
+            )
             copied_files_list.append(path_new_blob)
             if thumb_key:
-                path_new_thumbnail = self.copy_file_in_folder(blob_thumbnail_path, self.blobs_thumbs_dir, hash_file, "jpeg")
+                path_new_thumbnail = self.copy_file_in_folder(
+                    blob_thumbnail_path, self.blobs_thumbs_dir, hash_file, "jpeg"
+                )
                 copied_files_list.append(path_new_thumbnail)
 
             return id_blob, blob_name
@@ -382,12 +414,14 @@ class Archive():
         This function update the experiment table
         """
         cursor_db = conn.cursor()
-        cursor_db.execute("""
+        cursor_db.execute(
+            """
         INSERT INTO
         experiments (id_demo, params, execution, timestamp)
-        VALUES (?, ?, ?,datetime(CURRENT_TIMESTAMP, 'localtime'))""", (demo_id, parameters, execution))
+        VALUES (?, ?, ?,datetime(CURRENT_TIMESTAMP, 'localtime'))""",
+            (demo_id, parameters, execution),
+        )
         return int(cursor_db.lastrowid)
-
 
     def update_blob(self, conn, blobs, copied_files_list):
         """
@@ -400,8 +434,10 @@ class Archive():
             dict_corresp = []
 
             for blob_element in dict_blobs:
-                id_blob, blob_name = self.add_blob(conn, blob_element, copied_files_list)
-                dict_corresp.append({'blob_id': id_blob, 'blob_name': blob_name})
+                id_blob, blob_name = self.add_blob(
+                    conn, blob_element, copied_files_list
+                )
+                dict_corresp.append({"blob_id": id_blob, "blob_name": blob_name})
 
         except Exception as ex:
             self.logger.exception("update_blob. Error {}".format(ex))
@@ -417,10 +453,13 @@ class Archive():
         """
         cursor_db = conn.cursor()
         for order_exp, item in enumerate(dict_corresp):
-            cursor_db.execute("""
+            cursor_db.execute(
+                """
             INSERT INTO
             correspondence (id_experiment, id_blob, name, order_exp)
-            VALUES (?, ?, ?, ?)""", (id_experiment, item['blob_id'], item['blob_name'], order_exp))
+            VALUES (?, ?, ?, ?)""",
+                (id_experiment, item["blob_id"], item["blob_name"], order_exp),
+            )
 
     @cherrypy.expose
     @authenticate
@@ -434,7 +473,9 @@ class Archive():
         try:
             demo_id = int(demo_id)
             conn = lite.connect(self.database_file)
-            id_experiment = Archive.update_exp_table(conn, demo_id, parameters, execution)
+            id_experiment = Archive.update_exp_table(
+                conn, demo_id, parameters, execution
+            )
             data["id_experiment"] = id_experiment
             dict_corresp = []
             dict_corresp = self.update_blob(conn, blobs, copied_files_list)
@@ -469,15 +510,18 @@ class Archive():
         """
         conn = None
         try:
-            status = {'status': 'OK', 'id_experiment': experiment_id}
+            status = {"status": "OK", "id_experiment": experiment_id}
             conn = lite.connect(self.database_file)
             cursor_db = conn.cursor()
 
-            cursor_db.execute("""
+            cursor_db.execute(
+                """
             UPDATE experiments
             SET timestamp = ?
             WHERE id = ?
-            """, (datetime.strptime(date, date_format), experiment_id))
+            """,
+                (datetime.strptime(date, date_format), experiment_id),
+            )
 
             conn.commit()
             conn.close()
@@ -490,7 +534,7 @@ class Archive():
                 conn.rollback()
                 conn.close()
 
-        return  json.dumps(status).encode()
+        return json.dumps(status).encode()
 
     #####
     # displaying a single experiment of archive
@@ -509,11 +553,16 @@ class Archive():
         try:
             conn = lite.connect(self.database_file)
             cursor_db = conn.cursor()
-            cursor_db.execute("""SELECT params, execution, timestamp
-                FROM experiments WHERE id = ?""", (experiment_id,))
+            cursor_db.execute(
+                """SELECT params, execution, timestamp
+                FROM experiments WHERE id = ?""",
+                (experiment_id,),
+            )
             row = cursor_db.fetchone()
             if row:
-                data['experiment'] = self.get_data_experiment(conn, experiment_id, row[0], row[1], row[2])
+                data["experiment"] = self.get_data_experiment(
+                    conn, experiment_id, row[0], row[1], row[2]
+                )
             conn.close()
         except Exception:
             data["status"] = "KO"
@@ -535,25 +584,33 @@ class Archive():
         """
         meta_info = {}
 
-        meta_info["number_of_experiments_in_a_page"] = self.number_of_experiments_by_pages
+        meta_info[
+            "number_of_experiments_in_a_page"
+        ] = self.number_of_experiments_by_pages
 
         cursor_db = conn.cursor()
 
-        cursor_db.execute("""
-        SELECT COUNT(*) FROM experiments WHERE id_demo = ?""", (id_demo,))
+        cursor_db.execute(
+            """
+        SELECT COUNT(*) FROM experiments WHERE id_demo = ?""",
+            (id_demo,),
+        )
 
         number_of_experiments = cursor_db.fetchone()[0]
         meta_info["number_of_experiments"] = number_of_experiments
 
         if number_of_experiments == 0:
-            meta_info["first_date_of_an_experiment"] = 'never'
+            meta_info["first_date_of_an_experiment"] = "never"
             meta_info["number_of_pages"] = 0
             return meta_info
 
-        cursor_db.execute("""
+        cursor_db.execute(
+            """
         SELECT timestamp
         FROM experiments WHERE id_demo = ?
-        ORDER BY timestamp """, (id_demo,))
+        ORDER BY timestamp """,
+            (id_demo,),
+        )
 
         first_date_of_an_experiment = cursor_db.fetchone()[0]
 
@@ -562,9 +619,10 @@ class Archive():
         else:
             pages_to_add = 0
 
-        number_of_pages = \
-            int(number_of_experiments / self.number_of_experiments_by_pages) + \
-            pages_to_add
+        number_of_pages = (
+            int(number_of_experiments / self.number_of_experiments_by_pages)
+            + pages_to_add
+        )
 
         meta_info["first_date_of_an_experiment"] = first_date_of_an_experiment
         meta_info["number_of_pages"] = number_of_pages
@@ -599,25 +657,32 @@ class Archive():
 
         try:
             cursor_db = conn.cursor()
-            cursor_db.execute("""
+            cursor_db.execute(
+                """
                 SELECT blb.hash, blb.type, cor.name, blb.id
                 FROM blobs blb
                 JOIN correspondence cor ON blb.id=cor.id_blob
                 WHERE id_experiment = ?
-                ORDER by cor.order_exp """, (id_exp,))
+                ORDER by cor.order_exp """,
+                (id_exp,),
+            )
 
             all_rows = cursor_db.fetchall()
 
             for row in all_rows:
                 path_file, subdirs = self.get_new_path(self.blobs_dir, row[0], row[1])
-                thumb_dir = '{}{}'.format(self.blobs_thumbs_dir, subdirs)
-                thumb_name = '{}.jpeg'.format(row[0])
+                thumb_dir = "{}{}".format(self.blobs_thumbs_dir, subdirs)
+                thumb_name = "{}.jpeg".format(row[0])
                 path_thumb = os.path.join(thumb_dir, thumb_name)
-                list_files.append(Archive.get_dict_file(path_file, path_thumb, row[2], row[3]))
+                list_files.append(
+                    Archive.get_dict_file(path_file, path_thumb, row[2], row[3])
+                )
 
             dict_exp["id"] = id_exp
             dict_exp["date"] = date
-            dict_exp["parameters"] = json.loads(parameters, object_pairs_hook=OrderedDict)
+            dict_exp["parameters"] = json.loads(
+                parameters, object_pairs_hook=OrderedDict
+            )
             dict_exp["execution"] = execution
             dict_exp["files"] = list_files
             return dict_exp
@@ -634,23 +699,32 @@ class Archive():
         """
         data_exp = []
         cursor_db = conn.cursor()
-        starting_index = ((page - 1) * self.number_of_experiments_by_pages)
+        starting_index = (page - 1) * self.number_of_experiments_by_pages
 
-        cursor_db.execute("""
+        cursor_db.execute(
+            """
         SELECT id, params, execution, timestamp
         FROM experiments WHERE id_demo = ?
         ORDER BY timestamp
-        LIMIT ? OFFSET ?""", (id_demo, self.number_of_experiments_by_pages, starting_index,))
+        LIMIT ? OFFSET ?""",
+            (
+                id_demo,
+                self.number_of_experiments_by_pages,
+                starting_index,
+            ),
+        )
 
         all_rows = cursor_db.fetchall()
 
         for row in all_rows:
-            data_exp.append(self.get_data_experiment(conn, row[0], row[1], row[2], row[3]))
+            data_exp.append(
+                self.get_data_experiment(conn, row[0], row[1], row[2], row[3])
+            )
 
         return data_exp
 
     @cherrypy.expose
-    def get_page(self, demo_id, page='1'):
+    def get_page(self, demo_id, page="1"):
         """
         This function return all the information needed
         to build the given page for the given demo.
@@ -684,7 +758,9 @@ class Archive():
 
         except Exception:
             data["status"] = "KO"
-            self.logger.exception("Error getting page #{} from demo #{}".format(demo_id, page))
+            self.logger.exception(
+                "Error getting page #{} from demo #{}".format(demo_id, page)
+            )
             try:
                 conn.close()
             except Exception:
@@ -709,7 +785,7 @@ class Archive():
         path_thumb = None
         if tmp is not None:
             path_blob, _ = self.get_new_path(self.blobs_dir, tmp[1], tmp[2])
-            path_thumb, _ = self.get_new_path(self.blobs_thumbs_dir, tmp[1], 'jpeg')
+            path_thumb, _ = self.get_new_path(self.blobs_thumbs_dir, tmp[1], "jpeg")
 
         cursor_db.execute("DELETE FROM blobs WHERE id = ?", (id_blob,))
 
@@ -729,8 +805,13 @@ class Archive():
         cursor_db = conn.cursor()
 
         for blob in ids_blobs:
-            cursor_db.execute("""SELECT COUNT(*) FROM correspondence WHERE id_blob = ? AND id_experiment <> ?""",
-                              (blob, experiment_id,))
+            cursor_db.execute(
+                """SELECT COUNT(*) FROM correspondence WHERE id_blob = ? AND id_experiment <> ?""",
+                (
+                    blob,
+                    experiment_id,
+                ),
+            )
             if cursor_db.fetchone()[0] == 0:
                 self.delete_blob(conn, blob)
 
@@ -743,18 +824,24 @@ class Archive():
         """
         ids_blobs = []
         cursor_db = conn.cursor()
-        cursor_db.execute("""
-        PRAGMA foreign_keys=ON""")
+        cursor_db.execute(
+            """
+        PRAGMA foreign_keys=ON"""
+        )
 
         # save a list of blobs used by the experiment
-        for row in cursor_db.execute("SELECT * FROM correspondence where id_experiment = ?", (experiment_id,)):
+        for row in cursor_db.execute(
+            "SELECT * FROM correspondence where id_experiment = ?", (experiment_id,)
+        ):
             ids_blobs.append(row[2])
 
         self.purge_unique_blobs(conn, ids_blobs, experiment_id)
 
         cursor_db.execute("DELETE FROM experiments WHERE id = ?", (experiment_id,))
         n_changes = cursor_db.rowcount
-        cursor_db.execute("DELETE FROM correspondence WHERE id_experiment = ?", (experiment_id,))
+        cursor_db.execute(
+            "DELETE FROM correspondence WHERE id_experiment = ?", (experiment_id,)
+        )
 
         return n_changes
 
@@ -799,9 +886,11 @@ class Archive():
             cursor_db = conn.cursor()
             list_tmp = []
 
-            for row in cursor_db.execute("""
-SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
-                                         (id_blob,)):
+            for row in cursor_db.execute(
+                """
+SELECT id_experiment FROM correspondence WHERE id_blob = ?""",
+                (id_blob,),
+            ):
                 tmp = row[0]
                 list_tmp.append(tmp)
 
@@ -812,7 +901,9 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
             conn.close()
             status["status"] = "OK"
         except Exception:
-            self.logger.exception("Error deleting experiment with dependencies #{}".format(id_blob))
+            self.logger.exception(
+                "Error deleting experiment with dependencies #{}".format(id_blob)
+            )
             try:
                 conn.rollback()
                 conn.close()
@@ -856,11 +947,13 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
             conn = lite.connect(self.database_file)
             cursor_db = conn.cursor()
 
-            cursor_db.execute("""
+            cursor_db.execute(
+                """
                 SELECT
                 (SELECT COUNT(*) FROM experiments),
                 (SELECT COUNT(*) FROM blobs)
-             """)
+             """
+            )
             results = cursor_db.fetchall()
             data["nb_experiments"] = results[0][0]
             data["nb_blobs"] = results[0][1]
@@ -888,11 +981,13 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
             conn = lite.connect(self.database_file)
             cursor_db = conn.cursor()
 
-            cursor_db.execute("""
+            cursor_db.execute(
+                """
                 SELECT id_demo, COUNT(*)
                 FROM experiments
                 GROUP BY id_demo
-            """)
+            """
+            )
             results = {id: nb for id, nb in cursor_db.fetchall()}
             data["result"] = results
             data["status"] = "OK"
@@ -926,7 +1021,6 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
         data["message"] = "Unknown service '{}'".format(attr)
         return json.dumps(data).encode()
 
-
     @cherrypy.expose
     def demo_list(self):
         """
@@ -938,8 +1032,10 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
         try:
             conn = lite.connect(self.database_file)
             cursor_db = conn.cursor()
-            cursor_db.execute("""
-            SELECT DISTINCT id_demo FROM experiments""")
+            cursor_db.execute(
+                """
+            SELECT DISTINCT id_demo FROM experiments"""
+            )
 
             for row in cursor_db.fetchall():
                 demoid = row[0]
@@ -968,12 +1064,14 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
             # Get all experiments for this demo
             conn = lite.connect(self.database_file)
             cursor_db = conn.cursor()
-            cursor_db.execute("SELECT DISTINCT id FROM experiments WHERE id_demo = ?", (demo_id,))
+            cursor_db.execute(
+                "SELECT DISTINCT id FROM experiments WHERE id_demo = ?", (demo_id,)
+            )
 
             experiment_id_list = cursor_db.fetchall()
 
             if not experiment_id_list:
-                status['message'] = 'No archives found'
+                status["message"] = "No archives found"
                 return json.dumps(status).encode()
 
             # Delete experiments and files
@@ -1006,11 +1104,14 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
                 conn = lite.connect(self.database_file)
                 cursor_db = conn.cursor()
 
-                cursor_db.execute("""
+                cursor_db.execute(
+                    """
                 UPDATE experiments
                 SET id_demo = ?
                 WHERE id_demo = ?
-                """, (new_demo_id, old_demo_id))
+                """,
+                    (new_demo_id, old_demo_id),
+                )
 
                 conn.commit()
                 conn.close()
@@ -1021,7 +1122,9 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
         except Exception as ex:
             status = {"status": "KO"}
             status = {"error": "blobs update_demo_id error: {}".format(ex)}
-            self.logger.exception("Error changing demo ID (#{} --> #{})".format(old_demo_id, new_demo_id))
+            self.logger.exception(
+                "Error changing demo ID (#{} --> #{})".format(old_demo_id, new_demo_id)
+            )
             if conn is not None:
                 conn.rollback()
                 conn.close()

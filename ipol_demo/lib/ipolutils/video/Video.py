@@ -59,7 +59,7 @@ class Video(object):
         """
         Extract the required number of frames and save them as image files.
         """
-        code = 0 # No conversion needed or converted without information loss
+        code = 0  # No conversion needed or converted without information loss
 
         dst_folder = os.path.join(self.get_input_dir(), self.get_input_name())
         video_pixel_count = self.height * self.width
@@ -70,7 +70,7 @@ class Video(object):
         if max_frames < self.frame_count:
             frames_count = max_frames
             self.set_capture_from_the_middle(max_frames)
-            code = 1 # Conversion with information loss performed
+            code = 1  # Conversion with information loss performed
         else:
             frames_count = self.frame_count
 
@@ -83,10 +83,16 @@ class Video(object):
             # If the frame is bigger than allowed, resize it down
             if max_pixels < video_pixel_count:
                 frame = cv2.resize(frame, (width, height), interpolation=cv2.INTER_AREA)
-                code = 1 # Conversion with information loss performed
-            im = cv2.imwrite(os.path.join(dst_folder, 'frame_{:05d}.png'.format(frame_number)), frame)
+                code = 1  # Conversion with information loss performed
+            im = cv2.imwrite(
+                os.path.join(dst_folder, "frame_{:05d}.png".format(frame_number)), frame
+            )
             if not im:
-                raise errors.IPOLConvertInputError('Conversion error, frame could not be written to the file {}'.format(self.get_input_name()))
+                raise errors.IPOLConvertInputError(
+                    "Conversion error, frame could not be written to the file {}".format(
+                        self.get_input_name()
+                    )
+                )
         return code
 
     def create_avi(self, max_frames, max_pixels):
@@ -94,9 +100,13 @@ class Video(object):
         Create Huffman-encoded AVI video file
         """
 
-        processed_video = os.path.join(self.get_input_dir(), self.get_input_name() + ".avi")
+        processed_video = os.path.join(
+            self.get_input_dir(), self.get_input_name() + ".avi"
+        )
         avconv_options = self.get_avconv_options(max_pixels, max_frames)
-        avconv_command = "ffmpeg -y -i {} -c:v huffyuv -pix_fmt rgb24 ".format(self.full_path)
+        avconv_command = "ffmpeg -y -i {} -c:v huffyuv -pix_fmt rgb24 ".format(
+            self.full_path
+        )
         avconv_command += avconv_options
         avconv_command += " -loglevel error " + processed_video
 
@@ -105,11 +115,13 @@ class Video(object):
         convert_proc.wait()
 
         if convert_proc.returncode != 0:
-            raise errors.IPOLConvertInputError('Conversion error: video could not be converted to AVI')
+            raise errors.IPOLConvertInputError(
+                "Conversion error: video could not be converted to AVI"
+            )
 
         if avconv_options:
-            return 1 #lossy
-        return 0 #lossless
+            return 1  # lossy
+        return 0  # lossless
 
     def get_time_for_frames(self, max_frames):
         """
@@ -132,9 +144,10 @@ class Video(object):
         # Temporal crop of the video given the start and ending time
         if max_frames < self.frame_count:
             from_time, to_time = self.get_time_for_frames(max_frames)
-            options += "-ss {} -to {}".format(\
-              str(datetime.timedelta(seconds=from_time)), \
-              str(datetime.timedelta(seconds=to_time)))
+            options += "-ss {} -to {}".format(
+                str(datetime.timedelta(seconds=from_time)),
+                str(datetime.timedelta(seconds=to_time)),
+            )
 
         width, height = self.get_size(max_pixels)
         # Resize down the size of the frames
@@ -149,7 +162,9 @@ class Video(object):
         """
         if max_pixels < self.height * self.width:
             scaling_factor = self.get_scaling_factor(max_pixels)
-            return int(np.floor(math.sqrt(scaling_factor) * self.width)), int(np.floor(math.sqrt(scaling_factor) * self.height))
+            return int(np.floor(math.sqrt(scaling_factor) * self.width)), int(
+                np.floor(math.sqrt(scaling_factor) * self.height)
+            )
         return self.width, self.height
 
     def get_scaling_factor(self, max_pixels):
