@@ -22,8 +22,12 @@ from threading import Lock
 import cherrypy
 import database
 import magic
-from errors import (IPOLBlobsDataBaseError, IPOLBlobsTemplateError,
-                    IPOLBlobsThumbnailError, IPOLRemoveDirError)
+from errors import (
+    IPOLBlobsDataBaseError,
+    IPOLBlobsTemplateError,
+    IPOLBlobsThumbnailError,
+    IPOLRemoveDirError,
+)
 from ipolutils.utils import thumbnail
 
 

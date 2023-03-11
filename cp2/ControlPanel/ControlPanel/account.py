@@ -1,25 +1,26 @@
-from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpResponseRedirect
-from django.urls import reverse
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_protect
-from django.contrib.auth import logout as logoutMethod, authenticate, login as loginMethod
-from django.contrib.auth.forms import PasswordResetForm
-from django.contrib.auth.models import User
-from django.template.loader import render_to_string
-from django.db.models.query_utils import Q
-from django.utils.http import urlsafe_base64_encode
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.encoding import force_bytes
-from django.contrib import messages
-
-from .forms import loginForm
-from django.core.mail import BadHeaderError, send_mail
+import logging
 from smtplib import SMTPException
 
-from .utils import api_post
+from django.contrib import messages
+from django.contrib.auth import authenticate
+from django.contrib.auth import login as loginMethod
+from django.contrib.auth import logout as logoutMethod
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import BadHeaderError, send_mail
+from django.db.models.query_utils import Q
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from django.views.decorators.csrf import csrf_protect
 
-import logging
+from .forms import loginForm
+from .utils import api_post
 
 logger = logging.getLogger(__name__)
 

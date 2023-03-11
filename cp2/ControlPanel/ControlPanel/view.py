@@ -1,13 +1,15 @@
-from datetime import datetime
-from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_protect
-from django.views.decorators.cache import never_cache
 import json
-import urllib
-from .utils import api_post, user_can_edit_demo
 import logging
+import urllib
+from datetime import datetime
+
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.shortcuts import render
+from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_protect
+
+from .utils import api_post, user_can_edit_demo
 
 logger = logging.getLogger(__name__)
 

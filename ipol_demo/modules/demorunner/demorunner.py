@@ -12,6 +12,7 @@ import io
 import json
 import logging
 import os
+
 # add lib path for import
 import os.path
 import re
@@ -20,10 +21,10 @@ import shutil
 import subprocess
 import tempfile
 import time
-import zipfile
 import urllib.error
 import urllib.parse
 import urllib.request
+import zipfile
 from string import Template
 from subprocess import PIPE, Popen
 from threading import Lock
@@ -33,7 +34,6 @@ import Tools.build as build
 import Tools.run_demo_base as run_demo_base
 import virtualenv.run as virtualenv
 from Tools.run_demo_base import IPOLTimeoutError
-
 
 
 class IPOLMissingBuildItem(Exception):

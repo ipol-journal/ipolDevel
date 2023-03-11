@@ -14,7 +14,6 @@ import urllib.request
 import zipfile
 from subprocess import Popen
 
-
 from .error import VirtualEnvError
 
 TIME_FMT = "%a, %d %b %Y %H:%M:%S %Z"

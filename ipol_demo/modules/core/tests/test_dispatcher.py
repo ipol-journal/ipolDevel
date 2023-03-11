@@ -1,10 +1,17 @@
 from dataclasses import dataclass
 from typing import Optional
-from result import Ok, Err, Result
 
-from dispatcher.dispatcher import Dispatcher, PingProvider, UnresponsiveDemorunnerError, NoDemorunnerAvailableError, NoSuitableDemorunnerForRequirementsError, WorkloadProvider
 from dispatcher.demorunnerinfo import DemoRunnerInfo
+from dispatcher.dispatcher import (
+    Dispatcher,
+    NoDemorunnerAvailableError,
+    NoSuitableDemorunnerForRequirementsError,
+    PingProvider,
+    UnresponsiveDemorunnerError,
+    WorkloadProvider,
+)
 from dispatcher.policy import RandomPolicy
+from result import Err, Ok, Result
 
 
 @dataclass

@@ -8,13 +8,21 @@ from collections import OrderedDict
 from math import ceil
 from typing import Optional
 from urllib.request import pathname2url
-from result import Ok, Err, Result
 
 import magic
-from .model import (Demo, DemoDAO,
-                   DemoDemoDescriptionDAO, DemoDescriptionDAO, DemoEditorDAO,
-                   Editor, EditorDAO, initDb)
-from .tools import is_json, generate_ssh_keys
+from result import Err, Ok, Result
+
+from .model import (
+    Demo,
+    DemoDAO,
+    DemoDemoDescriptionDAO,
+    DemoDescriptionDAO,
+    DemoEditorDAO,
+    Editor,
+    EditorDAO,
+    initDb,
+)
+from .tools import generate_ssh_keys, is_json
 
 
 class DemoInfo:

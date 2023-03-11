@@ -5,12 +5,16 @@ Dispatcher: choose the best demorunner according to a policy
 import logging
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
+
 import requests
-from result import Ok, Err, Result
-
-from dispatcher.policy import Policy, LowestWorkloadPolicy, RandomPolicy, SequentialPolicy
 from dispatcher.demorunnerinfo import DemoRunnerInfo
-
+from dispatcher.policy import (
+    LowestWorkloadPolicy,
+    Policy,
+    RandomPolicy,
+    SequentialPolicy,
+)
+from result import Err, Ok, Result
 
 
 class DispatcherError:

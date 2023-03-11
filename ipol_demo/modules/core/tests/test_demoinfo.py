@@ -1,7 +1,7 @@
-import os
 import json
-import pytest
+import os
 
+import pytest
 from demoinfo.demoinfo import DemoInfo
 
 demo_id = 0

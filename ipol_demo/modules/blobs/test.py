@@ -4,6 +4,7 @@
 Blobs tests
 """
 import os
+
 # Unit tests for the Blobs module
 import socket
 import sys

@@ -25,10 +25,9 @@ __docformat__ = 'plaintext'
 import optparse
 import sys
 
-import numpy as np
-
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import numpy as np
 from cycler import cycler
 
 plt.switch_backend('Agg')

@@ -19,6 +19,7 @@
 
 import argparse
 import errno
+
 import cv2
 
 # Parse command line arguments

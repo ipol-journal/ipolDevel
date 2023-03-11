@@ -2,7 +2,6 @@
 IPOL Core module
 """
 import configparser
-from dataclasses import dataclass
 import glob
 import hashlib
 import io
@@ -21,6 +20,7 @@ import urllib.parse
 import urllib.request
 import zipfile
 from collections import OrderedDict
+from dataclasses import dataclass
 from datetime import datetime
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
@@ -31,23 +31,35 @@ from typing import Any
 import cherrypy
 import magic
 import requests
-from result import Ok, Err
 from archive import send_to_archive
-from errors import (IPOLCheckDDLError, IPOLConversionError, IPOLCopyBlobsError,
-                    IPOLDecodeInterfaceRequestError, IPOLDemoExtrasError,
-                    IPOLDemoRunnerResponseError, IPOLEnsureCompilationError,
-                    IPOLExecutionError, IPOLExtractError, IPOLFindSuitableDR,
-                    IPOLInputUploadError, IPOLInputUploadTooLargeError,
-                    IPOLKeyError, IPOLMissingRequiredInputError,
-                    IPOLPrepareFolderError, IPOLProcessInputsError,
-                    IPOLReadDDLError, IPOLUploadedInputRejectedError,
-                    IPOLWorkDirError)
-from ipolutils.evaluator.evaluator import IPOLEvaluateError, evaluate
-from ipolutils.read_text_file import read_commented_text_file
-
-from dispatcher import dispatcher
 from conversion import conversion
 from demoinfo import demoinfo
+from dispatcher import dispatcher
+from errors import (
+    IPOLCheckDDLError,
+    IPOLConversionError,
+    IPOLCopyBlobsError,
+    IPOLDecodeInterfaceRequestError,
+    IPOLDemoExtrasError,
+    IPOLDemoRunnerResponseError,
+    IPOLEnsureCompilationError,
+    IPOLExecutionError,
+    IPOLExtractError,
+    IPOLFindSuitableDR,
+    IPOLInputUploadError,
+    IPOLInputUploadTooLargeError,
+    IPOLKeyError,
+    IPOLMissingRequiredInputError,
+    IPOLPrepareFolderError,
+    IPOLProcessInputsError,
+    IPOLReadDDLError,
+    IPOLUploadedInputRejectedError,
+    IPOLWorkDirError,
+)
+from ipolutils.evaluator.evaluator import IPOLEvaluateError, evaluate
+from ipolutils.read_text_file import read_commented_text_file
+from result import Err, Ok
+
 
 def authenticate(func):
     """

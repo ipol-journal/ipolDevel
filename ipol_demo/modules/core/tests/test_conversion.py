@@ -4,17 +4,14 @@ Conversion tests.
 import os
 import shutil
 import tempfile
-import pytest
-
-import magic
-import numpy as np
 
 import cv2
+import magic
+import numpy as np
+import pytest
+from conversion.conversion import ConversionStatus, Converter
 from ipolutils.image.Image import Image
 from ipolutils.video.Video import Video
-
-from conversion.conversion import ConversionStatus, Converter
-
 
 # used to find test resources in ci_tests/resources/
 ROOT = os.path.dirname(os.path.abspath(__file__)) + "/../../../.."
