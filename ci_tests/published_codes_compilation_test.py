@@ -9,7 +9,7 @@ import xml.etree.ElementTree as ET
 import requests
 from ipolutils.read_text_file import read_commented_text_file
 
-import os, sys
+import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "../ipol_demo/modules/"))
 from dispatcher.demorunnerinfo import DemoRunnerInfo
 from dispatcher.policy import Policy

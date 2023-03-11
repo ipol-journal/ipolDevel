@@ -8,5 +8,5 @@ register = Library()
 def parse_iso(value):
     try:
         return datetime.strptime(value, "%Y-%m-%d %H:%M:%S.%f")
-    except:
+    except Exception:
         return datetime.strptime(value, "%Y-%m-%d %H:%M:%S")

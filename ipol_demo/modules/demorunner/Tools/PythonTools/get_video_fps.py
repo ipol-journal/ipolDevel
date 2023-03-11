@@ -18,6 +18,7 @@
 # Print the frames per second (FPS) of the input video
 
 import argparse
+import errno
 import cv2
 
 # Parse command line arguments

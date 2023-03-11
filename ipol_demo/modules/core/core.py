@@ -733,7 +733,7 @@ class Core():
         """
         try:
             demo_blobs = self.post('api/blobs/get_blobs', data={'demo_id': demo_id}).json()
-        except:
+        except Exception:
             self.logger.exception(
                 "Blobs get_blobs returned KO at Core's copy_blobset_from_physical_location")
             raise IPOLCopyBlobsError("Couldn't reach blobs")
