@@ -16,7 +16,6 @@
 """
 Utils shared among IPOL modules.
 """
-import errno
 import mimetypes
 import os
 from shutil import rmtree

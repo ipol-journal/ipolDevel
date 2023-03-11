@@ -1,15 +1,10 @@
-import math
 import os
-import re
 import shlex
 # importing image for python commands in DDL scripts
 import signal
-import subprocess
 import time
-from os import path
 from subprocess import Popen
 # -----------------------------------------------------------------------------
-from threading import Lock
 
 import psutil
 

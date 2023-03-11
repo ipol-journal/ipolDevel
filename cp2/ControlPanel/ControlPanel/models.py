@@ -1,7 +1,5 @@
 from django.conf import settings
-from django.db import models
 from django.contrib.auth.models import User as usera
-from django.shortcuts import HttpResponseRedirect
 from .utils import api_post
 
 import logging
@@ -47,7 +45,7 @@ def user_created_handler(sender, instance, *args, **kwargs):
             'name': f'{instance.first_name} {instance.last_name}',
             'mail': instance.email
         }
-        response = api_post('/api/demoinfo/add_editor', settings)
+        api_post('/api/demoinfo/add_editor', settings)
     else:
         logger.error('Error, user tried to set up an email which is already in use.')
         raise Exception('Error, tried to set up an email which is already in use.')

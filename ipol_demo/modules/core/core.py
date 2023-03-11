@@ -3,7 +3,6 @@ IPOL Core module
 """
 import configparser
 from dataclasses import dataclass
-import errno
 import glob
 import hashlib
 import io
@@ -32,7 +31,7 @@ from typing import Any
 import cherrypy
 import magic
 import requests
-from result import Ok, Err, Result
+from result import Ok, Err
 from archive import send_to_archive
 from errors import (IPOLCheckDDLError, IPOLConversionError, IPOLCopyBlobsError,
                     IPOLDecodeInterfaceRequestError, IPOLDemoExtrasError,
@@ -790,7 +789,7 @@ class Core():
         Copy the existing input inpainting data to the execution folder.
         """
         for i, ddl_input in enumerate(ddl_inputs):
-            if not f"inpainting_data_{str(i)}" in blobs:
+            if f"inpainting_data_{str(i)}" not in blobs:
                 continue
             blob_data = blobs[f"inpainting_data_{str(i)}"]
             if ddl_input['control'] == 'mask':
@@ -828,7 +827,7 @@ class Core():
         # Check that all mandatory sections are present
         sections = ('general', 'build', 'run', 'results')
         for section in sections:
-            if not section in ddl:
+            if section not in ddl:
                 raise IPOLCheckDDLError("Bad DDL syntax: missing '{}' section.".format(section))
 
         # Empty run
@@ -1445,7 +1444,7 @@ attached the failed experiment data.". \
                 json_filename = os.path.join(work_dir, 'params.json')
                 with open(json_filename, 'w') as resfile:
                     resfile.write(json.dumps(params))
-            except (OSError, IOError) as ex:
+            except (OSError, IOError):
                 error_message = "Failed to save {} in demo {}".format(json_filename, demo_id)
                 self.logger.exception(error_message)
         except Exception as ex:
@@ -1545,7 +1544,7 @@ attached the failed experiment data.". \
 
         if resp.status_code != 200:
             demo_state = self.get_demo_metadata(demo_id)["state"].lower()
-            error = f'IPOLDemorunnerUnresponsive'
+            error = 'IPOLDemorunnerUnresponsive'
             website_message = f'Demorunner {dr_name} not responding (error {resp.status_code})'
             raise IPOLDemoRunnerResponseError(website_message, demo_state, key, error)
 
@@ -1597,7 +1596,7 @@ attached the failed experiment data.". \
                 with open(failure_filepath, 'r') as open_file:
                     failure_message = "{}".format(open_file.read())
                 raise IPOLExecutionError(failure_message)
-        except (OSError, IOError) as ex:
+        except (OSError, IOError):
             error_message = "Failed to read {} in demo {}".format(failure_filepath, demo_id)
             self.logger.exception(error_message)
             raise IPOLExecutionError(error_message, error_message)
@@ -1845,7 +1844,7 @@ attached the failed experiment data.". \
                 error_message += f"Error when removing demoextras: {result.value} \n"
 
             if self.post('/api/blobs/delete_demo', data=userdata).json()['status'] != 'OK':
-                error_message += f"API call /blobs/delete_demo failed.'\n"
+                error_message += "API call /blobs/delete_demo failed.'\n"
 
             #delete the archive
             res_archive = self.post('/api/archive/delete_demo', data=userdata).json()

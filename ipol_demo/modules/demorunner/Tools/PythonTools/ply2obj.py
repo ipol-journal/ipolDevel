@@ -35,10 +35,10 @@ def print_error(str):
 if (len(sys.argv) < 2):
     print_help()
 
-plyfilename = sys.argv[1];
-objfilename = sys.argv[1].replace(".ply","")+".obj"; 
+plyfilename = sys.argv[1]
+objfilename = sys.argv[1].replace(".ply","")+".obj" 
 if (len(sys.argv) == 3):
-    objfilename = sys.argv[2];
+    objfilename = sys.argv[2]
 
 
 objfile = open(objfilename, "w")

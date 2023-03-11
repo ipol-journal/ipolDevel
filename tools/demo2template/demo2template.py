@@ -24,9 +24,6 @@ Example: ./demo2template.py 271 Clouds_Pushbroom
 """
 
 import argparse
-import sys
-import json
-import os
 import socket
 import urllib.request
 import requests
@@ -82,7 +79,6 @@ def copy_blobs_to_template(host, source_host, demo_id, template_name, blobs_json
     """
     Copy demo blobs to template
     """
-    params = {'template_name': template_name}
     blobs_json = post('/api/blobs/get_demo_owned_blobs', source_host, params={'demo_id': demo_id}).json()
     
     for blobset in blobs_json['sets']:

@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
@@ -102,11 +102,11 @@ def save_profile(request):
 
     if not profiles.exists():
         messages.warning(request, 'The profile you are trying to modify does not exist')
-        return HttpResponseRedirect(f'/cp2/profile')
+        return HttpResponseRedirect('/cp2/profile')
     email_changed = request.user.email != request.POST.get('email', '')
     if new_email_exists and email_changed:
         messages.warning(request, 'New email is already in use.')
-        return HttpResponseRedirect(f'/cp2/profile')
+        return HttpResponseRedirect('/cp2/profile')
     if new_email_exists:
         for profile in profiles:
             profile.username = request.POST.get('username', '')
@@ -121,4 +121,4 @@ def save_profile(request):
 
     profile.save()
     messages.success(request, 'Your profile has been changed successfully.')
-    return HttpResponseRedirect(f'/cp2/profile')
+    return HttpResponseRedirect('/cp2/profile')

@@ -17,12 +17,10 @@ A tool for sysadmins.
 
 import json
 import os
-import subprocess
 import urllib.error
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
-from pathlib import Path
 
 # Prompt
 from prompt_toolkit import prompt

@@ -34,12 +34,12 @@ def start_scann(module):
         if "@cherrypy.expose" in lines[line_index]:
 
             line_index += 1
-            while not "def" in lines[line_index]:
+            while "def" not in lines[line_index]:
                 line_index += 1
 
             # Name of the method
             method += lines[line_index].strip() +"\n"
-            while not "):" in lines[line_index]:
+            while "):" not in lines[line_index]:
                 line_index += 1
                 method += lines[line_index][:-1] + "\n"
 
