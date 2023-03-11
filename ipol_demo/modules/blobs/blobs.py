@@ -40,8 +40,9 @@ def authenticate(func):
         """
         Invokes the wrapped function if authenticated
         """
-        if "X-Real-IP" in cherrypy.request.headers \
-                and is_authorized_ip(cherrypy.request.headers["X-Real-IP"]):
+        if "X-Real-IP" in cherrypy.request.headers and is_authorized_ip(
+            cherrypy.request.headers["X-Real-IP"]
+        ):
             return func(*args, **kwargs)
         error = {"status": "KO", "error": "Authentication Failed"}
         return json.dumps(error).encode()
@@ -54,8 +55,11 @@ def authenticate(func):
         patterns = []
         # Creates the patterns  with regular expressions
         for authorized_pattern in blobs.authorized_patterns:
-            patterns.append(re.compile(authorized_pattern.replace(
-                ".", "\\.").replace("*", "[0-9a-zA-Z]+")))
+            patterns.append(
+                re.compile(
+                    authorized_pattern.replace(".", "\\.").replace("*", "[0-9a-zA-Z]+")
+                )
+            )
         # Compare the IP with the patterns
         for pattern in patterns:
             if pattern.match(ip) is not None:
@@ -65,10 +69,11 @@ def authenticate(func):
     return authenticate_and_call
 
 
-class Blobs():
+class Blobs:
     """
     Blobs module
     """
+
     instance = None
 
     @staticmethod
@@ -86,12 +91,12 @@ class Blobs():
         """
 
         # Paths
-        self.blob_dir = cherrypy.config['final.dir']
-        self.thumb_dir = cherrypy.config['thumbnail.dir']
-        self.vr_dir = cherrypy.config['visual_representation.dir']
+        self.blob_dir = cherrypy.config["final.dir"]
+        self.thumb_dir = cherrypy.config["thumbnail.dir"]
+        self.vr_dir = cherrypy.config["visual_representation.dir"]
         self.config_common_dir = cherrypy.config.get("config_common.dir")
         self.module_dir = cherrypy.config.get("module.dir")
-        self.host_name = cherrypy.config['server.socket_host']
+        self.host_name = cherrypy.config["server.socket_host"]
 
         # Logs
         self.logs_dir = cherrypy.config.get("logs_dir")
@@ -122,10 +127,11 @@ class Blobs():
         logger = logging.getLogger("blobs_log")
         # handle all messages for the moment
         logger.setLevel(logging.DEBUG)
-        handler = logging.FileHandler(os.path.join(self.logs_dir, 'error.log'))
+        handler = logging.FileHandler(os.path.join(self.logs_dir, "error.log"))
         formatter = logging.Formatter(
-            '%(asctime)s; [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S')
+            "%(asctime)s; [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
         handler.setFormatter(formatter)
 
         logger.addHandler(handler)
@@ -145,7 +151,6 @@ class Blobs():
         """
 
         if os.path.isfile(self.database_file):
-
             file_info = os.stat(self.database_file)
 
             if file_info.st_size == 0:
@@ -155,7 +160,6 @@ class Blobs():
                     self.logger.exception("init_database: {}".format(ex))
                     return False
 
-
         if not os.path.isfile(self.database_file):
             try:
                 conn = lite.connect(self.database_file)
@@ -163,9 +167,10 @@ class Blobs():
 
                 sql_buffer = ""
 
-                with open(self.database_dir + '/drop_create_db_schema.sql', 'r') as sql_file:
+                with open(
+                    self.database_dir + "/drop_create_db_schema.sql", "r"
+                ) as sql_file:
                     for line in sql_file:
-
                         sql_buffer += line
                         if lite.complete_statement(sql_buffer):
                             sql_buffer = sql_buffer.strip()
@@ -192,10 +197,14 @@ class Blobs():
         Read from the IPs conf file
         """
         # Check if the config file exists
-        authorized_patterns_path = os.path.join(self.config_common_dir, "authorized_patterns.conf")
+        authorized_patterns_path = os.path.join(
+            self.config_common_dir, "authorized_patterns.conf"
+        )
         if not os.path.isfile(authorized_patterns_path):
-            self.error_log("read_authorized_patterns",
-                           "Can't open {}".format(authorized_patterns_path))
+            self.error_log(
+                "read_authorized_patterns",
+                "Can't open {}".format(authorized_patterns_path),
+            )
             return []
 
         # Read config file
@@ -203,7 +212,7 @@ class Blobs():
             cfg = configparser.ConfigParser()
             cfg.read([authorized_patterns_path])
             patterns = []
-            for item in cfg.items('Patterns'):
+            for item in cfg.items("Patterns"):
                 patterns.append(item[1])
             return patterns
         except configparser.Error:
@@ -265,19 +274,27 @@ class Blobs():
             # ext = "." + ext
 
             blob_hash = self.get_hash(blob.file)
-            blob_id = self.store_blob(conn, blob.file, credit, blob_hash, ext, blob_format)
+            blob_id = self.store_blob(
+                conn, blob.file, credit, blob_hash, ext, blob_format
+            )
 
             try:
                 if blob_vr:
                     # If the user specified to use a new VR, then we use it
-                    _, vr_ext = self.get_format_and_extension(self.get_blob_mime(blob_vr.file))
-                    blob_file = self.copy_blob(blob_vr.file, blob_hash, vr_ext, self.vr_dir)
+                    _, vr_ext = self.get_format_and_extension(
+                        self.get_blob_mime(blob_vr.file)
+                    )
+                    blob_file = self.copy_blob(
+                        blob_vr.file, blob_hash, vr_ext, self.vr_dir
+                    )
                     self.create_thumbnail(blob_file, blob_hash)
                 else:
                     # The user didn't give any new VR.
                     # We'll update the thumbnail only if it doesn't have already a VR
                     if not self.blob_has_VR(blob_hash):
-                        blob_file = os.path.join(self.blob_dir, self.get_subdir(blob_hash))
+                        blob_file = os.path.join(
+                            self.blob_dir, self.get_subdir(blob_hash)
+                        )
                         blob_file = os.path.join(blob_file, blob_hash + ext)
                         self.create_thumbnail(blob_file, blob_hash)
 
@@ -294,22 +311,38 @@ class Blobs():
             if dest["dest"] == "demo":
                 demo_id = dest["demo_id"]
                 # Check if the pos is empty
-                if database.is_pos_occupied_in_demo_set(conn, demo_id, blob_set, pos_set):
+                if database.is_pos_occupied_in_demo_set(
+                    conn, demo_id, blob_set, pos_set
+                ):
                     editor_demo_id = database.get_demo_id(conn, demo_id)
-                    pos_set = database.get_available_pos_in_demo_set(conn, editor_demo_id, blob_set)
+                    pos_set = database.get_available_pos_in_demo_set(
+                        conn, editor_demo_id, blob_set
+                    )
 
-                self.do_add_blob_to_demo(conn, demo_id, blob_id, blob_set, pos_set, title)
+                self.do_add_blob_to_demo(
+                    conn, demo_id, blob_id, blob_set, pos_set, title
+                )
                 res = True
             elif dest["dest"] == "template":
                 template_id = dest["template_id"]
                 # Check if the pos is empty
-                if database.is_pos_occupied_in_template_set(conn, template_id, blob_set, pos_set):
-                    pos_set = database.get_available_pos_in_template_set(conn, template_id, blob_set)
+                if database.is_pos_occupied_in_template_set(
+                    conn, template_id, blob_set, pos_set
+                ):
+                    pos_set = database.get_available_pos_in_template_set(
+                        conn, template_id, blob_set
+                    )
 
-                self.do_add_blob_to_template(conn, template_id, blob_id, blob_set, pos_set, title)
+                self.do_add_blob_to_template(
+                    conn, template_id, blob_id, blob_set, pos_set, title
+                )
                 res = True
             else:
-                self.logger.error("Failed to add the blob in add_blob. Unknown dest: {}".format(dest["dest"]))
+                self.logger.error(
+                    "Failed to add the blob in add_blob. Unknown dest: {}".format(
+                        dest["dest"]
+                    )
+                )
 
         except IOError as ex:
             self.logger.exception("Error copying uploaded blob")
@@ -318,7 +351,11 @@ class Blobs():
             self.logger.exception("Error adding blob info to DB")
             print("Couldn't add blob info to DB. Error: {}".format(ex))
         except IPOLBlobsTemplateError as ex:
-            print("Couldn't add blob to template. blob. Template doesn't exists. Error: {}".format(ex))
+            print(
+                "Couldn't add blob to template. blob. Template doesn't exists. Error: {}".format(
+                    ex
+                )
+            )
         except Exception as ex:
             self.logger.exception("*** Unhandled exception while adding the blob")
             print("*** Unhandled exception while adding the blob. Error: {}".format(ex))
@@ -330,8 +367,16 @@ class Blobs():
 
     @cherrypy.expose
     @authenticate
-    def add_blob_to_demo(self, blob=None, demo_id=None, blob_set=None, pos_set=None, title=None,
-                         credit=None, blob_vr=None):
+    def add_blob_to_demo(
+        self,
+        blob=None,
+        demo_id=None,
+        blob_set=None,
+        pos_set=None,
+        title=None,
+        credit=None,
+        blob_vr=None,
+    ):
         """
         Adds a new blob to a demo
         """
@@ -343,8 +388,16 @@ class Blobs():
 
     @cherrypy.expose
     @authenticate
-    def add_blob_to_template(self, blob=None, template_id=None, blob_set=None, pos_set=None, title=None,
-                             credit=None, blob_vr=None):
+    def add_blob_to_template(
+        self,
+        blob=None,
+        template_id=None,
+        blob_set=None,
+        pos_set=None,
+        title=None,
+        credit=None,
+        blob_vr=None,
+    ):
         """
         Adds a new blob to a template
         """
@@ -387,11 +440,11 @@ class Blobs():
         """
         get format and extension from mime
         """
-        mime_format = mime.split('/')[0]
+        mime_format = mime.split("/")[0]
         ext = mimetypes.guess_extension(mime)
         # some mime type maybe unknown, especially for exotic file format
         if not ext:
-            ext = '.dat'
+            ext = ".dat"
         return mime_format, ext
 
     @staticmethod
@@ -411,7 +464,7 @@ class Blobs():
             os.makedirs(dst_path)
         dst_path = os.path.join(dst_path, blob_hash + ext)
         blob.seek(0)
-        with open(dst_path, 'wb') as f:
+        with open(dst_path, "wb") as f:
             shutil.copyfileobj(blob, f)
         return dst_path
 
@@ -430,14 +483,18 @@ class Blobs():
         try:
             if not database.demo_exist(conn, demo_id):
                 database.create_demo(conn, demo_id)
-            database.add_blob_to_demo(conn, demo_id, blob_id, pos_set, blob_set, blob_title)
+            database.add_blob_to_demo(
+                conn, demo_id, blob_id, pos_set, blob_set, blob_title
+            )
             conn.commit()
         except IPOLBlobsDataBaseError:
             conn.rollback()
             raise
 
     @staticmethod
-    def do_add_blob_to_template(conn, template_id, blob_id, blob_set, pos_set, blob_title):
+    def do_add_blob_to_template(
+        conn, template_id, blob_id, blob_set, pos_set, blob_title
+    ):
         """
         Associates the template to a demo in the DB
         """
@@ -445,7 +502,9 @@ class Blobs():
             if not database.template_exist(conn, template_id):
                 raise IPOLBlobsTemplateError("Template doesn't exist")
 
-            database.add_blob_to_template(conn, template_id, blob_id, pos_set, blob_set, blob_title)
+            database.add_blob_to_template(
+                conn, template_id, blob_id, pos_set, blob_set, blob_title
+            )
             conn.commit()
         except IPOLBlobsDataBaseError:
             conn.rollback()
@@ -464,7 +523,9 @@ class Blobs():
         try:
             thumbnail(src_file, height=thumb_height, dst_file=dst_file)
         except Exception as ex:
-            raise IPOLBlobsThumbnailError("File '{}', thumbnail error. {}".format(src_file, ex))
+            raise IPOLBlobsThumbnailError(
+                "File '{}', thumbnail error. {}".format(src_file, ex)
+            )
 
     @cherrypy.expose
     @authenticate
@@ -478,29 +539,33 @@ class Blobs():
         try:
             conn = lite.connect(self.database_file)
             result = database.template(conn, template_name)
-            if result is not None and result['template_id']:
-                status = {
-                    "status": "OK",
-                    "template_id": result['template_id']
-                }
+            if result is not None and result["template_id"]:
+                status = {"status": "OK", "template_id": result["template_id"]}
             else:
                 template_id = database.create_template(conn, template_name)
                 conn.commit()
-                status = {
-                    "status": "OK",
-                    "template_id": template_id
-                }
+                status = {"status": "OK", "template_id": template_id}
 
         except IPOLBlobsDataBaseError as ex:
             if conn is not None:
                 conn.rollback()
             self.logger.exception("Fail creating template {}".format(template_name))
-            print("Couldn't create the template {}. Error: {}".format(template_name, ex))
+            print(
+                "Couldn't create the template {}. Error: {}".format(template_name, ex)
+            )
         except Exception as ex:
             if conn is not None:
                 conn.rollback()
-            self.logger.exception("*** Unhandled exception while creating the template {}".format(template_name))
-            print("*** Unhandled exception while creating the template {}. Error: {}".format(template_name, ex))
+            self.logger.exception(
+                "*** Unhandled exception while creating the template {}".format(
+                    template_name
+                )
+            )
+            print(
+                "*** Unhandled exception while creating the template {}. Error: {}".format(
+                    template_name, ex
+                )
+            )
 
         finally:
             if conn is not None:
@@ -531,19 +596,37 @@ class Blobs():
         except IPOLBlobsDataBaseError as ex:
             if conn is not None:
                 conn.rollback()
-            self.logger.exception("Fails linking templates {} to the demo #{}".format(template_id, demo_id))
-            print("Couldn't link templates {} to the demo #{}. Error: {}".format(template_id, demo_id, ex))
+            self.logger.exception(
+                "Fails linking templates {} to the demo #{}".format(
+                    template_id, demo_id
+                )
+            )
+            print(
+                "Couldn't link templates {} to the demo #{}. Error: {}".format(
+                    template_id, demo_id, ex
+                )
+            )
         except IPOLBlobsTemplateError as ex:
             if conn is not None:
                 conn.rollback()
-            print("Some of the templates {} does not exist. Error: {}".format(template_id, ex))
+            print(
+                "Some of the templates {} does not exist. Error: {}".format(
+                    template_id, ex
+                )
+            )
         except Exception as ex:
             if conn is not None:
                 conn.rollback()
-            self.logger.exception("*** Unhandled exception while linking the templates {} to the demo #{}"
-                                  .format(template_id, demo_id))
-            print("*** Unhandled exception while linking the templates {} to the demo #{}. Error:{}" \
-                .format(template_id, demo_id, ex))
+            self.logger.exception(
+                "*** Unhandled exception while linking the templates {} to the demo #{}".format(
+                    template_id, demo_id
+                )
+            )
+            print(
+                "*** Unhandled exception while linking the templates {} to the demo #{}. Error:{}".format(
+                    template_id, demo_id, ex
+                )
+            )
         finally:
             if conn is not None:
                 conn.close()
@@ -560,8 +643,10 @@ class Blobs():
             # Validate demo_id
             try:
                 demo_id = int(demo_id)
-            except(TypeError, ValueError):
-                return json.dumps({'status': 'KO', 'error': "Invalid demo_id: {}".format(demo_id)}).encode()
+            except (TypeError, ValueError):
+                return json.dumps(
+                    {"status": "KO", "error": "Invalid demo_id: {}".format(demo_id)}
+                ).encode()
 
             conn = lite.connect(self.database_file)
 
@@ -569,19 +654,33 @@ class Blobs():
             templates = database.get_demo_templates(conn, demo_id)
             sets = self.prepare_list(demo_blobs)
             for template in templates:
-                sets += self.prepare_list(database.get_template_blobs(conn, template['id']))
+                sets += self.prepare_list(
+                    database.get_template_blobs(conn, template["id"])
+                )
 
             data["sets"] = sets
             data["status"] = "OK"
 
         except IPOLBlobsDataBaseError as ex:
-            self.logger.exception("Fails obtaining all the blobs from demo #{}".format(demo_id))
-            print("Couldn't obtain all the blobs from demo #{}. Error: {}".format(demo_id, ex))
+            self.logger.exception(
+                "Fails obtaining all the blobs from demo #{}".format(demo_id)
+            )
+            print(
+                "Couldn't obtain all the blobs from demo #{}. Error: {}".format(
+                    demo_id, ex
+                )
+            )
         except Exception as ex:
-            self.logger.exception("*** Unhandled exception while obtaining all the blobs from demo #{}"
-                                  .format(demo_id))
-            print("*** Unhandled exception while obtaining all the blobs from demo #{}. Error: {}" \
-                .format(demo_id, ex))
+            self.logger.exception(
+                "*** Unhandled exception while obtaining all the blobs from demo #{}".format(
+                    demo_id
+                )
+            )
+            print(
+                "*** Unhandled exception while obtaining all the blobs from demo #{}. Error: {}".format(
+                    demo_id, ex
+                )
+            )
         finally:
             if conn is not None:
                 conn.close()
@@ -604,8 +703,8 @@ class Blobs():
         for blob_set in sorted_sets:
             dic = {}
             for blob in blob_set[1]:
-                position = blob['pos_set']
-                del blob['pos_set']
+                position = blob["pos_set"]
+                del blob["pos_set"]
                 dic[position] = blob
 
             result.append({"name": blob_set[0], "blobs": dic})
@@ -630,13 +729,25 @@ class Blobs():
             data["status"] = "OK"
 
         except IPOLBlobsDataBaseError as ex:
-            self.logger.exception("Fails obtaining the owned blobs from template '{}'".format(template_id))
-            print("Couldn't obtain owned blobs from template '{}'. Error: {}".format(template_id, ex))
+            self.logger.exception(
+                "Fails obtaining the owned blobs from template '{}'".format(template_id)
+            )
+            print(
+                "Couldn't obtain owned blobs from template '{}'. Error: {}".format(
+                    template_id, ex
+                )
+            )
         except Exception as ex:
-            self.logger.exception("*** Unhandled exception while obtaining the owned blobs from template '{}'"
-                                  .format(template_id))
-            print("*** Unhandled exception while obtaining the owned blobs from template '{}'. Error: {}" \
-                .format(template_id, ex))
+            self.logger.exception(
+                "*** Unhandled exception while obtaining the owned blobs from template '{}'".format(
+                    template_id
+                )
+            )
+            print(
+                "*** Unhandled exception while obtaining the owned blobs from template '{}'. Error: {}".format(
+                    template_id, ex
+                )
+            )
         finally:
             if conn is not None:
                 conn.close()
@@ -658,67 +769,89 @@ class Blobs():
             data["status"] = "OK"
 
         except IPOLBlobsDataBaseError as ex:
-            self.logger.exception("Fails obtaining the owned blobs from demo #{}".format(demo_id))
-            print("Couldn't obtain owned blobs from demo #{}. Error: {}".format(demo_id, ex))
+            self.logger.exception(
+                "Fails obtaining the owned blobs from demo #{}".format(demo_id)
+            )
+            print(
+                "Couldn't obtain owned blobs from demo #{}. Error: {}".format(
+                    demo_id, ex
+                )
+            )
         except Exception as ex:
-            self.logger.exception("*** Unhandled exception while obtaining the owned blobs from demo #{}"
-                                  .format(demo_id))
-            print("*** Unhandled exception while obtaining the owned blobs from demo #{}. Error: {}" \
-                .format(demo_id, ex))
+            self.logger.exception(
+                "*** Unhandled exception while obtaining the owned blobs from demo #{}".format(
+                    demo_id
+                )
+            )
+            print(
+                "*** Unhandled exception while obtaining the owned blobs from demo #{}. Error: {}".format(
+                    demo_id, ex
+                )
+            )
         finally:
             if conn is not None:
                 conn.close()
         return json.dumps(data).encode()
 
     def blob_has_thumbnail(self, blob_hash):
-        '''
+        """
         Check if the blob has already thumbnail
-        '''
+        """
         subdir = self.get_subdir(blob_hash)
         thumb_physical_dir = os.path.join(self.thumb_dir, subdir)
-        return os.path.isfile(os.path.join(self.module_dir, thumb_physical_dir, blob_hash + '.jpg'))
+        return os.path.isfile(
+            os.path.join(self.module_dir, thumb_physical_dir, blob_hash + ".jpg")
+        )
 
     def blob_has_VR(self, blob_hash):
-        '''
+        """
         Check if the blob is associated to a VR
-        '''
+        """
         subdir = self.get_subdir(blob_hash)
         vr_physical_dir = os.path.join(self.vr_dir, subdir)
-        vr_extension = self.get_vr_extension(os.path.join(self.module_dir, vr_physical_dir), blob_hash)
+        vr_extension = self.get_vr_extension(
+            os.path.join(self.module_dir, vr_physical_dir), blob_hash
+        )
         return vr_extension is not None
 
     def get_blob_info(self, blob):
         """
         Return the required information from the blob
         """
-        subdir = self.get_subdir(blob['hash'])
+        subdir = self.get_subdir(blob["hash"])
         vr_physical_dir = os.path.join(self.vr_dir, subdir)
         thumb_physical_dir = os.path.join(self.thumb_dir, subdir)
         blob_physical_dir = os.path.join(self.blob_dir, subdir)
 
-        vr_url = '/api/blobs/' + vr_physical_dir
-        thumbnail_url = '/api/blobs/' + thumb_physical_dir
-        blob_url = '/api/blobs/' + blob_physical_dir
+        vr_url = "/api/blobs/" + vr_physical_dir
+        thumbnail_url = "/api/blobs/" + thumb_physical_dir
+        blob_url = "/api/blobs/" + blob_physical_dir
 
-        vr_path = os.path.join(vr_physical_dir, blob['hash'] + blob['extension'])
-        vr_mtime = ''
+        vr_path = os.path.join(vr_physical_dir, blob["hash"] + blob["extension"])
+        vr_mtime = ""
         if os.path.exists(vr_path):
             vr_mtime = os.path.getmtime(vr_path)
 
-        blob_info = {'id': blob['id'],
-                     'title': blob['title'],
-                     'blob': os.path.join(blob_url, blob['hash'] + blob['extension']),
-                     'format': blob['format'],
-                     'credit': blob['credit'],
-                     'pos_set': blob['pos_set'],
-                     'vr_mtime': vr_mtime}
+        blob_info = {
+            "id": blob["id"],
+            "title": blob["title"],
+            "blob": os.path.join(blob_url, blob["hash"] + blob["extension"]),
+            "format": blob["format"],
+            "credit": blob["credit"],
+            "pos_set": blob["pos_set"],
+            "vr_mtime": vr_mtime,
+        }
 
-        if self.blob_has_thumbnail(blob['hash']):
-            blob_info['thumbnail'] = os.path.join(self.module_dir, thumbnail_url, blob['hash'] + '.jpg')
+        if self.blob_has_thumbnail(blob["hash"]):
+            blob_info["thumbnail"] = os.path.join(
+                self.module_dir, thumbnail_url, blob["hash"] + ".jpg"
+            )
 
-        vr_extension = self.get_vr_extension(os.path.join(self.module_dir, vr_physical_dir), blob['hash'])
+        vr_extension = self.get_vr_extension(
+            os.path.join(self.module_dir, vr_physical_dir), blob["hash"]
+        )
         if vr_extension is not None:
-            blob_info['vr'] = os.path.join(vr_url, blob['hash'] + vr_extension)
+            blob_info["vr"] = os.path.join(vr_url, blob["hash"] + vr_extension)
 
         return blob_info
 
@@ -730,7 +863,6 @@ class Blobs():
         """
         vr_extension = None
         if os.path.isdir(vr_dir):
-
             file_without_extension = os.path.join(vr_dir, blob_hash)
             vr = glob.glob(file_without_extension + ".*")
             if vr:
@@ -753,13 +885,25 @@ class Blobs():
             data["status"] = "OK"
 
         except IPOLBlobsDataBaseError as ex:
-            self.logger.exception("Fails obtaining the owned templates from demo #{}".format(demo_id))
-            print("Couldn't obtain owned templates from demo #{}. Error: {}".format(demo_id, ex))
+            self.logger.exception(
+                "Fails obtaining the owned templates from demo #{}".format(demo_id)
+            )
+            print(
+                "Couldn't obtain owned templates from demo #{}. Error: {}".format(
+                    demo_id, ex
+                )
+            )
         except Exception as ex:
-            self.logger.exception("*** Unhandled exception while obtaining the owned templates from demo #{}"
-                                  .format(demo_id))
-            print("*** Unhandled exception while obtaining the owned templates from demo #{}. Error: {}" \
-                .format(demo_id, ex))
+            self.logger.exception(
+                "*** Unhandled exception while obtaining the owned templates from demo #{}".format(
+                    demo_id
+                )
+            )
+            print(
+                "*** Unhandled exception while obtaining the owned templates from demo #{}. Error: {}".format(
+                    demo_id, ex
+                )
+            )
         finally:
             if conn is not None:
                 conn.close()
@@ -777,30 +921,38 @@ class Blobs():
 
                 if dest["dest"] == "demo":
                     demo_id = dest["demo_id"]
-                    blob_data = database.get_blob_data_from_demo(conn, demo_id, blob_set, pos_set)
+                    blob_data = database.get_blob_data_from_demo(
+                        conn, demo_id, blob_set, pos_set
+                    )
 
                     if blob_data:
-                        blob_id = blob_data.get('id')
+                        blob_id = blob_data.get("id")
                         num_refs = database.get_blob_refcount(conn, blob_id)
 
                         database.remove_blob_from_demo(conn, demo_id, blob_set, pos_set)
                 elif dest["dest"] == "template":
                     template_id = dest["template_id"]
-                    blob_data = database.get_blob_data_from_template(conn, template_id, blob_set, pos_set)
+                    blob_data = database.get_blob_data_from_template(
+                        conn, template_id, blob_set, pos_set
+                    )
 
                     if blob_data:
-                        blob_id = blob_data.get('id')
+                        blob_id = blob_data.get("id")
                         num_refs = database.get_blob_refcount(conn, blob_id)
 
-                        database.remove_blob_from_template(conn, template_id, blob_set, pos_set)
+                        database.remove_blob_from_template(
+                            conn, template_id, blob_set, pos_set
+                        )
                 else:
-                    self.logger.error("Failed to remove blob. Unknown dest: {}".format(dest["dest"]))
+                    self.logger.error(
+                        "Failed to remove blob. Unknown dest: {}".format(dest["dest"])
+                    )
                     return res
 
                 if blob_data is None:
                     return res
 
-                blob_hash = blob_data.get('hash')
+                blob_hash = blob_data.get("hash")
                 if num_refs == 1:
                     database.remove_blob(conn, blob_id)
                     self.remove_files_associated_to_a_blob(blob_hash)
@@ -821,7 +973,11 @@ class Blobs():
             except Exception as ex:
                 conn.rollback()
                 self.logger.exception("*** Unhandled exception while removing the blob")
-                print("*** Unhandled exception while removing the blob. Error: {}".format(ex))
+                print(
+                    "*** Unhandled exception while removing the blob. Error: {}".format(
+                        ex
+                    )
+                )
             finally:
                 if conn is not None:
                     conn.close()
@@ -856,7 +1012,7 @@ class Blobs():
         with self.lock:
             res = False
             conn = None
-            ref_count = {} # Number of uses for  a blob before removing
+            ref_count = {}  # Number of uses for  a blob before removing
             try:
                 conn = lite.connect(self.database_file)
                 if dest["dest"] == "demo":
@@ -864,7 +1020,9 @@ class Blobs():
                     blobs = database.get_demo_owned_blobs(conn, demo_id)
 
                     for blob in blobs:
-                        ref_count[blob["id"]] = database.get_blob_refcount(conn, blob["id"])
+                        ref_count[blob["id"]] = database.get_blob_refcount(
+                            conn, blob["id"]
+                        )
 
                     database.remove_demo_blobs_association(conn, demo_id)
                     database.remove_demo(conn, demo_id)
@@ -873,18 +1031,22 @@ class Blobs():
                     blobs = database.get_template_blobs(conn, template_id)
 
                     for blob in blobs:
-                        ref_count[blob["id"]] = database.get_blob_refcount(conn, blob["id"])
+                        ref_count[blob["id"]] = database.get_blob_refcount(
+                            conn, blob["id"]
+                        )
 
                     database.remove_template_blobs_association(conn, template_id)
                     database.remove_template(conn, template_id)
                 else:
-                    self.logger.error("Failed to remove blob. Unknown dest: {}".format(dest["dest"]))
+                    self.logger.error(
+                        "Failed to remove blob. Unknown dest: {}".format(dest["dest"])
+                    )
                     return res
 
                 for blob in blobs:
                     if ref_count[blob["id"]] == 1:
-                        database.remove_blob(conn, blob['id'])
-                        self.remove_files_associated_to_a_blob(blob['hash'])
+                        database.remove_blob(conn, blob["id"])
+                        self.remove_files_associated_to_a_blob(blob["hash"])
 
                 conn.commit()
                 res = True
@@ -902,8 +1064,14 @@ class Blobs():
                 print("Failed to remove the demo/template. Error: {}".format(ex))
             except Exception as ex:
                 conn.rollback()
-                self.logger.exception("*** Unhandled exception while removing the demo/template")
-                print("*** Unhandled exception while removing the demo/template. Error: {}".format(ex))
+                self.logger.exception(
+                    "*** Unhandled exception while removing the demo/template"
+                )
+                print(
+                    "*** Unhandled exception while removing the demo/template. Error: {}".format(
+                        ex
+                    )
+                )
             finally:
                 if conn is not None:
                     conn.close()
@@ -937,21 +1105,27 @@ class Blobs():
         """
         Remove the template from the demo
         """
-        data = {'status': 'KO'}
+        data = {"status": "KO"}
         conn = None
         try:
             conn = lite.connect(self.database_file)
             if database.remove_template_from_demo(conn, demo_id, template_id):
                 conn.commit()
-                data['status'] = 'OK'
+                data["status"] = "OK"
         except IPOLBlobsDataBaseError as ex:
             conn.rollback()
             self.logger.exception("DB error while removing the template from the demo")
             print("Failed to remove the template from the demo. Error: {}".format(ex))
         except Exception as ex:
             conn.rollback()
-            self.logger.exception("*** Unhandled exception while removing the template from the demo")
-            print("*** Unhandled exception while removing the template from the demo. Error: {}".format(ex))
+            self.logger.exception(
+                "*** Unhandled exception while removing the template from the demo"
+            )
+            print(
+                "*** Unhandled exception while removing the template from the demo. Error: {}".format(
+                    ex
+                )
+            )
         finally:
             if conn is not None:
                 conn.close()
@@ -1007,29 +1181,53 @@ class Blobs():
 
     @cherrypy.expose
     @authenticate
-    def edit_blob_from_demo(self, demo_id=None, blob_set=None, new_blob_set=None, pos_set=None,
-                            new_pos_set=None, title=None, credit=None, vr=None):
+    def edit_blob_from_demo(
+        self,
+        demo_id=None,
+        blob_set=None,
+        new_blob_set=None,
+        pos_set=None,
+        new_pos_set=None,
+        title=None,
+        credit=None,
+        vr=None,
+    ):
         """
         Edit blob information in a demo
         """
         dest = {"dest": "demo", "demo_id": demo_id}
-        if self.edit_blob(blob_set, new_blob_set, pos_set, new_pos_set, title, credit, vr, dest):
+        if self.edit_blob(
+            blob_set, new_blob_set, pos_set, new_pos_set, title, credit, vr, dest
+        ):
             return json.dumps({"status": "OK"}).encode()
         return json.dumps({"status": "KO"}).encode()
 
     @cherrypy.expose
     @authenticate
-    def edit_blob_from_template(self, template_id=None, blob_set=None, new_blob_set=None, pos_set=None,
-                                new_pos_set=None, title=None, credit=None, vr=None):
+    def edit_blob_from_template(
+        self,
+        template_id=None,
+        blob_set=None,
+        new_blob_set=None,
+        pos_set=None,
+        new_pos_set=None,
+        title=None,
+        credit=None,
+        vr=None,
+    ):
         """
         Edit blob information in a template
         """
         dest = {"dest": "template", "id": template_id}
-        if self.edit_blob(blob_set, new_blob_set, pos_set, new_pos_set, title, credit, vr, dest):
+        if self.edit_blob(
+            blob_set, new_blob_set, pos_set, new_pos_set, title, credit, vr, dest
+        ):
             return json.dumps({"status": "OK"}).encode()
         return json.dumps({"status": "KO"}).encode()
 
-    def edit_blob(self, blob_set, new_blob_set, pos_set, new_pos_set, title, credit, blob_vr, dest):
+    def edit_blob(
+        self, blob_set, new_blob_set, pos_set, new_pos_set, title, credit, blob_vr, dest
+    ):
         """
         Edit blob information
         """
@@ -1048,36 +1246,69 @@ class Blobs():
                 demo_id = dest["demo_id"]
 
                 if new_blob_set != blob_set or new_pos_set != pos_set:
-                    if database.is_pos_occupied_in_demo_set(conn, demo_id, new_blob_set, new_pos_set):
+                    if database.is_pos_occupied_in_demo_set(
+                        conn, demo_id, new_blob_set, new_pos_set
+                    ):
                         editor_demo_id = database.get_demo_id(conn, demo_id)
-                        new_pos_set = database.get_available_pos_in_demo_set(conn, editor_demo_id, new_blob_set)
+                        new_pos_set = database.get_available_pos_in_demo_set(
+                            conn, editor_demo_id, new_blob_set
+                        )
 
-                database.edit_blob_from_demo(conn, demo_id, blob_set, new_blob_set, pos_set, new_pos_set, title, credit)
-                blob_data = database.get_blob_data_from_demo(conn, demo_id, new_blob_set, new_pos_set)
+                database.edit_blob_from_demo(
+                    conn,
+                    demo_id,
+                    blob_set,
+                    new_blob_set,
+                    pos_set,
+                    new_pos_set,
+                    title,
+                    credit,
+                )
+                blob_data = database.get_blob_data_from_demo(
+                    conn, demo_id, new_blob_set, new_pos_set
+                )
             elif dest["dest"] == "template":
                 template_id = dest["id"]
 
                 if new_blob_set != blob_set or new_pos_set != pos_set:
-                    if database.is_pos_occupied_in_template_set(conn, template_id, new_blob_set, new_pos_set):
-                        new_pos_set = database.get_available_pos_in_template_set(conn, template_id, new_blob_set)
+                    if database.is_pos_occupied_in_template_set(
+                        conn, template_id, new_blob_set, new_pos_set
+                    ):
+                        new_pos_set = database.get_available_pos_in_template_set(
+                            conn, template_id, new_blob_set
+                        )
 
-                database.edit_blob_from_template(conn, template_id, blob_set, new_blob_set, pos_set, new_pos_set,
-                                                 title, credit)
-                blob_data = database.get_blob_data_from_template(conn, template_id, new_blob_set, new_pos_set)
+                database.edit_blob_from_template(
+                    conn,
+                    template_id,
+                    blob_set,
+                    new_blob_set,
+                    pos_set,
+                    new_pos_set,
+                    title,
+                    credit,
+                )
+                blob_data = database.get_blob_data_from_template(
+                    conn, template_id, new_blob_set, new_pos_set
+                )
             else:
-                self.logger.error("Failed to edit blob. Unknown dest: {}".format(dest["dest"]))
+                self.logger.error(
+                    "Failed to edit blob. Unknown dest: {}".format(dest["dest"])
+                )
                 return res
 
             if blob_data is None:
                 return res
 
-            blob_hash = blob_data.get('hash')
-            blob_id = blob_data.get('id')
+            blob_hash = blob_data.get("hash")
+            blob_id = blob_data.get("id")
 
             if blob_vr:
                 self.delete_vr_from_blob(blob_id)
 
-                _, vr_ext = self.get_format_and_extension(self.get_blob_mime(blob_vr.file))
+                _, vr_ext = self.get_format_and_extension(
+                    self.get_blob_mime(blob_vr.file)
+                )
 
                 blob_file = self.copy_blob(blob_vr.file, blob_hash, vr_ext, self.vr_dir)
                 try:
@@ -1095,7 +1326,9 @@ class Blobs():
         except Exception as ex:
             conn.rollback()
             self.logger.exception("*** Unhandled exception while editing the blob")
-            print("*** Unhandled exception while editing the blob. Error: {}".format(ex))
+            print(
+                "*** Unhandled exception while editing the blob. Error: {}".format(ex)
+            )
         finally:
             if conn is not None:
                 conn.close()
@@ -1107,17 +1340,23 @@ class Blobs():
         Return all the templates in the system
         """
         conn = None
-        data = {'status': 'KO'}
+        data = {"status": "KO"}
         try:
             conn = lite.connect(self.database_file)
-            data['templates'] = database.get_all_templates(conn)
-            data['status'] = 'OK'
+            data["templates"] = database.get_all_templates(conn)
+            data["status"] = "OK"
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("DB error while reading all the templates")
             print("Failed reading all the templates. Error: {}".format(ex))
         except Exception as ex:
-            self.logger.exception("*** Unhandled exception while reading all the templates")
-            print("*** Unhandled exception while reading all the templates. Error: {}".format(ex))
+            self.logger.exception(
+                "*** Unhandled exception while reading all the templates"
+            )
+            print(
+                "*** Unhandled exception while reading all the templates. Error: {}".format(
+                    ex
+                )
+            )
         finally:
             if conn is not None:
                 conn.close()
@@ -1129,7 +1368,7 @@ class Blobs():
         """
         Remove the visual representation of the blob (in all the demos and templates)
         """
-        data = {'status': 'KO'}
+        data = {"status": "KO"}
         conn = None
         try:
             conn = lite.connect(self.database_file)
@@ -1137,7 +1376,7 @@ class Blobs():
             if blob_data is None:
                 return json.dumps(data).encode()
 
-            blob_hash = blob_data.get('hash')
+            blob_hash = blob_data.get("hash")
             subdir = self.get_subdir(blob_hash)
 
             # Delete VR
@@ -1151,7 +1390,9 @@ class Blobs():
             # Delete old thumbnail
             thumb_folder = os.path.join(self.module_dir, self.thumb_dir, subdir)
             if os.path.isdir(thumb_folder):
-                thumb_files_in_dir = glob.glob(os.path.join(thumb_folder, blob_hash + ".*"))
+                thumb_files_in_dir = glob.glob(
+                    os.path.join(thumb_folder, blob_hash + ".*")
+                )
                 if thumb_files_in_dir:
                     os.remove(thumb_files_in_dir[0])
                     self.remove_dirs(thumb_folder)
@@ -1160,7 +1401,9 @@ class Blobs():
             try:
                 blob_folder = os.path.join(self.blob_dir, subdir)
                 if os.path.isdir(blob_folder):
-                    blobs_in_dir = glob.glob(os.path.join(blob_folder, blob_hash + ".*"))
+                    blobs_in_dir = glob.glob(
+                        os.path.join(blob_folder, blob_hash + ".*")
+                    )
                     if blobs_in_dir:
                         self.create_thumbnail(blobs_in_dir[0], blob_hash)
             except IPOLBlobsThumbnailError as ex:
@@ -1178,7 +1421,7 @@ class Blobs():
             if conn is not None:
                 conn.close()
 
-        data['status'] = 'OK'
+        data["status"] = "OK"
         return json.dumps(data).encode()
 
     @cherrypy.expose
@@ -1188,11 +1431,11 @@ class Blobs():
         Update an old demo ID by the given new ID
         """
         conn = None
-        data = {'status': 'KO'}
+        data = {"status": "KO"}
         try:
             conn = lite.connect(self.database_file)
             database.update_demo_id(conn, old_demo_id, new_demo_id)
-            data['status'] = 'OK'
+            data["status"] = "OK"
             conn.commit()
         except IPOLBlobsDataBaseError as ex:
             conn.rollback()
@@ -1201,7 +1444,9 @@ class Blobs():
         except Exception as ex:
             conn.rollback()
             self.logger.exception("*** Unhandled exception while updating demo id")
-            print("*** Unhandled exception while updating demo id. Error: {}".format(ex))
+            print(
+                "*** Unhandled exception while updating demo id. Error: {}".format(ex)
+            )
         finally:
             if conn is not None:
                 conn.close()
@@ -1213,18 +1458,30 @@ class Blobs():
         Return the list of demos that use the given template
         """
         conn = None
-        data = {'status': 'KO'}
+        data = {"status": "KO"}
         try:
             conn = lite.connect(self.database_file)
-            data['demos'] = database.get_demos_using_the_template(conn, template_id)
-            data['status'] = 'OK'
+            data["demos"] = database.get_demos_using_the_template(conn, template_id)
+            data["status"] = "OK"
         except IPOLBlobsDataBaseError as ex:
-            self.logger.exception("DB operation failed while getting the list of demos that uses the template")
-            print("DB operation failed while getting the list of demos that uses the template. Error: {}".format(ex))
+            self.logger.exception(
+                "DB operation failed while getting the list of demos that uses the template"
+            )
+            print(
+                "DB operation failed while getting the list of demos that uses the template. Error: {}".format(
+                    ex
+                )
+            )
         except Exception as ex:
             conn.rollback()
-            self.logger.exception("*** Unhandled exception while getting the list of demos that uses the template")
-            print("*** Unhandled exception while getting the list of demos that uses the template. Error: {}".format(ex))
+            self.logger.exception(
+                "*** Unhandled exception while getting the list of demos that uses the template"
+            )
+            print(
+                "*** Unhandled exception while getting the list of demos that uses the template. Error: {}".format(
+                    ex
+                )
+            )
         finally:
             if conn is not None:
                 conn.close()
@@ -1236,15 +1493,21 @@ class Blobs():
         Return module stats
         """
         conn = None
-        data = {'status': 'KO'}
+        data = {"status": "KO"}
         try:
             conn = lite.connect(self.database_file)
-            data['nb_templates'] = len(database.get_all_templates(conn))
-            data['nb_blobs'] = database.get_nb_of_blobs(conn)
-            data['status'] = 'OK'
+            data["nb_templates"] = len(database.get_all_templates(conn))
+            data["nb_blobs"] = database.get_nb_of_blobs(conn)
+            data["status"] = "OK"
         except Exception as ex:
-            self.logger.exception("*** Unhandled exception while getting the blobs stats")
-            print("*** Unhandled exception while getting the blobs stats. Error: {}".format(ex))
+            self.logger.exception(
+                "*** Unhandled exception while getting the blobs stats"
+            )
+            print(
+                "*** Unhandled exception while getting the blobs stats. Error: {}".format(
+                    ex
+                )
+            )
         finally:
             if conn is not None:
                 conn.close()
@@ -1268,26 +1531,44 @@ class Blobs():
             templates = database.get_demo_templates(conn, demo_name)
             sets = self.prepare_list_deprecated(demo_blobs)
             for template in templates:
-                sets += self.prepare_list_deprecated(database.get_template_blobs(conn, template))
+                sets += self.prepare_list_deprecated(
+                    database.get_template_blobs(conn, template)
+                )
 
             data["blobs"] = sets
             data["status"] = "OK"
             data["url"] = "/api/blobs/staticData/blob_directory/"
-            data['url_visrep'] = "/api/blobs/staticData/visrep/"
+            data["url_visrep"] = "/api/blobs/staticData/visrep/"
             data["vr_location"] = "staticData/visrep"
-            data[demo_name] = {'is_template': 0, 'name': str(demo_name), 'template_id': 0}
-            data['use_template'] = {}
+            data[demo_name] = {
+                "is_template": 0,
+                "name": str(demo_name),
+                "template_id": 0,
+            }
+            data["use_template"] = {}
             data["url_thumb"] = "/api/blobs/staticData/thumbnail/"
-            data['physical_location'] = "staticData/blob_directory"
+            data["physical_location"] = "staticData/blob_directory"
 
         except IPOLBlobsDataBaseError as ex:
-            self.logger.exception("Fails obtaining the blobs from demo #{}".format(demo_name))
-            print("Couldn't obtain the blobs from demo #{}. Error: {}".format(demo_name, ex))
+            self.logger.exception(
+                "Fails obtaining the blobs from demo #{}".format(demo_name)
+            )
+            print(
+                "Couldn't obtain the blobs from demo #{}. Error: {}".format(
+                    demo_name, ex
+                )
+            )
         except Exception as ex:
-            self.logger.exception("*** Unhandled exception while obtaining the blobs from demo #{}"
-                                  .format(demo_name))
-            print("*** Unhandled exception while obtaining the blobs from demo #{}. Error: {}" \
-                .format(demo_name, ex))
+            self.logger.exception(
+                "*** Unhandled exception while obtaining the blobs from demo #{}".format(
+                    demo_name
+                )
+            )
+            print(
+                "*** Unhandled exception while obtaining the blobs from demo #{}. Error: {}".format(
+                    demo_name, ex
+                )
+            )
         finally:
             if conn is not None:
                 conn.close()
@@ -1308,22 +1589,21 @@ class Blobs():
         sorted_sets = sorted(list(sets.items()), key=operator.itemgetter(0))
         result = []
         for element in sorted_sets:
-            blob_set = [{'set_name': element[0], 'size': len(element[1])}]
+            blob_set = [{"set_name": element[0], "size": len(element[1])}]
 
             for blob in element[1]:
                 dic = {
-                    'credit': blob['credit'],
-                    'hash': blob['hash'],
-                    'extension': blob['extension'],
-                    'pos_in_set': blob['pos_set'],
-                    'format': blob['format'],
-                    'title': blob['title'],
-                    'id': blob['id'],
-                    'subdirs': blob['subdir'],
-
+                    "credit": blob["credit"],
+                    "hash": blob["hash"],
+                    "extension": blob["extension"],
+                    "pos_in_set": blob["pos_set"],
+                    "format": blob["format"],
+                    "title": blob["title"],
+                    "id": blob["id"],
+                    "subdirs": blob["subdir"],
                 }
-                if 'vr' in blob:
-                    dic['extension_visrep'] = blob['vr']
+                if "vr" in blob:
+                    dic["extension_visrep"] = blob["vr"]
                 blob_set.append(dic)
 
             result.append(blob_set)
@@ -1333,20 +1613,24 @@ class Blobs():
         """
         DEPRECATED - Return the required information from the blob
         """
-        subdir = self.get_subdir(blob['hash'])
+        subdir = self.get_subdir(blob["hash"])
         vr_physical_dir = os.path.join(self.vr_dir, subdir)
 
-        blob_info = {'title': blob['title'],
-                     'hash': blob['hash'],
-                     'extension': blob['extension'],
-                     'format': blob['format'],
-                     'credit': blob['credit'],
-                     'subdir': subdir + "/",
-                     'id': blob['id'],
-                     'pos_set': blob['pos_set']}
+        blob_info = {
+            "title": blob["title"],
+            "hash": blob["hash"],
+            "extension": blob["extension"],
+            "format": blob["format"],
+            "credit": blob["credit"],
+            "subdir": subdir + "/",
+            "id": blob["id"],
+            "pos_set": blob["pos_set"],
+        }
 
-        vr_extension = self.get_vr_extension(os.path.join(self.module_dir, vr_physical_dir), blob['hash'])
+        vr_extension = self.get_vr_extension(
+            os.path.join(self.module_dir, vr_physical_dir), blob["hash"]
+        )
         if vr_extension is not None:
-            blob_info['vr'] = vr_extension
+            blob_info["vr"] = vr_extension
 
         return blob_info

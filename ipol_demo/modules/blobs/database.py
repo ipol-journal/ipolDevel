@@ -10,10 +10,13 @@ def store_blob(conn, blob_hash, blob_format, extension, credit):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO blobs (hash, format, extension, credit)
             VALUES (?,?,?,?)
-            """, (blob_hash, blob_format, extension, credit))
+            """,
+            (blob_hash, blob_format, extension, credit),
+        )
         return cursor.lastrowid
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
@@ -25,11 +28,14 @@ def demo_exist(conn, editor_demo_id):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT EXISTS(SELECT *
                         FROM demos
                         WHERE editor_demo_id=?);
-            """, (editor_demo_id,))
+            """,
+            (editor_demo_id,),
+        )
         return cursor.fetchone()[0] == 1
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
@@ -41,10 +47,13 @@ def create_demo(conn, editor_demo_id):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO demos (editor_demo_id)
             VALUES (?)
-            """, (editor_demo_id,))
+            """,
+            (editor_demo_id,),
+        )
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -56,7 +65,8 @@ def add_blob_to_demo(conn, editor_demo_id, blob_id, blob_set, blob_pos, blob_tit
     try:
         set_order = 1
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT COALESCE((SELECT set_order 
                              FROM demos_blobs
                              WHERE demo_id=(SELECT id
@@ -64,17 +74,22 @@ def add_blob_to_demo(conn, editor_demo_id, blob_id, blob_set, blob_pos, blob_tit
                                             WHERE editor_demo_id=?)
                              AND blob_set=?), MAX(db.set_order) + 1, 1) AS set_order FROM demos AS d, demos_blobs AS db
             WHERE d.id = db.demo_id AND d.editor_demo_id = ?
-            """, (editor_demo_id, blob_set, editor_demo_id))
+            """,
+            (editor_demo_id, blob_set, editor_demo_id),
+        )
         ret = cursor.fetchone()
         if ret[0]:
             set_order = ret[0]
 
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO demos_blobs (demo_id, blob_id, blob_set, pos_in_set, blob_title, set_order)
             VALUES ((SELECT id
                     FROM demos
                     WHERE editor_demo_id = ?), ?, ?, ?, ?, ?)
-            """, (editor_demo_id, blob_id, blob_set, blob_pos, blob_title, set_order))
+            """,
+            (editor_demo_id, blob_id, blob_set, blob_pos, blob_title, set_order),
+        )
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -98,14 +113,18 @@ def template_exist(conn, template_id):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
                 SELECT COUNT(*)
                 FROM templates
                 WHERE id = ?
-                """, (template_id,))
+                """,
+            (template_id,),
+        )
         return cursor.fetchone()[0] >= 1
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
+
 
 def template(conn, template_name):
     """
@@ -113,17 +132,21 @@ def template(conn, template_name):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
                 SELECT id, name
                 FROM templates
                 WHERE name = ?
-                """, (template_name,))
+                """,
+            (template_name,),
+        )
         data = cursor.fetchone()
         if data is not None:
-            return {'template_id': data[0], 'template_name': data[1]}
+            return {"template_id": data[0], "template_name": data[1]}
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
     return None
+
 
 def create_template(conn, template_name):
     """
@@ -131,10 +154,13 @@ def create_template(conn, template_name):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO templates (name)
             VALUES (?)
-            """, (template_name,))
+            """,
+            (template_name,),
+        )
         return cursor.lastrowid
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
@@ -147,21 +173,27 @@ def add_blob_to_template(conn, template_id, blob_id, pos_set, blob_set, blob_tit
     try:
         set_order = 1
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT COALESCE((SELECT set_order 
                              FROM templates_blobs
                              WHERE template_id=?
                              AND blob_set=?), MAX(db.set_order) + 1, 1) AS set_order FROM demos AS d, templates_blobs AS db
             WHERE d.id = db.template_id
-            """, (template_id, blob_set))
+            """,
+            (template_id, blob_set),
+        )
         ret = cursor.fetchone()
         if ret[0]:
             set_order = ret[0]
 
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO templates_blobs (template_id, blob_id, blob_set, pos_in_set, blob_title, set_order)
             VALUES (?, ?, ?, ?, ?, ?)
-            """, (template_id, blob_id, blob_set, pos_set, blob_title, set_order))
+            """,
+            (template_id, blob_id, blob_set, pos_set, blob_title, set_order),
+        )
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -172,22 +204,28 @@ def add_template_to_demo(conn, template_id, editor_demo_id):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT EXISTS(SELECT *
                         FROM demos_templates
                         WHERE demo_id=(SELECT id
                                     FROM demos
                                     WHERE editor_demo_id=?)
                         AND template_id=?);
-            """, (editor_demo_id, template_id))
+            """,
+            (editor_demo_id, template_id),
+        )
 
         if cursor.fetchone()[0] != 1:
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO demos_templates (demo_id, template_id)
                 VALUES ((SELECT id
                         FROM demos
                         WHERE editor_demo_id = ?),?)
-                """, (editor_demo_id, template_id))
+                """,
+                (editor_demo_id, template_id),
+            )
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -198,17 +236,30 @@ def get_demo_owned_blobs(conn, editor_demo_id):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT blobs.id, hash, format, extension, blob_title, credit, blob_set, pos_in_set
             FROM blobs, demos, demos_blobs
             WHERE demo_id = demos.id
             AND blob_id = blobs.id
             AND demos.editor_demo_id = ?
-            """, (editor_demo_id,))
+            """,
+            (editor_demo_id,),
+        )
         blobs = []
         for row in cursor.fetchall():
-            blobs.append({"id": row[0], "hash": row[1], "format": row[2], "extension": row[3], "title": row[4],
-                          "credit": row[5], "blob_set": row[6], "pos_set": row[7]})
+            blobs.append(
+                {
+                    "id": row[0],
+                    "hash": row[1],
+                    "format": row[2],
+                    "extension": row[3],
+                    "title": row[4],
+                    "credit": row[5],
+                    "blob_set": row[6],
+                    "pos_set": row[7],
+                }
+            )
 
         return blobs
     except Exception as ex:
@@ -221,16 +272,29 @@ def get_template_blobs(conn, template_id):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT blobs.id, hash, format, extension, blob_title, credit, blob_set, pos_in_set
             FROM blobs, templates, templates_blobs
             WHERE template_id = ?
             AND blob_id = blobs.id
-            """, (template_id,))
+            """,
+            (template_id,),
+        )
         blobs = []
         for row in cursor.fetchall():
-            blobs.append({"id": row[0], "hash": row[1], "format": row[2], "extension": row[3], "title": row[4],
-                          "credit": row[5], "blob_set": row[6], "pos_set": row[7]})
+            blobs.append(
+                {
+                    "id": row[0],
+                    "hash": row[1],
+                    "format": row[2],
+                    "extension": row[3],
+                    "title": row[4],
+                    "credit": row[5],
+                    "blob_set": row[6],
+                    "pos_set": row[7],
+                }
+            )
 
         return blobs
     except Exception as ex:
@@ -243,7 +307,8 @@ def get_demo_templates(conn, editor_demo_id):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT id, name
             FROM templates
             WHERE id IN (SELECT template_id
@@ -251,10 +316,12 @@ def get_demo_templates(conn, editor_demo_id):
                         WHERE demo_id = (SELECT id
                                         FROM demos
                                         WHERE editor_demo_id = ?))
-            """, (editor_demo_id,))
+            """,
+            (editor_demo_id,),
+        )
         templates = []
         for template_id, name in cursor.fetchall():
-            templates.append({'id': template_id, 'name': name})
+            templates.append({"id": template_id, "name": name})
         return templates
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
@@ -266,15 +333,23 @@ def get_blob_data(conn, blob_id):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT hash, format, extension, credit
             FROM blobs
             WHERE id = ?
-            """, (blob_id,))
+            """,
+            (blob_id,),
+        )
         data = cursor.fetchone()
         if data is None:
             return None
-        result = {'hash': data[0], 'format': data[1], 'extension': data[2], 'credit': data[3]}
+        result = {
+            "hash": data[0],
+            "format": data[1],
+            "extension": data[2],
+            "credit": data[3],
+        }
         return result
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
@@ -287,7 +362,8 @@ def get_blob_data_from_demo(conn, editor_demo_id, blob_set, pos_set):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT blobs.id, hash, format, extension, blob_title, credit
             FROM blobs, demos_blobs, demos
             WHERE editor_demo_id = ?
@@ -295,12 +371,20 @@ def get_blob_data_from_demo(conn, editor_demo_id, blob_set, pos_set):
             AND pos_in_set = ?
             AND demo_id = demos.id
             AND blobs.id = blob_id
-            """, (editor_demo_id, blob_set, pos_set))
+            """,
+            (editor_demo_id, blob_set, pos_set),
+        )
         data = cursor.fetchone()
         if data is None:
             return None
-        result = {'id': data[0], 'hash': data[1], 'format': data[2], 'extension': data[3],
-                  'title': data[4], 'credit': data[5]}
+        result = {
+            "id": data[0],
+            "hash": data[1],
+            "format": data[2],
+            "extension": data[3],
+            "title": data[4],
+            "credit": data[5],
+        }
         return result
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
@@ -313,19 +397,28 @@ def get_blob_data_from_template(conn, template_id, blob_set, pos_set):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT blobs.id, hash, format, extension, blob_title, credit
             FROM blobs, templates_blobs
             WHERE template_id = ?
             AND blob_set = ?
             AND pos_in_set = ?
             AND blobs.id = blob_id
-            """, (template_id, blob_set, pos_set))
+            """,
+            (template_id, blob_set, pos_set),
+        )
         data = cursor.fetchone()
         if data is None:
             return None
-        result = {'id': data[0], 'hash': data[1], 'format': data[2], 'extension': data[3],
-                  'title': data[4], 'credit': data[5]}
+        result = {
+            "id": data[0],
+            "hash": data[1],
+            "format": data[2],
+            "extension": data[3],
+            "title": data[4],
+            "credit": data[5],
+        }
         return result
 
     except Exception as ex:
@@ -339,7 +432,8 @@ def remove_blob_from_demo(conn, editor_demo_id, blob_set, pos_set):
     try:
         cursor = conn.cursor()
         cursor.execute("""PRAGMA FOREIGN_KEYS = ON""")
-        cursor.execute("""
+        cursor.execute(
+            """
                 DELETE
                 FROM demos_blobs
                 WHERE demo_id = (SELECT id
@@ -347,7 +441,9 @@ def remove_blob_from_demo(conn, editor_demo_id, blob_set, pos_set):
                                 WHERE editor_demo_id = ?)
                 AND blob_set = ?
                 AND pos_in_set = ?
-                """, (editor_demo_id, blob_set, pos_set))
+                """,
+            (editor_demo_id, blob_set, pos_set),
+        )
 
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
@@ -360,13 +456,16 @@ def remove_blob_from_template(conn, template_id, blob_set, pos_set):
     try:
         cursor = conn.cursor()
         cursor.execute("""PRAGMA FOREIGN_KEYS = ON""")
-        cursor.execute("""
+        cursor.execute(
+            """
                 DELETE
                 FROM templates_blobs
                 WHERE template_id = ?
                 AND blob_set = ?
                 AND pos_in_set = ?
-                """, (template_id, blob_set, pos_set))
+                """,
+            (template_id, blob_set, pos_set),
+        )
 
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
@@ -378,14 +477,17 @@ def get_blob_refcount(conn, blob_id):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT COUNT(*)
             FROM(
                 SELECT id FROM demos_blobs WHERE blob_id = ?
                 UNION ALL
                 SELECT id FROM templates_blobs WHERE blob_id = ?
             )
-                """, (blob_id, blob_id))
+                """,
+            (blob_id, blob_id),
+        )
         return cursor.fetchone()[0]
 
     except Exception as ex:
@@ -400,11 +502,14 @@ def remove_blob(conn, blob_id):
         cursor = conn.cursor()
 
         cursor.execute("""PRAGMA foreign_keys = ON""")
-        cursor.execute("""
+        cursor.execute(
+            """
             DELETE
             FROM blobs
             WHERE id = ?
-            """, (blob_id,))
+            """,
+            (blob_id,),
+        )
 
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
@@ -417,11 +522,14 @@ def remove_demo(conn, editor_demo_id):
     try:
         cursor = conn.cursor()
         cursor.execute("""PRAGMA FOREIGN_KEYS = ON""")
-        cursor.execute("""
+        cursor.execute(
+            """
             DELETE
             FROM demos
             WHERE editor_demo_id = ?
-            """, (editor_demo_id,))
+            """,
+            (editor_demo_id,),
+        )
 
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
@@ -434,11 +542,14 @@ def remove_template(conn, template_id):
     try:
         cursor = conn.cursor()
         cursor.execute("""PRAGMA FOREIGN_KEYS = ON""")
-        cursor.execute("""
+        cursor.execute(
+            """
             DELETE
             FROM templates
             WHERE id = ?
-            """, (template_id,))
+            """,
+            (template_id,),
+        )
 
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
@@ -451,13 +562,16 @@ def remove_demo_blobs_association(conn, editor_demo_id):
     try:
         cursor = conn.cursor()
         cursor.execute("""PRAGMA FOREIGN_KEYS = ON""")
-        cursor.execute("""
+        cursor.execute(
+            """
             DELETE
             FROM demos_blobs
             WHERE demo_id = (SELECT id
                             FROM demos
                             WHERE editor_demo_id = ?)
-            """, (editor_demo_id,))
+            """,
+            (editor_demo_id,),
+        )
 
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
@@ -470,11 +584,14 @@ def remove_template_blobs_association(conn, template_id):
     try:
         cursor = conn.cursor()
         cursor.execute("""PRAGMA FOREIGN_KEYS = ON""")
-        cursor.execute("""
+        cursor.execute(
+            """
             DELETE
             FROM templates_blobs
             WHERE template_id = ?
-            """, (template_id,))
+            """,
+            (template_id,),
+        )
 
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
@@ -487,21 +604,26 @@ def remove_template_from_demo(conn, editor_demo_id, template_id):
     try:
         cursor = conn.cursor()
         cursor.execute("""PRAGMA FOREIGN_KEYS = ON""")
-        cursor.execute("""
+        cursor.execute(
+            """
             DELETE
             FROM demos_templates
             WHERE demo_id = (SELECT id
                             FROM demos
                             WHERE editor_demo_id = ?)
             AND template_id = ?
-            """, (editor_demo_id, template_id))
+            """,
+            (editor_demo_id, template_id),
+        )
         return cursor.rowcount > 0
 
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
 
-def edit_blob_from_demo(conn, editor_demo_id, set_name, new_set_name, pos, new_pos, blob_title, credit):
+def edit_blob_from_demo(
+    conn, editor_demo_id, set_name, new_set_name, pos, new_pos, blob_title, credit
+):
     """
     Edit information of the blob in a demo
     """
@@ -509,7 +631,8 @@ def edit_blob_from_demo(conn, editor_demo_id, set_name, new_set_name, pos, new_p
         cursor = conn.cursor()
 
         # Change credit from blobs table
-        cursor.execute("""
+        cursor.execute(
+            """
             UPDATE blobs
             SET credit = ?
             WHERE id = (SELECT blob_id
@@ -518,10 +641,13 @@ def edit_blob_from_demo(conn, editor_demo_id, set_name, new_set_name, pos, new_p
                         AND editor_demo_id= ?
                         AND blob_set = ?
                         AND pos_in_set = ?)
-            """, (credit, editor_demo_id, set_name, pos))
+            """,
+            (credit, editor_demo_id, set_name, pos),
+        )
 
         # Change title, set and pos from demos_blobs table
-        cursor.execute("""
+        cursor.execute(
+            """
             UPDATE demos_blobs
             SET blob_set = ?, pos_in_set = ?, blob_title = ?
             WHERE blob_set = ?
@@ -529,13 +655,17 @@ def edit_blob_from_demo(conn, editor_demo_id, set_name, new_set_name, pos, new_p
             AND demo_id = (SELECT id
                             FROM demos
                             WHERE editor_demo_id = ?)
-            """, (new_set_name, new_pos, blob_title, set_name, pos, editor_demo_id))
+            """,
+            (new_set_name, new_pos, blob_title, set_name, pos, editor_demo_id),
+        )
 
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
 
-def edit_blob_from_template(conn, template_id, set_name, new_set_name, pos, new_pos, blob_title, credit):
+def edit_blob_from_template(
+    conn, template_id, set_name, new_set_name, pos, new_pos, blob_title, credit
+):
     """
     Edit information of the blob in a template
     """
@@ -543,7 +673,8 @@ def edit_blob_from_template(conn, template_id, set_name, new_set_name, pos, new_
         cursor = conn.cursor()
 
         # Change title and credit from blobs table
-        cursor.execute("""
+        cursor.execute(
+            """
             UPDATE blobs
             SET credit = ?
             WHERE id = (SELECT blob_id
@@ -551,15 +682,20 @@ def edit_blob_from_template(conn, template_id, set_name, new_set_name, pos, new_
                         WHERE template_id= ?
                         AND blob_set = ?
                         AND pos_in_set = ?)
-            """, (credit, template_id, set_name, pos))
+            """,
+            (credit, template_id, set_name, pos),
+        )
         # Change set and pos from templates_blobs table
-        cursor.execute("""
+        cursor.execute(
+            """
             UPDATE templates_blobs
             SET  blob_title = ?, blob_set = ?, pos_in_set = ?
             WHERE blob_set = ?
             AND pos_in_set = ?
             AND template_id = ?
-            """, (blob_title, new_set_name, new_pos, set_name, pos, template_id))
+            """,
+            (blob_title, new_set_name, new_pos, set_name, pos, template_id),
+        )
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -570,7 +706,8 @@ def is_pos_occupied_in_demo_set(conn, editor_demo_id, blob_set, pos):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT COUNT(*)
             FROM demos_blobs
             WHERE blob_set = ?
@@ -578,7 +715,9 @@ def is_pos_occupied_in_demo_set(conn, editor_demo_id, blob_set, pos):
             AND demo_id = (SELECT id
                             FROM demos
                             WHERE editor_demo_id = ?)
-        """, (blob_set, pos, editor_demo_id))
+        """,
+            (blob_set, pos, editor_demo_id),
+        )
 
         return cursor.fetchone()[0] >= 1
 
@@ -592,13 +731,16 @@ def is_pos_occupied_in_template_set(conn, template_id, blob_set, pos):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT COUNT(*)
             FROM templates_blobs
             WHERE blob_set = ?
             AND pos_in_set = ?
             AND template_id = ?
-        """, (blob_set, pos, template_id))
+        """,
+            (blob_set, pos, template_id),
+        )
 
         return cursor.fetchone()[0] >= 1
 
@@ -612,7 +754,8 @@ def get_available_pos_in_demo_set(conn, editor_demo_id, blob_set):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT pos_in_set + 1
             FROM demos_blobs
             WHERE demo_id = ?
@@ -625,7 +768,13 @@ def get_available_pos_in_demo_set(conn, editor_demo_id, blob_set):
                 )
             ORDER BY pos_in_set
             LIMIT 1
-        """, (editor_demo_id, editor_demo_id, blob_set,))
+        """,
+            (
+                editor_demo_id,
+                editor_demo_id,
+                blob_set,
+            ),
+        )
 
         return cursor.fetchone()[0]
 
@@ -639,7 +788,8 @@ def get_available_pos_in_template_set(conn, template_id, blob_set):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT pos_in_set + 1
             FROM templates_blobs
             WHERE template_id = ?
@@ -652,7 +802,13 @@ def get_available_pos_in_template_set(conn, template_id, blob_set):
                 )
             ORDER BY pos_in_set
             LIMIT 1
-        """, (template_id, template_id, blob_set,))
+        """,
+            (
+                template_id,
+                template_id,
+                blob_set,
+            ),
+        )
 
         return cursor.fetchone()[0]
 
@@ -666,13 +822,15 @@ def get_all_templates(conn):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT id, name
             FROM templates
-            """)
+            """
+        )
         templates = []
         for template_id, name in cursor.fetchall():
-            templates.append({'id': template_id, 'name': name})
+            templates.append({"id": template_id, "name": name})
         return templates
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
@@ -684,11 +842,14 @@ def update_demo_id(conn, old_editor_demo_id, new_editor_demo_id):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             UPDATE demos
             SET editor_demo_id = ?
             WHERE editor_demo_id = ?
-            """, (new_editor_demo_id, old_editor_demo_id))
+            """,
+            (new_editor_demo_id, old_editor_demo_id),
+        )
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -699,11 +860,14 @@ def get_blob_id(conn, blob_hash):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT id
             FROM blobs
             WHERE hash = ?
-            """, (blob_hash,))
+            """,
+            (blob_hash,),
+        )
         data = cursor.fetchone()
         if data is None:
             return None
@@ -718,12 +882,15 @@ def get_demos_using_the_template(conn, template_id):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
                 SELECT editor_demo_id
                 FROM demos, demos_templates
                 WHERE template_id = ?
                 AND demos.id = demo_id
-                """, (template_id,))
+                """,
+            (template_id,),
+        )
         demos = []
         for demo in cursor.fetchall():
             demos.append(demo[0])
@@ -739,10 +906,12 @@ def get_nb_of_blobs(conn):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
                SELECT COUNT(*)
                FROM blobs
-               """)
+               """
+        )
         data = cursor.fetchone()
         if data is None:
             return 0
@@ -757,11 +926,14 @@ def get_demo_id(conn, demo_id):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT id
             FROM demos
             WHERE editor_demo_id = ?
-        """, (demo_id,))
+        """,
+            (demo_id,),
+        )
         return cursor.fetchone()[0]
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
@@ -773,11 +945,14 @@ def get_template_id(conn, template_name):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT id
             FROM templates
             WHERE name = ?
-        """, (template_name,))
+        """,
+            (template_name,),
+        )
         return cursor.fetchone()[0]
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)

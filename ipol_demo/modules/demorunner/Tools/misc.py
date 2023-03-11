@@ -12,12 +12,15 @@ from functools import reduce
 # TINY STUFF
 #
 
+
 def prod(lst):
     return reduce(lambda a, b: a * b, lst, 1)
+
 
 #
 # BASE_APP REUSE
 #
+
 
 def app_expose(function):
     """
@@ -25,9 +28,11 @@ def app_expose(function):
     """
     function.__func__.exposed = True
 
+
 #
 # TIME
 #
+
 
 def _timeformat(t, fmt="struct"):
     """
@@ -39,11 +44,12 @@ def _timeformat(t, fmt="struct"):
     if "struct" == fmt:
         return time.gmtime(t)
     elif "s" == fmt:
-        return  t
+        return t
     elif "iso" == fmt:
-        return datetime.fromtimestamp(t).isoformat('-')
+        return datetime.fromtimestamp(t).isoformat("-")
     else:
         raise AttributeError
+
 
 def ctime(path, fmt="struct"):
     """
@@ -51,15 +57,18 @@ def ctime(path, fmt="struct"):
     """
     return _timeformat(os.path.getctime(path), fmt)
 
+
 def mtime(path, fmt="struct"):
     """
     get the (unix) modification time of a file/dir
     """
     return _timeformat(os.path.getmtime(path), fmt)
 
+
 #
 # GZIP
 #
+
 
 def gzip(fname_in, fname_out=None, delete=True):
     """
@@ -69,8 +78,8 @@ def gzip(fname_in, fname_out=None, delete=True):
         fname_out = fname_in + ".gz"
     assert fname_out != fname_in
     # compress fname_in into fname_out
-    f_in = open(fname_in, 'rb')
-    f_out = _gzip.open(fname_out, 'wb')
+    f_in = open(fname_in, "rb")
+    f_out = _gzip.open(fname_out, "wb")
     f_out.writelines(f_in)
     f_out.close()
     f_in.close()
@@ -78,6 +87,7 @@ def gzip(fname_in, fname_out=None, delete=True):
     if delete:
         os.unlink(fname_in)
     return
+
 
 def gunzip(fname_in, fname_out=None, delete=True):
     """
@@ -88,8 +98,8 @@ def gunzip(fname_in, fname_out=None, delete=True):
         fname_out = fname_in[:-3]
     assert fname_out != fname_in
     # decompress fname_in into fname_out
-    f_in = _gzip.open(fname_in, 'rb')
-    f_out = open(fname_out, 'wb')
+    f_in = _gzip.open(fname_in, "rb")
+    f_out = open(fname_out, "wb")
     f_out.writelines(f_in)
     f_out.close()
     f_in.close()

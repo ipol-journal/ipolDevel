@@ -26,13 +26,13 @@ def read_commented_text_file(input_file):
     """
     trimmed_list = []
     try:
-        with open(input_file, 'r') as file_obj:
+        with open(input_file, "r") as file_obj:
             lines = file_obj.readlines()
     except Exception as err:
         print(f"Failed to read input file '{input_file}' - {err}")
         sys.exit(-1)
     for line in lines:
-        line_obj = re.match(r'([^#]*)#.*', line)
+        line_obj = re.match(r"([^#]*)#.*", line)
         if line_obj:
             line = line_obj.group(1)
         line = line.strip()

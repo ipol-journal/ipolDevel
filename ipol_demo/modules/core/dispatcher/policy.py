@@ -8,28 +8,34 @@ from typing import Optional
 from dispatcher.demorunnerinfo import DemoRunnerInfo
 
 
-def get_suitable_demorunners(requirements: str, demorunners: list[DemoRunnerInfo]) -> list[DemoRunnerInfo]:
+def get_suitable_demorunners(
+    requirements: str, demorunners: list[DemoRunnerInfo]
+) -> list[DemoRunnerInfo]:
     """
     Return all the suitable demorunners
     """
     suitable_demorunners = []
-    reqs = {req.strip() for req in requirements.lower().split(',') if req.strip()}
+    reqs = {req.strip() for req in requirements.lower().split(",") if req.strip()}
 
     def capability_is_respected(capability, requirements):
-        if capability.endswith('!'):
-            capability = capability.rstrip('!')
+        if capability.endswith("!"):
+            capability = capability.rstrip("!")
             return capability in requirements
         return True
 
     def requirement_is_respected(requirement, capabilities):
-        plain_capabilities = {c.rstrip('!') for c in capabilities}
+        plain_capabilities = {c.rstrip("!") for c in capabilities}
         return requirement in plain_capabilities
 
     for dr in demorunners:
         dr_capabilities = {cap.lower().strip() for cap in dr.capabilities}
 
-        if all(requirement_is_respected(requirement, dr_capabilities) for requirement in reqs) \
-        and all(capability_is_respected(capability, reqs) for capability in dr_capabilities):
+        if all(
+            requirement_is_respected(requirement, dr_capabilities)
+            for requirement in reqs
+        ) and all(
+            capability_is_respected(capability, reqs) for capability in dr_capabilities
+        ):
             suitable_demorunners.append(dr)
 
     return suitable_demorunners
@@ -41,10 +47,12 @@ class Policy:
     execution.
     """
 
-    def execute(self,
-                demorunners: list[DemoRunnerInfo],
-                workloads: dict[str,float],
-                requirements: str) -> Optional[DemoRunnerInfo]:
+    def execute(
+        self,
+        demorunners: list[DemoRunnerInfo],
+        workloads: dict[str, float],
+        requirements: str,
+    ) -> Optional[DemoRunnerInfo]:
         """
         Choose a DemoRunner that matches the requirements
         """
@@ -58,19 +66,16 @@ class Policy:
 
         return self._choose(suitable_drs, workloads)
 
-    def _choose(self,
-                demorunners: list[DemoRunnerInfo],
-                demorunners_workload: dict[str,float]
-               ) -> Optional[DemoRunnerInfo]:
+    def _choose(
+        self, demorunners: list[DemoRunnerInfo], demorunners_workload: dict[str, float]
+    ) -> Optional[DemoRunnerInfo]:
         raise NotImplementedError()
 
 
 class RandomPolicy(Policy):
-
-    def _choose(self,
-                demorunners: list[DemoRunnerInfo],
-                workload: dict[str,float]
-               ) -> Optional[DemoRunnerInfo]:
+    def _choose(
+        self, demorunners: list[DemoRunnerInfo], workload: dict[str, float]
+    ) -> Optional[DemoRunnerInfo]:
         """
         Chooses a random DemoRunner that matches the requirements
         """
@@ -78,14 +83,12 @@ class RandomPolicy(Policy):
 
 
 class SequentialPolicy(Policy):
-
     def __init__(self):
         self.iterator = 0
 
-    def _choose(self,
-                demorunners: list[DemoRunnerInfo],
-                workload: dict[str,float]
-               ) -> Optional[DemoRunnerInfo]:
+    def _choose(
+        self, demorunners: list[DemoRunnerInfo], workload: dict[str, float]
+    ) -> Optional[DemoRunnerInfo]:
         """
         Chooses a random DemoRunner that matches the requirements
         """
@@ -95,11 +98,9 @@ class SequentialPolicy(Policy):
 
 
 class LowestWorkloadPolicy(Policy):
-
-    def _choose(self,
-                demorunners: list[DemoRunnerInfo],
-                workload: dict[str,float]
-               ) -> Optional[DemoRunnerInfo]:
+    def _choose(
+        self, demorunners: list[DemoRunnerInfo], workload: dict[str, float]
+    ) -> Optional[DemoRunnerInfo]:
         """
         Chooses the DemoRunner with the lowest workload which
         satisfies the requirements.

@@ -33,19 +33,20 @@ def thumbnail(src_file, height, dst_file):
     mime_type, _ = mimetypes.guess_type(src_file)
     if not mime_type:
         return False
-    media_type, _ = mime_type.split('/')
-    if media_type not in ('image', 'video') or mime_type == 'image/svg+xml':
+    media_type, _ = mime_type.split("/")
+    if media_type not in ("image", "video") or mime_type == "image/svg+xml":
         return False
     if media_type == "image":
         im = Image(src=src_file)
     elif media_type == "video":
         im = Image.video_frame(src_file)
-    if im.width() > 3 * im.height(): # avoid too wide thumbnail
-        im.resize(width=(3*height))
+    if im.width() > 3 * im.height():  # avoid too wide thumbnail
+        im.resize(width=(3 * height))
     else:
         im.resize(height=height)
     im.write(dst_file)
     return True
+
 
 def rmdir_contents(target):
     for entry in os.listdir(target):
