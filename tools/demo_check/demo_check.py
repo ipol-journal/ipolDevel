@@ -95,11 +95,11 @@ def check_build_in_DDL(ddl):
     """
     ddl_json = json.loads(ddl)
 
-    if not 'build' in ddl_json:
+    if 'build' not in ddl_json:
         return {"Build": "Missing 'build' section"}
 
     ddl_build = ddl_json["build"]
-    if not 'build1' in ddl_build:
+    if 'build1' not in ddl_build:
         return {"Build": "'build1' section not found"}
     
     # Check every build

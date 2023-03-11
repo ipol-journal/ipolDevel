@@ -7,7 +7,6 @@ from django.views.decorators.cache import never_cache
 import json
 import urllib
 from .utils import api_post, user_can_edit_demo
-from ControlPanel.settings import HOST_NAME
 import logging
 
 logger = logging.getLogger(__name__)
@@ -600,7 +599,7 @@ def ajax_save_DDL(request):
     ddl = request.POST['ddl']
 
     if user_can_edit_demo(request.user, demo_id):
-        demoinfo_response = api_post('/api/demoinfo/save_ddl', {'demoid': demo_id}, json=ddl)
+        api_post('/api/demoinfo/save_ddl', {'demoid': demo_id}, json=ddl)
         return JsonResponse({'status': 'OK'}, status=200)
     else:
         return JsonResponse({'status': 'OK', 'message': 'Unauthorized'}, status=401)
@@ -695,7 +694,7 @@ def ajax_add_demo_extras(request):
 def ajax_delete_demo_extras(request):
     demo_id = request.GET['demo_id']
     if user_can_edit_demo(request.user, demo_id):
-        response = api_post('/api/demoinfo/delete_demoextras', { 'demo_id': demo_id })
+        api_post('/api/demoinfo/delete_demoextras', { 'demo_id': demo_id })
         # TODO
     return HttpResponseRedirect(f'/cp2/demoExtras?demo_id={demo_id}')
 
@@ -776,7 +775,7 @@ def show_archive(request):
     if 'qfilter' in request.GET:
         experiment_id = request.GET['qfilter']
         archive_response = api_post('/api/archive/get_experiment', { 'experiment_id': experiment_id })
-        experiment = archive_response['experiment']
+        archive_response['experiment']
 
     archive_response = api_post('/api/archive/get_page', { 'demo_id': demo_id, 'page': page })
     experiments = archive_response['experiments']

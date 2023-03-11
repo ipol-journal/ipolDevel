@@ -556,7 +556,7 @@ class Blobs():
             # Validate demo_id
             try:
                 demo_id = int(demo_id)
-            except(TypeError, ValueError) as ex:
+            except(TypeError, ValueError):
                 return json.dumps({'status': 'KO', 'error': "Invalid demo_id: {}".format(demo_id)}).encode()
 
             conn = lite.connect(self.database_file)

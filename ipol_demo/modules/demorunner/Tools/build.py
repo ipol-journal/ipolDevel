@@ -13,9 +13,7 @@ import urllib.parse
 import urllib.request
 import zipfile
 from subprocess import Popen
-from time import strftime
 
-import cherrypy
 
 from .error import VirtualEnvError
 

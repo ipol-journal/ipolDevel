@@ -4,7 +4,6 @@ from sys import exit
 import errno
 import json
 import os
-import shutil
 import socket
 import xml.etree.ElementTree as ET
 import requests
@@ -85,7 +84,7 @@ def get_published_demos():
     Get demos
     """
     resp = post(f'http://{HOST}/api/demoinfo/demo_list')
-    if resp == None:
+    if resp is None:
         print("Can't get the list of demos!")
         return []
 
@@ -105,7 +104,7 @@ def get_ddl(demo_id):
     Read the DDL of the demo
     """
     resp = post(f'http://{HOST}/api/demoinfo/get_ddl', params={"demo_id": demo_id})
-    if resp == None:
+    if resp is None:
         print(f"Can't get the DDL of demo #{demo_id}!")
         return ""
 
@@ -126,7 +125,7 @@ def build(base_url, demo_id, build_section, requirements, demorunners):
         params = {'ddl_build': json.dumps(build_section), 'compilation_path': get_compilation_path(demo_id)}
         response = post(f'{base_url}api/demorunner/{demorunner.name}/test_compilation', params)
 
-        if response == None or response.status_code == None:
+        if response is None or response.status_code is None:
             print(f"Bad response from DR={demorunner.name} when trying to build demo #{demo_id}: {str(response)}")
             return False
 
@@ -142,7 +141,7 @@ def build(base_url, demo_id, build_section, requirements, demorunners):
             if response.status_code == 504:
                 msg += " HTTP error 504 (gateway timeout)"
             elif response.status_code == 404:
-                msg += f" HTTP error 404 (not found)"
+                msg += " HTTP error 404 (not found)"
             else:
                 msg += f" HTTP error {response.status_code}"
             print(msg)
@@ -190,7 +189,7 @@ def post(url, params=None):
     """
     try:
         return requests.post(url, params=params)
-    except Exception as ex:
+    except Exception:
         return None
 
 main()

@@ -35,9 +35,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../ipol_demo/modules
 from ipolimage import Image
 
 
-import av
-import cv2
-import numpy as np
 
 
 archive_dir = os.path.join(

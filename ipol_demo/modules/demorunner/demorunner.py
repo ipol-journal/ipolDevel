@@ -511,7 +511,7 @@ format(str(ex), str(ddl_build))
             data['status'] = 'KO'
             data['message'] = "{}, ddl_build: {}".format(str(ex), str(ddl_build))
 
-        except urllib.error.URLError as ex:
+        except urllib.error.URLError:
             data = {}
             data['status'] = 'KO'
             data['message'] = "Construct failed. Could not reach the source code."

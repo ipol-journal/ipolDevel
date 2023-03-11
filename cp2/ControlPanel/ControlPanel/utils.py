@@ -1,11 +1,6 @@
 import os
 import requests
 import socket
-import json
-from django.http import HttpRequest
-from django.http import HttpResponse, HttpResponseRedirect
-from django.db import connection
-from django.contrib.auth.models import User
 #function in order to know wich machine/server it's used for POST and GET methods (/api/....)
 
 import logging
