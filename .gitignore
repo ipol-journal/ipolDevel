@@ -127,3 +127,6 @@ media
 
 #Core
 ipol_demo/modules/core/ignored_ids.txt
+
+# Ignore Mapbox token file, until we have a bundler system like Vite
+demo.token.js

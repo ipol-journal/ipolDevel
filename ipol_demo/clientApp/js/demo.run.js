@@ -12,7 +12,7 @@ $('.run-btn').click(function() {
 function runDemo() {
   runData = new FormData();
   setRunPostData();
-  
+
   $.ajax({
     url: '/api/core/run',
     type: 'POST',
@@ -51,7 +51,7 @@ function updateURL(run_response){
   var url = window.location.href;
   if (getParameterFromURL('key')) url = url.split('&')[0];
   if (getParameterFromURL('archive')) url = url.split('&')[0];
-  
+
   window.history.pushState({}, null, url + '&key=' + run_response.key);
 }
 
@@ -59,18 +59,19 @@ function setRunPostData() {
   clientData = {};
   clientData.demo_id = parseInt(demo_id);
   clientData.params = params;
-  
+
   var origin = helpers.getFromStorage('origin');
   if (origin) clientData.origin = origin;
   if (origin === 'blobSet'){
     clientData.blobs = helpers.getFromStorage('id_blobs');
     clientData.setId = helpers.getFromStorage('setId');
-  } 
+  }
   if (origin === 'upload'){
     if ($('#privateSwitch').is(':checked')) clientData.private_mode = true;
     setUploadedFiles();
-  } 
+  }
   if(ddl.inputs) setInpaintingData();
+  if (mapInput) addMapCoordinates();
 
   checkCropper();
   runData.append('clientData', JSON.stringify(clientData));
@@ -95,8 +96,17 @@ function setInpaintingData() {
   });
 }
 
+function addMapCoordinates() {
+  let mapData = helpers.getFromStorage('map');
+  if (mapInput && mapData) {
+    clientApp.origin = 'upload';
+    let file = new Blob([JSON.stringify(mapData)], { type: "application/json" });
+    runData.append('file_0', file, 'file_0.json')
+  }
+}
+
 function checkCropper() {
-  if ($('#crop-btn').is(':checked')) 
+  if ($('#crop-btn').is(':checked'))
     clientData.crop_info = $('#editor-blob-left').cropper('getData');
 }
 
@@ -106,7 +116,7 @@ function checkPostData() {
   return true;
 }
 
-function checkPostInputs()  {
+function checkPostInputs() {
   let inputs = ddl.inputs;
   if (!inputs) return true;
   let optionalInputs = inputs.filter(input => input.required === false);
@@ -118,7 +128,7 @@ function checkPostInputs()  {
   return true;
 }
 
-function validCrop()  {
+function validCrop() {
   var cropData = $('#editor-blob-left').cropper('getCroppedCanvas');
   if (cropData.width * cropData.height === 0) {
     errorMsg = 'Cropped image is too small.'

@@ -1,6 +1,6 @@
 "use strict"
 
-var demo_id, ddl, experiment, work_url, files = [];
+var demo_id, ddl, experiment, work_url, files, mapInput = [];
 
 $(document).ready(function() {
   demo_id = getParameterFromURL('id');
@@ -61,6 +61,7 @@ function getDDL() {
   .then(responseJSON => {
     if (responseJSON.status != 'OK') showWrongDemoIdError();
     ddl = responseJSON.last_demodescription.ddl;
+    mapInput = ddl.inputs.filter(input => input.type == "map").length > 0;
     if (ddl.hasOwnProperty('archive')) {
       $('#archiveTab').attr('href', 'archive.html?id=' + demo_id);
     } else {

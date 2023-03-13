@@ -8,6 +8,10 @@ var demo_sets = {};
 
 // Print in the web Interface the sets.
 input.printSets = function(sets) {
+  if (mapInput) {
+    printMapPanel();
+    helpers.setOrigin('upload');
+  }
   demo_sets = sets;
   for (var i = 0; i < sets.length; i++) {
     var set = sets[i].blobs;

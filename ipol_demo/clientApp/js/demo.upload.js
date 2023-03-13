@@ -3,6 +3,7 @@ var helpers = clientApp.helpers || {};
 var upload = upload || {};
 var editor = editor || {};
 var uploadedFiles = {};
+var files = files || [];
 
 clientApp.upload = upload;
 
@@ -183,6 +184,7 @@ function upload(index, event) {
         thumbnail: "",
         name: file.name
       };
+      console.log(uploadedFiles);
     };
     fileReader.readAsDataURL(blob);
   } else {
