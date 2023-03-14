@@ -62,6 +62,10 @@ function getDDL() {
     if (responseJSON.status != 'OK') showWrongDemoIdError();
     ddl = responseJSON.last_demodescription.ddl;
     mapInput = ddl.inputs.filter(input => input.type == "map").length > 0;
+    if (mapInput) {
+      printMapPanel();
+      helpers.setOrigin('upload');
+    }
     if (ddl.hasOwnProperty('archive')) {
       $('#archiveTab').attr('href', 'archive.html?id=' + demo_id);
     } else {
