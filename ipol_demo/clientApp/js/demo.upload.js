@@ -184,7 +184,6 @@ function upload(index, event) {
         thumbnail: "",
         name: file.name
       };
-      console.log(uploadedFiles);
     };
     fileReader.readAsDataURL(blob);
   } else {

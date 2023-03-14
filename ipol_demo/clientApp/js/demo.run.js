@@ -100,7 +100,7 @@ function addMapCoordinates() {
   let mapData = helpers.getFromStorage('map');
   if (mapInput && mapData) {
     clientApp.origin = 'upload';
-    let file = new Blob([JSON.stringify(mapData)], { type: "application/json" });
+    let file = new Blob([JSON.stringify(mapData, null, 4)], { type: "application/json" });
     runData.append('file_0', file, 'file_0.json')
   }
 }
