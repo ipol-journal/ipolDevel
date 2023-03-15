@@ -11,4 +11,5 @@ fi
 export IPOL_HOST=$(hostname -f)
 export IPOL_URL=http://$(hostname -f)
 
-nohup bash -c "source ./venv/bin/activate && python main.py archive.conf &" >/dev/null &
+# TODO modify host IP to integration and prod. Port is ok already
+uvicorn main:app --reload --host 0.0.0.0 --port 9000

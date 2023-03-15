@@ -1,4 +1,6 @@
-CherryPy==18.5.0
+fastapi
+uvicorn
+pydantic
 configparser==3.5.0
 ipython==7.16.3
 pylint==2.3.1
