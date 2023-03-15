@@ -61,7 +61,7 @@ server {
 	}
 
 	location /cp2/static/ {
-		alias /home/ipol/CP2_STATIC/;
+		alias /home/ipol/ipolDevel/cp2/ControlPanel/static_cp/;
 	}
 
 	location /cp2/ {
@@ -70,10 +70,6 @@ server {
 		proxy_set_header Host $http_host;
 		proxy_redirect off;
 		proxy_buffering off;
-		if (!-f $request_filename) {
-			proxy_pass http://cp2_socket;
-			break;
-		}
 		proxy_pass http://$host:8002;
 	}
 
