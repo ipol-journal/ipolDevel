@@ -108,11 +108,9 @@ class Converter:
     ) -> Result[tuple[ConversionStatus, list[str]], str]:
         input_type = input_desc["type"]
         try:
-            if input_type == "image":
-                code, modifications = self._convert_image(
-                    input_file, input_desc, crop_info
-                )
-            elif input_type == "data":
+            if input_type == 'image':
+                code, modifications = self._convert_image(input_file, input_desc, crop_info)
+            elif input_type == "data" or input_type == "map":
                 code = self._add_ext_to_data(input_file, input_desc)
                 modifications = []
             elif input_type == "video":
