@@ -1035,7 +1035,7 @@ class Blobs():
         try:
             new_pos_set = int(new_pos_set)
         except:
-            self.logger.error("new_pos_set cannot be non-interger")
+            self.logger.error("new_pos_set needs to be an integer")
             return res
 
         try:
