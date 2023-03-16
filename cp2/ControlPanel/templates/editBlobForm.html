@@ -20,7 +20,7 @@
     </div>
     <div class="form-item">
         <label for="position">Position in set</label>
-        <input type="text" name="position" id="positionSet" value="{{ pos|default:0 }}">
+        <input type="number" name="position" id="positionSet" min="0" value="{{ pos|default:0 }}">
     </div>
     <div class="form-item">
         <label for="credit">Credit</label>
