@@ -1031,6 +1031,13 @@ class Blobs():
         """
         res = False
         conn = None
+
+        try:
+            new_pos_set = int(new_pos_set)
+        except:
+            self.logger.error("new_pos_set needs to be an integer")
+            return res
+
         try:
             conn = lite.connect(self.database_file)
             if dest["dest"] == "demo":

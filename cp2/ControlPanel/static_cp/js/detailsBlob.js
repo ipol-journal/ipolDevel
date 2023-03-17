@@ -47,6 +47,10 @@ $(document).ready(function(){
         formData.append('old_pos', pos)
         formData.append('Title', $('#title').val());
         formData.append('SET' , $('#set').val());
+        if (isNaN($('#positionSet').val())) {
+            alert("PositionSet has to be an integer");
+            return;
+        }
         formData.append('PositionSet', $('#positionSet').val());
         formData.append('Credit', $('#credit').val());
         formData.append('demo_id', demo_id);
