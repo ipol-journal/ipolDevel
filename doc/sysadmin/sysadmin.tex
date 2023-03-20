@@ -160,7 +160,7 @@ ipol@smartalgo:~/ipolDevel$ cat .git/config
 	merge = refs/heads/master
 \end{verbatim}
 
-We use the host \emph{github\_deploy} in order to pick the deploy key in the SSH connection.
+We use the host \emph{github\_deploy} to pick the deploy key in the SSH connection.
 
 \section{Setup of a new machine}
 When a new machine is added to the IPOL infrastructure, the following needs to be done:
@@ -487,7 +487,7 @@ communicates with the NGINX through a UNIX socket. The diagram of this configura
 \end{figure}
 
 \subsection{Gunicorn: configuration}
-In order to manage the gunicorn service we will use a script, which is in charge of:
+To manage the gunicorn service we will use a script, which is in charge of:
 \begin{itemize}
     \item Open the virtual environment, if used. If not, comment out the line with \#.
     \item Collect the static files.
@@ -529,7 +529,203 @@ Open the script and configure the parameters:
 To access the Control Panel the users need to go to \url{http://ipolcore.ipol.im/cp/} and log in with their username and password.
 
 
-\section{Docker registry}
+
+
+\section{Docker}
+A docker image is available to develop and run the IPOL demo system in any enviroment (say, MacOS and others).
+The necessary commands to work with Docker are described in Section~\ref{sec:docker_commands}.
+
+The first is to build the Docker image. Then you will be able to create as many containers as needed. After running the container you
+will have a terminal which allows to execute {\tt terminal} and bring up all modules. Nginx and ssh will be already
+configured and running.
+
+Once inside the container's TTY there will be an `ipol" user to execute any task related to modules, terminal, 
+CP or Django. For sysadmin tasks that result in a change in the system imply that a change in the dockerfile is needed.
+ 
+To run the Django server for the Control Panel application you need to make the migrations once per
+container before actually running the server. For this purpose there is a script under the Docker folder called migrations\_cp.sh.
+After the migrations, run the Django server as you would anywhere else:
+
+{\tt python manage.py runserver 127.0.0.1:8000}
+
+or use the available  alias there is for it that will be explained next.
+ 
+To make it easier to use, the container has some predefined alias which can be used to run the Terminal or the Control Panel, among others:
+ \begin{itemize}
+ 	\item {\tt terminal}: get into the IPOL Terminal tool directory and start it
+ 	\item {\tt cpanel}: launches the control panel at 127.0.0.1 on port 8000
+ 	\item {\tt cp2}: launches Control Panel 2 application at 127.0.0.1 on port 8000.
+ 	\item {\tt collectstatic}: collects all the static files for the control panel
+ 	\item {\tt runtest}: runs all the tests for each module
+ 	\item {\tt<module>}: There is an alias for every module to excecute them separatelly. e.g. blobs.
+ 	\item {\tt rund}: change directory to the run folder
+ \end{itemize}
+
+
+\subsection{Commands}
+\label{sec:docker_commands}
+
+\textbf{Docker build}
+
+Run this command inside the ipolDevel repository you previously cloned.
+
+\begin{verbatim}
+  $ docker build . -t ipol -f ./docker/Dockerfile
+\end{verbatim}
+
+With this command we will create a Docker image from the IPOL's Dockerfile. It will go through the creation and configuration of the development envirorment. This command has to be executed from inside the project root folder. Explanation:
+\begin{itemize}
+  \item docker build: command to build an image
+  \item {\tt .}: the context of the image. Here, the current folder is ipolDevel's repository root.
+  \item -t ipol: Tag the image with the name ipol to reference it later.
+  \item -f: flag to specify a Dockerfile
+  \item {\tt ./docker/Dockerfile}: Location of the Dockerfile defining the image. Given that we are located in ipolDevel's repository root.
+\end{itemize}
+
+\textbf{Docker run}
+
+%\begin{verbatim}[firstnumber=1,breaklines]
+  {\tt cp ipol\_demo/modules/config\_common/authorized\_patterns.conf.sample ipol\_demo/modules/config\_common/authorized\_patterns.conf}
+  
+  {\tt docker run -it -v \$(pwd):/home/ipol/ipolDevel -p 80:80 -h docker --add-host docker:127.0.0.1 --name ipol ipol}
+%\end{verbatim}
+
+This command will create a container and log us in the terminal. Explanation:
+\begin{itemize}
+  \item docker run: command to create a container
+  \item -it: makes the container interactive and attaches to a tty or terminal.
+  \item ipolDevel volume (-v): first -v parameter creates a volume to share the project folder between the container and the host machine.
+  As docker run does not accept relative paths, we use \$(pwd) to get back the currect directory: ipolDevel's repository root as always. If you are on
+  Windows, you can use \%cd\% to get back the current path. 
+  \item authorized\_patterns.conf volume (-v): this second -v parameter adds a volume which essentially creates the authorized\_patterns.conf file at the 
+  needed location on container creation. 
+  This will overwrite the default values but since this container is for development purposes only there is no need to modify the default values.
+  \item -p 80:80: exposes port 80 in the container and links it to port 80 in the host machine.
+  \item -h docker: defines the container's hostname
+  \item --add-host docker:127.0.0.1: adds an entry to /etc/hosts mapping 127.0.0.1 to the host
+  \item -name ipol: assigns the name ipol to the container for future reference
+  \item ipol: tells docker to run a container from the image "ipol"
+\end{itemize}
+
+After this command we will be inside the container's TTY. This command should be used each time after a docker build is done,
+otherwise if the container is already exists, it will have to be removed or attached to. The orders to control containers and images are:
+
+\textbf{Docker start}
+
+To start the already created container.
+\begin{verbatim}
+  $ docker start -i ipol
+\end{verbatim}
+
+\textbf{Docker exec}
+
+Once the container is running (see previous command), it is then possible to attach as many Bash terminals as needed.
+\begin{verbatim}
+  $ docker exec -it ipol bash
+\end{verbatim}
+
+\textbf{Docker ps}
+
+To get information about all the created containers.
+\begin{verbatim}
+  $ docker ps -a
+\end{verbatim}
+
+\textbf{Docker images}
+
+To get information about all the created images.
+\begin{verbatim}
+  $ docker images
+\end{verbatim}
+
+\textbf{Docker rm}
+
+To remove a container. The id or name provided will be available doing "docker ps -a"
+\begin{verbatim}
+  $ docker rm 'docker_image_id'
+\end{verbatim}
+
+\textbf{Docker rmi}
+
+To remove an image. The id or name provided will be available doing "docker images"
+\begin{verbatim}
+  $ docker rmi 'docker_image_id'
+\end{verbatim}
+
+\textbf{Once you are on the container's terminal}
+
+Which means you executed the \textbf{docker run} or the \textbf{docker start} command above.
+
+Switch to the ipol user:
+\begin{verbatim}
+  $ su ipol
+\end{verbatim}
+
+Open IPOL's terminal:
+\begin{verbatim}
+  $ terminal
+\end{verbatim}
+
+You should be in a new terminal now, like this one:
+\begin{verbatim}
+  IPOL>
+\end{verbatim}
+
+Switch all modules to local
+\begin{verbatim}
+  IPOL> env local0
+\end{verbatim}
+
+Start all modules
+\begin{verbatim}
+  IPOL> startall
+\end{verbatim}
+If the process is stuck when starting a module, press ctrl+c and it should continue.
+
+When you ping them all, they should be marked "OK"
+\begin{verbatim}
+  IPOL> pingall
+\end{verbatim}
+If core is still unresponsive, create a new empty file
+
+{\tt /home/ipol/ipolDevel/ipol\_demo/modules/core/local.conf}.
+
+You can now leave the IPOL's Terminal, move to the ipol\_webapp directory, create its venv, activate it, install its 
+requirements, and make its migrations.
+\begin{verbatim}
+  IPOL> exit
+  $ cd ~/ipolDevel/ipol_webapp/
+  $ python3 -m virtualenv -p /usr/bin/python2.7 venv
+  $ source venv/bin/activate
+  (venv) $ pip install -r requirements.txt
+  (venv) $ ~/ipolDevel/docker/migrations_cp.sh
+\end{verbatim}
+
+Note: An error about a missing distribution for Django might be displayed, but you can safely ignore it.
+
+The next step is to create a super user for cpanel. Still with the \emph{venv} we just created, and
+still in \emph{\~/ipolDevel/ipol\_webapp}:
+\begin{verbatim}
+  (venv) $ python manage.py createsuperuser
+\end{verbatim}
+
+Choose a username, email address, and a password of your choice.
+
+\textbf{Important}: the only thing left to do is to download the staticData and db folders for the core and blobs modules.
+Then extract the content of these folders respectively in \emph{$./ipol\_demo/modules/blobs$}
+and in \emph{$./ipol\_demo/modules/core$} so that both of them have a staticData and db folders
+with the new files. Paths are relative to ipolDevel's repository root.
+
+You can now run cpanel with:
+\begin{verbatim}
+  $ cpanel
+\end{verbatim}
+And access it at \emph{http://127.0.0.1/cp/login/}. Use the credentials of the super user you created
+above. If you are in docker you can use the {\tt cpanel} command to start it, for development. Note that in production the Control Panel is started with the script {\tt gunicorn\_start.sh}.
+
+The list of demos appear locally \emph{http://<server>/demo/}. Change {\tt <server>} to {\tt 127.0.0.1} if running locally, or change by the address of the server on the Internet.
+
+\subsection{Registry}
 The IPOL docker regitry is used to host base docker image \url{https://github.com/centreborelli/ipol-docker-images} and potentially the demos images.
 Since users might want to try to build their demos using docker, the registry is public to read. Write access is only permitted from within the system, on an IP basis.
 The registry is started using {\tt systemctl enable --now docker-registry}, with its default configuration and installed using apt.
@@ -580,185 +776,6 @@ server {
 \end{verbatim}
 
 
-\section{Docker}
-A docker image is available to develop and run the IPOL demo system in any enviroment (say, MacOS and others).
-
-\paragraph{Usage}:
-The necessary commands in order to work with docker will be described in the next section. The first thing you should do is
-build the Docker image, then you will be able to create as many containers as you want. Then run the container and you
-will have a terminal inside so you will be able to execute the terminal.py and bring up all modules. Nginx and ssh will be already
-configured and running.
-
-Once inside the container tty there will be a user called ``ipol" wich should be used to execute any task related to modules, ipol terminal, 
-cp or django. For sysadmin tasks that result in a change in the system imply that a change in the dockerfile is needed.
- 
-In order to run the Django server for the control panel you will have to make the migrations once per
-container before actually running the server. For this purpose there is a script under the Docker folder called migrations\_cp.sh.
- After the migrations run the Django server as you would anywhere else: python manage.py runserver 127.0.0.1:8000 or use the available 
- alias there is for it that will be explained next.
- 
- To improve usage of the docker container, some alias have been created to gain easy access to the terminal and to execute the control panel:
- \begin{itemize}
- 	\item terminal: cd into the terminal directory and execute terminal.py
- 	\item cpanel: Launches the control panel at 127.0.0.1 on port 8000.
- 	\item cp2: Launches control panel 2 at 127.0.0.1 on port 8000.
- 	\item collectstatic: collects all the static files for the control panel.
- 	\item runtest: runs all the tests for each module.
- 	\item module\_name: There is an alias for every module to excecute them separatelly. e.g. blobs.
- 	\item rund: change directory to the run folder
- \end{itemize}
-
-
-\paragraph{Docker build}:\\
-
-Run this command inside the ipolDevel repository you previously cloned.
-
-\begin{verbatim}[firstnumber=1,breaklines]
-  $ docker build . -t ipol -f ./docker/Dockerfile
-\end{verbatim}
-
-With this command we will have docker create an image from the Dockerfile in the root of the project. It will go through the creation and configuration of the development envirorment. This command has to be executed from inside the project root folder. Explanation:
-\begin{itemize}
-  \item docker build: command to build an image
-  \item {\tt .}: The context of the image. Here, the current folder is ipolDevel's repository root.
-  \item -t ipol: Tag the image with the name ipol to reference it later.
-  \item -f: flag to specify a Dockerfile
-  \item {\tt ./docker/Dockerfile}: Location of the Dockerfile defining the image. Given that we are located in ipolDevel's repository root.
-\end{itemize}
-
-\paragraph{Docker run}:\\
-\begin{verbatim}[firstnumber=1,breaklines]
-  $ cp ipol_demo/modules/config_common/authorized_patterns.conf.sample ipol_demo/modules/config_common/authorized_patterns.conf
-  $ docker run -it -v $(pwd):/home/ipol/ipolDevel -p 80:80 -h docker --add-host docker:127.0.0.1 --name ipol ipol
-\end{verbatim}
-
-This command will create a container and log us in the terminal. Explanation:
-\begin{itemize}
-  \item docker run: command to create a container
-  \item -it: makes the container interactive and attaches to a tty or terminal.
-  \item ipolDevel volume (-v): first -v parameter creates a volume to share the project folder between the container and the host machine.
-  As docker run does not accept relative paths, we use \$(pwd) to get back the currect directory: ipolDevel's repository root as always. If you are on
-  Windows, you can use \%cd\% to get back the current path. 
-  \item authorized\_patterns.conf volume (-v): this second -v parameter adds a volume which essentially creates the authorized\_patterns.conf file at the 
-  needed location on container creation. 
-  This will overwrite the default values but since this container is for development purposes only there is no need to modify the default values.
-  \item -p 80:80: exposes port 80 in the container and links it to port 80 in the host machine.
-  \item -h docker: defines the container's hostname
-  \item --add-host docker:127.0.0.1: adds an entry to /etc/hosts mapping 127.0.0.1 to the host
-  \item -name ipol: assigns the name ipol to the container for future reference
-  \item ipol: tells docker to run a container from the image "ipol"
-\end{itemize}
-
-After this command we will be inside the containers tty. This command should be used each time after a docker build is done,
-otherwise if the container is already exists, it will have to be removed or attached to. The orders to control containers and images are:
-
-\paragraph{Docker start}:\\
-In order to start the already created container.
-\begin{verbatim}[firstnumber=1,breaklines]
-  $ docker start -i ipol
-\end{verbatim}
-
-\paragraph{Docker exec}:\\
-In order to attach a new terminal to the container. Useful if you need more than one terminal access to the container.
-\begin{verbatim}[firstnumber=1,breaklines]
-  $ docker exec -it ipol bash
-\end{verbatim}
-
-\paragraph{Docker ps}:\\
-In order to get information about all the created containers.
-\begin{verbatim}[firstnumber=1,breaklines]
-  $ docker ps -a
-\end{verbatim}
-
-\paragraph{Docker images}:\\
-In order to get information about all the created images.
-\begin{verbatim}[firstnumber=1,breaklines]
-  $ docker images
-\end{verbatim}
-
-\paragraph{Docker rm}:\\
-In order to remove a container. The id or name provided will be available doing "docker ps -a"
-\begin{verbatim}[firstnumber=1,breaklines]
-  $ docker rm 'docker_image_id'
-\end{verbatim}
-
-\paragraph{Docker rmi}:\\
-In order to remove an image. The id or name provided will be available doing "docker images"
-\begin{verbatim}[firstnumber=1,breaklines]
-  $ docker rmi 'docker_image_id'
-\end{verbatim}
-
-\paragraph{Once you are on the container's terminal}:\\
-
-Which means you executed the \textbf{docker run} or the \textbf{docker start} command above.
-
-Switch to the ipol user:
-\begin{verbatim}[firstnumber=1,breaklines]
-  $ su ipol
-\end{verbatim}
-
-Open IPOL's terminal:
-\begin{verbatim}[firstnumber=1,breaklines]
-  $ terminal
-\end{verbatim}
-
-You should be in a new terminal now, like this one:
-\begin{verbatim}[firstnumber=1,breaklines]
-  IPOL>
-\end{verbatim}
-
-Switch all modules to local
-\begin{verbatim}[firstnumber=1,breaklines]
-  IPOL> env local0
-\end{verbatim}
-
-Start all modules
-\begin{verbatim}[firstnumber=1,breaklines]
-  IPOL> startall
-\end{verbatim}
-If the process is stuck when starting a module, press ctrl+c and it should continue.
-
-When you ping them all, they should be marked "OK"
-\begin{verbatim}[firstnumber=1,breaklines]
-  IPOL> pingall
-\end{verbatim}
-If core is still unresponsive, create empty files /home/ipol/ipolDevel/ipol\_demo/modules/core/local.conf.
-
-You can now leave the terminal, cd to ipol\_webapp, create its venv, activate it, install its 
-requirements and make its migrations.
-\begin{verbatim}[firstnumber=1,breaklines]
-  IPOL> exit
-  $ cd ~/ipolDevel/ipol_webapp/
-  $ python3 -m virtualenv -p /usr/bin/python2.7 venv
-  $ source venv/bin/activate
-  (venv) $ pip install -r requirements.txt
-  (venv) $ ~/ipolDevel/docker/migrations_cp.sh
-\end{verbatim}
-
-Note: An error about a missing distribution for Django might be displayed, but you can safely ignore it.
-
-The next step is to create a super user for cpanel. Still with the \emph{venv} we just created, and
-still in \emph{\~/ipolDevel/ipol\_webapp}:
-\begin{verbatim}[firstnumber=1,breaklines]
-  (venv) $ python manage.py createsuperuser
-\end{verbatim}
-
-Choose a username, email address, and a password of your choice.
-
-\textbf{Important}: the only thing left to do is to download the staticData and db folders for the core and blobs modules.
-Then extract the content of these folders respectively in \emph{$./ipol\_demo/modules/blobs$}
-and in \emph{$./ipol\_demo/modules/core$} so that both of them have a staticData and db folders
-with the new files. Paths are relative to ipolDevel's repository root.
-
-You can now run cpanel with:
-\begin{verbatim}[firstnumber=1,breaklines]
-  $ cpanel
-\end{verbatim}
-And access it at \emph{http://127.0.0.1/cp/login/}. Use the credentials of the super user you created
-above. If you are in docker you can use the {\tt cpanel} command to start it, for development. Note that in production the Control Panel is started with the script {\tt gunicorn\_start.sh}.
-
-The list of demos appear locally \emph{http://<server>/demo/}. Change {\tt <server>} to {\tt 127.0.0.1} if running locally, or change by the address of the server on the Internet.
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Backups}
@@ -774,7 +791,7 @@ We use the following line to run the backup script once per week at 3:00h:
 
 {\tt 0 3 * * 1 /home/ipol/ipolDevel/sysadmin/backup.sh}
 
-We have identified problems with the extraction of incremental {\tt tar} backups in the same folder. When using {\tt tar} some files will give file substitution errors. This most probably this happens because of an undocumented bug in the {\tt tar} command. In order to minimize extraction errors, the only way we have found which results in no errors consists in extracting every needed backup in a different folder and then mixing every folder with the first backup of the semester with the {\tt rsync} command. This last step must be done in order of backup creation. Mixing files with rsync has also its own caveats: after mixing the extracted files we occasionally end up with more files than originally in the backup. Some removed files that actually were removed at some incremental copy anyway exist in mixed backup and will not be removed. However, this is not especially dangerous as we end up with more files than needed. This might happen because of a file permission problem or a bug in the {\tt rsync} command.
+We have identified problems with the extraction of incremental {\tt tar} backups in the same folder. When using {\tt tar} some files will give file substitution errors. This most probably this happens because of an undocumented bug in the {\tt tar} command. To minimize extraction errors, the only way we have found which results in no errors consists in extracting every needed backup in a different folder and then mixing every folder with the first backup of the semester with the {\tt rsync} command. This last step must be done in order of backup creation. Mixing files with rsync has also its own caveats: after mixing the extracted files we occasionally end up with more files than originally in the backup. Some removed files that actually were removed at some incremental copy anyway exist in mixed backup and will not be removed. However, this is not especially dangerous as we end up with more files than needed. This might happen because of a file permission problem or a bug in the {\tt rsync} command.
 
 The backups are organized by yearly semesters folders:
 
@@ -801,7 +818,7 @@ The procedure for extraction we apply is the following:
   \item When all backups are merged with the level 0 backup we will have a complete snapshot of the ipolDevel folder for a given date.
 \end{enumerate}
 
-While making backups is a good way to be able to recover in case of data loss, it is even better to copy redundant files to other servers. Just as data can be corrupt or lost, servers have downtime and there is always the possibility of a server malfunction. Thus, in order to improve backups reliability we synchronize our backup folder with another server just in case of rare catastrophic event. Along with the backups script there is a script called backup\_sync.sh that automatically synchronizes with rsync the backup folder from one server to another thus making our backups redundant.
+While making backups is a good way to be able to recover in case of data loss, it is even better to copy redundant files to other servers. Just as data can be corrupt or lost, servers have downtime and there is always the possibility of a server malfunction. Thus, to improve backups reliability we synchronize our backup folder with another server just in case of rare catastrophic event. Along with the backups script there is a script called backup\_sync.sh that automatically synchronizes with rsync the backup folder from one server to another thus making our backups redundant.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -843,7 +860,7 @@ Manually execute unattended upgrade:
   $ sudo unattended-upgrade -d
 \end{verbatim}
 
-Some package updates require user input to decide wether to keep or renew the possible modified config files. In order to keep our older modified configurations for a package we use the following option in the unattended upgrades configuration:
+Some package updates require user input to decide wether to keep or renew the possible modified config files. To keep our older modified configurations for a package we use the following option in the unattended upgrades configuration:
 
 \begin{verbatim}[firstnumber=1,breaklines]
   Dpkg::Options {
@@ -1012,7 +1029,7 @@ Check with {\tt gdal-config --version} the version installed in the server and t
 
 \textbf{Bash script virtualenv activation fails while using set -u}
 
-When a demo has a virtualenv in order to execute Python code it needs to activate said virtualenv from a bash script inside DemoExtras. If the bash script uses set -u it will fail when activating virtualenv because of a bug in the activation script throwing 'PS1: unbound variable'. This bug has been known for years and the solution still hasn't reached production versions of the package in some linux distributions. To fix this we can simply define the following variable as a patch while the official virtualenv fix reaches production:
+When a demo has a virtualenv, to execute Python code it needs to be activated from a Bash script inside the demoExtras. If the bash script uses set -u it will fail when activating virtualenv because of a bug in the activation script throwing 'PS1: unbound variable'. This bug has been known for years and the solution still hasn't reached production versions of the package in some linux distributions. To fix this we can simply define the following variable as a patch while the official virtualenv fix reaches production:
 
 {\tt VIRTUAL\_ENV\_DISABLE\_PROMPT=true}
 
