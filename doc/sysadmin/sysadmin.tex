@@ -444,24 +444,23 @@ For the integration server we use certbot to generate and automatically renew SS
 
 
 \section{Control Panel}
-To operate in a production environment is necessary to install and configure some extra dependencies. In this case, Gunicorn and Nginx are
-required for this purpose. The first one will work as the application server, while the second is a reverse proxy.
+To operate the Control Panel (CP) in a production environment is necessary to install and configure some extra dependencies. In our case we use Gunicorn and Nginx. The first is the application server and the second is a reverse proxy.
 
 \begin{itemize}
     \item \textbf{Reverse Proxy} is a type of proxy that retrieves resources on behalf of a client from one or more servers.
     These resources are then returned to the client as if they originated from the proxy server itself. The reverse proxy in this case is
-    implemented with NGINX and is used to redirect requests from port 80 to the Control Panel listening port.
+    implemented with NGINX and is used to redirect requests from port 80 to the CP listening port.
     \item \textbf{WSGI} is a specification to connect web servers with web applications or frameworks for the Python programming language.
     In this case the Gunicorn is the responsible of this purpose.
-    \item \textbf{Web Application} is a is a client–server software application in which the client runs in a web browser. In the Control Panel this
+    \item \textbf{Web Application} is a is a client–server software application in which the client runs in a web browser. In the CP this
     is implemented with Django.
 \end{itemize}
 
-\subsection{Communication between the Client and Control Panel}
-The communication between the client and the Control Panel varies according to the environment in which it is performed.
+\subsection{Communication between the client and the CP}
+The communication between the client and the CP varies according to the environment in which it is performed.
 The differences between them are described below.
 
-The communication between the client and the Control Panel in local is stablished by a reverse proxy. This reverse proxy is implemented with
+The communication between the client and the CP in local is stablished by a reverse proxy. This reverse proxy is implemented with
 NGINX and allows the client to do the requests in the 80 port. That request is intercepted by NGINX and send to the 8000
 port where Django is running. The other purpose of NGINX is to serve the static content and remove that responsability from Django.
 The diagram of this configuration is represented by Figure ~\ref{fig:local_architecture}.
@@ -526,7 +525,7 @@ Open the script and configure the parameters:
 
 
 \subsection{Accessing the Control Panel}
-To access the Control Panel the users need to go to \url{http://ipolcore.ipol.im/cp/} and log in with their username and password.
+To access the CP the users need to go to \url{http://ipolcore.ipol.im/cp/} and log in with their username and password.
 
 
 
@@ -542,7 +541,7 @@ configured and running.
 Once inside the container's TTY there will be an `ipol" user to execute any task related to modules, terminal, 
 CP or Django. For sysadmin tasks that result in a change in the system imply that a change in the dockerfile is needed.
  
-To run the Django server for the Control Panel application you need to make the migrations once per
+To run the Django server for the CP application you need to make the migrations once per
 container before actually running the server. For this purpose there is a script under the Docker folder called migrations\_cp.sh.
 After the migrations, run the Django server as you would anywhere else:
 
@@ -550,12 +549,12 @@ After the migrations, run the Django server as you would anywhere else:
 
 or use the available  alias there is for it that will be explained next.
  
-To make it easier to use, the container has some predefined alias which can be used to run the Terminal or the Control Panel, among others:
+To make it easier to use, the container has some predefined alias which can be used to run the Terminal or the CP, among others:
  \begin{itemize}
  	\item {\tt terminal}: get into the IPOL Terminal tool directory and start it
- 	\item {\tt cpanel}: launches the control panel at 127.0.0.1 on port 8000
- 	\item {\tt cp2}: launches Control Panel 2 application at 127.0.0.1 on port 8000.
- 	\item {\tt collectstatic}: collects all the static files for the control panel
+ 	\item {\tt cpanel}: launches the CP at 127.0.0.1 on port 8000
+ 	\item {\tt cp2}: launches the CP application at 127.0.0.1 on port 8000.
+ 	\item {\tt collectstatic}: collects all the static files for the CP
  	\item {\tt runtest}: runs all the tests for each module
  	\item {\tt<module>}: There is an alias for every module to excecute them separatelly. e.g. blobs.
  	\item {\tt rund}: change directory to the run folder
@@ -690,40 +689,32 @@ If core is still unresponsive, create a new empty file
 
 {\tt /home/ipol/ipolDevel/ipol\_demo/modules/core/local.conf}.
 
-You can now leave the IPOL's Terminal, move to the ipol\_webapp directory, create its venv, activate it, install its 
-requirements, and make its migrations.
-\begin{verbatim}
-  IPOL> exit
-  $ cd ~/ipolDevel/ipol_webapp/
-  $ python3 -m virtualenv -p /usr/bin/python2.7 venv
-  $ source venv/bin/activate
-  (venv) $ pip install -r requirements.txt
-  (venv) $ ~/ipolDevel/docker/migrations_cp.sh
-\end{verbatim}
+You can now leave the IPOL's Terminal, and start the CP.
+Move to the cp2/ directory and:
 
-Note: An error about a missing distribution for Django might be displayed, but you can safely ignore it.
+\begin{enumerate}
+  \item Create the venv: {\tt virtualenv venv}
+  \item Activate the venv: {\tt source venv/bin/activate}
+  \item Install the requirements: {\tt pip install -r requirements.txt}
+  \item Collect statics. You can use the provided alias: {\tt collectstatic}
+\end{enumerate}
 
-The next step is to create a super user for cpanel. Still with the \emph{venv} we just created, and
-still in \emph{\~/ipolDevel/ipol\_webapp}:
-\begin{verbatim}
-  (venv) $ python manage.py createsuperuser
-\end{verbatim}
+The next step is to create a super user in the CP. Still within the \emph{venv} we just created:
+\begin{enumerate}
+  \item {\tt cd \textasciitilde/ipolDevel/cp2/ControlPanel}
+  \item {\tt python manage.py createsuperuser}
+\end{enumerate}
 
 Choose a username, email address, and a password of your choice.
 
-\textbf{Important}: the only thing left to do is to download the staticData and db folders for the core and blobs modules.
-Then extract the content of these folders respectively in \emph{$./ipol\_demo/modules/blobs$}
-and in \emph{$./ipol\_demo/modules/core$} so that both of them have a staticData and db folders
-with the new files. Paths are relative to ipolDevel's repository root.
+\textbf{Important}: the only thing left to do is to download the staticData and db folders of the modules.
 
-You can now run cpanel with:
-\begin{verbatim}
-  $ cpanel
-\end{verbatim}
-And access it at \emph{http://127.0.0.1/cp/login/}. Use the credentials of the super user you created
-above. If you are in docker you can use the {\tt cpanel} command to start it, for development. Note that in production the Control Panel is started with the script {\tt gunicorn\_start.sh}.
+You can now run the CP. To develop in local within the Docker image use {\tt cp2devel}, and to run it in production use {\tt cp2}.
 
-The list of demos appear locally \emph{http://<server>/demo/}. Change {\tt <server>} to {\tt 127.0.0.1} if running locally, or change by the address of the server on the Internet.
+In the local environment you can access it at {\tt http://localhost/cp2/}. Use the credentials of the super user you created
+before.
+
+The list of demos is available at {\tt http://<server>/demo/}. Change {\tt <server>} to {\tt localhost} if running locally, or change by the address of the server on the Internet.
 
 \subsection{Registry}
 The IPOL docker regitry is used to host base docker image \url{https://github.com/centreborelli/ipol-docker-images} and potentially the demos images.
