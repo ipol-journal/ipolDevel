@@ -12,4 +12,4 @@ export IPOL_HOST=$(hostname -f)
 export IPOL_URL=http://$(hostname -f)
 
 # TODO modify host IP to integration and prod. Port is ok already
-uvicorn main:app --reload --host 0.0.0.0 --port 9000
+uvicorn archive:app --reload --host 0.0.0.0 --port 9000
