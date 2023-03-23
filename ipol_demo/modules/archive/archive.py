@@ -196,32 +196,34 @@ def create_experiment(experiment: Experiment):
     return {'experiment_id': id_experiment}
 
 @app.get("/experiment/{experiment_id}", status_code=200)
-def get_experiment(self, experiment_id: int):
+def get_experiment(experiment_id: int):
     """
     Get a single experiment
     """
-    data = {"status": "OK"}
     conn = None
     try:
-        conn = lite.connect(self.database_file)
+        conn = lite.connect(settings.database_file)
         cursor_db = conn.cursor()
         cursor_db.execute("""SELECT params, execution, timestamp
             FROM experiments WHERE id = ?""", (experiment_id,))
         row = cursor_db.fetchone()
         if row:
-            data['experiment'] = self.get_data_experiment(conn, experiment_id, row[0], row[1], row[2])
+            experiment = get_data_experiment(conn, experiment_id, row[0], row[1], row[2])
+        else:
+            message = "Experiment not found"
+            raise HTTPException(status_code=404, detail=message)
         conn.close()
     except Exception:
-        data["status"] = "KO"
         log.exception("Error getting experiment #{}".format(experiment_id))
 
         if conn is not None:
             conn.close()
+        raise HTTPException(status_code=404, detail=message)
 
-    return json.dumps(data).encode()
+    return experiment
 
 #TODO Unused?
-@app.put("/experiment", status_code=204)
+@app.put("/experiment/{experiment_id}", status_code=204)
 def update_experiment_date(experiment_id: int, date: str, date_format: str):
     """
     MIGRATION
@@ -252,7 +254,7 @@ def update_experiment_date(experiment_id: int, date: str, date_format: str):
     return  {'experiment_id': experiment_id}
 
 @app.get("/page/{page}", status_code=200)
-def get_page(demo_id: int, page: int):
+def get_page(demo_id: int, page: int = 0):
     """
     This function return all the information needed
     to build the given page for the given demo.
@@ -261,7 +263,6 @@ def get_page(demo_id: int, page: int):
     """
     try:
         conn = lite.connect(settings.database_file)
-
         meta_info = get_meta_info(conn, demo_id)
         meta_info["id_demo"] = demo_id
 
@@ -279,7 +280,7 @@ def get_page(demo_id: int, page: int):
         except Exception:
             pass
 
-    return {"meta": meta_info, "experiments": experiments}
+    return {"meta_info": meta_info, "experiments": experiments}
 
 # @authenticate
 @app.delete("/experiment/{experiment_id}", status_code=204)
@@ -362,7 +363,7 @@ def delete_demo(demo_id: int):
 
     return None
 
-@app.put("demo/{demo_id}", status_code=204)
+@app.put("/demo/{demo_id}", status_code=204)
 def update_demo_id(demo_id: int, new_demo_id: int):
     """
     Change the given old demo ID by the new demo ID
