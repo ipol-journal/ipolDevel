@@ -118,8 +118,8 @@ def send_to_archive(
         "parameters": json.dumps(parameters),
         "execution": execution_json,
     }
-    resp = requests.post(url, json=data, headers = {"Content-Type": "application/json"})
-    return resp
+    resp = requests.post(url, json=data)
+    return resp, resp.status_code
 
 def non_viewable_blob(file_name):
     """

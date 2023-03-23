@@ -126,7 +126,7 @@ class ArchiveTests(unittest.TestCase):
             response = self.get_page(self.demo_id)
             status = response.status_code
             experiments = response.json().get('experiments')
-            exp_meta = response.json().get('meta')
+            exp_meta = response.json().get('meta_info')
             try:
                 n_experiments = exp_meta.get("number_of_experiments")
             except Exception:
