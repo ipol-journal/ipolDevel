@@ -18,8 +18,8 @@ def api_post(resource, method, params=None, files=None, json=None):
             response = requests.get(f'{host}{resource}')
             return response.json(), response.status_code
         elif method == 'put':
-            response = requests.put(f'{host}{resource}', data=json.dumps(json), headers=headers)
-            return response.json(), response.status_code
+            response = requests.put(f'{host}{resource}', data=json, headers=headers)
+            return response, response.status_code
         elif method == 'post':
             response = requests.post(f"{host}{resource}", params=params, data=json, files=files)
             return response.json(), response.status_code

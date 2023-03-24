@@ -537,17 +537,16 @@ def edit_demo(request):
         'new_demo_id': new_demo_id
     }
     blobs_response,_ = api_post('/api/blobs/update_demo_id', 'post', settings)
-    archive_response,_ = api_post('/api/archive/update_demo_id', settings)
+    settings ={
+        'new_demo_id': new_demo_id
+    }
+    _,status_code = api_post(f'/api/archive/demo/{demo_id}?new_demo_id={new_demo_id}', 'put')
 
     response = {}
-    if (
-        demoinfo_response.get("status") != "OK"
-        or blobs_response.get("status") != "OK"
-        or archive_response.get("status") != "OK"
-    ):
-        response["status"] = "KO"
-        response["message"] = demoinfo_response.get("error")
-        return HttpResponse(json.dumps(response), "application/json")
+    if demoinfo_response.get('status') != 'OK' or blobs_response.get('status') != 'OK' or status_code != 204:
+        response['status'] = 'KO'
+        response['message'] = demoinfo_response.get('error')
+        return HttpResponse(json.dumps(response), 'application/json')
     else:
         return HttpResponseRedirect(f"/cp2/showDemo?demo_id={new_demo_id}")
 
