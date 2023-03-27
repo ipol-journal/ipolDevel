@@ -1,13 +1,13 @@
-function printMapPanel() {
+function printMapPanel(center) {
     const token = document.createElement('script');
     token.setAttribute('src', 'js/demo.token.js');
     document.head.appendChild(token);
     token.addEventListener('load', function() {
-        setupMapbox();
+        setupMapbox(center);
       });
 }
 
-function setupMapbox() {
+function setupMapbox(center) {
     $('#map-container').removeClass('di-none');
     $('#map-container').addClass('map-container');
     mapboxgl.accessToken = MAPBOX_TOKEN;
@@ -15,9 +15,10 @@ function setupMapbox() {
         container: 'map', // container ID
         // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
         style: 'mapbox://styles/mapbox/satellite-v9', // style URL
-        center: [2.294226116367639, 48.85813310909694], // starting position [lng, lat]
         zoom: 14 // starting zoom
     });
+    map.jumpTo({center:center});
+    
     
     const draw = new MapboxDraw({
         displayControlsDefault: false,

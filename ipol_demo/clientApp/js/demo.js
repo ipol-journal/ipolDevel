@@ -61,11 +61,17 @@ function getDDL() {
   .then(responseJSON => {
     if (responseJSON.status != 'OK') showWrongDemoIdError();
     ddl = responseJSON.last_demodescription.ddl;
-    mapInput = ddl.inputs.filter(input => input.type == "map").length > 0;
-    if (mapInput) {
-      printMapPanel();
+
+    // Map
+    let mapInputs = ddl.inputs.filter(input => input.type == "map");
+    if (mapInputs.length > 0) {
+      let center = mapInputs[0].center;
+      if (!center) center = [2.294226116367639, 48.85813310909694]; // default location [lng, lat]
+      printMapPanel(center);
       helpers.setOrigin('upload');
     }
+
+    // Archive
     if (ddl.hasOwnProperty('archive')) {
       $('#archiveTab').attr('href', 'archive.html?id=' + demo_id);
     } else {
