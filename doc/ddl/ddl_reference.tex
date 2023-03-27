@@ -83,7 +83,7 @@ In this case, the demo needs to compile from two different compressed files. The
 \section{The \emph{inputs} section}
 The inputs section describes the characteristics of the input data for the algorithm.
 
-\subsection{The \emph{image} type}
+\subsection{image}
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.26\linewidth}|L{\dimexpr 0.59\linewidth}|c|}
 \hline
@@ -111,7 +111,7 @@ If a processing is needed according to the expected properties, an error message
 \caption{Fields for an \emph{image} as input.}
 \end{longtable}
 
-\subsection{The \emph{video} type}
+\subsection{video}
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.26\linewidth}|L{\dimexpr 0.59\linewidth}|c|}
 \hline
@@ -130,7 +130,7 @@ forbid\_preprocess & Forbids any pre-processing of the input data by the IPOL sy
 \end{longtable}
 
 
-\subsection{The \emph{data} type}
+\subsection{data}
 
 The \emph{data} type is used when the input type is other than an image or a video. Submitted data is kept as it is. The extension of your data file should be defined in the "ext" column. 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.26\linewidth}|L{\dimexpr 0.59\linewidth}|c|}
@@ -161,15 +161,41 @@ An example of the \emph{data} input for a demo is shown below. An input file wit
 ]
 \end{lstlisting}
 
+\subsection{map}
+The \emph{map} type the interface makes the demo show a map of the Earth where the user can drawn one or more polygons interactively. The selection is passed to the demo's code as a list of GeoJSON features containing geometric coordinates.
+
+\begin{figure}[h]
+\centering
+\tcbox[sharp corners, boxsep=0.0mm, boxrule=0.5mm, colback=white]{\includegraphics[scale=0.25]{Images/geojson_example.png}}
+\caption{The IPOL's map interface. 1) The controls to draw and remove polygons, 2) A polygon already draw, 3) A polygon being drawn, and 4) the information about the current polygon.}
+\label{fig:geojson_example}
+\end{figure}
+
+Figure~\ref{fig:geojson_example} shows the control and its key elements.
+To draw a polygon there is a toolbox (1) which allows to start drawing a polygon and to remove completely the last one. Click on the upper icon to start drawing and click on the map to add as many vertices as needed. When done, click the right button of the mouse. After that, the polygon will appear as finished (2). You can drawn more than one polygon, if needed. After finishing with the first, you can draw a second one (3). The information about the current polygon is show above (4).
+
+The demo will receive a GeoJSON file containing the coordinates as a list of geometric features. Please check the code of demo 11111000001 to see an example on how to parse the GeoJSON file to extract the geometric coordinates.
+
+The map is an interactive 3D projection. You can move around and change the location using the mouse and dragging with the left button, or using the keyboard cursors. With the right button of the mouse you can rotate the map and change the orientation of the camera. The zoom can be adjusted with the wheel of the mouse or with '+'/'-' in they keyboard.
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.26\linewidth}|L{\dimexpr 0.59\linewidth}|c|}
+\hline
+\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
+\hline \hline
+ type         & type of the input: map & yes \\ \hline
+ ext          & input extension (for example, .json) & yes \\ \hline
+\caption{Fields of \emph{map} input type.}
+\end{longtable}
+
 
 
 %-------------------------------------------------------------------------------
 \section{The \emph{params} section}
 The \emph{params} section describes the set of parameters needed by a demo, their constraints and the visual appearance of the user control. It is defined as an array of sets, where each set contains (key, value) pairs. In this section, we show examples of the expected appearance of these parameters in the web interface. The look of the controls might differ depending on the operating system and the browser used.
 
-\subsection{The \emph{range} type}
+\subsection{range}
 
-The \emph{range} type is used as an horizontal slider constrained by a minimum and a maximum numeric values. It can be moved with the mouse or by using the arrow keys according to the step value fixed in the DDL. The user control is similar to the one at figure~\ref{fig:sliders}.
+The \emph{range} type is used as an horizontal slider constrained by a minimum and a maximum numeric values. It can be moved with the mouse or by using the arrow keys according to the step value fixed in the DDL. The user control is similar to the one at Figure~\ref{fig:sliders}.
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 
 0.7\linewidth}|c|}
@@ -197,9 +223,9 @@ Ex: to select a value included in (-1, -0.5, 0, 0.5, 1) write \texttt{"values": 
 \label{fig:sliders}
 \end{figure}
 
-\subsection{The \emph{selection\_collapsed} type}
+\subsection{selection\_collapsed}
 
-The \emph{selection\_collapsed} type returns one string selected by a key (for example, a color code selected by name). The user control is a dropdown select similar to the one in figure~\ref{fig:selection_collapsed_example}.
+The \emph{selection\_collapsed} type returns one string selected by a key (for example, a color code selected by name). The user control is a dropdown select similar to the one in Figure~\ref{fig:selection_collapsed_example}.
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.25\linewidth}|L{\dimexpr 
 0.6\linewidth}|c|}
@@ -230,9 +256,9 @@ the values defined in 'values'. & yes \\ \hline
 \end{figure}
 
 \clearpage
-\subsection{The \emph{selection\_radio} type}
+\subsection{selection\_radio}
 
-The \emph{selection\_radio} returns one string selected by a key (for example, a color code selected by name). The user control is a set of radio buttons as in figure~\ref{fig:selection_radio_example}.
+The \emph{selection\_radio} returns one string selected by a key (for example, a color code selected by name). The user control is a set of radio buttons as in Figure~\ref{fig:selection_radio_example}.
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.25\linewidth}|L{\dimexpr 
 0.6\linewidth}|c|}
@@ -263,7 +289,7 @@ the values defined in 'values'. & yes \\ \hline
 \label{fig:selection_radio_example}
 \end{figure}
 
-\subsection{The \emph{label} type}
+\subsection{label}
 
 The \emph{label} type can be used to separate groups of parameters or to include html fields (images, external links, etc.) in the web interface.
 
@@ -286,9 +312,9 @@ The \emph{label} type can be used to separate groups of parameters or to include
 \label{fig:label_example}
 \end{figure}
 
-\subsection{The \emph{checkbox} type}
+\subsection{checkbox}
 
-The \emph{checkbox} type returns a boolean value. The user control is a checkbox similar to the one in figure~\ref{fig:checkbox_example}.
+The \emph{checkbox} type returns a boolean value. The user control is a checkbox similar to the one in Figure~\ref{fig:checkbox_example}.
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.27\linewidth}|L{\dimexpr 
 0.58\linewidth}|c|}
@@ -313,9 +339,9 @@ The \emph{checkbox} type returns a boolean value. The user control is a checkbox
 \label{fig:checkbox_example}
 \end{figure}
 
-\subsection{The \emph{numeric} type}
+\subsection{numeric}
 
-The \emph{numeric} type returns a numeric value validated against constraints (min, max). The user control is an input field with numbers. Note that this is quite similar to the \emph{range} type but without the slider. You can see an example in figure~\ref{fig:numeric_example}.
+The \emph{numeric} type returns a numeric value validated against constraints (min, max). The user control is an input field with numbers. Note that this is quite similar to the \emph{range} type but without the slider. You can see an example in Figure~\ref{fig:numeric_example}.
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.27\linewidth}|L{\dimexpr 
 0.58\linewidth}|c|}
@@ -340,7 +366,7 @@ The \emph{numeric} type returns a numeric value validated against constraints (m
 \label{fig:numeric_example}
 \end{figure}
 
-\subsection{The \emph{text} type}
+\subsection{text}
 
 The \emph{text} type returns a string. The user control is an input field.
 
@@ -368,9 +394,9 @@ The \emph{text} type returns a string. The user control is an input field.
 \end{figure}
 
 
-\subsection{The \emph{textarea} type}
+\subsection{textarea}
 
-This param allows including textual information as a parameter. The text must be written in the DDL with the correct format. This means that the text area can show your message with new lines, skip lines and the normal ways of a file if the encoding format is correct. For instance, if you want that your text area looks like in figure~\ref{fig:textarea_example}, the default value must be as in the following example:
+This param allows including textual information as a parameter. The text must be written in the DDL with the correct format. This means that the text area can show your message with new lines, skip lines and the normal ways of a file if the encoding format is correct. For instance, if you want that your text area looks like in Figure~\ref{fig:textarea_example}, the default value must be as in the following example:
 
 \paragraph{Examples:}
 \label{textarea_example}
@@ -481,9 +507,9 @@ Here, we see DDL's needed to activate the reconstruct and archive\_always option
 The results specifies what to display as a result of an experiment. It is an array of sets, where each entry describes one type of output from the algorithm. There are displayed sequentially one below the other.
 
 %------ gallery  ------
-\subsection{The \emph{gallery} type}
+\subsection{gallery}
 
-The results \emph{gallery} type displays images. These ones can be displayed in different rows and columns. The example of this section shows the Demo Description Lines required for the visualization showed in the figure~\ref{fig:image_gallery_example}. Notice that each row implies an array for each image. In the case that you only want to display one image, the DDL only required an expresion like:  \texttt{"label":\{ "img": "name\_of\_file.extension"\}}
+The results \emph{gallery} type displays images. These ones can be displayed in different rows and columns. The example of this section shows the Demo Description Lines required for the visualization showed in the Figure~\ref{fig:image_gallery_example}. Notice that each row implies an array for each image. In the case that you only want to display one image, the DDL only required an expresion like:  \texttt{"label":\{ "img": "name\_of\_file.extension"\}}
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
 \hline
@@ -540,7 +566,7 @@ The next example shows the DDL's needed for displaying three images per row in a
 \end{figure}
 
 %------ gallery_video  ------
-\subsection{The \emph{gallery\_video} type}
+\subsection{gallery\_video}
 
 The results \emph{gallery\_video} type displays video files. This type is quite similar to the previous one but related to the visualization of video contents.
 
@@ -589,7 +615,7 @@ Advanced example, mixing repeat, visible, using an array of filenames.
 
 
 %------ file_download  ------
-\subsection{The \emph{file\_download} type}
+\subsection{file\_download}
 
 The results \emph{file\_download} type proposes a link to download a file.
 
@@ -643,7 +669,7 @@ Example using \emph{repeat}:
 \end{lstlisting}
 
 %------ html_text  ------
-\subsection{ \emph{html\_text} type}
+\subsection{html\_text}
 
 It displays the given HTML-encoded content.
 
@@ -674,7 +700,7 @@ It displays the given HTML-encoded content.
 \end{lstlisting}
 
 %------ html_file  ------
-\subsection{ \emph{html\_file} type}
+\subsection{html\_file}
 
 It displays the given HTML file.
 
@@ -698,7 +724,7 @@ It displays the given HTML file.
 
 
 %------------ text_file --------------------------
-\subsection{ \emph{text\_file} type}
+\subsection{text\_file}
 
 It displays the contents of a text file.
 
@@ -727,7 +753,7 @@ It displays the contents of a text file.
 
 
 %------ message  ------
-\subsection{ \emph{message} type}
+\subsection{message}
 
 The \emph{message} type displays a text message with a predefined color. This can be 
 used for warning or error messages.
