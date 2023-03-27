@@ -734,7 +734,11 @@ class Core:
             if inputs_desc[i]["type"] != type_of_uploaded_blob and (
                 inputs_desc[i]["type"] not in ["data", "map"]
             ):
-                message = "The DDL type ({}) doesn't match the uploaded blob ({})".format(inputs_desc[i]['type'], type_of_uploaded_blob)
+                message = (
+                    "The DDL type ({}) doesn't match the uploaded blob ({})".format(
+                        inputs_desc[i]["type"], type_of_uploaded_blob
+                    )
+                )
                 raise IPOLUploadedInputRejectedError(message)
 
             # Reject the uploaded file it's not 'data' and it can't be guessed
@@ -893,11 +897,11 @@ class Core:
             if not isinstance(ddl["inputs"], list):
                 raise IPOLCheckDDLError("Bad DDL inputs section: expected list.")
 
-            required_fields = {\
-                'video' : ('max_pixels', 'max_frames'),\
-                'image' : ('max_pixels', 'ext', 'dtype'),\
-                'map' : ('ext',),\
-                'data' : ('ext',)\
+            required_fields = {
+                "video": ("max_pixels", "max_frames"),
+                "image": ("max_pixels", "ext", "dtype"),
+                "map": ("ext",),
+                "data": ("ext",),
             }
 
             # Integer and positive values
