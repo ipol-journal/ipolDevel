@@ -25,7 +25,9 @@ class Settings(BaseSettings):
     blobs_thumbs_dir: str = "staticData/blobs_thumbs/"
     database_file: str = os.path.join("db", "archive.db")
     logs_dir: str = "logs/"
-    config_common_dir: str = os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/config_common"
+    config_common_dir: str = (
+        os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/config_common"
+    )
     number_of_experiments_by_pages: str = 5
     authorized_patterns: str = "authorized_patterns.conf"
 
@@ -910,9 +912,14 @@ def read_authorized_patterns() -> list:
     Read from the IPs conf file
     """
     # Check if the config file exists
-    authorized_patterns_path = os.path.join(settings.config_common_dir, settings.authorized_patterns)
+    authorized_patterns_path = os.path.join(
+        settings.config_common_dir, settings.authorized_patterns
+    )
     if not os.path.isfile(authorized_patterns_path):
-        log.exception(f"read_authorized_patterns: File {authorized_patterns_path} doesn't exist")
+        log.exception(
+            f"read_authorized_patterns: \
+                      File {authorized_patterns_path} doesn't exist"
+        )
         return []
 
     # Read config file
@@ -920,7 +927,7 @@ def read_authorized_patterns() -> list:
         cfg = configparser.ConfigParser()
         cfg.read([authorized_patterns_path])
         patterns = []
-        for item in cfg.items('Patterns'):
+        for item in cfg.items("Patterns"):
             patterns.append(item[1])
         return patterns
     except configparser.Error:
@@ -935,8 +942,9 @@ async def validate_ip(request: Request, call_next):
     ip = request.client.host
     try:
         for pattern in read_authorized_patterns():
-            patterns.append(re.compile(pattern.replace(
-                        ".", "\\.").replace("*", "[0-9a-zA-Z]+")))
+            patterns.append(
+                re.compile(pattern.replace(".", "\\.").replace("*", "[0-9a-zA-Z]+"))
+            )
         for pattern in patterns:
             if pattern.match(ip) is not None:
                 response = await call_next(request)
@@ -944,6 +952,7 @@ async def validate_ip(request: Request, call_next):
         raise HTTPException(status_code=403, detail="IP not allowed")
     except HTTPException as e:
         return JSONResponse(content={"error": str(e.detail)}, status_code=403)
+
 
 log = init_logging()
 init_database()
