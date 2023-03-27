@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import os.path
+import re
 import shutil
 import sqlite3 as lite
 import traceback
@@ -14,27 +15,23 @@ from datetime import datetime
 from typing import Union
 
 import magic
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, BaseSettings
 
 
 class Settings(BaseSettings):
     blobs_dir: str = "staticData/blobs/"
     blobs_thumbs_dir: str = "staticData/blobs_thumbs/"
-    database_dir: str = "db"
-    database_name: str = "archive.db"
     database_file: str = os.path.join("db", "archive.db")
     logs_dir: str = "logs/"
-    config_common_dir: str = (
-        os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/config_common"
-    )
-    number_of_experiments_by_pages: int = 5
+    config_common_dir: str = os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/config_common"
+    number_of_experiments_by_pages: str = 5
+    authorized_patterns: str = "authorized_patterns.conf"
 
 
 settings = Settings()
 app = FastAPI()
-app.add_middleware(TrustedHostMiddleware, allowed_hosts=["0.0.0.0", "localhost"])
 
 
 class Experiment(BaseModel):
@@ -42,23 +39,6 @@ class Experiment(BaseModel):
     blobs: Union[str, None] = None
     parameters: Union[str, None] = None
     execution: Union[str, None] = None
-
-
-# @app.middleware("http")
-# async def validate_ip(request: Request, call_next):
-#     """
-#     Wrapper to authenticate before using an exposed function
-#     """
-#     ip = request.headers["X-Real-IP"]
-#     if "X-Real-IP" in request.headers and is_authorized_ip(ip):
-#         return await call_next(request)
-#     if ip not in ['192.168.0.1']:
-#         data = {
-#             'message': f'IP {ip} is not allowed to access this resource.'
-#         }
-#         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=data)
-
-#     return await call_next(request)
 
 
 # TODO since we now use systemd this method makes no sense anymore
@@ -175,32 +155,30 @@ def create_experiment(experiment: Experiment):
     demo_id = int(experiment.demo_id)
     # # initialize list of copied files, to delete them in case of exception
     copied_files_list = []
-    # try:
-    #     demo_id = int(experiment.demo_id)
-    conn = lite.connect(settings.database_file)
-    id_experiment = update_exp_table(
-        conn, demo_id, experiment.parameters, experiment.execution
-    )
-    dict_corresp = []
-    dict_corresp = update_blob(conn, experiment.blobs, copied_files_list)
-    update_correspondence_table(conn, id_experiment, dict_corresp)
-    conn.commit()
-    conn.close()
-    # except Exception as ex:
-    #     message = "Failure in add_experiment. Error = {}".format(ex)
-    #     log.exception(message)
-    #     data["status"] = "KO"
-    #     try:
-    #         # Execute database rollback
-    #         conn.rollback()
-    #         conn.close()
+    try:
+        conn = lite.connect(settings.database_file)
+        id_experiment = update_exp_table(
+            conn, demo_id, experiment.parameters, experiment.execution
+        )
+        dict_corresp = []
+        dict_corresp = update_blob(conn, experiment.blobs, copied_files_list)
+        update_correspondence_table(conn, id_experiment, dict_corresp)
+        conn.commit()
+        conn.close()
+    except Exception as ex:
+        message = "Failure in add_experiment. Error = {}".format(ex)
+        log.exception(message)
+        try:
+            # Execute database rollback
+            conn.rollback()
+            conn.close()
 
-    #         # Execute deletion of copied files
-    #         for copied_file in copied_files_list:
-    #             os.remove(copied_file)
+            # Execute deletion of copied files
+            for copied_file in copied_files_list:
+                os.remove(copied_file)
 
-    #     except Exception:
-    #         pass
+        except Exception:
+            pass
 
     return {"experiment_id": id_experiment}
 
@@ -533,33 +511,6 @@ def file_format(the_file):
     fileformat = mime.from_file(the_file)
     fileformat = fileformat.split("/")[0]
     return fileformat
-
-
-def read_authorized_patterns():
-    """
-    Read from the IPs conf file
-    """
-    # Check if the config file exists
-    authorized_patterns_path = os.path.join(
-        settings.config_common_dir, "authorized_patterns.conf"
-    )
-    if not os.path.isfile(authorized_patterns_path):
-        log.error(
-            f"read_authorized_patterns: File {authorized_patterns_path} doesn't exist"
-        )
-        return []
-
-    # Read config file
-    try:
-        cfg = configparser.ConfigParser()
-        cfg.read([authorized_patterns_path])
-        patterns = []
-        for item in cfg.items("Patterns"):
-            patterns.append(item[1])
-        return patterns
-    except configparser.Error:
-        log.exception("Bad format in {}".format(authorized_patterns_path))
-        return []
 
 
 def init_logging():
@@ -954,6 +905,45 @@ def get_meta_info(conn, id_demo):
     return meta_info
 
 
+def read_authorized_patterns() -> list:
+    """
+    Read from the IPs conf file
+    """
+    # Check if the config file exists
+    authorized_patterns_path = os.path.join(settings.config_common_dir, settings.authorized_patterns)
+    if not os.path.isfile(authorized_patterns_path):
+        log.exception(f"read_authorized_patterns: File {authorized_patterns_path} doesn't exist")
+        return []
+
+    # Read config file
+    try:
+        cfg = configparser.ConfigParser()
+        cfg.read([authorized_patterns_path])
+        patterns = []
+        for item in cfg.items('Patterns'):
+            patterns.append(item[1])
+        return patterns
+    except configparser.Error:
+        log.exception(f"Bad format in {authorized_patterns_path}")
+        return []
+
+
+@app.middleware("http")
+async def validate_ip(request: Request, call_next):
+    # Check if the request is coming from an allowed IP address
+    patterns = []
+    ip = request.client.host
+    try:
+        for pattern in read_authorized_patterns():
+            patterns.append(re.compile(pattern.replace(
+                        ".", "\\.").replace("*", "[0-9a-zA-Z]+")))
+        for pattern in patterns:
+            if pattern.match(ip) is not None:
+                response = await call_next(request)
+                return response
+        raise HTTPException(status_code=403, detail="IP not allowed")
+    except HTTPException as e:
+        return JSONResponse(content={"error": str(e.detail)}, status_code=403)
+
 log = init_logging()
-authorized_patterns = read_authorized_patterns()
 init_database()
