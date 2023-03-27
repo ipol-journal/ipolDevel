@@ -35,14 +35,15 @@ alias venv="source venv/bin/activate"
 
 #pylint of a module
 function lintmod() {
-    source ~/ipolDevel/ipol_demo/modules/$1/venv/bin/activate && \
-    pylint --rcfile=/home/ipol/ipolDevel/ci_tests/pylintrc \
-    ~/ipolDevel/ipol_demo/modules/$1/*.py && deactivate
+    source ~/ipolDevel/ci_tests/venv/bin/activate && \
+    ruff check ~/ipolDevel/ipol_demo/modules/$1/*.py && \
+    isort ~/ipolDevel/ipol_demo/modules/$1/*.py && \
+    black ~/ipolDevel/ipol_demo/modules/$1/*.py && deactivate
 }
 
 function lint() {
-    source ~/ipolDevel/ipol_demo/modules/core/venv/bin/activate && \
-    pylint --rcfile=/home/ipol/ipolDevel/ci_tests/pylintrc $1  && deactivate
+    source ~/ipolDevel/ci_tests/venv/bin/activate && \
+    ruff check $1 && isort $1 && black $1 && deactivate
 }
 
 function demo_copy() {
