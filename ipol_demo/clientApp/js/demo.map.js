@@ -1,24 +1,36 @@
 function printMapPanel(center) {
-    const token = document.createElement('script');
-    token.setAttribute('src', 'js/demo.token.js');
-    document.head.appendChild(token);
-    token.addEventListener('load', function() {
-        setupMapbox(center);
-      });
-}
-
-function setupMapbox(center) {
-    $('#map-container').removeClass('di-none');
+   $('#map-container').removeClass('di-none');
     $('#map-container').addClass('map-container');
-    mapboxgl.accessToken = MAPBOX_TOKEN;
-    const map = new mapboxgl.Map({
+    const style = {
+        "version": 8,
+          "sources": {
+          "osm": {
+                  "type": "raster",
+                  "tiles": ["https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"],
+                  "tileSize": 256,
+            "attribution": "&copy; OpenStreetMap Contributors",
+            "maxzoom": 19
+          }
+        },
+        "layers": [
+          {
+            "id": "osm",
+            "type": "raster",
+            "source": "osm" // This must match the source key above
+          }
+        ]
+      };
+
+    const map = new maplibregl.Map({
         container: 'map', // container ID
-        // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
-        style: 'mapbox://styles/mapbox/satellite-v9', // style URL
+        style: style,
         zoom: 14 // starting zoom
     });
     map.jumpTo({center:center});
-    
+
+    document.querySelector('#map').style.height = '100%';
+    document.querySelector('#map').style.width = '100%';
+    window.setTimeout(()=>map.resize(), 100);
     
     const draw = new MapboxDraw({
         displayControlsDefault: false,
