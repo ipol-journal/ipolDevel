@@ -907,6 +907,13 @@ class Core:
             # Integer and positive values
             natural_fields = ("max_pixels", "max_frames")
 
+            # If it's a map demo, it can only have one input
+            is_map_demo = "map" in [inp["type"] for inp in ddl["inputs"]]
+            if is_map_demo and len(ddl["inputs"]) != 1:
+                raise IPOLCheckDDLError(
+                    f"A demo containing a map must have a single input but the DDL contains {len(ddl['inputs'])} inputs."
+                )
+
             for inputs_counter, input_in_ddl in enumerate(ddl["inputs"]):
                 if "type" not in input_in_ddl:
                     raise IPOLCheckDDLError(
