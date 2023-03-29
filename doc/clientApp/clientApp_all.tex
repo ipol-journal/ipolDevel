@@ -160,7 +160,7 @@ allows choosing a set with any combination of images, audio and video. Depending
 If a set contains multiple images, the user will be able to compare and make zoom using any image on the set. If the user chooses a set with only 
 one image blob, options will depend on DDL limitations and will include zoom and crop features, as well as mask editing.
 
-\section{Implementation of Features}
+\section{Implementation of features}
 This section describes how particular features on the web interface are implemented.
 
 %
@@ -194,3 +194,24 @@ There are two ways to reconstruct an experiment from the archive:
 	\item Clicking the button on the archive page of the specific experiment.
 	\item Using the URL with the parameter  "archive=XXX". Useful to share results.
 \end{itemize}
+
+\subsection{Interactive world map}
+Demos working with satellite images often need that the user selects a zone on a map which can be interactively zoomed in and out. The zone is typically defined by a polygon drawn over the map.
+%
+The data format is \href{https://geojson.org/}{GeoJSON}, since its specification has been standardized by the \href{https://www.ietf.org/}{IETF} as \href{https://www.rfc-editor.org/rfc/rfc7946}{RFC 7946}.
+
+A good library to render maps on websites was started by the \href{https://www.mapbox.com/}{Mapbox} company in 2010, initially under a BDS license.
+
+It offers several map services under the \emph{pay-as-you-go} modality, including the interactive widget Mapbox GL JS which can be included in websites. The control is \href{https://docs.mapbox.com/mapbox-gl-js/api/}{properly documented}, including \href{https://docs.mapbox.com/help/tutorials/?product=Mapbox+GL+JS}{tutorials} and \href{https://docs.mapbox.com/mapbox-gl-js/example/}{examples}.
+
+To add the map on a website one needs to obtain an access token, include the mapbox-gl JS libraries and instantiate a new mapboxgl.Map object. Have a look at the Mapbox's \href{https://docs.mapbox.com/mapbox-gl-js/example/simple-map/}{example}. The Map object has a programatic \href{https://docs.mapbox.com/mapbox-gl-js/api/map/}{JS API} several methods and properties to easily interact with it.
+
+In December 2021, the BSD license used in Mapbox GL JS was changed to a proprietary one. The community forked the project and started a free-software alternative, Maplibre, under BSD license again. Both projects have a very similar API.
+
+In IPOL the preferred option is to use Maplibre to keep the project free software, although Mapbox is technically viable.
+
+Polygons can be drawn with the \href{https://github.com/mapbox/mapbox-gl-draw}{mapbox-gl-draw} library and it is possible to programatically interact with them, as shown in the \href{https://docs.mapbox.com/mapbox-gl-js/example/mapbox-gl-draw/}{example}.
+
+The latitude and longitude of the polygon vertices is encoded in the GeoJSON response without further processing needed from the IPOL's side. However, it's simply to obtain both the pixel locations and their corresponding longitude and latitude from events, as shown \href{https://docs.mapbox.com/mapbox-gl-js/example/mouse-position/}{here}.
+
+The \href{http://turfjs.org/}{TURF} library should be considered if more complex operations (such as computing areas inside polygons, or determining if a point is inside a polygon, among many others) are needed in the future.

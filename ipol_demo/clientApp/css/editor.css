@@ -52,8 +52,7 @@
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
-  -ms-flex-wrap: nowrap;
-      flex-wrap: nowrap;
+  flex-wrap: wrap;
   -webkit-box-pack: start;
   -ms-flex-pack: start;
   justify-content: flex-start;
@@ -178,3 +177,16 @@ div[class^='blobSet_'] > span {
 
   text-align: center;
 }
+
+.map-container {
+  display: grid;
+  gap: 1rem;
+  grid-template-rows: 1fr 5fr;
+  height: 50vh;
+}
+
+.calculation-box {
+  background-color: #f9f4ff;
+  padding: 1rem;
+  text-align: center;
+  }

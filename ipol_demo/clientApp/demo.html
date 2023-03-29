@@ -30,7 +30,9 @@
   <link rel="stylesheet" media="none" onload="if(media!='all')media='all'" href="css/footer.css">
   <link rel="stylesheet" media="none" onload="if(media!='all')media='all'" href="css/inpainting.css">
 
-  <link rel="stylesheet" media="none" onload="if(media!='all')media='all'" href="https://cdnjs.cloudflare.com/ajax/libs/cropper/3.0.0/cropper.min.css">  
+  <link rel="stylesheet" media="none" onload="if(media!='all')media='all'" href="https://cdnjs.cloudflare.com/ajax/libs/cropper/3.0.0/cropper.min.css">
+  <script src='https://unpkg.com/maplibre-gl@1.15.3/dist/maplibre-gl.js'></script>
+  <link href='https://unpkg.com/maplibre-gl@1.15.3/dist/maplibre-gl.css' rel='stylesheet' />
 </head>
 
 <body>
@@ -60,6 +62,13 @@
 
 
     <div id="sets" class="setContainer"></div>
+    <div id="map-container" class="di-none">
+      <div class="calculation-box">
+        <p>Click the map to draw a polygon.</p>
+        <div id="calculated-area"></div>
+      </div>
+      <div id="map"></div>
+    </div>
   </div>
 
   <div id="inputEditorContainer" class="di-none"></div>
@@ -119,8 +128,16 @@
   <script src="js/demo.results.js"></script>
   <script src="js/demo.results.gallery.js"></script>
   <script src="js/demo.results.video-gallery.js"></script>
+  <script src="js/demo.map.js"></script>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropper/3.0.0/cropper.min.js" defer></script>
 
+  <script src="https://api.tiles.mapbox.com/mapbox.js/plugins/turf/v3.0.11/turf.min.js"></script>
+  <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.2.0/mapbox-gl-draw.js"></script>
+  <link
+    rel="stylesheet"
+    href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.2.0/mapbox-gl-draw.css"
+    type="text/css"
+  />
 </body>
 </html>

@@ -112,7 +112,7 @@ class Converter:
                 code, modifications = self._convert_image(
                     input_file, input_desc, crop_info
                 )
-            elif input_type == "data":
+            elif input_type == "data" or input_type == "map":
                 code = self._add_ext_to_data(input_file, input_desc)
                 modifications = []
             elif input_type == "video":

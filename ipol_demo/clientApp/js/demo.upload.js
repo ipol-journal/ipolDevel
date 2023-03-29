@@ -3,6 +3,7 @@ var helpers = clientApp.helpers || {};
 var upload = upload || {};
 var editor = editor || {};
 var uploadedFiles = {};
+var files = files || [];
 
 clientApp.upload = upload;
 

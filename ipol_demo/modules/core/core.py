@@ -731,9 +731,8 @@ class Core:
             type_of_uploaded_blob, _ = mime_uploaded_blob.split("/")
 
             # Reject the uploaded file it it doesn't match the type in the DDL
-            if (
-                inputs_desc[i]["type"] != type_of_uploaded_blob
-                and inputs_desc[i]["type"] != "data"
+            if inputs_desc[i]["type"] != type_of_uploaded_blob and (
+                inputs_desc[i]["type"] not in ["data", "map"]
             ):
                 message = (
                     "The DDL type ({}) doesn't match the uploaded blob ({})".format(
@@ -901,11 +900,19 @@ class Core:
             required_fields = {
                 "video": ("max_pixels", "max_frames"),
                 "image": ("max_pixels", "ext", "dtype"),
+                "map": ("ext",),
                 "data": ("ext",),
             }
 
             # Integer and positive values
             natural_fields = ("max_pixels", "max_frames")
+
+            # If it's a map demo, it can only have one input
+            is_map_demo = "map" in [inp["type"] for inp in ddl["inputs"]]
+            if is_map_demo and len(ddl["inputs"]) != 1:
+                raise IPOLCheckDDLError(
+                    f"A demo containing a map must have a single input but the DDL contains {len(ddl['inputs'])} inputs."
+                )
 
             for inputs_counter, input_in_ddl in enumerate(ddl["inputs"]):
                 if "type" not in input_in_ddl:
