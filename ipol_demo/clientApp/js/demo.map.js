@@ -66,7 +66,7 @@ function printMapPanel(center) {
             helpers.removeItem('map');
             answer.innerHTML = '';
             if (e.type !== 'draw.delete')
-            alert('Click the map to draw a polygon.');
+                alert('Click the map to draw a polygon.');
         }
     }
 }
