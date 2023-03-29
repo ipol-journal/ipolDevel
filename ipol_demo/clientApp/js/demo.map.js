@@ -63,6 +63,7 @@ function printMapPanel(center) {
             const rounded_area = Math.round(area * 100) / 100;
             answer.innerHTML = `<p><strong>${rounded_area}</strong></p><p>square meters</p>`;
         } else {
+            helpers.removeItem('map');
             answer.innerHTML = '';
             if (e.type !== 'draw.delete')
             alert('Click the map to draw a polygon.');
