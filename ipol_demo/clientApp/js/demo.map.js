@@ -58,7 +58,6 @@ function printMapPanel(center) {
             console.info(data);
             let geoJSON = data;
             helpers.addToStorage('map', geoJSON);
-            files[0] = geoJSON
             const area = turf.area(data);
             // Restrict the area to 2 decimal points.
             const rounded_area = Math.round(area * 100) / 100;
