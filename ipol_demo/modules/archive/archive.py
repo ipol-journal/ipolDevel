@@ -50,7 +50,7 @@ def shutdown_event():
 
 
 @app.get("/ping", status_code=200)
-def ping():
+def ping() -> dict:
     """
     Ping service: answer with a pong.
     """
@@ -58,7 +58,7 @@ def ping():
 
 
 @app.get("/stats", status_code=200)
-def stats():
+def stats() -> dict:
     """
     return the stats of the module.
     """
@@ -93,7 +93,7 @@ def stats():
 # TODO change this name
 # TODO No usage?
 @app.get("/executions_per_demo", status_code=200)
-def executions_per_demo():
+def executions_per_demo() -> dict:
     """
     return the number of executions per demo
     """
@@ -124,7 +124,7 @@ def executions_per_demo():
 
 # TODO only used in archive tests
 @app.get("/demo_list", status_code=200)
-def demo_list():
+def demo_list() -> dict:
     """
     Return the list of demos with at least one experiment
     """
@@ -150,7 +150,7 @@ def demo_list():
 
 
 @app.post("/experiment", status_code=201)
-def create_experiment(experiment: Experiment):
+def create_experiment(experiment: Experiment) -> dict:
     """
     Add an experiment to the archive.
     """
@@ -186,7 +186,7 @@ def create_experiment(experiment: Experiment):
 
 
 @app.get("/experiment/{experiment_id}", status_code=200)
-def get_experiment(experiment_id: int):
+def get_experiment(experiment_id: int) -> dict:
     """
     Get a single experiment
     """
@@ -219,8 +219,8 @@ def get_experiment(experiment_id: int):
 
 
 # TODO Unused?
-@app.put("/experiment/{experiment_id}", status_code=204)
-def update_experiment_date(experiment_id: int, date: str, date_format: str):
+@app.put("/experiment/{experiment_id}", status_code=200)
+def update_experiment_date(experiment_id: int, date: datetime, date_format: str) -> dict:
     """
     MIGRATION
     Update the date of an experiment.
@@ -254,7 +254,7 @@ def update_experiment_date(experiment_id: int, date: str, date_format: str):
 
 
 @app.get("/page/{page}", status_code=200)
-def get_page(demo_id: int, page: int = 0):
+def get_page(demo_id: int, page: int = 0) -> dict:
     """
     This function return all the information needed
     to build the given page for the given demo.
@@ -285,7 +285,7 @@ def get_page(demo_id: int, page: int = 0):
 
 # @authenticate
 @app.delete("/experiment/{experiment_id}", status_code=204)
-def delete_experiment(experiment_id: int):
+def delete_experiment(experiment_id: int) -> None:
     """
     Remove an experiment
     """
@@ -308,7 +308,7 @@ def delete_experiment(experiment_id: int):
 # TODO Used only by archive tests
 # @authenticate
 @app.delete("/blob/{blob_id}", status_code=204)
-def delete_blob_w_deps(blob_id: int):
+def delete_blob_w_deps(blob_id: int) -> None:
     """
     Remove a blob
     """
@@ -341,7 +341,7 @@ def delete_blob_w_deps(blob_id: int):
 
 # authenticate
 @app.delete("/demo/{demo_id}", status_code=204)
-def delete_demo(demo_id: int):
+def delete_demo(demo_id: int) -> None:
     """
     Delete the demo from the archive.
     """
@@ -372,7 +372,7 @@ def delete_demo(demo_id: int):
 
 
 @app.put("/demo/{demo_id}", status_code=204)
-def update_demo_id(demo_id: int, new_demo_id: int):
+def update_demo_id(demo_id: int, new_demo_id: int) -> None:
     """
     Change the given old demo ID by the new demo ID
     """
@@ -404,7 +404,7 @@ def update_demo_id(demo_id: int, new_demo_id: int):
         raise HTTPException(status_code=500, detail=f"blobs update_demo_id error: {ex}")
 
 
-def delete_exp_w_deps(conn, experiment_id):
+def delete_exp_w_deps(conn, experiment_id: int) -> int:
     """
     This function remove, in the database, an experiment from
     the experiments table, and its dependencies in the correspondence
@@ -434,7 +434,7 @@ def delete_exp_w_deps(conn, experiment_id):
     return n_changes
 
 
-def purge_unique_blobs(conn, ids_blobs, experiment_id):
+def purge_unique_blobs(conn, ids_blobs: int, experiment_id: int) -> None:
     """
     This function checks if the blobs are used only in this experiment.
             If this is the case, they are deleted both in the database
@@ -458,7 +458,7 @@ def purge_unique_blobs(conn, ids_blobs, experiment_id):
             delete_blob(conn, blob)
 
 
-def delete_blob(conn, id_blob):
+def delete_blob(conn, id_blob: int) -> None:
     """
     This function delete the given id_blob, in the database and physically.
     """
@@ -483,7 +483,7 @@ def delete_blob(conn, id_blob):
         pass
 
 
-def mkdir_p(path):
+def mkdir_p(path: str) -> None:
     """
     Implement the UNIX shell command "mkdir -p"
     with given path as parameter.
@@ -497,7 +497,7 @@ def mkdir_p(path):
             raise
 
 
-def get_hash_blob(path):
+def get_hash_blob(path: str) -> str:
     """
     Return sha1 hash of given blob
     """
@@ -505,7 +505,7 @@ def get_hash_blob(path):
         return hashlib.sha1(the_file.read()).hexdigest()
 
 
-def file_format(the_file):
+def file_format(the_file: str) -> str:
     """
     Return format of the file
     """
@@ -530,7 +530,7 @@ def init_logging():
     return logger
 
 
-def init_database():
+def init_database() -> bool:
     """
     Initialize the database used by the module if it doesn't exist.
     If the file is empty, the system delete it and create a new one.
@@ -589,7 +589,9 @@ def init_database():
 #####
 
 
-def get_new_path(main_directory, hash_name, file_extension, depth=2):
+def get_new_path(
+    main_directory: str, hash_name: str, file_extension: str, depth: int = 2
+) -> :
     """
     This method creates a new fullpath to store the blobs in the archive,
     where new directories are created for each 'depth' first letters
@@ -612,7 +614,7 @@ def get_new_path(main_directory, hash_name, file_extension, depth=2):
     return new_path, subdirs
 
 
-def copy_file_in_folder(original_path, main_dir, hash_file, extension):
+def copy_file_in_folder(original_path, main_dir, hash_file, extension) -> str:
     """
     Write a file in its respective folder
     """
@@ -628,7 +630,9 @@ def copy_file_in_folder(original_path, main_dir, hash_file, extension):
         raise
 
 
-def add_blob_in_the_database(conn, hash_file, type_file, format_file):
+def add_blob_in_the_database(
+    conn, hash_file: str, type_file: str, format_file: str
+) -> int:
     """
     check if a blob already exists in the database. If not, we include it
     return the id of the blob
@@ -664,7 +668,7 @@ def add_blob_in_the_database(conn, hash_file, type_file, format_file):
         raise
 
 
-def add_blob(conn, blob_dict, copied_files_list):
+def add_blob(conn, blob_dict, copied_files_list: list) -> None:
     """
     This function checks if a blob exists in the table. If it exists,
     the id is returned. If not, the blob is added, then the id is returned.
@@ -712,7 +716,7 @@ def add_blob(conn, blob_dict, copied_files_list):
         raise
 
 
-def update_exp_table(conn, demo_id, parameters, execution):
+def update_exp_table(conn, demo_id: int, parameters: str, execution: str) -> int:
     """
     This function update the experiment table
     """
@@ -727,7 +731,7 @@ def update_exp_table(conn, demo_id, parameters, execution):
     return int(cursor_db.lastrowid)
 
 
-def update_blob(conn, blobs, copied_files_list):
+def update_blob(conn, blobs: dict, copied_files_list: list) -> dict:
     """
     This function updates the blobs table.
     It return a dictionary of data to be added to the correspondences table.
@@ -748,7 +752,7 @@ def update_blob(conn, blobs, copied_files_list):
     return dict_corresp
 
 
-def update_correspondence_table(conn, id_experiment, dict_corresp):
+def update_correspondence_table(conn, id_experiment: int, dict_corresp: dict) -> None:
     """
     This function update the correspondence table, associating
             blobs, experiments, and descriptions of blobs.
@@ -764,7 +768,7 @@ def update_correspondence_table(conn, id_experiment, dict_corresp):
         )
 
 
-def get_dict_file(path_file, path_thumb, name, id_blob):
+def get_dict_file(path_file, path_thumb: str, name: str, id_blob: int) -> dict:
     """
     Build a dict containing the path to the file, the path to the thumb
             and the name of the file.
@@ -780,7 +784,7 @@ def get_dict_file(path_file, path_thumb, name, id_blob):
     return dict_file
 
 
-def get_experiment_page(conn, demo_id, page):
+def get_experiment_page(conn, demo_id: int, page: int) -> list:
     """
     This function return a list of dicts with all the informations needed
             for displaying the experiments on a given page.
@@ -810,7 +814,9 @@ def get_experiment_page(conn, demo_id, page):
     return data_exp
 
 
-def get_data_experiment(conn, id_exp, parameters, execution, date):
+def get_data_experiment(
+    conn, id_exp: int, parameters: str, execution: str, date: datetime
+) -> dict:
     """
     Build a dictionnary containing all the datas needed on a given
             experiment for building the archive page.
@@ -854,7 +860,7 @@ def get_data_experiment(conn, id_exp, parameters, execution, date):
         raise
 
 
-def get_meta_info(conn, id_demo):
+def get_meta_info(conn, id_demo: int) -> list:
     """
     This function return the number of archive pages to be displayed
     for a given demo, and the number of experiments done with
