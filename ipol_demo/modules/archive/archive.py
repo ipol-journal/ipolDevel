@@ -591,7 +591,7 @@ def init_database() -> bool:
 
 def get_new_path(
     main_directory: str, hash_name: str, file_extension: str, depth: int = 2
-) -> :
+):
     """
     This method creates a new fullpath to store the blobs in the archive,
     where new directories are created for each 'depth' first letters
