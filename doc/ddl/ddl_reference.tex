@@ -107,7 +107,7 @@ forbid\_preprocess & Must be a boolean value. Forbids any pre-processing of the 
 Submitted image is kept as-is. Used by algorithms like noise estimation or modification detection, where re-sampling will affect results. 
 If a processing is needed according to the expected properties, an error message will be displayed to the user. This will also remove the crop feature from the interface.
 & no \\ \hline
- control & String to include an interactive control. Possible values are "mask", "dots" and "lines" each for a different kind of mask drawing behaviour. & no \\ \hline
+ control & String to include an interactive control. Possible values are "mask", "dots" and "lines" each for a diffrent kind of mask drawing behaviour. & no \\ \hline
 \caption{Fields for an \emph{image} as input.}
 \end{longtable}
 
@@ -174,9 +174,130 @@ The \emph{map} type the interface makes the demo show a map of the Earth where t
 Figure~\ref{fig:geojson_example} shows the control and its key elements.
 To draw a polygon there is a toolbox (1) which allows to start drawing a polygon and to remove completely the last one. Click on the upper icon to start drawing and click on the map to add as many vertices as needed. You can also start adding vertices by clicking the right button of the mouse. When done, click the right button of the mouse. After that, the polygon will appear as finished (2). You can drawn more than one polygon, if needed. After finishing with the first, you can draw a second one (3). The information about the current polygon is show above (4).
 
-The demo will receive a GeoJSON file containing the coordinates as a list of geometric features. Please check the code of demo 11111000001 to see an example on how to parse the GeoJSON file to extract the geometric coordinates.
-
 The map is an interactive 3D projection. You can move around and change the location using the mouse and dragging with the left button, or using the keyboard cursors. With the right button of the mouse you can rotate the map and change the orientation of the camera. The zoom can be adjusted with the wheel of the mouse or with '+'/'-' in the keyboard.
+
+The demo will receive a GeoJSON file containing the coordinates as a list of geometric features.
+For example, a selection made of two polygons of three and four vertices would be encoded as follows:
+
+\begin{lstlisting}[language=json,firstnumber=1]
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "id": "1a3e0b6db723596db6da77b80ea0904f",
+            "type": "Feature",
+            "properties": {},
+            "geometry": {
+                "coordinates": [
+                    [
+                        [
+                            -3.69022875121982,
+                            40.41938883192799
+                        ],
+                        [
+                            -3.6927607565289122,
+                            40.41605617841688
+                        ],
+                        [
+                            -3.6802294760118457,
+                            40.41563141659978
+                        ],
+                        [
+                            -3.69022875121982,
+                            40.41938883192799
+                        ]
+                    ]
+                ],
+                "type": "Polygon"
+            }
+        },
+        {
+            "id": "ca0e17328f3186e57d84fd8c535f6ab5",
+            "type": "Feature",
+            "properties": {},
+            "geometry": {
+                "coordinates": [
+                    [
+                        [
+                            -3.7089827566515794,
+                            40.42069570981127
+                        ],
+                        [
+                            -3.695464423216549,
+                            40.41857202035922
+                        ],
+                        [
+                            -3.70220213226159,
+                            40.4154026975869
+                        ],
+                        [
+                            -3.712544730223499,
+                            40.417526487080124
+                        ],
+                        [
+                            -3.7089827566515794,
+                            40.42069570981127
+                        ]
+                    ]
+                ],
+                "type": "Polygon"
+            }
+        }
+    ]
+}
+\end{lstlisting}
+
+Note that a polygon of $N$ vertices is encoded as a list of $N+1$ coordinates, where the first equals the last. This is the GIS \href{https://www.ogc.org/standard/sfa/}{standard} to represent a topologically closed curve.
+
+Here it follows an example to read the GeoJSON file in Python:
+
+\begin{lstlisting}[language=python,firstnumber=1]
+#!/usr/bin/env python3
+# -*- coding: UTF-8 -*-
+
+import json
+import argparse
+
+def print_polygons(polygons):
+    '''
+    Print the information of given polygons
+    '''
+    if not polygons:
+        print("No polygons were drawn in the map")
+        return
+    
+    print(f"{len(polygons)} polygon(s) were drawn in the map:")
+    for polygon in polygons:
+        print(f"\t- polygon with {len(polygon)} vertices:")
+        for coord in polygon:
+            print(f"\t\t{coord}")
+
+parser = argparse.ArgumentParser(description='GeoJSON example.')
+parser.add_argument('--json', type=str, help='Input filename', default='input_0.json')
+args = parser.parse_args()
+
+# Load GeoJSON
+with open(args.json, "rt") as f:
+    D = json.load(f)
+
+# Store here the list of polygons found in the GeoJSON file
+polygons = []
+
+# Parse the GeoJSON
+# The coordinates are in feature['geometry']['coordinates']
+for feature in D['features']:
+    if 'geometry' not in feature:
+        continue
+    
+    if 'coordinates' not in feature['geometry']:
+        continue
+    
+    coordinates = feature['geometry']['coordinates'][0]
+    polygons.append(coordinates)
+
+# Finally, print the information of the polygons found
+print_polygons(polygons)
+\end{lstlisting}
 
 When a demo uses a map, it can only contain that single input in the DDL.
 
