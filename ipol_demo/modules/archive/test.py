@@ -43,7 +43,7 @@ class ArchiveTests(unittest.TestCase):
         Test ping
         """
         try:
-            response = self.post(self.module, 'get', 'ping')
+            response = self.post(self.module, "get", "ping")
         finally:
             self.assertEqual(response.status_code, 200)
 
@@ -59,7 +59,7 @@ class ArchiveTests(unittest.TestCase):
             parameters = {"test_param": 0}
             response = self.add_experiment(self.demo_id, [abs_path], parameters, {})
             add_status = response.status_code
-            id_experiment = response.json().get('experiment_id')
+            id_experiment = response.json().get("experiment_id")
 
             response = self.delete_experiment(id_experiment)
             del_status = response.status_code
@@ -91,7 +91,7 @@ class ArchiveTests(unittest.TestCase):
             abs_path = os.path.abspath(self.blob_path)
             parameters = {"test_param": 0}
             response = self.add_experiment(self.demo_id, [abs_path], parameters, {})
-            experiment_id = response.json().get('experiment_id')
+            experiment_id = response.json().get("experiment_id")
 
             response = self.get_experiment(experiment_id)
             experiment = response.json()
@@ -119,14 +119,16 @@ class ArchiveTests(unittest.TestCase):
         n_experiments = None
         try:
             abs_path = os.path.abspath(self.blob_path)
-            parameters = {'test_param': 0}
-            response = self.add_experiment(self.demo_id, [abs_path], parameters, {}).json()
-            id_experiment = response.get('experiment_id')
+            parameters = {"test_param": 0}
+            response = self.add_experiment(
+                self.demo_id, [abs_path], parameters, {}
+            ).json()
+            id_experiment = response.get("experiment_id")
 
             response = self.get_page(self.demo_id)
             status = response.status_code
-            experiments = response.json().get('experiments')
-            exp_meta = response.json().get('meta_info')
+            experiments = response.json().get("experiments")
+            exp_meta = response.json().get("meta_info")
             try:
                 n_experiments = exp_meta.get("number_of_experiments")
             except Exception:
@@ -155,8 +157,8 @@ class ArchiveTests(unittest.TestCase):
             status = response.status_code
 
             response = self.get_page(self.demo_id)
-            experiments = response.json().get('experiments')
-            exp_meta = response.json().get('meta_info')
+            experiments = response.json().get("experiments")
+            exp_meta = response.json().get("meta_info")
             try:
                 n_experiments = exp_meta.get("number_of_experiments")
             except Exception:
@@ -188,11 +190,11 @@ class ArchiveTests(unittest.TestCase):
             abs_path = os.path.abspath(self.blob_path)
             parameters = {"test_param": 0}
             response = self.add_experiment(self.demo_id, [abs_path], parameters, {})
-            id_experiment = response.json().get('id_experiment')
+            id_experiment = response.json().get("id_experiment")
 
             response = self.demo_list()
             status = response.status_code
-            demo_list = response.json().get('demo_list')
+            demo_list = response.json().get("demo_list")
 
             self.delete_experiment(id_experiment)
         finally:
@@ -214,13 +216,13 @@ class ArchiveTests(unittest.TestCase):
             abs_path = os.path.abspath(self.blob_path)
             parameters = {"test_param": 0}
             response = self.add_experiment(self.demo_id, [abs_path], parameters, {})
-            id_experiment = response.json().get('experiment_id')
+            id_experiment = response.json().get("experiment_id")
 
             response = self.update_demo_id(self.demo_id, new_demo_id)
             status = response.status_code
 
             response = self.get_page(new_demo_id)
-            experiments = response.json().get('experiments')
+            experiments = response.json().get("experiments")
             try:
                 id_experiment_from_new_demo = experiments[0].get("id")
                 parameter_from_new_demo = experiments[0].get("parameters")
@@ -243,8 +245,8 @@ class ArchiveTests(unittest.TestCase):
         try:
             response = self.stats()
             status = response.status_code
-            nb_blobs = response.json().get('nb_blobs')
-            nb_experiments = response.json().get('nb_experiments')
+            nb_blobs = response.json().get("nb_blobs")
+            nb_experiments = response.json().get("nb_experiments")
 
         finally:
             self.assertEqual(status, 200)
@@ -268,16 +270,16 @@ class ArchiveTests(unittest.TestCase):
             self.add_experiment(other_demo_id, [abs_path], parameters, {})
 
             response = self.get_page(self.demo_id)
-            blob_id = response.json().get('experiments')[0].get('files')[0].get('id')
+            blob_id = response.json().get("experiments")[0].get("files")[0].get("id")
 
             response = self.delete_blob_w_deps(blob_id)
             status = response.status_code
 
             response = self.get_page(self.demo_id)
-            first_experiments = response.json().get('experiments')
+            first_experiments = response.json().get("experiments")
 
             response = self.get_page(other_demo_id)
-            second_experiments = response.json().get('experiments')
+            second_experiments = response.json().get("experiments")
 
             self.delete_demo(self.demo_id)
             self.delete_demo(other_demo_id)
@@ -294,15 +296,15 @@ class ArchiveTests(unittest.TestCase):
         """
         post
         """
-        url = f'{self.BASE_URL}/api/{module}/{service}'
-        headers = {'Content-Type':'application/json; charset=UTF-8'}
-        if method == 'get':
+        url = f"{self.BASE_URL}/api/{module}/{service}"
+        headers = {"Content-Type": "application/json; charset=UTF-8"}
+        if method == "get":
             return requests.get(url)
-        elif method == 'put':
+        elif method == "put":
             return requests.put(url, data=json.dumps(data), headers=headers)
-        elif method == 'post':
+        elif method == "post":
             return requests.post(url, data=json.dumps(params), headers=headers)
-        elif method == 'delete':
+        elif method == "delete":
             return requests.delete(url, headers=headers)
 
     def add_experiment(self, demo_id, blobs_path, parameters, execution):
@@ -312,22 +314,27 @@ class ArchiveTests(unittest.TestCase):
         blobs = []
         for path in blobs_path:
             blobs.append({os.path.basename(path): path})
-        params = {'demo_id': demo_id, 'blobs': json.dumps(blobs), 'parameters': json.dumps(parameters), 'execution': json.dumps(execution)}
-        response = self.post(self.module, 'post', 'experiment', params=params)
+        params = {
+            "demo_id": demo_id,
+            "blobs": json.dumps(blobs),
+            "parameters": json.dumps(parameters),
+            "execution": json.dumps(execution),
+        }
+        response = self.post(self.module, "post", "experiment", params=params)
         return response
 
     def get_experiment(self, experiment_id):
         """
         get experiment
         """
-        response = self.post(self.module, 'get', f'experiment/{experiment_id}')
+        response = self.post(self.module, "get", f"experiment/{experiment_id}")
         return response
 
     def delete_experiment(self, experiment_id):
         """
         delete experiment
         """
-        response = self.post(self.module, 'delete', f'experiment/{experiment_id}')
+        response = self.post(self.module, "delete", f"experiment/{experiment_id}")
         return response
 
     def get_page(self, demo_id, page=None):
@@ -335,46 +342,49 @@ class ArchiveTests(unittest.TestCase):
         get page
         """
         if page is not None:
-            service = f'page/{page}'
+            service = f"page/{page}"
         else:
-            service = 'page/1'
-        response = self.post(self.module, 'get', service + f'?demo_id={demo_id}')
+            service = "page/1"
+        response = self.post(self.module, "get", service + f"?demo_id={demo_id}")
         return response
 
     def delete_blob_w_deps(self, id_blob):
         """
         delete blob w deps
         """
-        response = self.post(self.module, 'delete', f'blob/{id_blob}')
+        response = self.post(self.module, "delete", f"blob/{id_blob}")
         return response
 
     def delete_demo(self, demo_id):
         """
         delete demo
         """
-        response = self.post(self.module, 'delete', f'demo/{demo_id}')
+        response = self.post(self.module, "delete", f"demo/{demo_id}")
         return response
 
     def demo_list(self):
         """
         demo list
         """
-        response = self.post(self.module, 'get', 'demo_list')
+        response = self.post(self.module, "get", "demo_list")
         return response
 
     def update_demo_id(self, old_demo_id, new_demo_id):
         """
         update demo id
         """
-        response = self.post(self.module, 'put', f'demo/{old_demo_id}?new_demo_id={new_demo_id}')
+        response = self.post(
+            self.module, "put", f"demo/{old_demo_id}?new_demo_id={new_demo_id}"
+        )
         return response
 
     def stats(self):
         """
         stats
         """
-        response = self.post(self.module, 'get', 'stats')
+        response = self.post(self.module, "get", "stats")
         return response
+
 
 if __name__ == "__main__":
     shared_folder = sys.argv.pop()

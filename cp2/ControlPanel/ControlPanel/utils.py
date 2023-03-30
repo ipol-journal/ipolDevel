@@ -12,19 +12,25 @@ logger = logging.getLogger(__name__)
 
 def api_post(resource, method, params=None, files=None, json=None):
     try:
-        host = os.environ.get('IPOL_URL', f'http://{socket.gethostbyname(socket.getfqdn())}')
-        headers = {'Content-Type':'application/json; charset=UTF-8'}
-        if method == 'get':
-            response = requests.get(f'{host}{resource}')
+        host = os.environ.get(
+            "IPOL_URL", f"http://{socket.gethostbyname(socket.getfqdn())}"
+        )
+        headers = {"Content-Type": "application/json; charset=UTF-8"}
+        if method == "get":
+            response = requests.get(f"{host}{resource}")
             return response.json(), response.status_code
-        elif method == 'put':
-            response = requests.put(f'{host}{resource}', data=json, headers=headers)
+        elif method == "put":
+            response = requests.put(f"{host}{resource}", data=json, headers=headers)
             return response, response.status_code
-        elif method == 'post':
-            response = requests.post(f"{host}{resource}", params=params, data=json, files=files)
+        elif method == "post":
+            response = requests.post(
+                f"{host}{resource}", params=params, data=json, files=files
+            )
             return response.json(), response.status_code
-        elif method == 'delete':
-            response = requests.delete(f'{host}{resource}', params=params, data=json, files=files)
+        elif method == "delete":
+            response = requests.delete(
+                f"{host}{resource}", params=params, data=json, files=files
+            )
             return response, response.status_code
     except requests.exceptions.Timeout:
         logger.warning(f"Request timeout: {resource}")

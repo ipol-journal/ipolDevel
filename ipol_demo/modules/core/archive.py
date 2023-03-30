@@ -111,7 +111,7 @@ def send_to_archive(
     else:
         execution_json = None
 
-    url = '{}/api/archive/experiment'.format(base_url)
+    url = "{}/api/archive/experiment".format(base_url)
     data = {
         "demo_id": demo_id,
         "blobs": json.dumps(blobs),
@@ -120,6 +120,7 @@ def send_to_archive(
     }
     resp = requests.post(url, json=data)
     return resp, resp.status_code
+
 
 def non_viewable_blob(file_name):
     """

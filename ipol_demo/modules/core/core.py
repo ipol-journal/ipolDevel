@@ -774,7 +774,9 @@ class Core:
         returns:
         """
         try:
-            demo_blobs,_ = self.post('api/blobs/get_blobs', 'post', data={'demo_id': demo_id})
+            demo_blobs, _ = self.post(
+                "api/blobs/get_blobs", "post", data={"demo_id": demo_id}
+            )
             demo_blobs = demo_blobs.json()
         except:
             self.logger.exception(
@@ -1154,7 +1156,7 @@ class Core:
         Gets demo meta data given its editor's ID
         """
         userdata = {"demoid": demo_id}
-        resp,_ = self.post('api/demoinfo/read_demo_metainfo', 'post', data=userdata)
+        resp, _ = self.post("api/demoinfo/read_demo_metainfo", "post", data=userdata)
         return resp.json()
 
     def get_demo_editor_list(self, demo_id):
@@ -1163,9 +1165,11 @@ class Core:
         """
         # Get the list of editors of the demo
         userdata = {"demo_id": demo_id}
-        resp, status_code = self.post('api/demoinfo/demo_get_editors_list', 'post', data=userdata)
+        resp, status_code = self.post(
+            "api/demoinfo/demo_get_editors_list", "post", data=userdata
+        )
         response = resp.json()
-        status = response['status']
+        status = response["status"]
 
         if status_code != 200:
             # [ToDo]: log this error!
@@ -1531,15 +1535,17 @@ attached the failed experiment data.".format(
         """
         Ensure that the source codes of the demo are all updated and compiled correctly
         """
-        build_data = {'demo_id': demo_id, 'ddl_build': json.dumps(ddl_build)}
-        ssh_response,_ = self.post('api/demoinfo/get_ssh_keys/', 'post', data={"demo_id": demo_id})
+        build_data = {"demo_id": demo_id, "ddl_build": json.dumps(ddl_build)}
+        ssh_response, _ = self.post(
+            "api/demoinfo/get_ssh_keys/", "post", data={"demo_id": demo_id}
+        )
         ssh_response = ssh_response.json()
-        if ssh_response['status'] == 'OK':
-            build_data['ssh_key.public'] = ssh_response['pubkey']
-            build_data['ssh_key.private'] = ssh_response['privkey']
+        if ssh_response["status"] == "OK":
+            build_data["ssh_key.public"] = ssh_response["pubkey"]
+            build_data["ssh_key.private"] = ssh_response["privkey"]
 
-        url = f'api/demorunner/{dr_name}/ensure_compilation'
-        dr_response,_ = self.post(url, 'post', data=build_data)
+        url = f"api/demorunner/{dr_name}/ensure_compilation"
+        dr_response, _ = self.post(url, "post", data=build_data)
 
         # Read the JSON response from the DR
         try:
@@ -1720,8 +1726,8 @@ attached the failed experiment data.".format(
                 inputs[f"inputs.{i}"] = (relative_path, fd, "application/octet-stream")
                 i += 1
 
-        url = f'api/demorunner/{dr_name}/exec_and_wait'
-        resp,status_code = self.post(url, 'post', data=userdata, files=inputs)
+        url = f"api/demorunner/{dr_name}/exec_and_wait"
+        resp, status_code = self.post(url, "post", data=userdata, files=inputs)
 
         if status_code != 200:
             demo_state = self.get_demo_metadata(demo_id)["state"].lower()
@@ -1870,10 +1876,18 @@ attached the failed experiment data.".format(
             ):
                 base_url = os.environ.get("IPOL_URL", "http://" + socket.getfqdn())
                 try:
-                    response,status_code = send_to_archive(demo_id, work_dir, kwargs, ddl['archive'], demorunner_response, base_url, input_names)
+                    response, status_code = send_to_archive(
+                        demo_id,
+                        work_dir,
+                        kwargs,
+                        ddl["archive"],
+                        demorunner_response,
+                        base_url,
+                        input_names,
+                    )
                     if not status_code == 201:
                         response = response.json()
-                        id_experiment = response.get('experiment_id', None)
+                        id_experiment = response.get("experiment_id", None)
                         message = "KO from archive module when archiving an experiment: demo={}, key={}, id={}."
                         self.logger.exception(
                             message.format(demo_id, key, id_experiment)
@@ -2078,14 +2092,16 @@ attached the failed experiment data.".format(
             if not isinstance(result, Ok):
                 error_message += f"Error when removing demoextras: {result.value} \n"
 
-            response,_ = self.post('/api/blobs/delete_demo', 'post', data=userdata)
-            if response.json()['status'] != 'OK':
+            response, _ = self.post("/api/blobs/delete_demo", "post", data=userdata)
+            if response.json()["status"] != "OK":
                 error_message += f"API call /blobs/delete_demo failed.'\n"
 
-            #delete the archive
-            _,status_code = self.post(f'/api/archive/demo/{demo_id}', 'delete')
+            # delete the archive
+            _, status_code = self.post(f"/api/archive/demo/{demo_id}", "delete")
             if status_code == 404:
-                error_message += f"API call /api/archive/demo to delete  demo failed. {demo_id}"
+                error_message += (
+                    f"API call /api/archive/demo to delete  demo failed. {demo_id}"
+                )
             if error_message:
                 data["status"] = "KO"
                 data["error"] = f"Failed to delete demo: {demo_id}."
@@ -2104,19 +2120,21 @@ attached the failed experiment data.".format(
         """
         General purpose function to make http requests.
         """
-        base_url = os.environ.get('IPOL_URL', 'http://' + socket.getfqdn())
-        headers = {'Content-Type':'application/json; charset=UTF-8'}
-        if method == 'get':
-            response = requests.get(f'{base_url}/{api_url}')
+        base_url = os.environ.get("IPOL_URL", "http://" + socket.getfqdn())
+        headers = {"Content-Type": "application/json; charset=UTF-8"}
+        if method == "get":
+            response = requests.get(f"{base_url}/{api_url}")
             return response.json(), response.status_code
-        elif method == 'put':
-            response = requests.put(f'{base_url}/{api_url}', **kwargs, headers=headers)
+        elif method == "put":
+            response = requests.put(f"{base_url}/{api_url}", **kwargs, headers=headers)
             return response.json(), response.status_code
-        elif method == 'post':
-            response = requests.post(f'{base_url}/{api_url}', **kwargs)
+        elif method == "post":
+            response = requests.post(f"{base_url}/{api_url}", **kwargs)
             return response, response.status_code
-        elif method == 'delete':
-            response = requests.delete(f'{base_url}/{api_url}', **kwargs, headers=headers)
+        elif method == "delete":
+            response = requests.delete(
+                f"{base_url}/{api_url}", **kwargs, headers=headers
+            )
             return response, response.status_code
 
 

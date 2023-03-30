@@ -220,7 +220,9 @@ def get_experiment(experiment_id: int) -> dict:
 
 # TODO Unused?
 @app.put("/experiment/{experiment_id}", status_code=200)
-def update_experiment_date(experiment_id: int, date: datetime, date_format: str) -> dict:
+def update_experiment_date(
+    experiment_id: int, date: datetime, date_format: str
+) -> dict:
     """
     MIGRATION
     Update the date of an experiment.
