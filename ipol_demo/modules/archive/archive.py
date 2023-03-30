@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     config_common_dir: str = (
         os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/config_common"
     )
-    number_of_experiments_by_pages: str = 5
+    number_of_experiments_by_pages: int = 5
     authorized_patterns: str = "authorized_patterns.conf"
 
 
@@ -947,7 +947,7 @@ def read_authorized_patterns() -> list:
 async def validate_ip(request: Request, call_next):
     # Check if the request is coming from an allowed IP address
     patterns = []
-    ip = request.client.host
+    ip = request.headers["x-real-ip"]
     try:
         for pattern in read_authorized_patterns():
             patterns.append(
