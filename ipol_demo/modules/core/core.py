@@ -778,9 +778,9 @@ class Core:
                 "api/blobs/get_blobs", "post", data={"demo_id": demo_id}
             )
             demo_blobs = demo_blobs.json()
-        except:
+        except json.JSONDecodeError as e:
             self.logger.exception(
-                "Blobs get_blobs returned KO at Core's copy_blobset_from_physical_location"
+                f"Blobs get_blobs didn't return valid json at Core's copy_blobset_from_physical_location. {e}"
             )
             raise IPOLCopyBlobsError("Couldn't reach blobs")
 
@@ -1172,7 +1172,9 @@ class Core:
         status = response["status"]
 
         if status_code != 200:
-            # [ToDo]: log this error!
+            self.error_log(
+                f"Demoinfo didn't respond back with the editors list information. {status}"
+            )
             return ()
 
         editor_list = response["editor_list"]
@@ -1885,13 +1887,11 @@ attached the failed experiment data.".format(
                         base_url,
                         input_names,
                     )
-                    if not status_code == 201:
+                    if status_code != 201:
                         response = response.json()
                         id_experiment = response.get("experiment_id", None)
-                        message = "KO from archive module when archiving an experiment: demo={}, key={}, id={}."
-                        self.logger.exception(
-                            message.format(demo_id, key, id_experiment)
-                        )
+                        message = f"Error {status_code} from archive module when archiving an experiment: demo={demo_id}, key={key}, id={id_experiment}."
+                        self.logger.exception(message)
                 except Exception as ex:
                     message = (
                         "Error archiving an experiment: demo={}, key={}. Error: {}."
@@ -2136,6 +2136,8 @@ attached the failed experiment data.".format(
                 f"{base_url}/{api_url}", **kwargs, headers=headers
             )
             return response, response.status_code
+        else:
+            assert False
 
 
 def init_logging():

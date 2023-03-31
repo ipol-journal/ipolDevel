@@ -306,6 +306,8 @@ class ArchiveTests(unittest.TestCase):
             return requests.post(url, data=json.dumps(params), headers=headers)
         elif method == "delete":
             return requests.delete(url, headers=headers)
+        else:
+            assert False
 
     def add_experiment(self, demo_id, blobs_path, parameters, execution):
         """
@@ -320,22 +322,19 @@ class ArchiveTests(unittest.TestCase):
             "parameters": json.dumps(parameters),
             "execution": json.dumps(execution),
         }
-        response = self.post(self.module, "post", "experiment", params=params)
-        return response
+        return self.post(self.module, "post", "experiment", params=params)
 
     def get_experiment(self, experiment_id):
         """
         get experiment
         """
-        response = self.post(self.module, "get", f"experiment/{experiment_id}")
-        return response
+        return self.post(self.module, "get", f"experiment/{experiment_id}")
 
     def delete_experiment(self, experiment_id):
         """
         delete experiment
         """
-        response = self.post(self.module, "delete", f"experiment/{experiment_id}")
-        return response
+        return self.post(self.module, "delete", f"experiment/{experiment_id}")
 
     def get_page(self, demo_id, page=None):
         """
@@ -345,45 +344,39 @@ class ArchiveTests(unittest.TestCase):
             service = f"page/{page}"
         else:
             service = "page/1"
-        response = self.post(self.module, "get", service + f"?demo_id={demo_id}")
-        return response
+        return self.post(self.module, "get", f"{service}?demo_id={demo_id}")
 
     def delete_blob_w_deps(self, id_blob):
         """
         delete blob w deps
         """
-        response = self.post(self.module, "delete", f"blob/{id_blob}")
-        return response
+        return self.post(self.module, "delete", f"blob/{id_blob}")
 
     def delete_demo(self, demo_id):
         """
         delete demo
         """
-        response = self.post(self.module, "delete", f"demo/{demo_id}")
-        return response
+        return self.post(self.module, "delete", f"demo/{demo_id}")
 
     def demo_list(self):
         """
         demo list
         """
-        response = self.post(self.module, "get", "demo_list")
-        return response
+        return self.post(self.module, "get", "demo_list")
 
     def update_demo_id(self, old_demo_id, new_demo_id):
         """
         update demo id
         """
-        response = self.post(
+        return self.post(
             self.module, "put", f"demo/{old_demo_id}?new_demo_id={new_demo_id}"
         )
-        return response
 
     def stats(self):
         """
         stats
         """
-        response = self.post(self.module, "get", "stats")
-        return response
+        return self.post(self.module, "get", "stats")
 
 
 if __name__ == "__main__":
