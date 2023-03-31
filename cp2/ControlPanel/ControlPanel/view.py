@@ -841,13 +841,6 @@ def show_archive(request):
     else:
         page = 1
 
-    if "qfilter" in request.GET:
-        experiment_id = request.GET["qfilter"]
-        archive_response, _ = api_post(
-            "/api/archive/get_experiment", {"experiment_id": experiment_id}
-        )
-        experiment = archive_response["experiment"]
-
     archive_response, _ = api_post(f"/api/archive/page/{page}?demo_id={demo_id}", "get")
     experiments = archive_response["experiments"]
     meta = archive_response["meta_info"]

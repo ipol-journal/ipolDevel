@@ -32,6 +32,8 @@ def api_post(resource, method, params=None, files=None, json=None):
                 f"{host}{resource}", params=params, data=json, files=files
             )
             return response, response.status_code
+        else:
+            assert False
     except requests.exceptions.Timeout:
         logger.warning(f"Request timeout: {resource}")
         # Maybe set up for a retry, or continue in a retry loop
