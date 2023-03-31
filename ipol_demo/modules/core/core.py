@@ -465,12 +465,6 @@ class Core:
             Core.instance = Core()
         return Core.instance
 
-    def error_log(self, function_name, error):
-        """
-        Write an error log in the logs_dir defined in demo.conf
-        """
-        error_string = function_name + ": " + error
-        self.logger.error(error_string)
 
     def __init__(self):
         """
@@ -543,9 +537,8 @@ class Core:
         """
         # Check if the config file exists
         if not os.path.isfile(self.authorized_patterns_file):
-            self.error_log(
-                "read_authorized_patterns",
-                "Can't open {}".format(self.authorized_patterns_file),
+            self.logger.error(
+                "read_authorized_patterns: Can't open {}".format(self.authorized_patterns_file)
             )
             return []
 
@@ -1288,8 +1281,8 @@ class Core:
             )
             cfg = configparser.ConfigParser()
             if not os.path.isfile(emails_file_path):
-                self.error_log(
-                    "read_emails_from_config", "Can't open {}".format(emails_file_path)
+                self.logger.error(
+                    "read_emails_from_config: Can't open {}".format(emails_file_path)
                 )
                 return {}
 
@@ -2052,8 +2045,8 @@ attached the failed experiment data.".format(
             # Read with format A = B, where B can contain the '=' sign
             if len(line.split("=", 1)) < 2 or line.split("=", 1)[0].strip() == "":
                 print("incorrect format in algo_info.txt, in line {}".format(line))
-                self.error_log(
-                    "run", "incorrect format in algo_info.txt, at line {}".format(line)
+                self.logger.error(
+                    "run: incorrect format in algo_info.txt, at line {}".format(line)
                 )
                 continue
 
