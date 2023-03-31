@@ -68,10 +68,10 @@ server {
 			return 418;
 		}
 
-        # Content-Security-Policy (CSP) for JQuery and Mapbox
+        # Content-Security-Policy (CSP) for JQuery and MapLibre
         # JQuery:
         # default-src 'self' data: https: blob: 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval' https: code.jquery.com cdnjs.cloudflare.com;
-        # Mapbox:
+        # Maplibre:
         # worker-src blob: ; child-src blob: ;
         add_header 'Content-Security-Policy' "default-src 'self' data: https: blob: 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval' https: code.jquery.com cdnjs.cloudflare.com; worker-src blob: ; child-src blob: ;";
         add_header 'Access-Control-Allow-Origin' '*';
