@@ -247,7 +247,8 @@ class IntegrationTests(unittest.TestCase):
         return response.json()
 
     def get_archive_experiments_by_page(self, url, demo_id, page=None):
-        if page is None: page = 0
+        if page is None:
+            page = 0
         response = requests.get(f'{url}/api/archive/page/{page}?demo_id={demo_id}')
         return response.json(), response.status_code
 

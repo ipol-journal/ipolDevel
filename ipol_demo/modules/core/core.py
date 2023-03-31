@@ -2094,7 +2094,7 @@ attached the failed experiment data.".format(
 
             response, _ = self.post("/api/blobs/delete_demo", "post", data=userdata)
             if response.json()["status"] != "OK":
-                error_message += f"API call /blobs/delete_demo failed.'\n"
+                error_message += "API call /blobs/delete_demo failed.'\n"
 
             # delete the archive
             _, status_code = self.post(f"/api/archive/demo/{demo_id}", "delete")
