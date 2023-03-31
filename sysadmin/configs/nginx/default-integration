@@ -63,10 +63,10 @@ server {
 
         # Private demos
         # Change the authTest to the real name
-		if ($args ~ ".*id=33333999\d*") {
-			error_page 418 = @authTestPasswd;
-			return 418;
-		}
+        if ($args ~ ".*id=33333999\d*") {
+            error_page 418 = @authTestPasswd;
+            return 418;
+        }
 
         # Content-Security-Policy (CSP) for JQuery and MapLibre
         # JQuery:
@@ -76,12 +76,12 @@ server {
         add_header 'Content-Security-Policy' "default-src 'self' data: https: blob: 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval' https: code.jquery.com cdnjs.cloudflare.com; worker-src blob: ; child-src blob: ;";
         add_header 'Access-Control-Allow-Origin' '*';
 
-		expires 1m;
-		auth_basic "Restricted";
-		auth_basic_user_file /etc/nginx/.passwd/integration;
-		resolver 127.0.0.1;
-		alias  /home/ipol/ipolDevel/ipol_demo/clientApp/;
-	}
+        expires 1m;
+        auth_basic "Restricted";
+        auth_basic_user_file /etc/nginx/.passwd/integration;
+        resolver 127.0.0.1;
+        alias  /home/ipol/ipolDevel/ipol_demo/clientApp/;
+    }
     
 	# Authentication test. user: auth_test , password: auth_test
 	location @authTestPasswd {
