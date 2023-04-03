@@ -1173,7 +1173,7 @@ class Core:
 
         if status_code != 200:
             self.error_log(
-                f"Demoinfo didn't respond back with the editors list information. {status}"
+                f"Failed to obtain the editors of demo #{demo_id} from demoInfo: {status}"
             )
             return ()
 

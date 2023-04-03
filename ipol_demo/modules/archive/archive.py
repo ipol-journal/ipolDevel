@@ -43,6 +43,14 @@ class Experiment(BaseModel):
     execution: Union[str, None] = None
 
 
+class Stored_Experiment(BaseModel):
+    id: int
+    date: datetime
+    parameters: dict = None
+    execution: str
+    files: list
+
+
 # TODO since we now use systemd this method makes no sense anymore
 @app.on_event("shutdown")
 def shutdown_event():
@@ -50,7 +58,7 @@ def shutdown_event():
 
 
 @app.get("/ping", status_code=200)
-def ping() -> dict:
+def ping() -> dict[str, str]:
     """
     Ping service: answer with a pong.
     """
@@ -58,7 +66,7 @@ def ping() -> dict:
 
 
 @app.get("/stats", status_code=200)
-def stats() -> dict:
+def stats() -> dict[str, int]:
     """
     return the stats of the module.
     """
@@ -93,7 +101,7 @@ def stats() -> dict:
 # TODO change this name
 # TODO No usage?
 @app.get("/executions_per_demo", status_code=200)
-def executions_per_demo() -> dict:
+def executions_per_demo() -> dict[str, int]:
     """
     return the number of executions per demo
     """
@@ -124,7 +132,7 @@ def executions_per_demo() -> dict:
 
 # TODO only used in archive tests
 @app.get("/demo_list", status_code=200)
-def demo_list() -> dict:
+def demo_list() -> dict[str, list]:
     """
     Return the list of demos with at least one experiment
     """
@@ -150,7 +158,7 @@ def demo_list() -> dict:
 
 
 @app.post("/experiment", status_code=201)
-def create_experiment(experiment: Experiment) -> dict:
+def create_experiment(experiment: Experiment) -> dict[str, int]:
     """
     Add an experiment to the archive.
     """
@@ -186,7 +194,7 @@ def create_experiment(experiment: Experiment) -> dict:
 
 
 @app.get("/experiment/{experiment_id}", status_code=200)
-def get_experiment(experiment_id: int) -> dict:
+def get_experiment(experiment_id: int) -> Stored_Experiment:
     """
     Get a single experiment
     """
@@ -222,7 +230,7 @@ def get_experiment(experiment_id: int) -> dict:
 @app.put("/experiment/{experiment_id}", status_code=200)
 def update_experiment_date(
     experiment_id: int, date: datetime, date_format: str
-) -> dict:
+) -> dict[str, int]:
     """
     MIGRATION
     Update the date of an experiment.
@@ -593,7 +601,7 @@ def init_database() -> bool:
 
 def get_new_path(
     main_directory: str, hash_name: str, file_extension: str, depth: int = 2
-):
+) -> tuple[str, str]:
     """
     This method creates a new fullpath to store the blobs in the archive,
     where new directories are created for each 'depth' first letters
@@ -670,7 +678,7 @@ def add_blob_in_the_database(
         raise
 
 
-def add_blob(conn, blob_dict, copied_files_list: list) -> None:
+def add_blob(conn, blob_dict: dict, copied_files_list: list) -> None:
     """
     This function checks if a blob exists in the table. If it exists,
     the id is returned. If not, the blob is added, then the id is returned.
