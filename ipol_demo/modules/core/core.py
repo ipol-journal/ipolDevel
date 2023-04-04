@@ -1539,7 +1539,7 @@ attached the failed experiment data.".format(
         """
         build_data = {"demo_id": demo_id, "ddl_build": json.dumps(ddl_build)}
         ssh_response, _ = self.post(
-            "api/demoinfo/get_ssh_keys/", "post", data={"demo_id": demo_id}
+            "api/demoinfo/get_ssh_keys", "post", data={"demo_id": demo_id}
         )
         ssh_response = ssh_response.json()
         if ssh_response["status"] == "OK":
