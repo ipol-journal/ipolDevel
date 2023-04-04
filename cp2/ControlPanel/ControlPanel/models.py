@@ -1,6 +1,7 @@
 import logging
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User as usera
 from django.db.models.signals import post_delete, pre_save
 
@@ -28,9 +29,9 @@ def user_created_handler(sender, instance, *args, **kwargs):
         return
 
     demoinfo_editor = api_post("/api/demoinfo/get_editor", {"email": old_user.email})
-    old_editor_exists = demoinfo_editor["editor"]
+    old_editor_exists = demoinfo_editor.get("editor")
     demoinfo_editor = api_post("/api/demoinfo/get_editor", {"email": instance.email})
-    editor_exists = demoinfo_editor["editor"]
+    editor_exists = demoinfo_editor.get("editor")
     if old_editor_exists and not editor_exists:
         settings = {
             "name": f"{instance.first_name} {instance.last_name}",
@@ -49,8 +50,9 @@ def user_created_handler(sender, instance, *args, **kwargs):
         }
         api_post("/api/demoinfo/add_editor", settings)
     else:
-        logger.error("Error, user tried to set up an email which is already in use.")
-        raise Exception("Error, tried to set up an email which is already in use.")
+        error = "Error, user tried to set up an email which is already in use."
+        logger.error(error)
+        raise ValidationError(error)
 
 
 @receiver(post_delete, sender=User)
