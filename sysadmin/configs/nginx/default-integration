@@ -71,9 +71,9 @@ server {
         # Content-Security-Policy (CSP) for JQuery and MapLibre
         # JQuery:
         # default-src 'self' data: https: blob: 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval' https: code.jquery.com cdnjs.cloudflare.com;
-        # Maplibre:
-        # worker-src blob: ; child-src blob: ;
-        add_header 'Content-Security-Policy' "default-src 'self' data: https: blob: 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval' https: code.jquery.com cdnjs.cloudflare.com; worker-src blob: ; child-src blob: ;";
+        # MapLibre:
+        # worker-src blob: ; child-src blob: ; frame-src 'self' ;
+        add_header 'Content-Security-Policy' "default-src 'self' data: https: blob: 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval' https: code.jquery.com cdnjs.cloudflare.com; worker-src blob: ; child-src blob: ; frame-src 'self' ; ";
         add_header 'Access-Control-Allow-Origin' '*';
 
         expires 1m;
