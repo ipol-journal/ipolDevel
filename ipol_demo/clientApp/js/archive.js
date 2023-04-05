@@ -35,7 +35,7 @@ async function fetchDDLInfo() {
 
 async function fetchArchiveInfo() {
   try {
-    const archiveResponse = await fetch('/api/archive/get_page?page=' + page + '&demo_id=' + demo_id);
+    const archiveResponse = await fetch('/api/archive/page/' + page + '?demo_id=' + demo_id);
     const archiveData = await archiveResponse.json();
     // default page should be last one
     if (page < 0) page = archiveData.meta.number_of_pages;

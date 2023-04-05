@@ -133,10 +133,10 @@ class IntegrationTests(unittest.TestCase):
                 response = self.run_demo_with_uploaded_blob(self.demo_id, blob, width, height)
             run_status = response.get('status')
 
-            response = self.get_archive_experiments_by_page(self.demo_id)
-            archive_status = response.get('status')
+            response, status_code = self.get_archive_experiments_by_page(self.BASE_URL, self.demo_id)
+            archive_status = status_code
             experiments = response.get('experiments')
-            exp_meta = response.get('meta')
+            exp_meta = response.get('meta_info')
             try:
                 n_experiments = exp_meta.get('number_of_experiments')
             except Exception:
@@ -151,7 +151,7 @@ class IntegrationTests(unittest.TestCase):
             self.assertEqual(add_ddl_status, 'OK')
             self.assertEqual(demo_extras_status, 'OK')
             self.assertEqual(run_status, 'OK')
-            self.assertEqual(archive_status, 'OK')
+            self.assertEqual(archive_status, 200)
             self.assertTrue(isinstance(experiments, list))
             self.assertTrue(n_experiments > 0)
             self.assertEqual(delete_demo_status, 'OK')
@@ -246,12 +246,11 @@ class IntegrationTests(unittest.TestCase):
         response = self.post('core', 'delete_demo', params=params)
         return response.json()
 
-    def get_archive_experiments_by_page(self, demo_id, page=None):
+    def get_archive_experiments_by_page(self, url, demo_id, page=None):
         if page is None:
             page = 0
-        params = {'demo_id': demo_id, 'page': page}
-        response = self.post('archive', 'get_page', params=params)
-        return response.json()
+        response = requests.get(f'{url}/api/archive/page/{page}?demo_id={demo_id}')
+        return response.json(), response.status_code
 
 
 if __name__ == '__main__':

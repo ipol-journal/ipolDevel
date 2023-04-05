@@ -56,4 +56,4 @@ alias conversion="cd ~/ipolDevel/ipol_demo/modules/conversion && source venv/bin
 alias blobs="cd ~/ipolDevel/ipol_demo/modules/blobs && source venv/bin/activate && ./main.py blobs.conf"
 alias dispatcher="cd ~/ipolDevel/ipol_demo/modules/dispatcher && source venv/bin/activate && ./main.py dispatcher.conf"
 alias demorunner="cd ~/ipolDevel/ipol_demo/modules/demorunner && source venv/bin/activate && ./main.py demorunner.conf"
-alias archive="cd ~/ipolDevel/ipol_demo/modules/archive && source venv/bin/activate && ./main.py archive.conf"
+alias archive="cd ~/ipolDevel/ipol_demo/modules/archive && source venv/bin/activate && ./start.sh"

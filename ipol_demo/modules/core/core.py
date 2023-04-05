@@ -774,12 +774,13 @@ class Core:
         returns:
         """
         try:
-            demo_blobs = self.post(
-                "api/blobs/get_blobs", data={"demo_id": demo_id}
-            ).json()
-        except Exception:
+            demo_blobs, _ = self.post(
+                "api/blobs/get_blobs", "post", data={"demo_id": demo_id}
+            )
+            demo_blobs = demo_blobs.json()
+        except json.JSONDecodeError as e:
             self.logger.exception(
-                "Blobs get_blobs returned KO at Core's copy_blobset_from_physical_location"
+                f"Blobs get_blobs didn't return valid json at Core's copy_blobset_from_physical_location. {e}"
             )
             raise IPOLCopyBlobsError("Couldn't reach blobs")
 
@@ -1155,7 +1156,7 @@ class Core:
         Gets demo meta data given its editor's ID
         """
         userdata = {"demoid": demo_id}
-        resp = self.post("api/demoinfo/read_demo_metainfo", data=userdata)
+        resp, _ = self.post("api/demoinfo/read_demo_metainfo", "post", data=userdata)
         return resp.json()
 
     def get_demo_editor_list(self, demo_id):
@@ -1164,12 +1165,16 @@ class Core:
         """
         # Get the list of editors of the demo
         userdata = {"demo_id": demo_id}
-        resp = self.post("api/demoinfo/demo_get_editors_list", data=userdata)
+        resp, status_code = self.post(
+            "api/demoinfo/demo_get_editors_list", "post", data=userdata
+        )
         response = resp.json()
         status = response["status"]
 
-        if status != "OK":
-            # [ToDo]: log this error!
+        if status_code != 200:
+            self.error_log(
+                f"Failed to obtain the editors of demo #{demo_id} from demoInfo: {status}"
+            )
             return ()
 
         editor_list = response["editor_list"]
@@ -1533,16 +1538,16 @@ attached the failed experiment data.".format(
         Ensure that the source codes of the demo are all updated and compiled correctly
         """
         build_data = {"demo_id": demo_id, "ddl_build": json.dumps(ddl_build)}
-
-        ssh_response = self.post(
-            "api/demoinfo/get_ssh_keys", data={"demo_id": demo_id}
-        ).json()
+        ssh_response, _ = self.post(
+            "api/demoinfo/get_ssh_keys", "post", data={"demo_id": demo_id}
+        )
+        ssh_response = ssh_response.json()
         if ssh_response["status"] == "OK":
             build_data["ssh_key.public"] = ssh_response["pubkey"]
             build_data["ssh_key.private"] = ssh_response["privkey"]
 
         url = f"api/demorunner/{dr_name}/ensure_compilation"
-        dr_response = self.post(url, data=build_data)
+        dr_response, _ = self.post(url, "post", data=build_data)
 
         # Read the JSON response from the DR
         try:
@@ -1724,9 +1729,9 @@ attached the failed experiment data.".format(
                 i += 1
 
         url = f"api/demorunner/{dr_name}/exec_and_wait"
-        resp = self.post(url, data=userdata, files=inputs)
+        resp, status_code = self.post(url, "post", data=userdata, files=inputs)
 
-        if resp.status_code != 200:
+        if status_code != 200:
             demo_state = self.get_demo_metadata(demo_id)["state"].lower()
             error = "IPOLDemorunnerUnresponsive"
             website_message = (
@@ -1873,7 +1878,7 @@ attached the failed experiment data.".format(
             ):
                 base_url = os.environ.get("IPOL_URL", "http://" + socket.getfqdn())
                 try:
-                    response = send_to_archive(
+                    response, status_code = send_to_archive(
                         demo_id,
                         work_dir,
                         kwargs,
@@ -1882,12 +1887,11 @@ attached the failed experiment data.".format(
                         base_url,
                         input_names,
                     )
-                    if not response["status"] == "OK":
-                        id_experiment = response.get("id_experiment", None)
-                        message = "KO from archive module when archiving an experiment: demo={}, key={}, id={}."
-                        self.logger.exception(
-                            message.format(demo_id, key, id_experiment)
-                        )
+                    if status_code != 201:
+                        response = response.json()
+                        id_experiment = response.get("experiment_id", None)
+                        message = f"Error {status_code} from archive module when archiving an experiment: demo={demo_id}, key={key}, id={id_experiment}."
+                        self.logger.exception(message)
                 except Exception as ex:
                     message = (
                         "Error archiving an experiment: demo={}, key={}. Error: {}."
@@ -2088,20 +2092,16 @@ attached the failed experiment data.".format(
             if not isinstance(result, Ok):
                 error_message += f"Error when removing demoextras: {result.value} \n"
 
-            if (
-                self.post("/api/blobs/delete_demo", data=userdata).json()["status"]
-                != "OK"
-            ):
+            response, _ = self.post("/api/blobs/delete_demo", "post", data=userdata)
+            if response.json()["status"] != "OK":
                 error_message += "API call /blobs/delete_demo failed.'\n"
 
             # delete the archive
-            res_archive = self.post("/api/archive/delete_demo", data=userdata).json()
-            if (
-                res_archive["status"] != "OK"
-                and res_archive["message"] != "No archives found"
-            ):
-                error_message += f"API call /api/archive/delete_demo failed. {demo_id}"
-
+            _, status_code = self.post(f"/api/archive/demo/{demo_id}", "delete")
+            if status_code == 404:
+                error_message += (
+                    f"API call /api/archive/demo to delete  demo failed. {demo_id}"
+                )
             if error_message:
                 data["status"] = "KO"
                 data["error"] = f"Failed to delete demo: {demo_id}."
@@ -2116,12 +2116,28 @@ attached the failed experiment data.".format(
         return json.dumps(data).encode()
 
     @staticmethod
-    def post(api_url, **kwargs):
+    def post(api_url, method=None, **kwargs):
         """
         General purpose function to make http requests.
         """
         base_url = os.environ.get("IPOL_URL", "http://" + socket.getfqdn())
-        return requests.post(f"{base_url}/{api_url}", **kwargs)
+        headers = {"Content-Type": "application/json; charset=UTF-8"}
+        if method == "get":
+            response = requests.get(f"{base_url}/{api_url}")
+            return response.json(), response.status_code
+        elif method == "put":
+            response = requests.put(f"{base_url}/{api_url}", **kwargs, headers=headers)
+            return response.json(), response.status_code
+        elif method == "post":
+            response = requests.post(f"{base_url}/{api_url}", **kwargs)
+            return response, response.status_code
+        elif method == "delete":
+            response = requests.delete(
+                f"{base_url}/{api_url}", **kwargs, headers=headers
+            )
+            return response, response.status_code
+        else:
+            assert False
 
 
 def init_logging():

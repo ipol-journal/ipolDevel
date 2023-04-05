@@ -10,13 +10,30 @@ import requests
 logger = logging.getLogger(__name__)
 
 
-def api_post(resource, params=None, files=None, json=None):
-    host = os.environ.get(
-        "IPOL_URL", f"http://{socket.gethostbyname(socket.getfqdn())}"
-    )
-    response = requests.post(f"{host}{resource}", params=params, data=json, files=files)
+def api_post(resource, method, params=None, files=None, json=None):
     try:
-        return response.json()
+        host = os.environ.get(
+            "IPOL_URL", f"http://{socket.gethostbyname(socket.getfqdn())}"
+        )
+        headers = {"Content-Type": "application/json; charset=UTF-8"}
+        if method == "get":
+            response = requests.get(f"{host}{resource}")
+            return response.json(), response.status_code
+        elif method == "put":
+            response = requests.put(f"{host}{resource}", data=json, headers=headers)
+            return response, response.status_code
+        elif method == "post":
+            response = requests.post(
+                f"{host}{resource}", params=params, data=json, files=files
+            )
+            return response.json(), response.status_code
+        elif method == "delete":
+            response = requests.delete(
+                f"{host}{resource}", params=params, data=json, files=files
+            )
+            return response, response.status_code
+        else:
+            assert False
     except requests.exceptions.Timeout:
         logger.warning(f"Request timeout: {resource}")
         # Maybe set up for a retry, or continue in a retry loop
