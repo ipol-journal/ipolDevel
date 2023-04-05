@@ -23,6 +23,7 @@ def user_created_handler(sender, instance, *args, **kwargs):
     if not instance.email:
         return
 
+    # User stored in django DB.
     old_user = usera.objects.get(pk=instance.pk)
     # Same email means no change to make
     if old_user.email == instance.email:
@@ -32,6 +33,7 @@ def user_created_handler(sender, instance, *args, **kwargs):
     old_editor_exists = demoinfo_editor.get("editor")
     demoinfo_editor = api_post("/api/demoinfo/get_editor", {"email": instance.email})
     editor_exists = demoinfo_editor.get("editor")
+    # there is an editor in demoinfo with same email as in django meaning it is an email change.
     if old_editor_exists and not editor_exists:
         settings = {
             "name": f"{instance.first_name} {instance.last_name}",
@@ -43,12 +45,14 @@ def user_created_handler(sender, instance, *args, **kwargs):
         if update_response.get("status") != "OK":
             error = update_response.get("error")
             logger.warning(f"User email could not be updated. {error}")
+    # There is no editor in demoinfo or django with given email, create one in demoinfo
     elif not old_editor_exists and not editor_exists:
         settings = {
             "name": f"{instance.first_name} {instance.last_name}",
             "mail": instance.email,
         }
         api_post("/api/demoinfo/add_editor", settings)
+    # error due to email being in use
     else:
         error = "Error, user tried to set up an email which is already in use."
         logger.error(error)
