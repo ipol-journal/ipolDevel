@@ -465,7 +465,6 @@ class Core:
             Core.instance = Core()
         return Core.instance
 
-
     def __init__(self):
         """
         Constructor
@@ -538,7 +537,9 @@ class Core:
         # Check if the config file exists
         if not os.path.isfile(self.authorized_patterns_file):
             self.logger.error(
-                "read_authorized_patterns: Can't open {}".format(self.authorized_patterns_file)
+                "read_authorized_patterns: Can't open {}".format(
+                    self.authorized_patterns_file
+                )
             )
             return []
 
