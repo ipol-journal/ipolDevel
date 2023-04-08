@@ -99,8 +99,8 @@ server {
         # JQuery:
         # default-src 'self' data: https: blob: 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval' https: code.jquery.com cdnjs.cloudflare.com;
         # MapLibre:
-        # worker-src blob: ; child-src blob: ; frame-src 'self' ;
-        add_header 'Content-Security-Policy' "default-src 'self' data: https: blob: 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval' https: code.jquery.com cdnjs.cloudflare.com; worker-src blob: ; child-src blob: ; frame-src 'self' ; ";
+        # worker-src blob: ; child-src blob: ; frame-src * data: blob: ; 
+        add_header 'Content-Security-Policy' "default-src 'self' data: https: blob: 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval' https: code.jquery.com cdnjs.cloudflare.com; worker-src blob: ; child-src blob: ; frame-src * data: blob: ; ";
         add_header 'Access-Control-Allow-Origin' '*';
 
         alias  /home/ipol/ipolDevel/ipol_demo/clientApp/;
