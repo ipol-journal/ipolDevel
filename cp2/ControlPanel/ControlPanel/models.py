@@ -29,10 +29,12 @@ def user_created_handler(sender, instance, *args, **kwargs):
     if old_user.email == instance.email:
         return
 
-    demoinfo_editor = api_post("/api/demoinfo/get_editor", {"email": old_user.email})
-    old_editor_exists = demoinfo_editor.get("editor")
-    demoinfo_editor = api_post("/api/demoinfo/get_editor", {"email": instance.email})
-    editor_exists = demoinfo_editor.get("editor")
+    settings = {"email": old_user.email}
+    demoinfo_editor, _ = api_post("/api/demoinfo/get_editor", "post", data=settings)
+    old_editor_exists = demoinfo_editor.get("editor", None)
+    settings = {"email": instance.email}
+    demoinfo_editor, _ = api_post("/api/demoinfo/get_editor", "post", data=settings)
+    editor_exists = demoinfo_editor.get("editor", None)
     # there is an editor in demoinfo with same email as in django meaning it is an email change.
     if old_editor_exists and not editor_exists:
         settings = {
@@ -40,7 +42,9 @@ def user_created_handler(sender, instance, *args, **kwargs):
             "old_email": old_user.email,
             "new_email": instance.email,
         }
-        update_response = api_post("/api/demoinfo/update_editor_email", settings)
+        update_response, _ = api_post(
+            "/api/demoinfo/update_editor_email", "post", data=settings
+        )
 
         if update_response.get("status") != "OK":
             error = update_response.get("error")
@@ -51,7 +55,10 @@ def user_created_handler(sender, instance, *args, **kwargs):
             "name": f"{instance.first_name} {instance.last_name}",
             "mail": instance.email,
         }
-        api_post("/api/demoinfo/add_editor", settings)
+        response, response_code = api_post(
+            "/api/demoinfo/add_editor", "post", data=settings
+        )
+        print(response, response_code)
     # error due to email being in use
     else:
         error = "Error, user tried to set up an email which is already in use."
@@ -64,10 +71,12 @@ def delete_profile(sender, instance, *args, **kwargs):
     """
     Signal post-delete in djagno DB will try to remove the editor from demoinfo if it is found.
     """
-    demoinfo_editor = api_post("/api/demoinfo/get_editor", {"email": instance.email})
-    editor_info = demoinfo_editor["editor"]
+    demoinfo_editor, _ = api_post(
+        "/api/demoinfo/get_editor", "post", data={"email": instance.email}
+    )
+    editor_info = demoinfo_editor.get("editor", None)
     if editor_info:
         demoinfo_editor = api_post(
-            "/api/demoinfo/remove_editor", {"editor_id": editor_info["id"]}
+            "/api/demoinfo/remove_editor", "post", data={"editor_id": editor_info["id"]}
         )
         logger.info("User deleted.")
