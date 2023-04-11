@@ -68,7 +68,6 @@ class Stored_Experiment(BaseModel):
     files: list
 
 
-# TODO since we now use systemd this method makes no sense anymore
 @app.on_event("shutdown")
 def shutdown_event():
     log.info("Application shutdown")
@@ -115,8 +114,6 @@ def stats() -> dict[str, int]:
     return data
 
 
-# TODO change this name
-# TODO No usage?
 @app.get("/executions_per_demo", status_code=200)
 def executions_per_demo() -> dict[str, int]:
     """
@@ -147,7 +144,7 @@ def executions_per_demo() -> dict[str, int]:
     return data
 
 
-# TODO only used in archive tests
+# Only used in archive tests
 @app.get("/demo_list", status_code=200)
 def demo_list() -> dict[str, list]:
     """
@@ -243,7 +240,6 @@ def get_experiment(experiment_id: int) -> Stored_Experiment:
     return experiment
 
 
-# TODO Unused?
 @private_route.put("/experiment/{experiment_id}", status_code=200)
 def update_experiment_date(
     experiment_id: int, date: datetime, date_format: str
@@ -331,7 +327,7 @@ def delete_experiment(experiment_id: int) -> None:
             pass
 
 
-# TODO Used only by archive tests
+# Used only by archive tests
 @private_route.delete("/blob/{blob_id}", status_code=204)
 def delete_blob_w_deps(blob_id: int) -> None:
     """
