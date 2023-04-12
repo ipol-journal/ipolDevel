@@ -15,8 +15,7 @@ from datetime import datetime
 from typing import Union
 
 import magic
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request
 from pydantic import BaseModel, BaseSettings
 
 
@@ -36,6 +35,24 @@ settings = Settings()
 app = FastAPI()
 
 
+def validate_ip(request: Request):
+    # Check if the request is coming from an allowed IP address
+    patterns = []
+    ip = request.headers["x-real-ip"]
+    # try:
+    for pattern in read_authorized_patterns():
+        patterns.append(
+            re.compile(pattern.replace(".", "\\.").replace("*", "[0-9a-zA-Z]+"))
+        )
+    for pattern in patterns:
+        if pattern.match(ip) is not None:
+            return True
+    raise HTTPException(status_code=403, detail="IP not allowed")
+
+
+private_route = APIRouter(dependencies=[Depends(validate_ip)])
+
+
 class Experiment(BaseModel):
     demo_id: int
     blobs: Union[str, None] = None
@@ -51,7 +68,6 @@ class Stored_Experiment(BaseModel):
     files: list
 
 
-# TODO since we now use systemd this method makes no sense anymore
 @app.on_event("shutdown")
 def shutdown_event():
     log.info("Application shutdown")
@@ -98,8 +114,6 @@ def stats() -> dict[str, int]:
     return data
 
 
-# TODO change this name
-# TODO No usage?
 @app.get("/executions_per_demo", status_code=200)
 def executions_per_demo() -> dict[str, int]:
     """
@@ -130,7 +144,7 @@ def executions_per_demo() -> dict[str, int]:
     return data
 
 
-# TODO only used in archive tests
+# Only used in archive tests
 @app.get("/demo_list", status_code=200)
 def demo_list() -> dict[str, list]:
     """
@@ -157,7 +171,7 @@ def demo_list() -> dict[str, list]:
     return {"demo_list": demo_list}
 
 
-@app.post("/experiment", status_code=201)
+@private_route.post("/experiment", status_code=201)
 def create_experiment(experiment: Experiment) -> dict[str, int]:
     """
     Add an experiment to the archive.
@@ -226,8 +240,7 @@ def get_experiment(experiment_id: int) -> Stored_Experiment:
     return experiment
 
 
-# TODO Unused?
-@app.put("/experiment/{experiment_id}", status_code=200)
+@private_route.put("/experiment/{experiment_id}", status_code=200)
 def update_experiment_date(
     experiment_id: int, date: datetime, date_format: str
 ) -> dict[str, int]:
@@ -293,8 +306,7 @@ def get_page(demo_id: int, page: int = 0) -> dict:
     return {"meta_info": meta_info, "experiments": experiments}
 
 
-# @authenticate
-@app.delete("/experiment/{experiment_id}", status_code=204)
+@private_route.delete("/experiment/{experiment_id}", status_code=204)
 def delete_experiment(experiment_id: int) -> None:
     """
     Remove an experiment
@@ -315,9 +327,8 @@ def delete_experiment(experiment_id: int) -> None:
             pass
 
 
-# TODO Used only by archive tests
-# @authenticate
-@app.delete("/blob/{blob_id}", status_code=204)
+# Used only by archive tests
+@private_route.delete("/blob/{blob_id}", status_code=204)
 def delete_blob_w_deps(blob_id: int) -> None:
     """
     Remove a blob
@@ -349,8 +360,7 @@ def delete_blob_w_deps(blob_id: int) -> None:
             pass
 
 
-# authenticate
-@app.delete("/demo/{demo_id}", status_code=204)
+@private_route.delete("/demo/{demo_id}", status_code=204)
 def delete_demo(demo_id: int) -> None:
     """
     Delete the demo from the archive.
@@ -951,24 +961,7 @@ def read_authorized_patterns() -> list:
         return []
 
 
-@app.middleware("http")
-async def validate_ip(request: Request, call_next):
-    # Check if the request is coming from an allowed IP address
-    patterns = []
-    ip = request.headers["x-real-ip"]
-    try:
-        for pattern in read_authorized_patterns():
-            patterns.append(
-                re.compile(pattern.replace(".", "\\.").replace("*", "[0-9a-zA-Z]+"))
-            )
-        for pattern in patterns:
-            if pattern.match(ip) is not None:
-                response = await call_next(request)
-                return response
-        raise HTTPException(status_code=403, detail="IP not allowed")
-    except HTTPException as e:
-        return JSONResponse(content={"error": str(e.detail)}, status_code=403)
-
+app.include_router(private_route)
 
 log = init_logging()
 init_database()
