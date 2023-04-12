@@ -770,11 +770,17 @@ We execute the backup script as root (use {\tt sudo crontab -e}) to avoid any re
 
 This script synchonizes a copy of the {\tt ipolDevel/} folder and takes care of exporting all the SQLite database files.This allows recovering important data in the case of a fatal disk failure or any major problem.
 
-We use the following line to run the backup script once per week at 3:00h:
+We use the following line to run the backup script once per week at 3:00 AM on Mondays:
 
 {\tt 0 3 * * 1 /home/ipol/ipolDevel/sysadmin/backup.sh}
 
 While making backups is a good way to be able to recover in case of data loss, it is even better to copy redundant files to other servers. Just as data can be corrupt or lost, servers have downtime and there is always the possibility of a server malfunction. Thus, to improve backups reliability we synchronize our backup folder with another server just in case of a rare catastrophic event. A copy of the backed up copy is regularly copied from the Core server to an external one.
+
+To this purpose, we run the following script with Cron. To prevent copying incomplete in-progress files, it is very important not to configure both scripts to run the very same day of the week. For example, to run it at 1:00 AM on Thursdays we have the following in {\tt /etc/crontab}:
+
+{\tt 0 1   * * 4   root     /bin/sh /root/backup\_sync.sh}
+
+An example of this script can be found at {\tt ipolDevel/sysadmin/backup/backup\_sync.sh}.
 
 \subsection{A note on the extraction of incremental copies}
 We have identified problems with the extraction of incremental {\tt tar} backups in the same folder. When using {\tt tar} some files will give file substitution errors. This most probably this happens because of an undocumented bug in the {\tt tar} command. To minimize extraction errors, the only way we have found which results in no errors consists in extracting every needed backup in a different folder and then mixing every folder with the first backup of the semester with the {\tt rsync} command. This last step must be done in order of backup creation. Mixing files with rsync has also its own caveats: after mixing the extracted files we occasionally end up with more files than originally in the backup. Some removed files that actually were removed at some incremental copy anyway exist in mixed backup and will not be removed. However, this is not especially dangerous as we end up with more files than needed. This might happen because of a file permission problem or a bug in the {\tt rsync} command.
