@@ -33,18 +33,6 @@ alias rund="cd ~/ipolDevel/shared_folder/run/"
 # Activate venv
 alias venv="source venv/bin/activate"
 
-#pylint of a module
-function lintmod() {
-    source ~/ipolDevel/ipol_demo/modules/$1/venv/bin/activate && \
-    pylint --rcfile=/home/ipol/ipolDevel/ci_tests/pylintrc \
-    ~/ipolDevel/ipol_demo/modules/$1/*.py && deactivate
-}
-
-function lint() {
-    source ~/ipolDevel/ipol_demo/modules/core/venv/bin/activate && \
-    pylint --rcfile=/home/ipol/ipolDevel/ci_tests/pylintrc $1  && deactivate
-}
-
 function demo_copy() {
     cd ~/ipolDevel/tools/demo_copy && ./demo_copy.py $1 $2
 }

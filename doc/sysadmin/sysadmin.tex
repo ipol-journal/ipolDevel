@@ -116,10 +116,6 @@ We use the following line to run the backup script once per week after a backup 
 
     {\tt 0 5 * * 1 /home/ipol/ipolDevel/sysadmin/cleanup.sh}
 
-    \item \textbf{PyLint report}: the script {\tt ipolDevel/ci\_tests/pylint.sh} uses PyLint to create code quality reports. It executes weekly in the integration server and sends an email to the addresses in the file {\tt send\_to.txt}
-
-    {\tt 0 15 * * 2 /home/ipol/ipolDevel/ci\_tests/pylint.sh}
-
     \item \textbf{pdflatex report}: the script {\tt ipolDevel/ci\_tests/pdflatex.sh} checks if the Latex documentation of the project compiles and sends and email otherwise.
 
     {\tt 0 15 * * 2 sudo -u ipol /home/ipol/ipolDevel/ci\_tests/pdflatex.sh}

@@ -35,7 +35,6 @@ ipol_demo/modules/demorunner/binaries/
 ci_tests/send_to.txt
 ci_tests/pdflatex_report.txt
 ci_tests/pdflatex_tmp.txt
-ci_tests/pylint_report.txt
 ci_tests/compilation_folder/
 ci_tests/ignored_ids.txt
 
