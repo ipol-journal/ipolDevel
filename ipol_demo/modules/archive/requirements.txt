@@ -3,6 +3,5 @@ uvicorn==0.20.0
 pydantic==1.10.4
 configparser==3.5.0
 ipython==7.16.3
-pylint==2.3.1
 python-magic==0.4.15
 requests==2.22.0
