@@ -99,6 +99,9 @@ function setInpaintingData() {
 function addMapCoordinates() {
   let mapData = helpers.getFromStorage('map');
   if (mapInput && mapData) {
+    // Remove possible uploaded file from previous execution
+    runData.delete('file_0');
+
     clientApp.origin = 'upload';
     let file = new Blob([JSON.stringify(mapData, null, 4)], { type: "application/json" });
     runData.append('file_0', file, 'file_0.json')
