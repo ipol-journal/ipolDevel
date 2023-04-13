@@ -105,13 +105,7 @@ To modify the crontab configuration, the command is {\tt crontab -e}. The format
 
 \begin{itemize}
     \item \textbf{Backups}: they are done by this script: {\tt ipolDevel/sysadmin/backup.sh}. See Sec.~\ref{sec:backups}.
-    
-    \item \textbf{Backup sync}: the script {\tt ipolDevel/sysadmin/backup\_sync.sh} synchronizes backups from ipolcore to DR1. See Sec.~\ref{sec:backups}.
 
-We use the following line to run the backup script once per week after a backup has been done at 3:00h:
-
-    {\tt 0 3 * * 2 /home/ipol/ipolDevel/sysadmin/backup\_sync.sh}
-    
     \item \textbf{Cleanup}: the script {\tt ipolDevel/sysadmin/cleanup.sh} does a cleanup of all temporary files older than one month.
 
     {\tt 0 5 * * 1 /home/ipol/ipolDevel/sysadmin/cleanup.sh}
@@ -772,44 +766,25 @@ server {
 \section{Backups}
 \label{sec:backups}
 The backups are done by this script: {\tt ipolDevel/sysadmin/backup.sh}
-We execute the backup script as root (use {\tt sudo crontab -e}) to avoid eventual read permission problems.
+We execute the backup script as root (use {\tt sudo crontab -e}) to avoid any read permission problems.
 
-This script creates incremental backups and copies them to other servers, allowing to recover the data in the system in case of a fatal disk failure (say, the database of the Archive or others). An incremental backup is a kind of backup that will only add changes which are new with respect to the last backup. This results backups of a smaller size as well as faster archiving.
+This script synchonizes a copy of the {\tt ipolDevel/} folder and takes care of exporting all the SQLite database files.This allows recovering important data in the case of a fatal disk failure or any major problem.
 
-Every quarter of the year all the stored data, including temporary files are backuped. This is known as a \emph{level-0} backup. Every week and until the next quarter (when a new full level-0 backup will start) it is performed  a different backup with only the incremental changes with respect to the last week. It is known as a \emph{level-1} backup
-
-We use the following line to run the backup script once per week at 3:00h:
+We use the following line to run the backup script once per week at 3:00 AM on Mondays:
 
 {\tt 0 3 * * 1 /home/ipol/ipolDevel/sysadmin/backup.sh}
 
+While making backups is a good way to be able to recover in case of data loss, it is even better to copy redundant files to other servers. Just as data can be corrupt or lost, servers have downtime and there is always the possibility of a server malfunction. Thus, to improve backups reliability we synchronize our backup folder with another server just in case of a rare catastrophic event. A copy of the backed up copy is regularly copied from the Core server to an external one.
+
+To this purpose, we run the following script with Cron. To prevent copying incomplete in-progress files, it is very important not to configure both scripts to run the very same day of the week. For example, to run it at 1:00 AM on Thursdays we have the following in {\tt /etc/crontab}:
+
+{\tt 0 1   * * 4   root     /bin/sh /root/backup\_sync.sh}
+
+An example of this script can be found at {\tt ipolDevel/sysadmin/backup/backup\_sync.sh}.
+
+\subsection{A note on the extraction of incremental copies}
 We have identified problems with the extraction of incremental {\tt tar} backups in the same folder. When using {\tt tar} some files will give file substitution errors. This most probably this happens because of an undocumented bug in the {\tt tar} command. To minimize extraction errors, the only way we have found which results in no errors consists in extracting every needed backup in a different folder and then mixing every folder with the first backup of the semester with the {\tt rsync} command. This last step must be done in order of backup creation. Mixing files with rsync has also its own caveats: after mixing the extracted files we occasionally end up with more files than originally in the backup. Some removed files that actually were removed at some incremental copy anyway exist in mixed backup and will not be removed. However, this is not especially dangerous as we end up with more files than needed. This might happen because of a file permission problem or a bug in the {\tt rsync} command.
 
-The backups are organized by yearly semesters folders:
-
-{\tt /home/ipol/backups/<YEAR>-<SEMESTER>/backup\_<DATE>.tar.gz}
-
-For every semester there will be one backup file or every week according to the configuration of the cronjob. There will also be a snapshot file that is used by the tar command to keep a log of the files that have changed from one backup to another. This way it can backup files that change between one backup and the next. This snapshot is only used during the backup process, it will not be of any use during extraction but in case of corruption or if it is removed. In that case, tar would not find it and would therefore create a level-0 backup. 
-
-When restoring an incremental backup the destination path needs to be specified as a parameter or otherwise it will overwrite the original path for the backed up files. For example:
-
-{\tt tar xvfz backup\_file.tgz -g /dev/null --ignore-zeros -C restore\_folder}
-
-The procedure for extraction we apply is the following:
-
-\begin{enumerate}
-  \item Locate the semester folder needed to restore For example: 2020-2.
-  \item For a given date, extract every backup in the semester until the needed date to be restored. As previously stated, extract each backup on a separate folder. For each backup adapt the following example:
-
-  {\tt tar xvfz backup\_file\_<DATE>.tgz -g /dev/null --ignore-zeros -C restore\_folder\_<DATE>}
-  \item Once we have all the needed backups extracted, we will merge extracted folders against the first backup of the semester which is the level-0 backup containing a full backup. This has to be done in order of date, from older to newer. For example:
-  
-  {\tt rsync -av restore\_folder\_<DATE>/ restore\_folder\_<DATE\_OF\_THE\_FIRST\_BACKUP>/ 2>> errors.log}
-
-  As we can see in the example we first put the source of the rsync (data to be copied to another folder) and then the folder of the level 0 backup. Note that trailing slashes are importante when using rsync command.
-  \item When all backups are merged with the level 0 backup we will have a complete snapshot of the ipolDevel folder for a given date.
-\end{enumerate}
-
-While making backups is a good way to be able to recover in case of data loss, it is even better to copy redundant files to other servers. Just as data can be corrupt or lost, servers have downtime and there is always the possibility of a server malfunction. Thus, to improve backups reliability we synchronize our backup folder with another server just in case of rare catastrophic event. Along with the backups script there is a script called backup\_sync.sh that automatically synchronizes with rsync the backup folder from one server to another thus making our backups redundant.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
