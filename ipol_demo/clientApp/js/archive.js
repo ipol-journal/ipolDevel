@@ -38,13 +38,13 @@ async function fetchArchiveInfo() {
     const archiveResponse = await fetch('/api/archive/page/' + page + '?demo_id=' + demo_id);
     const archiveData = await archiveResponse.json();
     // default page should be last one
-    if (page < 0) page = archiveData.meta.number_of_pages;
-    $('header > p').before(`<h3>${archiveData.meta.number_of_experiments} public experiments since ${archiveData.meta.first_date_of_an_experiment.substr(0, 10)}</h3>`);
-    let html = paging(archiveData.meta);
+    if (page < 0) page = archiveData.meta_info.number_of_pages;
+    $('header > p').before(`<h3>${archiveData.meta_info.number_of_experiments} public experiments since ${archiveData.meta_info.first_date_of_an_experiment.substr(0, 10)}</h3>`);
+    let html = paging(archiveData.meta_info);
     for (const experiment in archiveData.experiments) {
       html += record(archiveData.experiments[experiment]);
     }
-    html += paging(archiveData.meta);
+    html += paging(archiveData.meta_info);
     $("#results").append(html);
   } catch (e) {
     console.log(e);
