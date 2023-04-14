@@ -24,7 +24,7 @@ window.onpopstate = function() {
   $("#inputEditorContainer").empty();
 
   if (getParameterFromURL('key')) loadExecution("/api/core/load_execution?demo_id=" + demo_id + '&key=' + getParameterFromURL('key'));
-  else if (getParameterFromURL('archive')) loadExecution("/api/archive/experiment?experiment_id=" + getParameterFromURL('archive'));
+  else if (getParameterFromURL('archive')) loadExecution("/api/archive/experiment/" + getParameterFromURL('archive'));
   else {
     $('.results').addClass('di-none');
     $('.results-container').empty();
@@ -35,7 +35,7 @@ async function fetchData() {
   await getDDL();
   await getBlobSets();
   if (getParameterFromURL('key')) loadExecution(`/api/core/load_execution?demo_id=${demo_id}&key=${getParameterFromURL('key')}`);
-  if (getParameterFromURL('archive')) loadExecution(`/api/archive/experiment?experiment_id=${getParameterFromURL('archive')}`);
+  if (getParameterFromURL('archive')) loadExecution(`/api/archive/experiment/${getParameterFromURL('archive')}`);
 }
 
 function getBlobSets() {
@@ -139,9 +139,9 @@ async function loadExecution(url){
   if (ddl == null && helpers.getFromStorage("blobs") == null) return;
   const response = await fetch(url);
   const data = await response.json();
-  if (data.status === "OK") {
+  if (response.status === 201 || response.status === 200) {
     if(getParameterFromURL("archive")){ //Archive reconstruction
-      experiment = data.experiment;
+      experiment = data;
       var execution = JSON.parse(experiment.execution);
     }else{ //KEY reconstruction
       experiment = JSON.parse(data.experiment);
