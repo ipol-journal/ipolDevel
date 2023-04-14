@@ -24,7 +24,7 @@ window.onpopstate = function() {
   $("#inputEditorContainer").empty();
 
   if (getParameterFromURL('key')) loadExecution("/api/core/load_execution?demo_id=" + demo_id + '&key=' + getParameterFromURL('key'));
-  else if (getParameterFromURL('archive')) loadExecution("/api/archive/get_experiment?experiment_id=" + getParameterFromURL('archive'));
+  else if (getParameterFromURL('archive')) loadExecution("/api/archive/experiment?experiment_id=" + getParameterFromURL('archive'));
   else {
     $('.results').addClass('di-none');
     $('.results-container').empty();
@@ -35,7 +35,7 @@ async function fetchData() {
   await getDDL();
   await getBlobSets();
   if (getParameterFromURL('key')) loadExecution(`/api/core/load_execution?demo_id=${demo_id}&key=${getParameterFromURL('key')}`);
-  if (getParameterFromURL('archive')) loadExecution(`/api/archive/get_experiment?experiment_id=${getParameterFromURL('archive')}`);
+  if (getParameterFromURL('archive')) loadExecution(`/api/archive/experiment?experiment_id=${getParameterFromURL('archive')}`);
 }
 
 function getBlobSets() {
