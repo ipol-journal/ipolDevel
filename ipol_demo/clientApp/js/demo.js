@@ -63,8 +63,8 @@ function getDDL() {
     ddl = responseJSON.last_demodescription.ddl;
 
     // Map
-    let mapInputs = ddl.inputs.filter(input => input.type == "map");
-    if (mapInputs.length > 0) {
+    let mapInputs = ddl.inputs?.filter(input => input.type == "map");
+    if (mapInputs?.length > 0) {
       let center = mapInputs[0].center;
       if (!center) center = [2.294226116367639, 48.85813310909694]; // default location [lng, lat]
       printMapPanel(center);
