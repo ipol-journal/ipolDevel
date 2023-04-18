@@ -21,7 +21,7 @@ def user_created_handler(sender, instance, *args, **kwargs):
     """
     new_editor = instance
     # no email means nothing to look for in demoinfo
-    if not new_editor.email or new_editor.email is None:
+    if not new_editor.email:
         return
 
     # User stored in django DB.
@@ -51,7 +51,7 @@ def user_created_handler(sender, instance, *args, **kwargs):
     # new email exists in demoinfo and different from CP -> email in use.
     # Possible missmatch in demoinfo, needs admin intervention.
     elif new_editor_exists and old_editor_exists:
-        error = "Error, user tried to set up an email which is already in use."
+        error = f"Failed to add editor '{new_editor.first_name} {new_editor.last_name}' with email '{new_editor.email}'. Already in use?"
         logger.error(error)
         raise ValidationError(error)
 
@@ -99,5 +99,7 @@ def update_editor(username, email, old_email):
     )
 
     if update_response.get("status") != "OK":
-        error = update_response.get("error")
-        logger.warning(f"User email could not be updated. {error}")
+        update_response.get("error")
+        logger.error(
+            f"Could not update email of user '{username}', '{old_email}' --> '{email}'"
+        )

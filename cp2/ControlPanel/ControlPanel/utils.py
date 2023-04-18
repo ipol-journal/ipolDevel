@@ -28,7 +28,7 @@ def api_post(resource, method, **kwargs):
             response = requests.delete(f"{host}{resource}", **kwargs)
             return response, response.status_code
         else:
-            assert False, f"Http Method {method} invalid."
+            assert False, f"Invalid HTTP(S) method: '{method}'."
     except requests.exceptions.Timeout:
         logger.warning(f"Request timeout: {resource}")
         # Maybe set up for a retry, or continue in a retry loop
