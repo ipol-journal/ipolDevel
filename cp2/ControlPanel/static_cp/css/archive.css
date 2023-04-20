@@ -56,8 +56,6 @@
     grid-auto-flow: dense;
     gap: 1rem;
     padding: 1rem;
-    flex-direction: row;
-    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     justify-items: center;
