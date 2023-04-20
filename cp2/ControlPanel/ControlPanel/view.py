@@ -25,19 +25,23 @@ def homepage(request):
 
     settings = {"num_elements_page": "100", "page": page, "qfilter": qfilter}
     demos, _ = api_post(
-        "/api/demoinfo/demo_list_pagination_and_filter", "post", settings
+        "/api/demoinfo/demo_list_pagination_and_filter", method="post", data=settings
     )
 
     # display the editor's demos
     if page == 1 and not qfilter:
         editor_info, _ = api_post(
-            "/api/demoinfo/get_editor", "post", {"email": request.user.email}
+            "/api/demoinfo/get_editor",
+            "post",
+            params={"email": request.user.email},
         )
         editor_id = editor_info["editor"]["id"]
         params = {
             "editorid": editor_id,
         }
-        response, _ = api_post("/api/demoinfo/demo_list_by_editorid", "post", params)
+        response, _ = api_post(
+            "/api/demoinfo/demo_list_by_editorid", method="post", params=params
+        )
         own_demos = response["demo_list"]
     else:
         own_demos = []
@@ -64,11 +68,15 @@ def demo_editors(request):
     demo_id = request.GET["demo_id"]
 
     demo_editors, _ = api_post(
-        "/api/demoinfo/demo_get_editors_list", "post", {"demo_id": demo_id}
+        "/api/demoinfo/demo_get_editors_list",
+        method="post",
+        params={"demo_id": demo_id},
     )
     editor_list = demo_editors["editor_list"]
     available_editors, _ = api_post(
-        "/api/demoinfo/demo_get_available_editors_list", "post", {"demo_id": demo_id}
+        "/api/demoinfo/demo_get_available_editors_list",
+        method="post",
+        params={"demo_id": demo_id},
     )
     available_editors = available_editors["editor_list"]
     available_editors = sorted(available_editors, key=lambda e: e["name"])
@@ -92,7 +100,7 @@ def add_demo_editor(request):
     settings = {"demo_id": demo_id, "editor_id": editor_id}
     if user_can_edit_demo(request.user, demo_id):
         demoinfo_response, _ = api_post(
-            "/api/demoinfo/add_editor_to_demo", "post", settings
+            "/api/demoinfo/add_editor_to_demo", method="post", params=settings
         )
 
     response = {}
@@ -111,7 +119,9 @@ def reset_ssh_key(request):
         "demo_id": demo_id,
     }
     if user_can_edit_demo(request.user, demo_id):
-        demoinfo_response, _ = api_post("/api/demoinfo/reset_ssh_keys", "post", payload)
+        demoinfo_response, _ = api_post(
+            "/api/demoinfo/reset_ssh_keys", method="post", params=payload
+        )
 
     response = {}
     if demoinfo_response.get("status") != "OK":
@@ -129,7 +139,7 @@ def remove_demo_editor(request):
     settings = {"demo_id": demo_id, "editor_id": editor_id}
     if user_can_edit_demo(request.user, demo_id):
         demoinfo_response, _ = api_post(
-            "/api/demoinfo/remove_editor_from_demo", "post", settings
+            "/api/demoinfo/remove_editor_from_demo", method="post", params=settings
         )
 
     response = {}
@@ -150,14 +160,16 @@ def ajax_add_demo(request):
     demo_id = request.POST["demo_id"]
 
     settings = {"state": state, "title": title, "demo_id": demo_id, "ddl": "{}"}
-    result, _ = api_post("/api/demoinfo/add_demo", "post", settings)
+    result, _ = api_post("/api/demoinfo/add_demo", method="post", params=settings)
 
     editor_info, _ = api_post(
-        "/api/demoinfo/get_editor", "post", {"email": request.user.email}
+        "/api/demoinfo/get_editor", method="post", params={"email": request.user.email}
     )
     editor_id = editor_info["editor"]["id"]
     settings = {"demo_id": demo_id, "editor_id": editor_id}
-    editor_add, _ = api_post("/api/demoinfo/add_editor_to_demo", "post", settings)
+    editor_add, _ = api_post(
+        "/api/demoinfo/add_editor_to_demo", method="post", params=settings
+    )
 
     response = {}
     if result.get("status") != "OK" or editor_add.get("status") != "OK":
@@ -178,7 +190,9 @@ def ajax_delete_demo(request):
 
     if user_can_edit_demo(request.user, demo_id):
         settings = {"demo_id": demo_id}
-        response_api, _ = api_post("/api/core/delete_demo", settings)
+        response_api, _ = api_post(
+            "/api/core/delete_demo", method="post", params=settings
+        )
         result = response_api
 
     response = {}
@@ -203,7 +217,7 @@ def templates(request):
 def ajax_add_template(request):
     template_name = request.POST["templateName"]
     settings = {"template_name": template_name}
-    result, _ = api_post("/api/blobs/create_template", settings)
+    result, _ = api_post("/api/blobs/create_template", method="post", params=settings)
 
     if result["status"] == "OK":
         return JsonResponse(
@@ -220,12 +234,16 @@ def showTemplate(request):
     template_name = request.GET["template_name"]
 
     template, _ = api_post(
-        "/api/blobs/get_template_blobs", "post", {"template_id": template_id}
+        "/api/blobs/get_template_blobs",
+        method="post",
+        params={"template_id": template_id},
     )
     template_sets = template["sets"]
 
     demos, _ = api_post(
-        "/api/blobs/get_demos_using_the_template", "post", {"template_id": template_id}
+        "/api/blobs/get_demos_using_the_template",
+        method="post",
+        params={"template_id": template_id},
     )
     demos_using_template = demos["demos"]
     can_edit = request.user.is_superuser
@@ -247,7 +265,9 @@ def ajax_delete_blob_template(request):
     blob_set = request.POST["blob_set"]
     response = {}
     settings = {"template_id": template_id, "blob_set": blob_set, "pos_set": pos_set}
-    response_api, _ = api_post("/api/blobs/remove_blob_from_template", "post", settings)
+    response_api, _ = api_post(
+        "/api/blobs/remove_blob_from_template", method="post", params=settings
+    )
     result = response_api
     if result.get("status") != "OK":
         response["status"] = "KO"
@@ -265,7 +285,9 @@ def ajax_delete_blob_demo(request):
     response = {}
     if user_can_edit_demo(request.user, demo_id):
         settings = {"demo_id": demo_id, "blob_set": blob_set, "pos_set": pos_set}
-        response_api, _ = api_post("/api/blobs/remove_blob_from_demo", "post", settings)
+        response_api, _ = api_post(
+            "/api/blobs/remove_blob_from_demo", method="post", params=settings
+        )
         result = response_api
         if result.get("status") != "OK":
             response["status"] = "KO"
@@ -282,7 +304,9 @@ def ajax_delete_template(request):
     template_id = request.POST["template_id"]
     response = {}
     settings = {"template_id": template_id}
-    response_api, _ = api_post("/api/blobs/delete_template", "post", settings)
+    response_api, _ = api_post(
+        "/api/blobs/delete_template", method="post", params=settings
+    )
     result = response_api
     if result.get("status") != "OK":
         response["status"] = "KO"
@@ -299,7 +323,9 @@ def ajax_remove_blob_from_template(request):
     pos_set = request.POST["pos_set"]
 
     settings = {"template_id": template_id, "blob_set": blob_set, "pos_set": pos_set}
-    response, _ = api_post("/api/blobs/remove_blob_from_template", "post", settings)
+    response, _ = api_post(
+        "/api/blobs/remove_blob_from_template", method="post", params=settings
+    )
     if response["status"] != "OK":
         response["status"] = "KO"
         return HttpResponse(json.dumps(response), "application/json")
@@ -321,7 +347,9 @@ def ajax_remove_blob_from_demo(request):
         return HttpResponse(json.dumps(response), "application/json")
 
     settings = {"demo_id": demo_id, "blob_set": blob_set, "pos_set": pos_set}
-    response, _ = api_post("/api/blobs/remove_blob_from_demo", "post", settings)
+    response, _ = api_post(
+        "/api/blobs/remove_blob_from_demo", method="post", params=settings
+    )
     if response["status"] != "OK":
         response["status"] = "KO"
         return HttpResponse(json.dumps(response), "application/json")
@@ -373,7 +401,9 @@ def ajax_add_blob_demo(request):
         "title": title,
         "credit": credit,
     }
-    response_api, _ = api_post("/api/blobs/add_blob_to_demo", "post", settings, files)
+    response_api, _ = api_post(
+        "/api/blobs/add_blob_to_demo", method="post", params=settings, files=files
+    )
     result = response_api
     if result.get("status") != "OK":
         response["status"] = "KO"
@@ -403,7 +433,7 @@ def ajax_add_blob_template(request):
         "credit": credit,
     }
     response_api, _ = api_post(
-        "/api/blobs/add_blob_to_template", "post", settings, files
+        "/api/blobs/add_blob_to_template", method="post", params=settings, files=files
     )
     result = response_api
     if result.get("status") != "OK":
@@ -424,7 +454,9 @@ def detailsBlob(request):
         set_name = request.GET["set"]
         blob_pos = request.GET["pos"]
         blobs_response, _ = api_post(
-            "/api/blobs/get_demo_owned_blobs", "post", {"demo_id": demo_id}
+            "/api/blobs/get_demo_owned_blobs",
+            method="post",
+            params={"demo_id": demo_id},
         )
         sets = blobs_response["sets"]
         for blobset in sets:
@@ -453,7 +485,9 @@ def detailsBlob(request):
         set_name = request.GET["set"]
         blob_pos = request.GET["pos"]
         blobs_response, _ = api_post(
-            "/api/blobs/get_template_blobs", "post", {"template_id": template_id}
+            "/api/blobs/get_template_blobs",
+            method="post",
+            params={"template_id": template_id},
         )
         sets = blobs_response["sets"]
         for blobset in sets:
@@ -502,7 +536,10 @@ def ajax_edit_blob_template(request):
         "credit": credit,
     }
     response_api, _ = api_post(
-        "/api/blobs/edit_blob_from_template", "post", settings, files
+        "/api/blobs/edit_blob_from_template",
+        method="post",
+        params=settings,
+        files=files,
     )
     result = response_api
     if result.get("status") != "OK":
@@ -517,18 +554,22 @@ def ajax_edit_blob_template(request):
 def showDemo(request):
     demo_id = request.GET["demo_id"]
     demoinfo_response, _ = api_post(
-        "/api/demoinfo/get_ddl", "post", {"demo_id": demo_id}
+        "/api/demoinfo/get_ddl", method="post", params={"demo_id": demo_id}
     )
     ssh_response, _ = api_post(
-        "/api/demoinfo/get_ssh_keys", "post", {"demo_id": demo_id}
+        "/api/demoinfo/get_ssh_keys", method="post", params={"demo_id": demo_id}
     )
     ddl = None
     demo_editors, _ = api_post(
-        "/api/demoinfo/demo_get_editors_list", "post", {"demo_id": demo_id}
+        "/api/demoinfo/demo_get_editors_list",
+        method="post",
+        params={"demo_id": demo_id},
     )
     editor_list = demo_editors["editor_list"]
     available_editors, _ = api_post(
-        "/api/demoinfo/demo_get_available_editors_list", "post", {"demo_id": demo_id}
+        "/api/demoinfo/demo_get_available_editors_list",
+        method="post",
+        params={"demo_id": demo_id},
     )
     available_editors = available_editors["editor_list"]
     available_editors = sorted(available_editors, key=lambda e: e["name"])
@@ -546,7 +587,7 @@ def showDemo(request):
     can_edit = user_can_edit_demo(request.user, demo_id)
 
     metainfo_response, _ = api_post(
-        "/api/demoinfo/read_demo_metainfo", "post", {"demoid": demo_id}
+        "/api/demoinfo/read_demo_metainfo", method="post", params={"demoid": demo_id}
     )
     title = metainfo_response.get("title", "")
 
@@ -573,9 +614,13 @@ def edit_demo(request):
 
     settings = {"old_editor_demoid": demo_id, "demo": json.dumps(demo)}
 
-    demoinfo_response, _ = api_post("/api/demoinfo/update_demo", "post", settings)
+    demoinfo_response, _ = api_post(
+        "/api/demoinfo/update_demo", method="post", params=settings
+    )
     settings = {"old_demo_id": demo_id, "new_demo_id": new_demo_id}
-    blobs_response, _ = api_post("/api/blobs/update_demo_id", "post", settings)
+    blobs_response, _ = api_post(
+        "/api/blobs/update_demo_id", method="post", params=settings
+    )
     settings = {"new_demo_id": new_demo_id}
     _, status_code = api_post(
         f"/api/archive/demo/{demo_id}?new_demo_id={new_demo_id}", "put"
@@ -600,7 +645,7 @@ def ddl_history(request):
     title = request.GET.get("title", "")
 
     dll_history_response, _ = api_post(
-        "/api/demoinfo/get_ddl_history", "post", {"demo_id": demo_id}
+        "/api/demoinfo/get_ddl_history", method="post", params={"demo_id": demo_id}
     )
     ddl_history = dll_history_response["ddl_history"]
 
@@ -626,7 +671,9 @@ def ajax_remove_vr(request):
     blob_id = request.POST["blob_id"]
     settings = {"blob_id": blob_id}
     response = {}
-    response_api, _ = api_post("/api/blobs/delete_vr_from_blob", "post", settings)
+    response_api, _ = api_post(
+        "/api/blobs/delete_vr_from_blob", method="post", params=settings
+    )
     result = response_api
     if result.get("status") == "OK":
         response["status"] = "OK"
@@ -640,7 +687,7 @@ def ajax_show_DDL(request):
     demo_id = request.POST["demoID"]
     settings = {"demo_id": demo_id}
     response = {}
-    response, _ = api_post("/api/demoinfo/get_ddl", "post", settings)
+    response, _ = api_post("/api/demoinfo/get_ddl", method="post", params=settings)
     return HttpResponse(json.dumps(response), "application/json")
 
 
@@ -650,8 +697,13 @@ def ajax_save_DDL(request):
     ddl = request.POST["ddl"]
 
     if user_can_edit_demo(request.user, demo_id):
+        headers = {"Content-type": "application/json"}
         demoinfo_response, _ = api_post(
-            "/api/demoinfo/save_ddl", "post", {"demoid": demo_id}, json=ddl
+            "/api/demoinfo/save_ddl",
+            method="post",
+            data=ddl,
+            params={"demoid": demo_id},
+            headers=headers,
         )
         return JsonResponse({"status": "OK"}, status=200)
     else:
@@ -662,11 +714,13 @@ def ajax_save_DDL(request):
 def showBlobsDemo(request):
     demo_id = request.GET["demo_id"]
     can_edit = user_can_edit_demo(request.user, demo_id)
-    blobs, _ = api_post("/api/blobs/get_demo_owned_blobs", "post", {"demo_id": demo_id})
+    blobs, _ = api_post(
+        "/api/blobs/get_demo_owned_blobs", method="post", params={"demo_id": demo_id}
+    )
     blob_sets = blobs["sets"]
 
     demo_used_templates, _ = api_post(
-        "/api/blobs/get_demo_templates", "post", {"demo_id": demo_id}
+        "/api/blobs/get_demo_templates", method="post", params={"demo_id": demo_id}
     )
     demo_used_templates = demo_used_templates["templates"]
 
@@ -686,7 +740,7 @@ def showBlobsDemo(request):
 
 def get_demo_extras_info(demo_id: int) -> dict:
     response, _ = api_post(
-        "/api/demoinfo/get_demo_extras_info", "post", {"demo_id": demo_id}
+        "/api/demoinfo/get_demo_extras_info", method="post", params={"demo_id": demo_id}
     )
     size = response.get("size")
     extras_url = response.get("url")
@@ -740,7 +794,7 @@ def ajax_add_demo_extras(request):
         params = {"demo_id": demo_id, "demoextras_name": filename}
         files = {"demoextras": file}
         response, _ = api_post(
-            "/api/demoinfo/add_demoextras", "post", params=params, files=files
+            "/api/demoinfo/add_demoextras", method="post", params=params, files=files
         )
         if response["status"] == "KO":
             context["error"] = response.get("error", "Could not add the demoextras")
@@ -756,7 +810,9 @@ def ajax_delete_demo_extras(request):
     demo_id = request.GET["demo_id"]
     if user_can_edit_demo(request.user, demo_id):
         response, _ = api_post(
-            "/api/demoinfo/delete_demoextras", "post", {"demo_id": demo_id}
+            "/api/demoinfo/delete_demoextras",
+            method="post",
+            params={"demo_id": demo_id},
         )
         # TODO
     return HttpResponseRedirect(f"/cp2/demoExtras?demo_id={demo_id}")
@@ -769,7 +825,9 @@ def ajax_add_template_to_demo(request):
     settings = {"demo_id": demo_id, "template_id": template_id}
     response = {}
     if user_can_edit_demo(request.user, demo_id):
-        response_api, _ = api_post("/api/blobs/add_template_to_demo", "post", settings)
+        response_api, _ = api_post(
+            "/api/blobs/add_template_to_demo", method="post", params=settings
+        )
         result = response_api
         if result.get("status") != "OK":
             response["status"] = "KO"
@@ -789,7 +847,7 @@ def ajax_remove_template_to_demo(request):
     response = {}
     if user_can_edit_demo(request.user, demo_id):
         response_api, _ = api_post(
-            "/api/blobs/remove_template_from_demo", "post", settings
+            "/api/blobs/remove_template_from_demo", method="post", params=settings
         )
         result = response_api
         if result.get("status") != "OK":
@@ -820,7 +878,10 @@ def ajax_edit_blob_demo(request):
             "credit": request.POST["Credit"],
         }
         response, _ = api_post(
-            "/api/blobs/edit_blob_from_demo", "post", settings, files
+            "/api/blobs/edit_blob_from_demo",
+            method="post",
+            params=settings,
+            files=files,
         )
 
         if response.get("status") != "OK":
@@ -841,7 +902,9 @@ def show_archive(request):
     else:
         page = 1
 
-    archive_response, _ = api_post(f"/api/archive/page/{page}?demo_id={demo_id}", "get")
+    archive_response, _ = api_post(
+        f"/api/archive/page/{page}?demo_id={demo_id}", method="get"
+    )
     experiments = archive_response["experiments"]
     meta = archive_response["meta_info"]
 

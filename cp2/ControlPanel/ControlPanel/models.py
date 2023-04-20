@@ -99,7 +99,6 @@ def update_editor(username, email, old_email):
     )
 
     if update_response.get("status") != "OK":
-        update_response.get("error")
         logger.error(
             f"Could not update email of user '{username}', '{old_email}' --> '{email}'"
         )
