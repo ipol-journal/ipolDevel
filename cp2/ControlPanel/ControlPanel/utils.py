@@ -47,7 +47,9 @@ def user_can_edit_demo(user, demo_id):
     if user.is_staff or user.is_superuser:
         return True
     settings = {"demo_id": demo_id}
-    editors_list = api_post("/api/demoinfo/demo_get_editors_list", settings)
+    editors_list, _ = api_post(
+        "/api/demoinfo/demo_get_editors_list", method="post", params=settings
+    )
     for editor in editors_list.get("editor_list"):
         if editor.get("mail") == user.email:
             return True
