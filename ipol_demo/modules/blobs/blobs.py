@@ -92,7 +92,7 @@ def init_logging():
     return logger
 
 
-def error_log(function_name, error):
+def error_log(function_name: str, error: str) -> None:
     """
     Write an error log in the logs_dir defined in demo.conf
     """
@@ -162,7 +162,9 @@ def shutdown_event():
     log.info("Application shutdown")
 
 
-def add_blob(blob, blob_set, pos_set, title, credit, dest, blob_vr):
+def add_blob(
+    blob, blob_set: str, pos_set: int, title: str, credit: str, dest: str, blob_vr
+):
     """
     Copies the blob and store it in the DB
     """
@@ -259,11 +261,11 @@ def add_blob(blob, blob_set, pos_set, title, credit, dest, blob_vr):
 @private_route.post("/add_blob_to_demo", status_code=201)
 def add_blob_to_demo(
     blob=None,
-    demo_id=None,
-    blob_set=None,
-    pos_set=None,
-    title=None,
-    credit=None,
+    demo_id: int = None,
+    blob_set: str = None,
+    pos_set: int = None,
+    title: str = None,
+    credit: str = None,
     blob_vr=None,
 ):
     """
@@ -279,11 +281,11 @@ def add_blob_to_demo(
 @private_route.post("/add_blob_to_template", status_code=201)
 def add_blob_to_template(
     blob=None,
-    template_id=None,
-    blob_set=None,
-    pos_set=None,
-    title=None,
-    credit=None,
+    template_id: int = None,
+    blob_set: str = None,
+    pos_set: int = None,
+    title: str = None,
+    credit: str = None,
     blob_vr=None,
 ):
     """
@@ -296,7 +298,9 @@ def add_blob_to_template(
     return json.dumps({"status": "KO"}).encode()
 
 
-def store_blob(conn, blob, credit, blob_hash, ext, blob_format):
+def store_blob(
+    conn, blob, credit: str, blob_hash: str, ext: str, blob_format: str
+) -> int:
     """
     Stores the blob info in the DB, copy it in the file system and returns the blob_id and blob_file
     """
@@ -316,7 +320,7 @@ def store_blob(conn, blob, credit, blob_hash, ext, blob_format):
 
 
 @staticmethod
-def get_blob_mime(blob):
+def get_blob_mime(blob) -> str:
     """
     Return format from blob
     """
@@ -327,7 +331,7 @@ def get_blob_mime(blob):
 
 
 @staticmethod
-def get_format_and_extension(mime):
+def get_format_and_extension(mime: str) -> tuple[str, str]:
     """
     get format and extension from mime
     """
@@ -340,7 +344,7 @@ def get_format_and_extension(mime):
 
 
 @staticmethod
-def get_hash(blob):
+def get_hash(blob) -> str:
     """
     Return the sha1 hash from blob
     """
@@ -348,7 +352,7 @@ def get_hash(blob):
     return hashlib.sha1(blob.read()).hexdigest()
 
 
-def copy_blob(blob, blob_hash, ext, dst_dir):
+def copy_blob(blob, blob_hash: str, ext: str, dst_dir: str) -> str:
     """
     Stores the blob in the file system, returns the dest path
     """
@@ -363,7 +367,7 @@ def copy_blob(blob, blob_hash, ext, dst_dir):
 
 
 @staticmethod
-def get_subdir(blob_hash):
+def get_subdir(blob_hash: str) -> str:
     """
     Returns the subdirectory from the blob hash
     """
@@ -371,7 +375,9 @@ def get_subdir(blob_hash):
 
 
 @staticmethod
-def do_add_blob_to_demo(conn, demo_id, blob_id, pos_set, blob_set, blob_title):
+def do_add_blob_to_demo(
+    conn, demo_id: int, blob_id: int, pos_set: int, blob_set: str, blob_title: str
+) -> None:
     """
     Associates the blob to a demo in the DB
     """
@@ -386,7 +392,9 @@ def do_add_blob_to_demo(conn, demo_id, blob_id, pos_set, blob_set, blob_title):
 
 
 @staticmethod
-def do_add_blob_to_template(conn, template_id, blob_id, blob_set, pos_set, blob_title):
+def do_add_blob_to_template(
+    conn, template_id: int, blob_id: int, blob_set: str, pos_set: int, blob_title: str
+) -> None:
     """
     Associates the template to a demo in the DB
     """
@@ -403,7 +411,7 @@ def do_add_blob_to_template(conn, template_id, blob_id, blob_set, pos_set, blob_
         raise
 
 
-def create_thumbnail(src_file, blob_hash):
+def create_thumbnail(src_file, blob_hash: str) -> None:
     """
     Creates a thumbnail for blob_file.
     """
@@ -422,7 +430,7 @@ def create_thumbnail(src_file, blob_hash):
 
 
 @private_route.post("/create_template", status_code=201)
-def create_template(template_name):
+def create_template(template_name: str) -> list:
     """
     Creates a new empty template
     """
@@ -465,7 +473,7 @@ def create_template(template_name):
 
 
 @private_route.post("/add_template_to_demo", status_code=201)
-def add_template_to_demo(demo_id, template_id):
+def add_template_to_demo(demo_id: int, template_id: int) -> list:
     """
     Associates the demo to the list of templates
     """
@@ -521,7 +529,7 @@ def add_template_to_demo(demo_id, template_id):
 
 
 @app.get("/blobs/{demo_id}", status_code=200)
-def get_blobs(demo_id: int):
+def get_blobs(demo_id: int) -> list:
     """
     Get all the blobs used by the demo: owned blobs and from templates
     """
@@ -569,7 +577,7 @@ def get_blobs(demo_id: int):
     return data
 
 
-def prepare_list(blobs):
+def prepare_list(blobs) -> dict:
     """
     Prepare the output list of blobs
     """
@@ -595,7 +603,7 @@ def prepare_list(blobs):
 
 
 @app.get("/templates/{template_id}", status_code=200)
-def get_template_blobs(template_id):
+def get_template_blobs(template_id: int) -> list:
     """
     Get the list of blobs in the given template
     """
@@ -639,7 +647,7 @@ def get_template_blobs(template_id):
 
 
 @app.get("/get_demo_owned_blobs", status_code=200)
-def get_demo_owned_blobs(demo_id):
+def get_demo_owned_blobs(demo_id: int) -> list:
     """
     Get the list of owned blobs for the demo
     """
@@ -675,7 +683,7 @@ def get_demo_owned_blobs(demo_id):
     return data
 
 
-def blob_has_thumbnail(blob_hash):
+def blob_has_thumbnail(blob_hash: str) -> str:
     """
     Check if the blob has already thumbnail
     """
@@ -686,7 +694,7 @@ def blob_has_thumbnail(blob_hash):
     )
 
 
-def blob_has_VR(blob_hash):
+def blob_has_VR(blob_hash: str) -> str:
     """
     Check if the blob is associated to a VR
     """
@@ -698,7 +706,7 @@ def blob_has_VR(blob_hash):
     return vr_extension is not None
 
 
-def get_blob_info(blob):
+def get_blob_info(blob) -> list:
     """
     Return the required information from the blob
     """
@@ -741,7 +749,7 @@ def get_blob_info(blob):
 
 
 @staticmethod
-def get_vr_extension(vr_dir, blob_hash):
+def get_vr_extension(vr_dir: str, blob_hash: str) -> str:
     """
     If the visual representation exists, the function returns its extension
     if not, returns None
@@ -757,7 +765,7 @@ def get_vr_extension(vr_dir, blob_hash):
 
 
 @app.get("/demo/{demo_id}", status_code=200)
-def get_demo_templates(demo_id):
+def get_demo_templates(demo_id: int) -> list:
     """
     Get the list of templates used by the demo
     """
@@ -796,7 +804,7 @@ def get_demo_templates(demo_id):
     return data
 
 
-def remove_blob(blob_set, pos_set, dest):
+def remove_blob(blob_set: str, pos_set: int, dest: str) -> bool:
     """
     Remove the blob
     """
@@ -870,7 +878,7 @@ def remove_blob(blob_set, pos_set, dest):
 
 
 @private_route.post("/remove_blob_from_demo", status_code=201)
-def remove_blob_from_demo(demo_id, blob_set, pos_set):
+def remove_blob_from_demo(demo_id: int, blob_set: str, pos_set: int) -> list:
     """
     Remove a blob from the demo
     """
@@ -881,7 +889,7 @@ def remove_blob_from_demo(demo_id, blob_set, pos_set):
 
 
 @private_route.post("/remove_blob_from_template", status_code=201)
-def remove_blob_from_template(template_id, blob_set, pos_set):
+def remove_blob_from_template(template_id: int, blob_set: str, pos_set: int) -> list:
     """
     Remove a blob from the template
     """
@@ -891,7 +899,7 @@ def remove_blob_from_template(template_id, blob_set, pos_set):
     return json.dumps({"status": "KO"}).encode()
 
 
-def delete_blob_container(dest):
+def delete_blob_container(dest: str) -> bool:
     """
     Remove the demo or template and all the blobs only used by them
     """
@@ -959,7 +967,7 @@ def delete_blob_container(dest):
 
 
 @private_route.post("/delete_demo", status_code=201)
-def delete_demo(demo_id):
+def delete_demo(demo_id: int) -> list:
     """
     Remove the demo
     """
@@ -970,7 +978,7 @@ def delete_demo(demo_id):
 
 
 @private_route.post("/delete_template", status_code=201)
-def delete_template(template_id):
+def delete_template(template_id: int) -> list:
     """
     Remove the template
     """
@@ -981,7 +989,7 @@ def delete_template(template_id):
 
 
 @private_route.post("/remove_template_from_demo", status_code=201)
-def remove_template_from_demo(demo_id, template_id):
+def remove_template_from_demo(demo_id: int, template_id: int) -> list:
     """
     Remove the template from the demo
     """
@@ -1012,7 +1020,7 @@ def remove_template_from_demo(demo_id, template_id):
     return data
 
 
-def remove_files_associated_to_a_blob(blob_hash):
+def remove_files_associated_to_a_blob(blob_hash: str) -> None:
     """
     This function removes the blob, the thumbnail and
     the visual representation from the hash given
@@ -1043,7 +1051,7 @@ def remove_files_associated_to_a_blob(blob_hash):
         remove_dirs(vr_folder)
 
 
-def remove_dirs(blob_folder):
+def remove_dirs(blob_folder) -> None:
     """
     Remove all the empty directories
     """
@@ -1056,7 +1064,7 @@ def remove_dirs(blob_folder):
 
 
 @staticmethod
-def generate_set_name(blob_id):
+def generate_set_name(blob_id: int) -> str:
     """
     Generate a unique set name for the given blob id
     """
@@ -1065,15 +1073,15 @@ def generate_set_name(blob_id):
 
 @private_route.post("/edit_blob_from_demo", status_code=201)
 def edit_blob_from_demo(
-    demo_id=None,
-    blob_set=None,
-    new_blob_set=None,
-    pos_set=None,
-    new_pos_set=None,
-    title=None,
-    credit=None,
-    vr=None,
-):
+    demo_id: int = None,
+    blob_set: str = None,
+    new_blob_set: str = None,
+    pos_set: int = None,
+    new_pos_set: int = None,
+    title: str = None,
+    credit: str = None,
+    vr: str = None,
+) -> list:
     """
     Edit blob information in a demo
     """
@@ -1085,15 +1093,15 @@ def edit_blob_from_demo(
 
 @private_route.post("/edit_blob_from_template", status_code=201)
 def edit_blob_from_template(
-    template_id=None,
-    blob_set=None,
-    new_blob_set=None,
-    pos_set=None,
-    new_pos_set=None,
-    title=None,
-    credit=None,
-    vr=None,
-):
+    template_id: int = None,
+    blob_set: str = None,
+    new_blob_set: str = None,
+    pos_set: int = None,
+    new_pos_set: int = None,
+    title: str = None,
+    credit: str = None,
+    vr: str = None,
+) -> list:
     """
     Edit blob information in a template
     """
@@ -1104,8 +1112,15 @@ def edit_blob_from_template(
 
 
 def edit_blob(
-    blob_set, new_blob_set, pos_set, new_pos_set, title, credit, blob_vr, dest
-):
+    blob_set: str,
+    new_blob_set: str,
+    pos_set: int,
+    new_pos_set: int,
+    title: str,
+    credit: str,
+    blob_vr: str,
+    dest: str,
+) -> bool:
     """
     Edit blob information
     """
@@ -1208,7 +1223,7 @@ def edit_blob(
 
 
 @app.get("/templates", status_code=200)
-def get_all_templates():
+def get_all_templates() -> list:
     """
     Return all the templates in the system
     """
@@ -1235,7 +1250,7 @@ def get_all_templates():
 
 
 @private_route.post("/delete_vr_from_blob", status_code=201)
-def delete_vr_from_blob(blob_id):
+def delete_vr_from_blob(blob_id: int) -> list:
     """
     Remove the visual representation of the blob (in all the demos and templates)
     """
@@ -1293,7 +1308,7 @@ def delete_vr_from_blob(blob_id):
 
 
 @private_route.post("/update_demo_id/{old_demo_id}", status_code=201)
-def update_demo_id(old_demo_id: int, new_demo_id: int):
+def update_demo_id(old_demo_id: int, new_demo_id: int) -> list:
     """
     Update an old demo ID by the given new ID
     """
@@ -1319,7 +1334,7 @@ def update_demo_id(old_demo_id: int, new_demo_id: int):
 
 
 @app.get("/demos_using_template/{template_id}", status_code=200)
-def get_demos_using_the_template(template_id: int):
+def get_demos_using_the_template(template_id: int) -> list:
     """
     Return the list of demos that use the given template
     """
@@ -1355,7 +1370,7 @@ def get_demos_using_the_template(template_id: int):
 
 
 @app.get("/stats", status_code=200)
-def stats():
+def stats() -> list:
     """
     Return module stats
     """
