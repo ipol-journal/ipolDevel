@@ -113,7 +113,7 @@ def init_database() -> bool:
             try:
                 os.remove(settings.database_file)
             except Exception as ex:
-                log.exception("init_database: {}".format(ex))
+                log.exception(f"init_database: {ex}")
                 return False
 
     if not os.path.isfile(settings.database_file):
@@ -137,13 +137,13 @@ def init_database() -> bool:
             conn.close()
 
         except Exception as ex:
-            log.exception("init_database: {}".format(ex))
+            log.exception(f"init_database: {ex}")
 
             if os.path.isfile(settings.database_file):
                 try:
                     os.remove(settings.database_file)
                 except Exception as ex:
-                    log.exception("init_database: {}".format(ex))
+                    log.exception(f"init_database: {ex}")
                     return False
 
     return True
@@ -175,8 +175,6 @@ def add_blob(
         mime = get_blob_mime(blob.file)
 
         blob_format, ext = get_format_and_extension(mime)
-        # ext = "." + ext
-
         blob_hash = get_hash(blob.file)
         blob_id = store_blob(conn, blob.file, credit, blob_hash, ext, blob_format)
 
@@ -197,7 +195,7 @@ def add_blob(
         except IPOLBlobsThumbnailError as ex:
             # An error in the creation of the thumbnail doesn't stop the execution of the method
             log.exception("Error creating the thumbnail")
-            print("Couldn't create the thumbnail. Error: {}".format(ex))
+            print(f"Couldn't create the thumbnail. Error: {ex}")
 
         # If the set is empty the module generates an unique set name
         if not blob_set:
@@ -231,26 +229,22 @@ def add_blob(
             res = True
         else:
             log.error(
-                "Failed to add the blob in add_blob. Unknown dest: {}".format(
-                    dest["dest"]
-                )
+                f'Failed to add the blob in add_blob. Unknown dest: {dest["dest"]}'
             )
 
     except IOError as ex:
         log.exception("Error copying uploaded blob")
-        print("Couldn't copy uploaded blob. Error: {}".format(ex))
+        print(f"Couldn't copy uploaded blob. Error: {ex}")
     except IPOLBlobsDataBaseError as ex:
         log.exception("Error adding blob info to DB")
-        print("Couldn't add blob info to DB. Error: {}".format(ex))
+        print(f"Couldn't add blob info to DB. Error: {ex}")
     except IPOLBlobsTemplateError as ex:
         print(
-            "Couldn't add blob to template. blob. Template doesn't exists. Error: {}".format(
-                ex
-            )
+            f"Couldn't add blob to template. blob. Template doesn't exists. Error: {ex}"
         )
     except Exception as ex:
         log.exception("*** Unhandled exception while adding the blob")
-        print("*** Unhandled exception while adding the blob. Error: {}".format(ex))
+        print(f"*** Unhandled exception while adding the blob. Error: {ex}")
     finally:
         if conn is not None:
             conn.close()
@@ -424,9 +418,7 @@ def create_thumbnail(src_file, blob_hash: str) -> None:
     try:
         thumbnail(src_file, height=thumb_height, dst_file=dst_file)
     except Exception as ex:
-        raise IPOLBlobsThumbnailError(
-            "File '{}', thumbnail error. {}".format(src_file, ex)
-        )
+        raise IPOLBlobsThumbnailError(f"File '{src_file}', thumbnail error. {ex}")
 
 
 @private_route.post("/create_template", status_code=201)
@@ -450,20 +442,16 @@ def create_template(template_name: str) -> list:
     except IPOLBlobsDataBaseError as ex:
         if conn is not None:
             conn.rollback()
-        log.exception("Fail creating template {}".format(template_name))
-        print("Couldn't create the template {}. Error: {}".format(template_name, ex))
+        log.exception(f"Fail creating template {template_name}")
+        print(f"Couldn't create the template {template_name}. Error: {ex}")
     except Exception as ex:
         if conn is not None:
             conn.rollback()
         log.exception(
-            "*** Unhandled exception while creating the template {}".format(
-                template_name
-            )
+            f"*** Unhandled exception while creating the template {template_name}"
         )
         print(
-            "*** Unhandled exception while creating the template {}. Error: {}".format(
-                template_name, ex
-            )
+            f"*** Unhandled exception while creating the template {template_name}. Error: {ex}"
         )
 
     finally:
@@ -495,32 +483,22 @@ def add_template_to_demo(demo_id: int, template_id: int) -> list:
     except IPOLBlobsDataBaseError as ex:
         if conn is not None:
             conn.rollback()
-        log.exception(
-            "Fails linking templates {} to the demo #{}".format(template_id, demo_id)
-        )
+        log.exception(f"Fails linking templates {template_id} to the demo #{demo_id}")
         print(
-            "Couldn't link templates {} to the demo #{}. Error: {}".format(
-                template_id, demo_id, ex
-            )
+            f"Couldn't link templates {template_id} to the demo #{demo_id}. Error: {ex}"
         )
     except IPOLBlobsTemplateError as ex:
         if conn is not None:
             conn.rollback()
-        print(
-            "Some of the templates {} does not exist. Error: {}".format(template_id, ex)
-        )
+        print(f"Some of the templates {template_id} does not exist. Error: {ex}")
     except Exception as ex:
         if conn is not None:
             conn.rollback()
         log.exception(
-            "*** Unhandled exception while linking the templates {} to the demo #{}".format(
-                template_id, demo_id
-            )
+            f"*** Unhandled exception while linking the templates {template_id} to the demo #{demo_id}"
         )
         print(
-            "*** Unhandled exception while linking the templates {} to the demo #{}. Error:{}".format(
-                template_id, demo_id, ex
-            )
+            f"*** Unhandled exception while linking the templates {template_id} to the demo #{demo_id}. Error:{ex}"
         )
     finally:
         if conn is not None:
@@ -541,7 +519,7 @@ def get_blobs(demo_id: int) -> list:
             demo_id = int(demo_id)
         except (TypeError, ValueError):
             return json.dumps(
-                {"status": "KO", "error": "Invalid demo_id: {}".format(demo_id)}
+                {"status": "KO", "error": f"Invalid demo_id: {demo_id}"}
             ).encode()
 
         conn = lite.connect(settings.database_file)
@@ -556,20 +534,14 @@ def get_blobs(demo_id: int) -> list:
         data["status"] = "OK"
 
     except IPOLBlobsDataBaseError as ex:
-        log.exception("Fails obtaining all the blobs from demo #{}".format(demo_id))
-        print(
-            "Couldn't obtain all the blobs from demo #{}. Error: {}".format(demo_id, ex)
-        )
+        log.exception(f"Fails obtaining all the blobs from demo #{demo_id}")
+        print(f"Couldn't obtain all the blobs from demo #{demo_id}. Error: {ex}")
     except Exception as ex:
         log.exception(
-            "*** Unhandled exception while obtaining all the blobs from demo #{}".format(
-                demo_id
-            )
+            f"*** Unhandled exception while obtaining all the blobs from demo #{demo_id}"
         )
         print(
-            "*** Unhandled exception while obtaining all the blobs from demo #{}. Error: {}".format(
-                demo_id, ex
-            )
+            f"*** Unhandled exception while obtaining all the blobs from demo #{demo_id}. Error: {ex}"
         )
     finally:
         if conn is not None:
@@ -621,24 +593,14 @@ def get_template_blobs(template_id: int) -> list:
         data["status"] = "OK"
 
     except IPOLBlobsDataBaseError as ex:
-        log.exception(
-            "Fails obtaining the owned blobs from template '{}'".format(template_id)
-        )
-        print(
-            "Couldn't obtain owned blobs from template '{}'. Error: {}".format(
-                template_id, ex
-            )
-        )
+        log.exception(f"Fails obtaining the owned blobs from template '{template_id}'")
+        print(f"Couldn't obtain owned blobs from template '{template_id}'. Error: {ex}")
     except Exception as ex:
         log.exception(
-            "*** Unhandled exception while obtaining the owned blobs from template '{}'".format(
-                template_id
-            )
+            f"*** Unhandled exception while obtaining the owned blobs from template '{template_id}'"
         )
         print(
-            "*** Unhandled exception while obtaining the owned blobs from template '{}'. Error: {}".format(
-                template_id, ex
-            )
+            f"*** Unhandled exception while obtaining the owned blobs from template '{template_id}'. Error: {ex}"
         )
     finally:
         if conn is not None:
@@ -662,20 +624,14 @@ def get_demo_owned_blobs(demo_id: int) -> list:
         data["status"] = "OK"
 
     except IPOLBlobsDataBaseError as ex:
-        log.exception("Fails obtaining the owned blobs from demo #{}".format(demo_id))
-        print(
-            "Couldn't obtain owned blobs from demo #{}. Error: {}".format(demo_id, ex)
-        )
+        log.exception(f"Fails obtaining the owned blobs from demo #{demo_id}")
+        print(f"Couldn't obtain owned blobs from demo #{demo_id}. Error: {ex}")
     except Exception as ex:
         log.exception(
-            "*** Unhandled exception while obtaining the owned blobs from demo #{}".format(
-                demo_id
-            )
+            f"*** Unhandled exception while obtaining the owned blobs from demo #{demo_id}"
         )
         print(
-            "*** Unhandled exception while obtaining the owned blobs from demo #{}. Error: {}".format(
-                demo_id, ex
-            )
+            f"*** Unhandled exception while obtaining the owned blobs from demo #{demo_id}. Error: {ex}"
         )
     finally:
         if conn is not None:
@@ -779,24 +735,14 @@ def get_demo_templates(demo_id: int) -> list:
         data["status"] = "OK"
 
     except IPOLBlobsDataBaseError as ex:
-        log.exception(
-            "Fails obtaining the owned templates from demo #{}".format(demo_id)
-        )
-        print(
-            "Couldn't obtain owned templates from demo #{}. Error: {}".format(
-                demo_id, ex
-            )
-        )
+        log.exception(f"Fails obtaining the owned templates from demo #{demo_id}")
+        print(f"Couldn't obtain owned templates from demo #{demo_id}. Error: {ex}")
     except Exception as ex:
         log.exception(
-            "*** Unhandled exception while obtaining the owned templates from demo #{}".format(
-                demo_id
-            )
+            f"*** Unhandled exception while obtaining the owned templates from demo #{demo_id}"
         )
         print(
-            "*** Unhandled exception while obtaining the owned templates from demo #{}. Error: {}".format(
-                demo_id, ex
-            )
+            f"*** Unhandled exception while obtaining the owned templates from demo #{demo_id}. Error: {ex}"
         )
     finally:
         if conn is not None:
@@ -839,9 +785,7 @@ def remove_blob(blob_set: str, pos_set: int, dest: str) -> bool:
                         conn, template_id, blob_set, pos_set
                     )
             else:
-                log.error(
-                    "Failed to remove blob. Unknown dest: {}".format(dest["dest"])
-                )
+                log.error(f'Failed to remove blob. Unknown dest: {dest["dest"]}')
                 return res
 
             if blob_data is None:
@@ -856,21 +800,19 @@ def remove_blob(blob_set: str, pos_set: int, dest: str) -> bool:
         except IPOLBlobsDataBaseError as ex:
             conn.rollback()
             log.exception("DB error while removing blob")
-            print("Failed to remove blob from DB. Error: {}".format(ex))
+            print(f"Failed to remove blob from DB. Error: {ex}")
         except OSError as ex:
             conn.rollback()
             log.exception("OS error while deleting blob file")
-            print("Failed to remove blob from file system. Error: {}".format(ex))
+            print(f"Failed to remove blob from file system. Error: {ex}")
         except IPOLRemoveDirError as ex:
             # There is no need to do a rollback if the problem was deleting directories
             log.exception("Failed to remove directories")
-            print("Failed to remove directories. Error: {}".format(ex))
+            print(f"Failed to remove directories. Error: {ex}")
         except Exception as ex:
             conn.rollback()
             log.exception("*** Unhandled exception while removing the blob")
-            print(
-                "*** Unhandled exception while removing the blob. Error: {}".format(ex)
-            )
+            print(f"*** Unhandled exception while removing the blob. Error: {ex}")
         finally:
             if conn is not None:
                 conn.close()
@@ -928,9 +870,7 @@ def delete_blob_container(dest: str) -> bool:
                 database.remove_template_blobs_association(conn, template_id)
                 database.remove_template(conn, template_id)
             else:
-                log.error(
-                    "Failed to remove blob. Unknown dest: {}".format(dest["dest"])
-                )
+                log.error(f'Failed to remove blob. Unknown dest: {dest["dest"]}')
                 return res
 
             for blob in blobs:
@@ -943,22 +883,20 @@ def delete_blob_container(dest: str) -> bool:
         except OSError as ex:
             conn.rollback()
             log.exception("OS error while deleting blob file")
-            print("Failed to remove blob from file system. Error: {}".format(ex))
+            print(f"Failed to remove blob from file system. Error: {ex}")
         except IPOLRemoveDirError as ex:
             # There is no need to do a rollback if the problem was deleting directories
             log.exception("Failed to remove directories")
-            print("Failed to remove directories. Error: {}".format(ex))
+            print(f"Failed to remove directories. Error: {ex}")
         except IPOLBlobsDataBaseError as ex:
             conn.rollback()
             log.exception("DB error while removing the demo/template")
-            print("Failed to remove the demo/template. Error: {}".format(ex))
+            print(f"Failed to remove the demo/template. Error: {ex}")
         except Exception as ex:
             conn.rollback()
             log.exception("*** Unhandled exception while removing the demo/template")
             print(
-                "*** Unhandled exception while removing the demo/template. Error: {}".format(
-                    ex
-                )
+                f"*** Unhandled exception while removing the demo/template. Error: {ex}"
             )
         finally:
             if conn is not None:
@@ -1003,16 +941,14 @@ def remove_template_from_demo(demo_id: int, template_id: int) -> list:
     except IPOLBlobsDataBaseError as ex:
         conn.rollback()
         log.exception("DB error while removing the template from the demo")
-        print("Failed to remove the template from the demo. Error: {}".format(ex))
+        print(f"Failed to remove the template from the demo. Error: {ex}")
     except Exception as ex:
         conn.rollback()
         log.exception(
             "*** Unhandled exception while removing the template from the demo"
         )
         print(
-            "*** Unhandled exception while removing the template from the demo. Error: {}".format(
-                ex
-            )
+            f"*** Unhandled exception while removing the template from the demo. Error: {ex}"
         )
     finally:
         if conn is not None:
@@ -1185,7 +1121,7 @@ def edit_blob(
                 conn, template_id, new_blob_set, new_pos_set
             )
         else:
-            log.error("Failed to edit blob. Unknown dest: {}".format(dest["dest"]))
+            log.error(f'Failed to edit blob. Unknown dest: {dest["dest"]}')
             return res
 
         if blob_data is None:
@@ -1204,18 +1140,18 @@ def edit_blob(
                 create_thumbnail(blob_file, blob_hash)
             except IPOLBlobsThumbnailError as ex:
                 log.exception("Error creating the thumbnail")
-                print("Couldn't create the thumbnail. Error: {}".format(ex))
+                print(f"Couldn't create the thumbnail. Error: {ex}")
         conn.commit()
         res = True
 
     except IPOLBlobsDataBaseError as ex:
         conn.rollback()
         log.exception("DB error while editing the blob")
-        print("Failed editing the blob. Error: {}".format(ex))
+        print(f"Failed editing the blob. Error: {ex}")
     except Exception as ex:
         conn.rollback()
         log.exception("*** Unhandled exception while editing the blob")
-        print("*** Unhandled exception while editing the blob. Error: {}".format(ex))
+        print(f"*** Unhandled exception while editing the blob. Error: {ex}")
     finally:
         if conn is not None:
             conn.close()
@@ -1235,14 +1171,10 @@ def get_all_templates() -> list:
         data["status"] = "OK"
     except IPOLBlobsDataBaseError as ex:
         log.exception("DB error while reading all the templates")
-        print("Failed reading all the templates. Error: {}".format(ex))
+        print(f"Failed reading all the templates. Error: {ex}")
     except Exception as ex:
         log.exception("*** Unhandled exception while reading all the templates")
-        print(
-            "*** Unhandled exception while reading all the templates. Error: {}".format(
-                ex
-            )
-        )
+        print(f"*** Unhandled exception while reading all the templates. Error: {ex}")
     finally:
         if conn is not None:
             conn.close()
@@ -1290,15 +1222,15 @@ def delete_vr_from_blob(blob_id: int) -> list:
                     create_thumbnail(blobs_in_dir[0], blob_hash)
         except IPOLBlobsThumbnailError as ex:
             log.exception("Error creating the thumbnail")
-            print("Couldn't create the thumbnail. Error: {}".format(ex))
+            print(f"Couldn't create the thumbnail. Error: {ex}")
 
     except IPOLBlobsDataBaseError as ex:
         log.exception("DB error while removing the visual representation")
-        print("Failed removing the visual representation. Error: {}".format(ex))
+        print(f"Failed removing the visual representation. Error: {ex}")
     except Exception as ex:
         mess = "*** Unhandled exception while removing the visual representation."
         log.exception(mess)
-        print("{} Error: {}".format(mess, ex))
+        print(f"{mess} Error: {ex}")
     finally:
         if conn is not None:
             conn.close()
@@ -1322,11 +1254,11 @@ def update_demo_id(old_demo_id: int, new_demo_id: int) -> list:
     except IPOLBlobsDataBaseError as ex:
         conn.rollback()
         log.exception("DB error while updating demo id")
-        print("Failed while updating demo id. Error: {}".format(ex))
+        print(f"Failed while updating demo id. Error: {ex}")
     except Exception as ex:
         conn.rollback()
         log.exception("*** Unhandled exception while updating demo id")
-        print("*** Unhandled exception while updating demo id. Error: {}".format(ex))
+        print(f"*** Unhandled exception while updating demo id. Error: {ex}")
     finally:
         if conn is not None:
             conn.close()
@@ -1349,9 +1281,7 @@ def get_demos_using_the_template(template_id: int) -> list:
             "DB operation failed while getting the list of demos that uses the template"
         )
         print(
-            "DB operation failed while getting the list of demos that uses the template. Error: {}".format(
-                ex
-            )
+            f"DB operation failed while getting the list of demos that uses the template. Error: {ex}"
         )
     except Exception as ex:
         conn.rollback()
@@ -1359,9 +1289,7 @@ def get_demos_using_the_template(template_id: int) -> list:
             "*** Unhandled exception while getting the list of demos that uses the template"
         )
         print(
-            "*** Unhandled exception while getting the list of demos that uses the template. Error: {}".format(
-                ex
-            )
+            f"*** Unhandled exception while getting the list of demos that uses the template. Error: {ex}"
         )
     finally:
         if conn is not None:
@@ -1383,11 +1311,7 @@ def stats() -> list:
         data["status"] = "OK"
     except Exception as ex:
         log.exception("*** Unhandled exception while getting the blobs stats")
-        print(
-            "*** Unhandled exception while getting the blobs stats. Error: {}".format(
-                ex
-            )
-        )
+        print(f"*** Unhandled exception while getting the blobs stats. Error: {ex}")
     finally:
         if conn is not None:
             conn.close()
