@@ -39,18 +39,16 @@ async function fetchData() {
 }
 
 function getBlobSets() {
-  return fetch(`/api/blobs/get_blobs?demo_id=${demo_id}`)
+  return fetch(`/api/blobs/demo_blobs/${demo_id}`)
     .then(handleErrors)
     .then(response => response.json())
     .then(blobs => {
       console.log('Blobs', blobs);
-      if (blobs.status != 'OK') showWrongDemoIdError();
-      helpers.addToStorage('blobs', blobs.sets);
-      input.printSets(blobs.sets);
+      helpers.addToStorage('blobs', blobs);
+      input.printSets(blobs);
     })
     .catch(error => {
       alert(error, 'Network error. Cannot reach Blobs service.');
-      window.location = '/demo';
     });
 }
 
