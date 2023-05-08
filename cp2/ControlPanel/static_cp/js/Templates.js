@@ -54,8 +54,8 @@ function addTemplates() {
             type: 'POST',
             url: 'templates/ajax',
             dataType : 'json',
-            success: function(data) {
-                if (data.status === 'OK') {
+            success: function(data, responseText, xhr) {
+                if (xhr.status == 200) {
                     document.location.href = `showTemplate?template_id=${data.template_id}&template_name=${templateName}`
                 } else {
                     alert("Error when adding the template in the DataBase");

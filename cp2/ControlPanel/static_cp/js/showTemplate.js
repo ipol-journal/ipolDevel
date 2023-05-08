@@ -5,8 +5,8 @@ var get_demo_using_the_template = new XMLHttpRequest();
 var template_id = getParameterByName('template_id');
 var template_name = getParameterByName('template_name');
 
-get_demo_blobs.open('GET', '/api/blobs/get_template_blobs?template_id='+template_id);
-get_demo_using_the_template.open('GET','/api/blobs/get_demos_using_the_template?template_id='+template_id);
+get_demo_blobs.open('GET', `/api/blobs/templates/${template_id}`);
+get_demo_using_the_template.open('GET',`/api/blobs/demos_using_template/${template_id}`);
 get_demo_blobs.responseType = 'json';
 get_demo_using_the_template.responseType = 'json';
 get_demo_blobs.send();
@@ -85,7 +85,6 @@ function deleteBlob() {
     $("button.btn-delete").click(function () {
         var blobSelection = $(this).attr('name');
         var pos_set = $(this).attr('blobPos');
-        console.log(blobSelection, pos_set);
         $.ajax({
             beforeSend: function(xhr, settings) {
                 return (confirm("Are you sure?"))
@@ -100,13 +99,16 @@ function deleteBlob() {
             type: 'POST',
             dataType: 'json',
             url: 'removeBlob/ajax_remove_blob_from_template',
-            success: function(data) {
-                if (data.status === 'OK') {
+            success: function(data, reponseText, xhr) {
+                if (xhr.status === 200) {
                     document.location.href = `showTemplate?template_id=${template_id}&template_name=${template_name}`
                 } else {
                     alert("Error to delete this Blob");
                 }
             },
+            error: function(error) {
+                console.log(error);
+            }
         })
     });
 };
@@ -125,8 +127,8 @@ $("button#deleteTemplate").click(function () {
         type : 'POST',
         dataType : 'json',
         url : 'showTemplates/ajax_delete_template',
-        success : function (data) {
-            if (data.status === 'OK') {
+        success : function (data, responseText, xhr) {
+            if (xhr.status === 200) {
                 document.location.href = "templates"
             } else {
                 alert("Error to delete this template")

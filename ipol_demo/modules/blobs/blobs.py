@@ -8,7 +8,6 @@ It implements Blob object and web service
 import configparser
 import glob
 import hashlib
-import json
 import logging
 import mimetypes
 import operator
@@ -26,7 +25,7 @@ from errors import (
     IPOLBlobsThumbnailError,
     IPOLRemoveDirError,
 )
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, UploadFile
 from ipolutils.utils import thumbnail
 from pydantic import BaseSettings
 
@@ -164,7 +163,7 @@ def shutdown_event():
 
 def add_blob(
     blob, blob_set: str, pos_set: int, title: str, credit: str, dest: str, blob_vr
-):
+) -> bool:
     """
     Copies the blob and store it in the DB
     """
@@ -252,44 +251,46 @@ def add_blob(
     return res
 
 
-@private_route.post("/add_blob_to_demo", status_code=201)
+@private_route.post("/demo_blobs/{demo_id}", status_code=201)
 def add_blob_to_demo(
-    blob=None,
+    blob: UploadFile = None,
     demo_id: int = None,
     blob_set: str = None,
     pos_set: int = None,
     title: str = None,
     credit: str = None,
-    blob_vr=None,
+    blob_vr: UploadFile = None,
 ):
     """
     Adds a new blob to a demo
     """
     dest = {"dest": "demo", "demo_id": demo_id}
     if add_blob(blob, blob_set, pos_set, title, credit, dest, blob_vr):
-        return json.dumps({"status": "OK"}).encode()
+        return None
+    message = f"error adding blob to demo {demo_id}"
+    return HTTPException(status_code=404, detail=message)
 
-    return json.dumps({"status": "KO"}).encode()
 
-
-@private_route.post("/add_blob_to_template", status_code=201)
+@private_route.post("/template_blobs/{template_id}", status_code=201)
 def add_blob_to_template(
-    blob=None,
     template_id: int = None,
     blob_set: str = None,
     pos_set: int = None,
     title: str = None,
     credit: str = None,
-    blob_vr=None,
+    blob: UploadFile = None,
+    blob_vr: UploadFile = None,
 ):
     """
     Adds a new blob to a template
     """
+    print("cosas")
     dest = {"dest": "template", "template_id": template_id}
 
     if add_blob(blob, blob_set, pos_set, title, credit, dest, blob_vr):
-        return json.dumps({"status": "OK"}).encode()
-    return json.dumps({"status": "KO"}).encode()
+        return None
+    message = f"error adding blob to template {template_id}"
+    return HTTPException(status_code=404, detail=message)
 
 
 def store_blob(
@@ -313,7 +314,6 @@ def store_blob(
         raise
 
 
-@staticmethod
 def get_blob_mime(blob) -> str:
     """
     Return format from blob
@@ -324,7 +324,6 @@ def get_blob_mime(blob) -> str:
     return blob_format
 
 
-@staticmethod
 def get_format_and_extension(mime: str) -> tuple[str, str]:
     """
     get format and extension from mime
@@ -337,7 +336,6 @@ def get_format_and_extension(mime: str) -> tuple[str, str]:
     return mime_format, ext
 
 
-@staticmethod
 def get_hash(blob) -> str:
     """
     Return the sha1 hash from blob
@@ -360,7 +358,6 @@ def copy_blob(blob, blob_hash: str, ext: str, dst_dir: str) -> str:
     return dst_path
 
 
-@staticmethod
 def get_subdir(blob_hash: str) -> str:
     """
     Returns the subdirectory from the blob hash
@@ -368,7 +365,6 @@ def get_subdir(blob_hash: str) -> str:
     return os.path.join(blob_hash[0], blob_hash[1])
 
 
-@staticmethod
 def do_add_blob_to_demo(
     conn, demo_id: int, blob_id: int, pos_set: int, blob_set: str, blob_title: str
 ) -> None:
@@ -385,7 +381,6 @@ def do_add_blob_to_demo(
         raise
 
 
-@staticmethod
 def do_add_blob_to_template(
     conn, template_id: int, blob_id: int, blob_set: str, pos_set: int, blob_title: str
 ) -> None:
@@ -421,23 +416,22 @@ def create_thumbnail(src_file, blob_hash: str) -> None:
         raise IPOLBlobsThumbnailError(f"File '{src_file}', thumbnail error. {ex}")
 
 
-@private_route.post("/create_template", status_code=201)
-def create_template(template_name: str) -> list:
+@private_route.post("/templates", status_code=201)
+def create_template(template_name: str) -> dict:
     """
     Creates a new empty template
     """
 
-    status = {"status": "KO"}
     conn = None
     try:
         conn = lite.connect(settings.database_file)
         result = database.template(conn, template_name)
         if result is not None and result["template_id"]:
-            status = {"status": "OK", "template_id": result["template_id"]}
-        else:
-            template_id = database.create_template(conn, template_name)
-            conn.commit()
-            status = {"status": "OK", "template_id": template_id}
+            return {"template_id": result["template_id"]}
+
+        template_id = database.create_template(conn, template_name)
+        conn.commit()
+        return {"template_id": template_id}
 
     except IPOLBlobsDataBaseError as ex:
         if conn is not None:
@@ -457,15 +451,13 @@ def create_template(template_name: str) -> list:
     finally:
         if conn is not None:
             conn.close()
-    return json.dumps(status).encode()
 
 
 @private_route.post("/add_template_to_demo", status_code=201)
-def add_template_to_demo(demo_id: int, template_id: int) -> list:
+def add_template_to_demo(demo_id: int, template_id: int) -> None:
     """
     Associates the demo to the list of templates
     """
-    status = {"status": "KO"}
     conn = None
     try:
         conn = lite.connect(settings.database_file)
@@ -478,7 +470,7 @@ def add_template_to_demo(demo_id: int, template_id: int) -> list:
 
         database.add_template_to_demo(conn, template_id, demo_id)
         conn.commit()
-        status = {"status": "OK"}
+        return None
 
     except IPOLBlobsDataBaseError as ex:
         if conn is not None:
@@ -503,25 +495,18 @@ def add_template_to_demo(demo_id: int, template_id: int) -> list:
     finally:
         if conn is not None:
             conn.close()
-    return json.dumps(status).encode()
 
 
-@app.get("/blobs/{demo_id}", status_code=200)
+# TODO Create endpoint to get a single blob given the demo_id, blob_pos and set_name
+
+
+@app.get("/demo_blobs/{demo_id}", status_code=200)
 def get_blobs(demo_id: int) -> list:
     """
     Get all the blobs used by the demo: owned blobs and from templates
     """
-    data = {"status": "KO"}
     conn = None
     try:
-        # Validate demo_id
-        try:
-            demo_id = int(demo_id)
-        except (TypeError, ValueError):
-            return json.dumps(
-                {"status": "KO", "error": f"Invalid demo_id: {demo_id}"}
-            ).encode()
-
         conn = lite.connect(settings.database_file)
 
         demo_blobs = database.get_demo_owned_blobs(conn, demo_id)
@@ -529,9 +514,7 @@ def get_blobs(demo_id: int) -> list:
         sets = prepare_list(demo_blobs)
         for template in templates:
             sets += prepare_list(database.get_template_blobs(conn, template["id"]))
-
-        data["sets"] = sets
-        data["status"] = "OK"
+        return sets
 
     except IPOLBlobsDataBaseError as ex:
         log.exception(f"Fails obtaining all the blobs from demo #{demo_id}")
@@ -546,7 +529,6 @@ def get_blobs(demo_id: int) -> list:
     finally:
         if conn is not None:
             conn.close()
-    return data
 
 
 def prepare_list(blobs) -> dict:
@@ -574,24 +556,39 @@ def prepare_list(blobs) -> dict:
     return result
 
 
+@app.get("/templates", status_code=200)
+def get_all_templates() -> list:
+    """
+    Return all the templates in the system
+    """
+    conn = None
+    try:
+        conn = lite.connect(settings.database_file)
+        return database.get_all_templates(conn)
+    except IPOLBlobsDataBaseError as ex:
+        log.exception("DB error while reading all the templates")
+        print(f"Failed reading all the templates. Error: {ex}")
+    except Exception as ex:
+        log.exception("*** Unhandled exception while reading all the templates")
+        print(f"*** Unhandled exception while reading all the templates. Error: {ex}")
+    finally:
+        if conn is not None:
+            conn.close()
+
+
 @app.get("/templates/{template_id}", status_code=200)
 def get_template_blobs(template_id: int) -> list:
     """
     Get the list of blobs in the given template
     """
-    data = {"status": "KO"}
     conn = None
     try:
         conn = lite.connect(settings.database_file)
 
         if not database.template_exist(conn, template_id):
             # If the requested template doesn't exist the method will return a KO
-            return data
-        sets = prepare_list(database.get_template_blobs(conn, template_id))
-
-        data["sets"] = sets
-        data["status"] = "OK"
-
+            return {}
+        return prepare_list(database.get_template_blobs(conn, template_id))
     except IPOLBlobsDataBaseError as ex:
         log.exception(f"Fails obtaining the owned blobs from template '{template_id}'")
         print(f"Couldn't obtain owned blobs from template '{template_id}'. Error: {ex}")
@@ -605,23 +602,19 @@ def get_template_blobs(template_id: int) -> list:
     finally:
         if conn is not None:
             conn.close()
-    return data
 
 
-@app.get("/get_demo_owned_blobs", status_code=200)
+@app.get("/demo_owned_blobs/{demo_id}", status_code=200)
 def get_demo_owned_blobs(demo_id: int) -> list:
     """
     Get the list of owned blobs for the demo
     """
-    data = {"status": "KO"}
     conn = None
     try:
         conn = lite.connect(settings.database_file)
 
         blobs = database.get_demo_owned_blobs(conn, demo_id)
-        sets = prepare_list(blobs)
-        data["sets"] = sets
-        data["status"] = "OK"
+        return prepare_list(blobs)
 
     except IPOLBlobsDataBaseError as ex:
         log.exception(f"Fails obtaining the owned blobs from demo #{demo_id}")
@@ -636,7 +629,6 @@ def get_demo_owned_blobs(demo_id: int) -> list:
     finally:
         if conn is not None:
             conn.close()
-    return data
 
 
 def blob_has_thumbnail(blob_hash: str) -> str:
@@ -704,7 +696,6 @@ def get_blob_info(blob) -> list:
     return blob_info
 
 
-@staticmethod
 def get_vr_extension(vr_dir: str, blob_hash: str) -> str:
     """
     If the visual representation exists, the function returns its extension
@@ -720,19 +711,16 @@ def get_vr_extension(vr_dir: str, blob_hash: str) -> str:
     return vr_extension
 
 
-@app.get("/demo/{demo_id}", status_code=200)
+@app.get("/demo_templates/{demo_id}", status_code=200)
 def get_demo_templates(demo_id: int) -> list:
     """
     Get the list of templates used by the demo
     """
-    data = {"status": "KO"}
     conn = None
     try:
         conn = lite.connect(settings.database_file)
 
-        db_response = database.get_demo_templates(conn, demo_id)
-        data["templates"] = db_response
-        data["status"] = "OK"
+        return database.get_demo_templates(conn, demo_id)
 
     except IPOLBlobsDataBaseError as ex:
         log.exception(f"Fails obtaining the owned templates from demo #{demo_id}")
@@ -747,7 +735,6 @@ def get_demo_templates(demo_id: int) -> list:
     finally:
         if conn is not None:
             conn.close()
-    return data
 
 
 def remove_blob(blob_set: str, pos_set: int, dest: str) -> bool:
@@ -819,26 +806,22 @@ def remove_blob(blob_set: str, pos_set: int, dest: str) -> bool:
         return res
 
 
-@private_route.post("/remove_blob_from_demo", status_code=201)
-def remove_blob_from_demo(demo_id: int, blob_set: str, pos_set: int) -> list:
+@private_route.delete("/demo_blobs/{demo_id}", status_code=204)
+def remove_blob_from_demo(demo_id: int, blob_set: str, pos_set: int) -> None:
     """
     Remove a blob from the demo
     """
     dest = {"dest": "demo", "demo_id": demo_id}
-    if remove_blob(blob_set, pos_set, dest):
-        return json.dumps({"status": "OK"}).encode()
-    return json.dumps({"status": "KO"}).encode()
+    remove_blob(blob_set, pos_set, dest)
 
 
-@private_route.post("/remove_blob_from_template", status_code=201)
-def remove_blob_from_template(template_id: int, blob_set: str, pos_set: int) -> list:
+@private_route.delete("/template_blobs/{template_id}", status_code=204)
+def remove_blob_from_template(template_id: int, blob_set: str, pos_set: int) -> None:
     """
     Remove a blob from the template
     """
     dest = {"dest": "template", "template_id": template_id}
-    if remove_blob(blob_set, pos_set, dest):
-        return json.dumps({"status": "OK"}).encode()
-    return json.dumps({"status": "KO"}).encode()
+    remove_blob(blob_set, pos_set, dest)
 
 
 def delete_blob_container(dest: str) -> bool:
@@ -904,40 +887,35 @@ def delete_blob_container(dest: str) -> bool:
         return res
 
 
-@private_route.post("/delete_demo", status_code=201)
-def delete_demo(demo_id: int) -> list:
+@private_route.post("/demos/{demo_id}", status_code=204)
+def delete_demo(demo_id: int) -> None:
     """
     Remove the demo
     """
     dest = {"dest": "demo", "demo_id": demo_id}
-    if delete_blob_container(dest):
-        return json.dumps({"status": "OK"}).encode()
-    return json.dumps({"status": "KO"}).encode()
+    delete_blob_container(dest)
 
 
-@private_route.post("/delete_template", status_code=201)
-def delete_template(template_id: int) -> list:
+@private_route.delete("/templates/{template_id}", status_code=204)
+def delete_template(template_id: int) -> None:
     """
     Remove the template
     """
     dest = {"dest": "template", "id": template_id}
-    if delete_blob_container(dest):
-        return json.dumps({"status": "OK"}).encode()
-    return json.dumps({"status": "KO"}).encode()
+    delete_blob_container(dest)
 
 
-@private_route.post("/remove_template_from_demo", status_code=201)
-def remove_template_from_demo(demo_id: int, template_id: int) -> list:
+@private_route.delete("/demo_templates/{demo_id}", status_code=204)
+def remove_template_from_demo(demo_id: int, template_id: int) -> None:
     """
     Remove the template from the demo
     """
-    data = {"status": "KO"}
     conn = None
     try:
         conn = lite.connect(settings.database_file)
         if database.remove_template_from_demo(conn, demo_id, template_id):
             conn.commit()
-            data["status"] = "OK"
+        return None
     except IPOLBlobsDataBaseError as ex:
         conn.rollback()
         log.exception("DB error while removing the template from the demo")
@@ -953,7 +931,6 @@ def remove_template_from_demo(demo_id: int, template_id: int) -> list:
     finally:
         if conn is not None:
             conn.close()
-    return data
 
 
 def remove_files_associated_to_a_blob(blob_hash: str) -> None:
@@ -999,7 +976,6 @@ def remove_dirs(blob_folder) -> None:
         raise IPOLRemoveDirError(ex)
 
 
-@staticmethod
 def generate_set_name(blob_id: int) -> str:
     """
     Generate a unique set name for the given blob id
@@ -1007,7 +983,7 @@ def generate_set_name(blob_id: int) -> str:
     return "__" + str(blob_id)
 
 
-@private_route.post("/edit_blob_from_demo", status_code=201)
+@private_route.put("/demo_blobs/{demo_id}", status_code=204)
 def edit_blob_from_demo(
     demo_id: int = None,
     blob_set: str = None,
@@ -1016,18 +992,19 @@ def edit_blob_from_demo(
     new_pos_set: int = None,
     title: str = None,
     credit: str = None,
-    vr: str = None,
-) -> list:
+    vr: UploadFile = None,
+) -> None:
     """
     Edit blob information in a demo
     """
     dest = {"dest": "demo", "demo_id": demo_id}
     if edit_blob(blob_set, new_blob_set, pos_set, new_pos_set, title, credit, vr, dest):
-        return json.dumps({"status": "OK"}).encode()
-    return json.dumps({"status": "KO"}).encode()
+        return None
+    message = f"Error updating blob on demo {demo_id}"
+    return HTTPException(status_code=404, detail=message)
 
 
-@private_route.post("/edit_blob_from_template", status_code=201)
+@private_route.put("/template_blobs/{template_id}", status_code=204)
 def edit_blob_from_template(
     template_id: int = None,
     blob_set: str = None,
@@ -1036,15 +1013,16 @@ def edit_blob_from_template(
     new_pos_set: int = None,
     title: str = None,
     credit: str = None,
-    vr: str = None,
-) -> list:
+    vr: UploadFile = None,
+) -> None:
     """
     Edit blob information in a template
     """
     dest = {"dest": "template", "id": template_id}
     if edit_blob(blob_set, new_blob_set, pos_set, new_pos_set, title, credit, vr, dest):
-        return json.dumps({"status": "OK"}).encode()
-    return json.dumps({"status": "KO"}).encode()
+        return None
+    message = f"error updating blob on template {template_id}"
+    return HTTPException(status_code=404, detail=message)
 
 
 def edit_blob(
@@ -1062,12 +1040,6 @@ def edit_blob(
     """
     res = False
     conn = None
-
-    try:
-        new_pos_set = int(new_pos_set)
-    except Exception:
-        log.error("new_pos_set needs to be an integer")
-        return res
 
     try:
         conn = lite.connect(settings.database_file)
@@ -1158,41 +1130,17 @@ def edit_blob(
     return res
 
 
-@app.get("/templates", status_code=200)
-def get_all_templates() -> list:
-    """
-    Return all the templates in the system
-    """
-    conn = None
-    data = {"status": "KO"}
-    try:
-        conn = lite.connect(settings.database_file)
-        data["templates"] = database.get_all_templates(conn)
-        data["status"] = "OK"
-    except IPOLBlobsDataBaseError as ex:
-        log.exception("DB error while reading all the templates")
-        print(f"Failed reading all the templates. Error: {ex}")
-    except Exception as ex:
-        log.exception("*** Unhandled exception while reading all the templates")
-        print(f"*** Unhandled exception while reading all the templates. Error: {ex}")
-    finally:
-        if conn is not None:
-            conn.close()
-    return data
-
-
-@private_route.post("/delete_vr_from_blob", status_code=201)
-def delete_vr_from_blob(blob_id: int) -> list:
+@private_route.delete("/visual_representations/{blob_id}", status_code=204)
+def delete_vr_from_blob(blob_id: int) -> None:
     """
     Remove the visual representation of the blob (in all the demos and templates)
     """
-    data = {"status": "KO"}
     conn = None
     try:
         conn = lite.connect(settings.database_file)
         blob_data = database.get_blob_data(conn, blob_id)
         if blob_data is None:
-            return data
+            return None
 
         blob_hash = blob_data.get("hash")
         subdir = get_subdir(blob_hash)
@@ -1235,8 +1183,7 @@ def delete_vr_from_blob(blob_id: int) -> list:
         if conn is not None:
             conn.close()
 
-    data["status"] = "OK"
-    return data
+    return None
 
 
 @private_route.post("/update_demo_id/{old_demo_id}", status_code=201)
@@ -1271,11 +1218,9 @@ def get_demos_using_the_template(template_id: int) -> list:
     Return the list of demos that use the given template
     """
     conn = None
-    data = {"status": "KO"}
     try:
         conn = lite.connect(settings.database_file)
-        data["demos"] = database.get_demos_using_the_template(conn, template_id)
-        data["status"] = "OK"
+        return database.get_demos_using_the_template(conn, template_id)
     except IPOLBlobsDataBaseError as ex:
         log.exception(
             "DB operation failed while getting the list of demos that uses the template"
@@ -1294,21 +1239,19 @@ def get_demos_using_the_template(template_id: int) -> list:
     finally:
         if conn is not None:
             conn.close()
-    return data
 
 
 @app.get("/stats", status_code=200)
-def stats() -> list:
+def stats() -> dict:
     """
     Return module stats
     """
     conn = None
-    data = {"status": "KO"}
+    data = {}
     try:
         conn = lite.connect(settings.database_file)
         data["nb_templates"] = len(database.get_all_templates(conn))
         data["nb_blobs"] = database.get_nb_of_blobs(conn)
-        data["status"] = "OK"
     except Exception as ex:
         log.exception("*** Unhandled exception while getting the blobs stats")
         print(f"*** Unhandled exception while getting the blobs stats. Error: {ex}")

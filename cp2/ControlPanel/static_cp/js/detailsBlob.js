@@ -17,20 +17,19 @@ $(document).ready(function(){
     let fetch_url;
     let url;
     if (template_id) {
-        fetch_url = `${location_url}/api/blobs/get_template_blobs?template_id=${template_id}`
+        fetch_url = `${location_url}/api/blobs/templates/${template_id}`
     } else {
-        fetch_url = `${location_url}/api/blobs/get_demo_owned_blobs?demo_id=${demo_id}`
+        fetch_url = `${location_url}/api/blobs/demo_owned_blobs/${demo_id}`
     }
     fetch(fetch_url)
         .then(response => response.json())
-        .then(data => {
-            for (const blobset of data.sets) {
+        .then(sets => {
+            for (const blobset of sets) {
                 if (blobset.name == set) {
                     for (const blobPos in blobset.blobs) {
                         if (blobPos === pos) {
                             blob = blobset.blobs[blobPos]
                             blob_id = blob.id
-                            console.log(blob);
                             vrVisibility(blob);
                         }
                     }
@@ -73,8 +72,8 @@ $(document).ready(function(){
             processData: false,
             type: 'POST',
             dataType : 'json',
-            success: function(data) {
-                if (data.status === 'OK') {
+            success: function(data, responseText, xhr) {
+                if (xhr.status == 200) {
                     if (template_id) {
                         document.location.href = `showTemplate?template_id=${template_id}&template_name=${template_name}`;
                     } else {
