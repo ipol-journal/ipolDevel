@@ -743,7 +743,7 @@ def ajax_add_template_to_demo(request):
     response = {}
     if user_can_edit_demo(request.user, demo_id):
         _, response_code = api_post(
-            f"/api/blobs/add_template_to_demo{demo_id}", method="post", params=settings
+            f"/api/blobs/add_template_to_demo/{demo_id}", method="post", params=settings
         )
         if response_code != 201:
             response["status"] = "KO"
