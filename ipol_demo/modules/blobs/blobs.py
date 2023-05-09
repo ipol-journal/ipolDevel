@@ -15,6 +15,8 @@ import os
 import re
 import shutil
 import sqlite3 as lite
+from contextlib import contextmanager
+from sqlite3 import Error
 from threading import Lock
 
 import database
@@ -148,6 +150,26 @@ def init_database() -> bool:
     return True
 
 
+@contextmanager
+def get_db_connection():
+    """
+    Returns a SQLite database connection object using a context manager.
+    """
+    connection = None
+    try:
+        connection = lite.connect(settings.database_file)
+        yield connection
+    except IPOLBlobsDataBaseError:
+        log.exception("DB error could not get a connection")
+        print("DB error could not get a connection")
+    except Error as e:
+        log.exception(f"Error connectin to database: {e}")
+        print(f"Error connecting to database: {e}")
+    finally:
+        if connection:
+            connection.close()
+
+
 @app.get("/ping", status_code=200)
 def ping() -> dict[str, str]:
     """
@@ -268,7 +290,7 @@ def add_blob_to_demo(
     if add_blob(blob, blob_set, pos_set, title, credit, dest, blob_vr):
         return None
     message = f"error adding blob to demo {demo_id}"
-    return HTTPException(status_code=404, detail=message)
+    raise HTTPException(status_code=404, detail=message)
 
 
 @private_route.post("/template_blobs/{template_id}", status_code=201)
@@ -290,7 +312,7 @@ def add_blob_to_template(
     if add_blob(blob, blob_set, pos_set, title, credit, dest, blob_vr):
         return None
     message = f"error adding blob to template {template_id}"
-    return HTTPException(status_code=404, detail=message)
+    raise HTTPException(status_code=404, detail=message)
 
 
 def store_blob(
@@ -453,17 +475,15 @@ def create_template(template_name: str) -> dict:
             conn.close()
 
 
-@private_route.post("/add_template_to_demo", status_code=201)
+@private_route.post("/add_template_to_demo/{demo_id}", status_code=201)
 def add_template_to_demo(demo_id: int, template_id: int) -> None:
     """
     Associates the demo to the list of templates
     """
-    conn = None
-    try:
-        conn = lite.connect(settings.database_file)
-
+    with get_db_connection() as conn:
         if not database.template_exist(conn, template_id):
-            raise IPOLBlobsTemplateError("Not all the templates exist")
+            message = f"Template {template_id} not found"
+            raise HTTPException(status_code=404, detail=message)
 
         if not database.demo_exist(conn, demo_id):
             database.create_demo(conn, demo_id)
@@ -471,30 +491,6 @@ def add_template_to_demo(demo_id: int, template_id: int) -> None:
         database.add_template_to_demo(conn, template_id, demo_id)
         conn.commit()
         return None
-
-    except IPOLBlobsDataBaseError as ex:
-        if conn is not None:
-            conn.rollback()
-        log.exception(f"Fails linking templates {template_id} to the demo #{demo_id}")
-        print(
-            f"Couldn't link templates {template_id} to the demo #{demo_id}. Error: {ex}"
-        )
-    except IPOLBlobsTemplateError as ex:
-        if conn is not None:
-            conn.rollback()
-        print(f"Some of the templates {template_id} does not exist. Error: {ex}")
-    except Exception as ex:
-        if conn is not None:
-            conn.rollback()
-        log.exception(
-            f"*** Unhandled exception while linking the templates {template_id} to the demo #{demo_id}"
-        )
-        print(
-            f"*** Unhandled exception while linking the templates {template_id} to the demo #{demo_id}. Error:{ex}"
-        )
-    finally:
-        if conn is not None:
-            conn.close()
 
 
 # TODO Create endpoint to get a single blob given the demo_id, blob_pos and set_name
@@ -581,27 +577,12 @@ def get_template_blobs(template_id: int) -> list:
     """
     Get the list of blobs in the given template
     """
-    conn = None
-    try:
-        conn = lite.connect(settings.database_file)
-
+    with get_db_connection() as conn:
         if not database.template_exist(conn, template_id):
-            # If the requested template doesn't exist the method will return a KO
-            return {}
+            message = f"Template {template_id} not found"
+            raise HTTPException(status_code=404, detail=message)
+
         return prepare_list(database.get_template_blobs(conn, template_id))
-    except IPOLBlobsDataBaseError as ex:
-        log.exception(f"Fails obtaining the owned blobs from template '{template_id}'")
-        print(f"Couldn't obtain owned blobs from template '{template_id}'. Error: {ex}")
-    except Exception as ex:
-        log.exception(
-            f"*** Unhandled exception while obtaining the owned blobs from template '{template_id}'"
-        )
-        print(
-            f"*** Unhandled exception while obtaining the owned blobs from template '{template_id}'. Error: {ex}"
-        )
-    finally:
-        if conn is not None:
-            conn.close()
 
 
 @app.get("/demo_owned_blobs/{demo_id}", status_code=200)
@@ -716,25 +697,8 @@ def get_demo_templates(demo_id: int) -> list:
     """
     Get the list of templates used by the demo
     """
-    conn = None
-    try:
-        conn = lite.connect(settings.database_file)
-
+    with get_db_connection() as conn:
         return database.get_demo_templates(conn, demo_id)
-
-    except IPOLBlobsDataBaseError as ex:
-        log.exception(f"Fails obtaining the owned templates from demo #{demo_id}")
-        print(f"Couldn't obtain owned templates from demo #{demo_id}. Error: {ex}")
-    except Exception as ex:
-        log.exception(
-            f"*** Unhandled exception while obtaining the owned templates from demo #{demo_id}"
-        )
-        print(
-            f"*** Unhandled exception while obtaining the owned templates from demo #{demo_id}. Error: {ex}"
-        )
-    finally:
-        if conn is not None:
-            conn.close()
 
 
 def remove_blob(blob_set: str, pos_set: int, dest: str) -> bool:
@@ -887,7 +851,7 @@ def delete_blob_container(dest: str) -> bool:
         return res
 
 
-@private_route.post("/demos/{demo_id}", status_code=204)
+@private_route.delete("/demos/{demo_id}", status_code=204)
 def delete_demo(demo_id: int) -> None:
     """
     Remove the demo
@@ -910,27 +874,10 @@ def remove_template_from_demo(demo_id: int, template_id: int) -> None:
     """
     Remove the template from the demo
     """
-    conn = None
-    try:
-        conn = lite.connect(settings.database_file)
+    with get_db_connection() as conn:
         if database.remove_template_from_demo(conn, demo_id, template_id):
             conn.commit()
-        return None
-    except IPOLBlobsDataBaseError as ex:
-        conn.rollback()
-        log.exception("DB error while removing the template from the demo")
-        print(f"Failed to remove the template from the demo. Error: {ex}")
-    except Exception as ex:
-        conn.rollback()
-        log.exception(
-            "*** Unhandled exception while removing the template from the demo"
-        )
-        print(
-            f"*** Unhandled exception while removing the template from the demo. Error: {ex}"
-        )
-    finally:
-        if conn is not None:
-            conn.close()
+    return None
 
 
 def remove_files_associated_to_a_blob(blob_hash: str) -> None:
@@ -1001,7 +948,7 @@ def edit_blob_from_demo(
     if edit_blob(blob_set, new_blob_set, pos_set, new_pos_set, title, credit, vr, dest):
         return None
     message = f"Error updating blob on demo {demo_id}"
-    return HTTPException(status_code=404, detail=message)
+    raise HTTPException(status_code=404, detail=message)
 
 
 @private_route.put("/template_blobs/{template_id}", status_code=204)
@@ -1022,7 +969,7 @@ def edit_blob_from_template(
     if edit_blob(blob_set, new_blob_set, pos_set, new_pos_set, title, credit, vr, dest):
         return None
     message = f"error updating blob on template {template_id}"
-    return HTTPException(status_code=404, detail=message)
+    raise HTTPException(status_code=404, detail=message)
 
 
 def edit_blob(
