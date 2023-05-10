@@ -768,24 +768,21 @@ class Core:
         returns:
         """
         try:
-            demo_blobs, _ = self.post(
-                "api/blobs/get_blobs", "post", data={"demo_id": demo_id}
-            )
-            demo_blobs = demo_blobs.json()
+            demo_blobs, status = self.post(f"api/blobs/demo_blobs/{demo_id}", "get")
         except json.JSONDecodeError as e:
             self.logger.exception(
-                f"Blobs get_blobs didn't return valid json at Core's copy_blobset_from_physical_location. {e}"
+                f"Blobs didn't return valid json at Core's copy_blobset_from_physical_location. {e}"
             )
             raise IPOLCopyBlobsError("Couldn't reach blobs")
 
-        if not demo_blobs["sets"] or demo_blobs["status"] == "KO":
+        if not demo_blobs or status != 200:
             self.logger.exception(
-                "Blobs get_blobs returned KO at Core's copy_blobset_from_physical_location"
+                "Failed to get blobs at Core's copy_blobset_from_physical_location"
             )
             raise IPOLCopyBlobsError("Couldn't reach blobs")
 
         try:
-            blobset = demo_blobs["sets"][blobset_id]
+            blobset = demo_blobs[blobset_id]
         except IndexError:
             raise IPOLCopyBlobsError("Blobset {} doesn't exist".format(blobset_id))
 
@@ -2073,7 +2070,6 @@ attached the failed experiment data.".format(
         demo_id = int(demo_id)
         data = {}
         data["status"] = "OK"
-        userdata = {"demo_id": demo_id}
         error_message = ""
 
         try:
@@ -2086,8 +2082,8 @@ attached the failed experiment data.".format(
             if not isinstance(result, Ok):
                 error_message += f"Error when removing demoextras: {result.value} \n"
 
-            response, _ = self.post("/api/blobs/delete_demo", "post", data=userdata)
-            if response.json()["status"] != "OK":
+            _, status_code = self.post(f"/api/blobs/demos/{demo_id}", "delete")
+            if status_code != 204:
                 error_message += "API call /blobs/delete_demo failed.'\n"
 
             # delete the archive
