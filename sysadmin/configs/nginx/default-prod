@@ -19,7 +19,9 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 
         location /demo/clientApp/ {
-                expires 24h;
+                # Request the browser to invalidate its cache after 24h (86400 s)
+                add_header Cache-Control "public, max-age=86400";
+                expires 86400;
                 resolver 127.0.0.1;
                 alias  /home/ipol/ipolDevel/ipol_demo/clientApp/;
         }
@@ -47,25 +49,25 @@ server {
 
     # robots.txt
     location /robots.txt {
-        expires 7d;
+        add_header Cache-Control "public";
         alias  /home/ipol/ipolDevel/sysadmin/robots.txt;
     }
 
     # Generic static data
     location /static/ {
-        expires 24h;
+        add_header Cache-Control "public";
         alias  /home/ipol/static/;
     }
 
     # Easter egg
     location /sexy.gif {
-        expires 30d;
+        add_header Cache-Control "public";
         alias  /home/ipol/static/easter-egg/sexy.gif;
     }
 
     # IPOL favicon
     location /favicon.ico {
-        expires 1y;
+        add_header Cache-Control "public";
         add_header 'Access-Control-Allow-Origin' '*';
         add_header 'Access-Control-Allow-Methods' 'GET';
         alias  /home/ipol/ipolDevel/ipol_demo/clientApp/assets/favicon.ico;
@@ -79,22 +81,22 @@ server {
 
     # DemoExtras static resources
     location ~ ^/demo/clientApp/static/(?<demo>\d+)/(?<resource>.+) {
+        # Request the browser not to cache
+        add_header Cache-Control "no-store, max-age=-1";
+        expires 1s; # Fallback, it should be ignored
+
         add_header 'Access-Control-Allow-Origin' '*';
 		add_header 'Access-Control-Allow-Methods' 'GET';
-        expires 1d;
+
         alias /home/ipol/ipolDevel/shared_folder/demoExtras/$demo/http/$resource;
     }
 
     # Static files of the web interface
     location /demo/clientApp/ {
-        expires 24h;
+        # Request the browser to invalidate its cache after 24h (86400 s)
+        add_header Cache-Control "public, max-age=86400";
+        expires 86400;
 
-        # Private demos
-        # Change the CompanyName to the real name
-        if ($args ~ ".*id=33333001\d*") {
-            error_page 418 = @CompanyNamePasswd;
-            return 418;
-        }
         # Content-Security-Policy (CSP) for JQuery and MapLibre
         # JQuery:
         # default-src 'self' data: https: blob: 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval' https: code.jquery.com cdnjs.cloudflare.com;
@@ -102,6 +104,13 @@ server {
         # worker-src blob: ; child-src blob: ; frame-src * data: blob: ; 
         add_header 'Content-Security-Policy' "default-src 'self' data: https: blob: 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval' https: code.jquery.com cdnjs.cloudflare.com; worker-src blob: ; child-src blob: ; frame-src * data: blob: ; ";
         add_header 'Access-Control-Allow-Origin' '*';
+
+        # Private demos
+        # Change the CompanyName to the real name
+        if ($args ~ ".*id=33333001\d*") {
+            error_page 418 = @CompanyNamePasswd;
+            return 418;
+        }
 
         alias  /home/ipol/ipolDevel/ipol_demo/clientApp/;
     }
@@ -136,7 +145,8 @@ server {
 
     # shared_folder, run static data
     location /api/core/shared_folder/run/ {
-        expires 24h;
+        add_header Cache-Control "no-store, max-age=-1";
+        expires 1s; # Fallback, it should be ignored
         add_header 'Access-Control-Allow-Origin' '*';
         add_header 'Access-Control-Allow-Methods' 'GET';
         alias  /home/ipol/ipolDevel/shared_folder/run/;
@@ -151,7 +161,7 @@ server {
     #
     # BLOBS static data
     location /api/blobs/staticData/ {
-        expires 24h;
+        add_header Cache-Control "public";
         add_header 'Access-Control-Allow-Origin' '*';
         add_header 'Access-Control-Allow-Methods' 'GET';
         alias  /home/ipol/ipolDevel/ipol_demo/modules/blobs/staticData/;
@@ -167,7 +177,7 @@ server {
     #
     # ARCHIVE static data
     location /api/archive/staticData/ {
-        expires 1y;
+        add_header Cache-Control "public";
         add_header 'Access-Control-Allow-Origin' '*';
         add_header 'Access-Control-Allow-Methods' 'GET';
         alias  /home/ipol/ipolDevel/ipol_demo/modules/archive/staticData/;

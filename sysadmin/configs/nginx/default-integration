@@ -19,7 +19,10 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 
         location /demo/clientApp/ {
-            expires 1m;
+            # Request the browser not to cache
+            add_header Cache-Control "no-store, max-age=-1";
+            expires 1s; # Fallback, it should be ignored
+
             resolver 127.0.0.1;
             alias  /home/ipol/ipolDevel/ipol_demo/clientApp/;
         }
@@ -52,21 +55,21 @@ server {
 
 	# DemoExtras static resources
 	location ~ ^/demo/clientApp/static/(?<demo>\d+)/(?<resource>.+) {
+        # Request the browser not to cache
+        add_header Cache-Control "no-store, max-age=-1";
+        expires 1s; # Fallback, it should be ignored
+    
 		add_header 'Access-Control-Allow-Origin' '*';
 		add_header 'Access-Control-Allow-Methods' 'GET';
-		expires 1d;
+
 		alias /home/ipol/ipolDevel/shared_folder/demoExtras/$demo/http/$resource;
 	}
 
 	# Static files of the web interface
 	location /demo/clientApp/ {
-
-        # Private demos
-        # Change the authTest to the real name
-        if ($args ~ ".*id=33333999\d*") {
-            error_page 418 = @authTestPasswd;
-            return 418;
-        }
+        # Request the browser not to cache
+        add_header Cache-Control "no-store, max-age=-1";
+        expires 1s; # Fallback, it should be ignored
 
         # Content-Security-Policy (CSP) for JQuery and MapLibre
         # JQuery:
@@ -75,10 +78,18 @@ server {
         # worker-src blob: ; child-src blob: ; frame-src * data: blob: ; 
         add_header 'Content-Security-Policy' "default-src 'self' data: https: blob: 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval' https: code.jquery.com cdnjs.cloudflare.com; worker-src blob: ; child-src blob: ; frame-src * data: blob: ; ";
         add_header 'Access-Control-Allow-Origin' '*';
-
-        expires 1m;
+    
+        # Authentication
         auth_basic "Restricted";
         auth_basic_user_file /etc/nginx/.passwd/integration;
+
+        # Private demos
+        # Change the authTest to the real name
+        if ($args ~ ".*id=33333999\d*") {
+            error_page 418 = @authTestPasswd;
+            return 418;
+        }
+
         resolver 127.0.0.1;
         alias  /home/ipol/ipolDevel/ipol_demo/clientApp/;
     }
@@ -112,6 +123,10 @@ server {
 
 	# CP
 	location /cp2/static/ {
+        # Request the browser not to cache
+        add_header Cache-Control "no-store, max-age=-1";
+        expires 1s; # Fallback, it should be ignored
+        
 		alias /home/ipol/CP2_STATIC/;
 	}
 
@@ -153,7 +168,7 @@ server {
 	
 	# shared_folder, run static data
 	location /api/core/shared_folder/run/ {
-		expires 24h;
+        add_header Cache-Control "no-store, max-age=-1";
 		add_header 'Access-Control-Allow-Origin' '*';
 		add_header 'Access-Control-Allow-Methods' 'GET';
 		alias  /home/ipol/ipolDevel/shared_folder/run/;
@@ -168,7 +183,7 @@ server {
 
 	# BLOBS static data
 	location /api/blobs/staticData/ {
-		expires 24h;
+		add_header Cache-Control "public";
 		add_header 'Access-Control-Allow-Origin' '*';
 		add_header 'Access-Control-Allow-Methods' 'GET';
 		alias  /home/ipol/ipolDevel/ipol_demo/modules/blobs/staticData/;
@@ -184,7 +199,7 @@ server {
 
 	# ARCHIVE static data
 	location /api/archive/staticData/ {
-		expires 1y;
+		add_header Cache-Control "public";
 		add_header 'Access-Control-Allow-Origin' '*';
 		add_header 'Access-Control-Allow-Methods' 'GET';
 		alias  /home/ipol/ipolDevel/ipol_demo/modules/archive/staticData/;
