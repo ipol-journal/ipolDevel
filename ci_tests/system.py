@@ -193,13 +193,13 @@ class IntegrationTests(unittest.TestCase):
         elif method == "delete":
             return requests.delete(url, **kwargs)
         else:
-            assert False
+            assert False, f"Invalid HTTP(S) method: '{method}'."
 
     def check_status(self, response, error_msg):
         """
         If the response is not OK it will log the error
         """
-        if "status" not in response or response["status"] == "KO":
+        if "status" not in response or response["status"] != "OK":
             print("{}. Response from the module: {}".format(error_msg, response))
 
     def create_demo(self, demo_id, title, state):
@@ -271,7 +271,7 @@ class IntegrationTests(unittest.TestCase):
             "params": {},
             "crop_info": {
                 "x": 20,
-                "y": 9.199999999999996,
+                "y": 9.2,
                 "width": width,
                 "height": height,
                 "rotate": 0,

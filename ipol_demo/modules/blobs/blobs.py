@@ -44,7 +44,6 @@ class Settings(BaseSettings):
     config_common_dir: str = (
         os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/config_common"
     )
-    number_of_experiments_by_pages: int = 5
     authorized_patterns: str = "authorized_patterns.conf"
 
     # Paths
@@ -55,6 +54,7 @@ class Settings(BaseSettings):
 
 settings = Settings()
 app = FastAPI()
+lock = Lock()
 
 
 def validate_ip(request: Request) -> bool:
@@ -184,7 +184,13 @@ def shutdown_event():
 
 
 def add_blob(
-    blob, blob_set: str, pos_set: int, title: str, credit: str, dest: str, blob_vr
+    blob: UploadFile,
+    blob_set: str,
+    pos_set: int,
+    title: str,
+    credit: str,
+    dest: dict,
+    blob_vr: UploadFile,
 ) -> bool:
     """
     Copies the blob and store it in the DB
@@ -275,11 +281,11 @@ def add_blob(
 
 @private_route.post("/demo_blobs/{demo_id}", status_code=201)
 def add_blob_to_demo(
-    blob: UploadFile = None,
-    demo_id: int = None,
+    blob: UploadFile,
+    demo_id: int,
+    title: str,
     blob_set: str = None,
     pos_set: int = None,
-    title: str = None,
     credit: str = None,
     blob_vr: UploadFile = None,
 ):
@@ -295,18 +301,17 @@ def add_blob_to_demo(
 
 @private_route.post("/template_blobs/{template_id}", status_code=201)
 def add_blob_to_template(
-    template_id: int = None,
+    template_id: int,
+    title: str,
+    blob: UploadFile,
     blob_set: str = None,
     pos_set: int = None,
-    title: str = None,
     credit: str = None,
-    blob: UploadFile = None,
     blob_vr: UploadFile = None,
 ):
     """
     Adds a new blob to a template
     """
-    print("cosas")
     dest = {"dest": "template", "template_id": template_id}
 
     if add_blob(blob, blob_set, pos_set, title, credit, dest, blob_vr):
@@ -512,22 +517,18 @@ def get_blobs(demo_id: int) -> list:
             sets += prepare_list(database.get_template_blobs(conn, template["id"]))
         return sets
 
-    except IPOLBlobsDataBaseError as ex:
+    except IPOLBlobsDataBaseError:
         log.exception(f"Fails obtaining all the blobs from demo #{demo_id}")
-        print(f"Couldn't obtain all the blobs from demo #{demo_id}. Error: {ex}")
-    except Exception as ex:
+    except Exception:
         log.exception(
             f"*** Unhandled exception while obtaining all the blobs from demo #{demo_id}"
-        )
-        print(
-            f"*** Unhandled exception while obtaining all the blobs from demo #{demo_id}. Error: {ex}"
         )
     finally:
         if conn is not None:
             conn.close()
 
 
-def prepare_list(blobs) -> dict:
+def prepare_list(blobs) -> list:
     """
     Prepare the output list of blobs
     """
@@ -705,7 +706,7 @@ def remove_blob(blob_set: str, pos_set: int, dest: str) -> bool:
     """
     Remove the blob
     """
-    with Lock():
+    with lock:
         res = False
         conn = None
         try:
@@ -792,7 +793,7 @@ def delete_blob_container(dest: str) -> bool:
     """
     Remove the demo or template and all the blobs only used by them
     """
-    with Lock():
+    with lock:
         res = False
         conn = None
         ref_count = {}  # Number of uses for  a blob before removing

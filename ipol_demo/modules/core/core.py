@@ -769,17 +769,16 @@ class Core:
         """
         try:
             demo_blobs, status = self.post(f"api/blobs/demo_blobs/{demo_id}", "get")
-        except json.JSONDecodeError as e:
-            self.logger.exception(
-                f"Blobs didn't return valid json at Core's copy_blobset_from_physical_location. {e}"
-            )
-            raise IPOLCopyBlobsError("Couldn't reach blobs")
+        except json.JSONDecodeError as ex:
+            self.logger.exception(f"{ex}")
+            raise IPOLCopyBlobsError(f"{ex}")
 
         if not demo_blobs or status != 200:
-            self.logger.exception(
+            error_msg = (
                 "Failed to get blobs at Core's copy_blobset_from_physical_location"
             )
-            raise IPOLCopyBlobsError("Couldn't reach blobs")
+            self.logger.exception(error_msg)
+            raise IPOLCopyBlobsError(error_msg)
 
         try:
             blobset = demo_blobs[blobset_id]

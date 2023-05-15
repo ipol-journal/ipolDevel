@@ -19,7 +19,7 @@ function add_template_to_demo(selected_template) {
                 // add_the_template();
                 window.location.reload();
             } else {
-                alert("Error to added the template to this demo or any template selected")
+                alert("Error when adding the template to this demo or any template selected")
             }
         },
     })
@@ -38,12 +38,13 @@ $("button.unlink-template").click(function (event) {
         type: 'POST',
         dataType: 'json',
         success: function(data, responseText, xhr) {
-            if (xhr.status == 200) {
+            if (xhr.status == 204) {
                 document.location.href = `showBlobsDemo?demo_id=${demo_id}`;
             } else {
-                alert("Error to delete this template from the demo");
+                alert("Error when deleting this template from the demo");
             }
         },
+        error: () => (alert("Error when trying to detach this template from demo"))
     })
 });
 
@@ -89,7 +90,7 @@ $("button.remove-blob").click(function () {
             if (data.status === 'OK') {
                 document.location.href = `showBlobsDemo?demo_id=${demo_id}`
             } else {
-                alert("Error to delete this Blob");
+                alert("Error when deleting this Blob");
             }
         },
     })

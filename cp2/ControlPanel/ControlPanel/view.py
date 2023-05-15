@@ -376,7 +376,6 @@ def ajax_add_blob_template(request):
         params=settings,
         files=files,
     )
-    print(response_api)
     return HttpResponse(json.dumps(response_api), "application/json")
 
 
@@ -434,7 +433,6 @@ def detailsBlob(request):
                     "thumbnail": thumbnail,
                     "vr": vr,
                 }
-                print(context)
                 return render(request, "detailsBlob.html", context)
         return JsonResponse({"status": "OK", "message": "Blob not found"}, status=404)
 
@@ -761,10 +759,10 @@ def ajax_remove_template_to_demo(request):
     template_id = request.POST["template_id"]
     settings = {"demo_id": demo_id, "template_id": template_id}
     if user_can_edit_demo(request.user, demo_id):
-        api_post(
+        _, status_code = api_post(
             f"/api/blobs/demo_templates/{demo_id}", method="delete", params=settings
         )
-        return JsonResponse({}, status=200)
+        return JsonResponse({}, status=status_code)
     else:
         return render(request, "homepage.html")
 
