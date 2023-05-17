@@ -113,8 +113,8 @@ def init_database() -> bool:
         if file_info.st_size == 0:
             try:
                 os.remove(settings.database_file)
-            except Exception as ex:
-                log.exception(f"init_database: {ex}")
+            except Exception:
+                log.exception("init_database")
                 return False
 
     if not os.path.isfile(settings.database_file):
@@ -137,14 +137,14 @@ def init_database() -> bool:
             conn.commit()
             conn.close()
 
-        except Exception as ex:
-            log.exception(f"init_database: {ex}")
+        except Exception:
+            log.exception("init_database")
 
             if os.path.isfile(settings.database_file):
                 try:
                     os.remove(settings.database_file)
-                except Exception as ex:
-                    log.exception(f"init_database: {ex}")
+                except Exception:
+                    log.exception("init_database")
                     return False
 
     return True
@@ -159,10 +159,10 @@ def get_db_connection():
     try:
         connection = lite.connect(settings.database_file)
         yield connection
-    except IPOLBlobsDataBaseError as ex:
-        log.exception(f"DB error could not get a connection: {ex}")
-    except Error as ex:
-        log.exception(f"Error connectin to database: {ex}")
+    except IPOLBlobsDataBaseError:
+        log.exception("DB error could not get a connection")
+    except Error:
+        log.exception("Error connectin to database")
     finally:
         if connection:
             connection.close()
@@ -217,9 +217,9 @@ def add_blob(
                     blob_file = os.path.join(blob_file, blob_hash + ext)
                     create_thumbnail(blob_file, blob_hash)
 
-        except IPOLBlobsThumbnailError as ex:
+        except IPOLBlobsThumbnailError:
             # An error in the creation of the thumbnail doesn't stop the execution of the method
-            log.exception(f"Error creating the thumbnail. Error: {ex}")
+            log.exception("Error creating the thumbnail.")
 
         # If the set is empty the module generates an unique set name
         if not blob_set:
@@ -256,16 +256,14 @@ def add_blob(
                 f'Failed to add the blob in add_blob. Unknown dest: {dest["dest"]}'
             )
 
-    except IOError as ex:
-        log.exception(f"Error copying uploaded blob. Error: {ex}")
-    except IPOLBlobsDataBaseError as ex:
-        log.exception(f"Error adding blob info to DB. Error: {ex}")
-    except IPOLBlobsTemplateError as ex:
-        log.exception(
-            f"Couldn't add blob to template. blob. Template doesn't exists. Error: {ex}"
-        )
-    except Exception as ex:
-        log.exception(f"*** Unhandled exception while adding the blob. Error: {ex}")
+    except IOError:
+        log.exception("Error copying uploaded blob.")
+    except IPOLBlobsDataBaseError:
+        log.exception("Error adding blob info to DB.")
+    except IPOLBlobsTemplateError:
+        log.exception("Couldn't add blob to template. blob. Template doesn't exists.")
+    except Exception:
+        log.exception("*** Unhandled exception while adding the blob.")
     finally:
         if conn is not None:
             conn.close()
@@ -454,15 +452,15 @@ def create_template(template_name: str) -> dict:
         conn.commit()
         return {"template_id": template_id}
 
-    except IPOLBlobsDataBaseError as ex:
+    except IPOLBlobsDataBaseError:
         if conn is not None:
             conn.rollback()
-        log.exception(f"Fail creating template {template_name}. Error: {ex}")
-    except Exception as ex:
+        log.exception(f"Fail creating template {template_name}.")
+    except Exception:
         if conn is not None:
             conn.rollback()
         log.exception(
-            f"*** Unhandled exception while creating the template {template_name}. Error: {ex}"
+            f"*** Unhandled exception while creating the template {template_name}."
         )
 
     finally:
@@ -552,12 +550,10 @@ def get_all_templates() -> list:
     try:
         conn = lite.connect(settings.database_file)
         return database.get_all_templates(conn)
-    except IPOLBlobsDataBaseError as ex:
-        log.exception(f"DB error while reading all the templates. Error: {ex}")
-    except Exception as ex:
-        log.exception(
-            f"*** Unhandled exception while reading all the templates. Error: {ex}"
-        )
+    except IPOLBlobsDataBaseError:
+        log.exception("DB error while reading all the templates.")
+    except Exception:
+        log.exception("*** Unhandled exception while reading all the templates.")
     finally:
         if conn is not None:
             conn.close()
@@ -588,13 +584,11 @@ def get_demo_owned_blobs(demo_id: int) -> list:
         blobs = database.get_demo_owned_blobs(conn, demo_id)
         return prepare_list(blobs)
 
-    except IPOLBlobsDataBaseError as ex:
+    except IPOLBlobsDataBaseError:
+        log.exception(f"Fails obtaining the owned blobs from demo #{demo_id}.")
+    except Exception:
         log.exception(
-            f"Fails obtaining the owned blobs from demo #{demo_id}. Error: {ex}"
-        )
-    except Exception as ex:
-        log.exception(
-            f"*** Unhandled exception while obtaining the owned blobs from demo #{demo_id}. Error: {ex}"
+            f"*** Unhandled exception while obtaining the owned blobs from demo #{demo_id}."
         )
     finally:
         if conn is not None:
@@ -737,20 +731,18 @@ def remove_blob(blob_set: str, pos_set: int, dest: str) -> bool:
                 remove_files_associated_to_a_blob(blob_hash)
             conn.commit()
             res = True
-        except IPOLBlobsDataBaseError as ex:
+        except IPOLBlobsDataBaseError:
             conn.rollback()
-            log.exception(f"DB error while removing blob. Error: {ex}")
-        except OSError as ex:
+            log.exception("DB error while removing blob.")
+        except OSError:
             conn.rollback()
-            log.exception(f"OS error while deleting blob file. Error: {ex}")
-        except IPOLRemoveDirError as ex:
+            log.exception("OS error while deleting blob file.")
+        except IPOLRemoveDirError:
             # There is no need to do a rollback if the problem was deleting directories
-            log.exception(f"Failed to remove directories. Error: {ex}")
-        except Exception as ex:
+            log.exception("Failed to remove directories.")
+        except Exception:
             conn.rollback()
-            log.exception(
-                f"*** Unhandled exception while removing the blob. Error: {ex}"
-            )
+            log.exception("*** Unhandled exception while removing the blob.")
         finally:
             if conn is not None:
                 conn.close()
@@ -814,20 +806,18 @@ def delete_blob_container(dest: str) -> bool:
 
             conn.commit()
             res = True
-        except OSError as ex:
+        except OSError:
             conn.rollback()
-            log.exception(f"OS error while deleting blob file. Error: {ex}")
-        except IPOLRemoveDirError as ex:
+            log.exception("OS error while deleting blob file.")
+        except IPOLRemoveDirError:
             # There is no need to do a rollback if the problem was deleting directories
-            log.exception(f"Failed to remove directories. Error: {ex}")
-        except IPOLBlobsDataBaseError as ex:
+            log.exception("Failed to remove directories.")
+        except IPOLBlobsDataBaseError:
             conn.rollback()
-            log.exception(f"DB error while removing the demo/template. Error: {ex}")
-        except Exception as ex:
+            log.exception("DB error while removing the demo/template.")
+        except Exception:
             conn.rollback()
-            log.exception(
-                f"*** Unhandled exception while removing the demo/template. Error: {ex}"
-            )
+            log.exception("*** Unhandled exception while removing the demo/template.")
         finally:
             if conn is not None:
                 conn.close()
@@ -1040,17 +1030,17 @@ def edit_blob(
             blob_file = copy_blob(blob_vr.file, blob_hash, vr_ext, settings.vr_dir)
             try:
                 create_thumbnail(blob_file, blob_hash)
-            except IPOLBlobsThumbnailError as ex:
-                log.exception(f"Error creating the thumbnail. Error: {ex}")
+            except IPOLBlobsThumbnailError:
+                log.exception("Error creating the thumbnail.")
         conn.commit()
         res = True
 
-    except IPOLBlobsDataBaseError as ex:
+    except IPOLBlobsDataBaseError:
         conn.rollback()
-        log.exception(f"DB error while editing the blob. Error: {ex}")
-    except Exception as ex:
+        log.exception("DB error while editing the blob.")
+    except Exception:
         conn.rollback()
-        log.exception(f"*** Unhandled exception while editing the blob. Error: {ex}")
+        log.exception("*** Unhandled exception while editing the blob.")
     finally:
         if conn is not None:
             conn.close()
@@ -1095,13 +1085,13 @@ def delete_vr_from_blob(blob_id: int) -> None:
                 blobs_in_dir = glob.glob(os.path.join(blob_folder, blob_hash + ".*"))
                 if blobs_in_dir:
                     create_thumbnail(blobs_in_dir[0], blob_hash)
-        except IPOLBlobsThumbnailError as ex:
-            log.exception(f"Error creating the thumbnail. Error: {ex}")
+        except IPOLBlobsThumbnailError:
+            log.exception("Error creating the thumbnail.")
 
-    except IPOLBlobsDataBaseError as ex:
-        log.exception(f"DB error while removing the visual representation. Error: {ex}")
-    except Exception as ex:
-        mess = f"*** Unhandled exception while removing the visual representation. Error: {ex}"
+    except IPOLBlobsDataBaseError:
+        log.exception("DB error while removing the visual representation.")
+    except Exception:
+        mess = "*** Unhandled exception while removing the visual representation."
         log.exception(mess)
     finally:
         if conn is not None:
@@ -1122,12 +1112,12 @@ def update_demo_id(old_demo_id: int, new_demo_id: int) -> list:
         database.update_demo_id(conn, old_demo_id, new_demo_id)
         data["status"] = "OK"
         conn.commit()
-    except IPOLBlobsDataBaseError as ex:
+    except IPOLBlobsDataBaseError:
         conn.rollback()
-        log.exception(f"DB error while updating demo id. Error: {ex}")
-    except Exception as ex:
+        log.exception("DB error while updating demo id.")
+    except Exception:
         conn.rollback()
-        log.exception(f"*** Unhandled exception while updating demo id. Error: {ex}")
+        log.exception("*** Unhandled exception while updating demo id.")
     finally:
         if conn is not None:
             conn.close()
@@ -1143,14 +1133,14 @@ def get_demos_using_the_template(template_id: int) -> list:
     try:
         conn = lite.connect(settings.database_file)
         return database.get_demos_using_the_template(conn, template_id)
-    except IPOLBlobsDataBaseError as ex:
+    except IPOLBlobsDataBaseError:
         log.exception(
-            f"DB operation failed while getting the list of demos that uses the template. Error: {ex}"
+            "DB operation failed while getting the list of demos that uses the template."
         )
-    except Exception as ex:
+    except Exception:
         conn.rollback()
         log.exception(
-            f"*** Unhandled exception while getting the list of demos that uses the template. Error: {ex}"
+            "*** Unhandled exception while getting the list of demos that uses the template."
         )
     finally:
         if conn is not None:
@@ -1168,10 +1158,8 @@ def stats() -> dict:
         conn = lite.connect(settings.database_file)
         data["nb_templates"] = len(database.get_all_templates(conn))
         data["nb_blobs"] = database.get_nb_of_blobs(conn)
-    except Exception as ex:
-        log.exception(
-            f"*** Unhandled exception while getting the blobs stats. Error: {ex}"
-        )
+    except Exception:
+        log.exception("*** Unhandled exception while getting the blobs stats.")
     finally:
         if conn is not None:
             conn.close()
