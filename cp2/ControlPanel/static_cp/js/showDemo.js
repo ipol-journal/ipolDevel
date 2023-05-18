@@ -292,6 +292,7 @@ function showDemoEditModal() {
 			<label for="state">State</label>
 			<select name="state" id="state-select">
 				<option value="test">test</option>
+				<option value="example">example</option>
 				<option value="workshop">workshop</option>
 				<option value="preprint">Preprint</option>
 				<option value="published">Published</option>

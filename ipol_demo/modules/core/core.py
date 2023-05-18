@@ -638,7 +638,7 @@ class Core:
         if not code_starts:
             string += """
                      <h3>The demos whose ID begins with '77777' are public workshops and those with '33333' are private.
-                     Test demos begin with '55555'.</h3><br>
+                     Test demos begin with '55555' whereas Example demos begin with '11111'.</h3><br>
                      """
         string += """
                  {}
