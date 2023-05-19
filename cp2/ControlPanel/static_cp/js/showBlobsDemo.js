@@ -19,13 +19,14 @@ function add_template_to_demo(selected_template) {
                 // add_the_template();
                 window.location.reload();
             } else {
-                alert("Error to added the template to this demo or any template selected")
+                alert("Error when adding the template to this demo or any template selected")
             }
         },
     })
 };
 
-$("button.unlink-template").click(function () {
+$("button.unlink-template").click(function (event) {
+    event.preventDefault();
     let template_id = $(this).attr('data-template-id');
     $.ajax({
         data: ({
@@ -36,13 +37,14 @@ $("button.unlink-template").click(function () {
         url: 'showBlobsDemo/ajax_remove_template_to_demo',
         type: 'POST',
         dataType: 'json',
-        success: function(data) {
-            if (data.status === 'OK') {
+        success: function(data, responseText, xhr) {
+            if (xhr.status == 204) {
                 document.location.href = `showBlobsDemo?demo_id=${demo_id}`;
             } else {
-                alert("Error to delete this template from the demo");
+                alert("Error when deleting this template from the demo");
             }
         },
+        error: () => (alert("Error when trying to detach this template from demo"))
     })
 });
 
@@ -67,7 +69,7 @@ function update_edit_demo() {
     }); 
 };
 
-$("button.btn-delete").click(function () {
+$("button.remove-blob").click(function () {
     var blobSelection = $(this).attr('name');
     var pos_set = $(this).attr('blobpos');
     console.log(blobSelection, pos_set);
@@ -88,7 +90,7 @@ $("button.btn-delete").click(function () {
             if (data.status === 'OK') {
                 document.location.href = `showBlobsDemo?demo_id=${demo_id}`
             } else {
-                alert("Error to delete this Blob");
+                alert("Error when deleting this Blob");
             }
         },
     })

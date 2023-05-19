@@ -11,4 +11,4 @@ fi
 export IPOL_HOST=$(hostname -f)
 export IPOL_URL=http://$(hostname -f)
 
-nohup bash -c "source ./venv/bin/activate && python main.py blobs.conf &" >/dev/null &
+uvicorn blobs:app --reload --host 0.0.0.0 --port 9001

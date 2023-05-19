@@ -68,7 +68,6 @@ urlpatterns = [
                 path("templates", templates),
                 path("templates/ajax", ajax_add_template),
                 path("showTemplate", showTemplate),
-                path("showTemplates/ajax", ajax_delete_blob_template),
                 path("showTemplates/ajax_delete_template", ajax_delete_template),
                 path("createBlob", CreateBlob),
                 path("createBlob/template", ajax_add_blob_template),
@@ -95,7 +94,6 @@ urlpatterns = [
                 path("showDemo/ddl_history", ddl_history, name="ddl_history"),
                 path("showDemo/reset_ssh_key", reset_ssh_key),
                 path("showBlobsDemo", showBlobsDemo),
-                path("showBlobsDemo/ajax", ajax_delete_blob_demo),
                 path(
                     "showBlobsDemo/ajax_add_template_to_demo", ajax_add_template_to_demo
                 ),

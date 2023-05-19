@@ -1,8 +1,7 @@
     //-----------------------------------------Status Module-----------------------------------------//
 
-    function estate(jsonObj, idDiv, moduleName) {
-        var status = jsonObj['status'];
-        if (status === "OK") {
+    function moduleState(status, idDiv, moduleName) {
+        if (status === "OK" || status == 200) {
             $('#' + idDiv).prepend(`<h2>${moduleName} module is running: <i class="fa-solid fa-check"></i></i></h2>`);
         } else {
             $('#' + idDiv).prepend(`<h2>' ${moduleName} does not respond!  <i class="fa-solid fa-triangle-exclamation"></i></h2>`);
@@ -57,8 +56,8 @@
             type: 'GET',
             dataType: 'json',
             url: '/api/archive/stats',
-            success: function(data) {
-                estate(data, "Archive", "Archive");
+            success: function(data, textStatus, xhr) {
+                moduleState(xhr.status, "Archive", "Archive");
                 chargeArchive(data);
             },
             error: function() {
@@ -102,8 +101,8 @@
             type: 'GET',
             dataType: 'json',
             url: '/api/blobs/stats',
-            success: function(data) {
-                estate(data, "Blobs", "Blobs");
+            success: function(data, textStatus, xhr) {
+                moduleState(xhr.status, "Blobs", "Blobs");
                 chargeBlobs(data);
             },
             error: function() {
@@ -120,8 +119,8 @@
             type: 'GET',
             dataType: 'json',
             url: '/api/core/ping',
-            success: function(data) {
-                estate(data, "Core", "Core");
+            success: function(data, textStatus, xhr) {
+                moduleState(xhr.status, "Core", "Core");
             },
             error: function() {
                 $('#Core').html('<h2>Core does not respond! <i class="fa-solid fa-triangle-exclamation"></i></h2>')

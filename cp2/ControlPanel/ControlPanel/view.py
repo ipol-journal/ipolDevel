@@ -206,8 +206,7 @@ def ajax_delete_demo(request):
 
 @login_required(login_url="login")
 def templates(request):
-    demoinfo_response, _ = api_post("/api/blobs/get_all_templates", "post")
-    templates = demoinfo_response["templates"]
+    templates, _ = api_post("/api/blobs/templates", "get")
     context = {"templates": templates}
     return render(request, "Templates.html", context)
 
@@ -217,14 +216,14 @@ def templates(request):
 def ajax_add_template(request):
     template_name = request.POST["templateName"]
     settings = {"template_name": template_name}
-    result, _ = api_post("/api/blobs/create_template", method="post", params=settings)
+    result, response_code = api_post(
+        "/api/blobs/templates", method="post", params=settings
+    )
 
-    if result["status"] == "OK":
-        return JsonResponse(
-            {"status": "OK", "template_id": result["template_id"]}, status=200
-        )
+    if response_code == 201:
+        return JsonResponse({"template_id": result["template_id"]}, status=200)
     else:
-        return JsonResponse({"status": "KO", "message": "Unauthorized"}, status=401)
+        return JsonResponse({"message": "Unauthorized"}, status=401)
 
 
 @login_required(login_url="login")
@@ -233,19 +232,12 @@ def showTemplate(request):
     template_id = request.GET["template_id"]
     template_name = request.GET["template_name"]
 
-    template, _ = api_post(
-        "/api/blobs/get_template_blobs",
-        method="post",
-        params={"template_id": template_id},
-    )
-    template_sets = template["sets"]
+    template_sets, _ = api_post(f"/api/blobs/templates/{template_id}", method="get")
 
-    demos, _ = api_post(
-        "/api/blobs/get_demos_using_the_template",
-        method="post",
-        params={"template_id": template_id},
+    demos_using_template, _ = api_post(
+        f"/api/blobs/demos_using_template/{template_id}",
+        method="get",
     )
-    demos_using_template = demos["demos"]
     can_edit = request.user.is_superuser
     context = {
         "template_id": template_id,
@@ -258,62 +250,16 @@ def showTemplate(request):
 
 
 @login_required(login_url="login")
-@csrf_protect
-def ajax_delete_blob_template(request):
-    template_id = request.POST["template_id"]
-    pos_set = request.POST["pos_set"]
-    blob_set = request.POST["blob_set"]
-    response = {}
-    settings = {"template_id": template_id, "blob_set": blob_set, "pos_set": pos_set}
-    response_api, _ = api_post(
-        "/api/blobs/remove_blob_from_template", method="post", params=settings
-    )
-    result = response_api
-    if result.get("status") != "OK":
-        response["status"] = "KO"
-        return HttpResponse(json.dumps(response), "application/json")
-    else:
-        response["status"] = "OK"
-        return HttpResponse(json.dumps(response), "application/json")
-
-
-@login_required(login_url="login")
-def ajax_delete_blob_demo(request):
-    demo_id = request.POST["demo_id"]
-    pos_set = request.POST["pos_set"]
-    blob_set = request.POST["blob_set"]
-    response = {}
-    if user_can_edit_demo(request.user, demo_id):
-        settings = {"demo_id": demo_id, "blob_set": blob_set, "pos_set": pos_set}
-        response_api, _ = api_post(
-            "/api/blobs/remove_blob_from_demo", method="post", params=settings
-        )
-        result = response_api
-        if result.get("status") != "OK":
-            response["status"] = "KO"
-            return HttpResponse(json.dumps(response), "application/json")
-        else:
-            response["status"] = "OK"
-            return HttpResponse(json.dumps(response), "application/json")
-    else:
-        return render(request, "homepage.html")
-
-
-@login_required(login_url="login")
 def ajax_delete_template(request):
     template_id = request.POST["template_id"]
     response = {}
-    settings = {"template_id": template_id}
-    response_api, _ = api_post(
-        "/api/blobs/delete_template", method="post", params=settings
-    )
-    result = response_api
-    if result.get("status") != "OK":
+    _, response_code = api_post(f"/api/blobs/templates/{template_id}", method="delete")
+
+    if response_code != 204:
         response["status"] = "KO"
-        return HttpResponse(json.dumps(response), "application/json")
     else:
         response["status"] = "OK"
-        return HttpResponse(json.dumps(response), "application/json")
+    return HttpResponse(json.dumps(response), "application/json")
 
 
 @login_required(login_url="login")
@@ -323,15 +269,13 @@ def ajax_remove_blob_from_template(request):
     pos_set = request.POST["pos_set"]
 
     settings = {"template_id": template_id, "blob_set": blob_set, "pos_set": pos_set}
-    response, _ = api_post(
-        "/api/blobs/remove_blob_from_template", method="post", params=settings
+    _, status_code = api_post(
+        f"/api/blobs/template_blobs/{template_id}", method="delete", params=settings
     )
-    if response["status"] != "OK":
-        response["status"] = "KO"
-        return HttpResponse(json.dumps(response), "application/json")
+    if status_code == 201:
+        return HttpResponse(json.dumps({"status": "OK"}), "application/json")
     else:
-        response["status"] = "OK"
-        return HttpResponse(json.dumps(response), "application/json")
+        return HttpResponse(json.dumps({"status": "KO"}), "application/json")
 
 
 @login_required(login_url="login")
@@ -346,16 +290,14 @@ def ajax_remove_blob_from_demo(request):
         response["message"] = "User not allowed"
         return HttpResponse(json.dumps(response), "application/json")
 
-    settings = {"demo_id": demo_id, "blob_set": blob_set, "pos_set": pos_set}
-    response, _ = api_post(
-        "/api/blobs/remove_blob_from_demo", method="post", params=settings
+    settings = {"blob_set": blob_set, "pos_set": pos_set}
+    response, status_code = api_post(
+        f"/api/blobs/demo_blobs/{demo_id}", method="delete", params=settings
     )
-    if response["status"] != "OK":
-        response["status"] = "KO"
-        return HttpResponse(json.dumps(response), "application/json")
+    if status_code == 204:
+        return HttpResponse(json.dumps({"status": "OK"}), "application/json")
     else:
-        response["status"] = "OK"
-        return HttpResponse(json.dumps(response), "application/json")
+        return HttpResponse(json.dumps({"status": "KO"}), "application/json")
 
 
 @login_required(login_url="login")
@@ -397,23 +339,21 @@ def ajax_add_blob_demo(request):
     settings = {
         "demo_id": demo_id,
         "blob_set": blob_set,
-        "pos_set": pos_set,
+        "pos_set": int(pos_set) if pos_set else 0,
         "title": title,
         "credit": credit,
     }
-    response_api, _ = api_post(
-        "/api/blobs/add_blob_to_demo", method="post", params=settings, files=files
+    _, status_code = api_post(
+        f"/api/blobs/demo_blobs/{demo_id}", method="post", params=settings, files=files
     )
-    result = response_api
-    if result.get("status") != "OK":
-        response["status"] = "KO"
+    if status_code != 200:
         return HttpResponse(json.dumps(response), "application/json")
     else:
-        response["status"] = "OK"
         return HttpResponse(json.dumps(response), "application/json")
 
 
 @login_required(login_url="login")
+# TODO
 def ajax_add_blob_template(request):
     blob_set = request.POST["SET"]
     pos_set = request.POST["PositionSet"]
@@ -424,24 +364,19 @@ def ajax_add_blob_template(request):
     if "VR" in request.FILES:
         files["blob_vr"] = request.FILES["VR"].file
 
-    response = {}
     settings = {
-        "template_id": template_id,
         "blob_set": blob_set,
-        "pos_set": pos_set,
+        "pos_set": int(pos_set) if pos_set else 0,
         "title": title,
         "credit": credit,
     }
     response_api, _ = api_post(
-        "/api/blobs/add_blob_to_template", method="post", params=settings, files=files
+        f"/api/blobs/template_blobs/{template_id}",
+        method="post",
+        params=settings,
+        files=files,
     )
-    result = response_api
-    if result.get("status") != "OK":
-        response["status"] = "KO"
-        return HttpResponse(json.dumps(response), "application/json")
-    else:
-        response["status"] = "OK"
-        return HttpResponse(json.dumps(response), "application/json")
+    return HttpResponse(json.dumps(response_api), "application/json")
 
 
 @login_required(login_url="login")
@@ -453,12 +388,7 @@ def detailsBlob(request):
         can_edit = user_can_edit_demo(request.user, demo_id)
         set_name = request.GET["set"]
         blob_pos = request.GET["pos"]
-        blobs_response, _ = api_post(
-            "/api/blobs/get_demo_owned_blobs",
-            method="post",
-            params={"demo_id": demo_id},
-        )
-        sets = blobs_response["sets"]
+        sets, _ = api_post(f"/api/blobs/demo_blobs/{demo_id}", method="get")
         for blobset in sets:
             if blobset["name"] == set_name and blob_pos in blobset["blobs"]:
                 blob = blobset["blobs"][blob_pos]
@@ -484,12 +414,7 @@ def detailsBlob(request):
         template_name = request.GET["template_name"]
         set_name = request.GET["set"]
         blob_pos = request.GET["pos"]
-        blobs_response, _ = api_post(
-            "/api/blobs/get_template_blobs",
-            method="post",
-            params={"template_id": template_id},
-        )
-        sets = blobs_response["sets"]
+        sets, _ = api_post(f"/api/blobs/templates/{template_id}", method="get")
         for blobset in sets:
             if blobset["name"] == set_name and blob_pos in blobset["blobs"]:
                 blob = blobset["blobs"][blob_pos]
@@ -530,19 +455,18 @@ def ajax_edit_blob_template(request):
         "template_id": template_id,
         "blob_set": blob_set,
         "new_blob_set": new_blob_set,
-        "pos_set": pos_set,
-        "new_pos_set": new_pos_set,
+        "pos_set": int(pos_set) if pos_set else 0,
+        "new_pos_set": int(new_pos_set) if new_pos_set else 0,
         "title": title,
         "credit": credit,
     }
-    response_api, _ = api_post(
-        "/api/blobs/edit_blob_from_template",
-        method="post",
+    _, response_code = api_post(
+        f"/api/blobs/template_blobs/{template_id}",
+        method="put",
         params=settings,
         files=files,
     )
-    result = response_api
-    if result.get("status") != "OK":
+    if response_code != 204:
         response["status"] = "KO"
         return HttpResponse(json.dumps(response), "application/json")
     else:
@@ -669,17 +593,13 @@ def ajax_user_can_edit_demo(request):
 @login_required(login_url="login")
 def ajax_remove_vr(request):
     blob_id = request.POST["blob_id"]
-    settings = {"blob_id": blob_id}
-    response = {}
-    response_api, _ = api_post(
-        "/api/blobs/delete_vr_from_blob", method="post", params=settings
+    _, response_code = api_post(
+        f"/api/blobs/visual_representations/{blob_id}", method="delete"
     )
-    result = response_api
-    if result.get("status") == "OK":
-        response["status"] = "OK"
-        return JsonResponse({"status": "OK"}, status=200)
-    else:
+    if response_code != 204:
         return JsonResponse({"message": "Could not remove VR"}, status=404)
+    else:
+        return JsonResponse({"status": "OK"}, status=200)
 
 
 @login_required(login_url="login")
@@ -714,18 +634,13 @@ def ajax_save_DDL(request):
 def showBlobsDemo(request):
     demo_id = request.GET["demo_id"]
     can_edit = user_can_edit_demo(request.user, demo_id)
-    blobs, _ = api_post(
-        "/api/blobs/get_demo_owned_blobs", method="post", params={"demo_id": demo_id}
-    )
-    blob_sets = blobs["sets"]
+    blob_sets, _ = api_post(f"/api/blobs/demo_owned_blobs/{demo_id}", method="get")
 
     demo_used_templates, _ = api_post(
-        "/api/blobs/get_demo_templates", method="post", params={"demo_id": demo_id}
+        f"/api/blobs/demo_templates/{demo_id}", method="get"
     )
-    demo_used_templates = demo_used_templates["templates"]
 
-    templates, _ = api_post("/api/blobs/get_all_templates", "post")
-    template_list = templates["templates"]
+    template_list, _ = api_post("/api/blobs/templates", "get")
 
     context = {
         "can_edit": can_edit,
@@ -825,11 +740,10 @@ def ajax_add_template_to_demo(request):
     settings = {"demo_id": demo_id, "template_id": template_id}
     response = {}
     if user_can_edit_demo(request.user, demo_id):
-        response_api, _ = api_post(
-            "/api/blobs/add_template_to_demo", method="post", params=settings
+        _, response_code = api_post(
+            f"/api/blobs/add_template_to_demo/{demo_id}", method="post", params=settings
         )
-        result = response_api
-        if result.get("status") != "OK":
+        if response_code != 201:
             response["status"] = "KO"
             return HttpResponse(json.dumps(response), "application/json")
         else:
@@ -844,18 +758,11 @@ def ajax_remove_template_to_demo(request):
     demo_id = request.POST["demo_id"]
     template_id = request.POST["template_id"]
     settings = {"demo_id": demo_id, "template_id": template_id}
-    response = {}
     if user_can_edit_demo(request.user, demo_id):
-        response_api, _ = api_post(
-            "/api/blobs/remove_template_from_demo", method="post", params=settings
+        _, status_code = api_post(
+            f"/api/blobs/demo_templates/{demo_id}", method="delete", params=settings
         )
-        result = response_api
-        if result.get("status") != "OK":
-            response["status"] = "KO"
-            return HttpResponse(json.dumps(response), "application/json")
-        else:
-            response["status"] = "OK"
-            return HttpResponse(json.dumps(response), "application/json")
+        return JsonResponse({}, status=status_code)
     else:
         return render(request, "homepage.html")
 
@@ -867,7 +774,6 @@ def ajax_edit_blob_demo(request):
     if "VR" in request.FILES:
         files["vr"] = request.FILES["VR"].file
     if user_can_edit_demo(request.user, demo_id):
-        response = {}
         settings = {
             "demo_id": demo_id,
             "blob_set": request.POST["old_set"],
@@ -877,17 +783,17 @@ def ajax_edit_blob_demo(request):
             "title": request.POST["Title"],
             "credit": request.POST["Credit"],
         }
-        response, _ = api_post(
-            "/api/blobs/edit_blob_from_demo",
-            method="post",
+        _, response_code = api_post(
+            f"/api/blobs/demo_blobs/{demo_id}",
+            method="put",
             params=settings,
             files=files,
         )
 
-        if response.get("status") != "OK":
-            return HttpResponse(json.dumps({"status": "KO"}), "application/json")
+        if response_code != 204:
+            return JsonResponse({"status": "KO"}, status=200)
         else:
-            return HttpResponse(json.dumps({"status": "OK"}), "application/json")
+            return JsonResponse({"status": "OK"}, status=200)
     else:
         return render(request, "homepage.html")
 
