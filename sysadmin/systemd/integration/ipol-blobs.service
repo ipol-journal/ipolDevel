@@ -3,7 +3,7 @@ Description=Run blobs
 After=network.target
 
 [Service]
-ExecStart=/bin/bash -c "source ./venv/bin/activate && uvicorn archive:app --host 0.0.0.0 --port 9001"
+ExecStart=/bin/bash -c "source ./venv/bin/activate && uvicorn blobs:app --host 0.0.0.0 --port 9001"
 WorkingDirectory=/home/ipol/ipolDevel/ipol_demo/modules/blobs/
 Environment=IPOL_HOST=integration.ipol.im
 Environment=IPOL_URL=https://integration.ipol.im
