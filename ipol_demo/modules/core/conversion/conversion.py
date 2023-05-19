@@ -62,37 +62,41 @@ class Converter:
             modifications = []
 
             # Search for a file for this input
-            pattern = os.path.join(work_dir, "input_{}".format(i)) + ".*"
-            input_files = glob.glob(pattern)
+            input_pattern = os.path.join(work_dir, "input_{}".format(i)) + ".*"
+            files_to_convert = glob.glob(input_pattern)
+            # Inpainting masks included if there were any
+            mask_pattern = os.path.join(work_dir, "mask_{}".format(i)) + ".*"
+            files_to_convert.extend(glob.glob(mask_pattern))
 
             # no file found, is this input optional?
-            if not input_files:
+            if not files_to_convert:
                 if not input_desc.get("required", True):
                     # input[i] not present but not required, do nothing
                     continue
 
                 # An input is required and is absent, warn but no exception
-                error = f"Input required, but file not found in: {pattern}"
+                error = f"Input required, but file not found in: {input_pattern}"
 
             else:
-                input_file = input_files[0]
+                for file_to_convert in files_to_convert:
+                    # Is file too large for expected input in DDL?
+                    if input_desc.get("max_weight") and os.path.getsize(
+                        file_to_convert
+                    ) > evaluate(input_desc.get("max_weight")):
+                        error = f"File too large: {file_to_convert}"
 
-                # Is file too large for expected input in DDL?
-                if input_desc.get("max_weight") and os.path.getsize(
-                    input_file
-                ) > evaluate(input_desc.get("max_weight")):
-                    error = f"File too large: {input_file}"
-
-                # convert the file
-                else:
-                    result = self._convert_file(input_desc, input_file, crop_info)
-
-                    if isinstance(result, Ok):
-                        code, modifications = result.value
+                    # convert the file
                     else:
-                        # exit early, critical issue with the conversion
-                        message = hide_workdir(result.unwrap_err())
-                        return Err(f"Input {i}: {message}")
+                        result = self._convert_file(
+                            input_desc, file_to_convert, crop_info
+                        )
+
+                        if isinstance(result, Ok):
+                            code, modifications = result.value
+                        else:
+                            # exit early, critical issue with the conversion
+                            message = hide_workdir(result.unwrap_err())
+                            return Err(f"Input {i}: {message}")
 
             info[i] = ConversionInfo(
                 code=code,
