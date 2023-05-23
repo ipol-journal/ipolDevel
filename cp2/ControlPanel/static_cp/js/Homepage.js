@@ -22,6 +22,7 @@ function showModal(){
                     <option>Preprint</option>
                     <option>Published</option>
                     <option>Test</option>
+                    <option>Example</option>
                     <option>Workshop</option>
                 </select>
             </div>
