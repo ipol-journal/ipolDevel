@@ -138,7 +138,7 @@ server {
 	}
 
 	# DEMORUNNER
-	location /api/demorunner/my-dr {
+	location ~ /api/demorunner/my-dr {
 		rewrite ^/api/demorunner/my-dr/(.*) /$1 break;
 		# If the distribution is Debian you need the resolver		
 		# resolver 127.0.0.1;

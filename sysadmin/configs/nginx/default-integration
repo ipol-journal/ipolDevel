@@ -49,15 +49,16 @@ server {
 
 	
 
-	# DemoExtras static resources
+    # DemoExtras static resources
+    location ~ ^/demo/clientApp/static/(?<demo>\d+)/(?<resource>.+) {
         # Request the browser to check cache dates
         add_header Cache-Control "no-cache";
-    
-		add_header 'Access-Control-Allow-Origin' '*';
-		add_header 'Access-Control-Allow-Methods' 'GET';
 
-		alias /home/ipol/ipolDevel/shared_folder/demoExtras/$demo/http/$resource;
-	}
+        add_header 'Access-Control-Allow-Origin' '*';
+        add_header 'Access-Control-Allow-Methods' 'GET';
+
+        alias /home/ipol/ipolDevel/shared_folder/demoExtras/$demo/http/$resource;
+    }
 
 	# Static files of the web interface
 	location /demo/clientApp/ {
@@ -92,13 +93,13 @@ server {
 	auth_basic "Restricted";
 	auth_basic_user_file /etc/nginx/.passwd/auth_test;
 	resolver 127.0.0.1;
-		proxy_pass  http://$host:81/$request_uri;
+	proxy_pass  http://$host:81/$request_uri;
 	}
 
 	location /auth_src/ {
-		auth_basic "Restricted";
-		auth_basic_user_file /etc/nginx/.passwd/auth_test;
-		alias /home/ipol/auth_src/;
+            auth_basic "Restricted";
+            auth_basic_user_file /etc/nginx/.passwd/auth_test;
+            alias /home/ipol/auth_src/;
 	}
 
 	# DEMOS
@@ -130,9 +131,9 @@ server {
 	
 	# Root
 	location / {
-		# First attempt to serve request as file, then
-		# as directory, then fall back to displaying a 404.
-		proxy_pass http://smartalgo.cmla.fr:7777;
+            # First attempt to serve request as file, then
+            # as directory, then fall back to displaying a 404.
+            proxy_pass http://smartalgo.cmla.fr:7777;
 	}
 
 	# CORE
@@ -153,17 +154,17 @@ server {
 	
 	# shared_folder, serve static data
 	location /api/core/shared_folder/run/ {
-           add_header Cache-Control "no-cache";
-	   add_header 'Access-Control-Allow-Origin' '*';
-	   add_header 'Access-Control-Allow-Methods' 'GET';
-	   alias  /home/ipol/ipolDevel/shared_folder/run/;
+            add_header Cache-Control "no-cache";
+	    add_header 'Access-Control-Allow-Origin' '*';
+	    add_header 'Access-Control-Allow-Methods' 'GET';
+	    alias  /home/ipol/ipolDevel/shared_folder/run/;
 	}
 
 	# BLOBS
 	location /api/blobs/ {
-		rewrite ^/api/blobs/(.*) /$1 break;
-		resolver 127.0.0.1;
-		proxy_pass   http://$host:9001;
+            rewrite ^/api/blobs/(.*) /$1 break;
+            resolver 127.0.0.1;
+            proxy_pass http://$host:9001;
 	}
 
 	# BLOBS static data
@@ -197,6 +198,4 @@ server {
 		proxy_pass   http://$host:9004;
 		proxy_buffering off;
 	}
-
 }
-
