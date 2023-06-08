@@ -1100,17 +1100,15 @@ def delete_vr_from_blob(blob_id: int) -> None:
     return None
 
 
-@private_route.post("/update_demo_id/{old_demo_id}", status_code=201)
-def update_demo_id(old_demo_id: int, new_demo_id: int) -> list:
+@private_route.put("/demos/{old_demo_id}", status_code=201)
+def update_demo_id(old_demo_id: int, new_demo_id: int) -> None:
     """
     Update an old demo ID by the given new ID
     """
     conn = None
-    data = {"status": "KO"}
     try:
         conn = lite.connect(settings.database_file)
         database.update_demo_id(conn, old_demo_id, new_demo_id)
-        data["status"] = "OK"
         conn.commit()
     except IPOLBlobsDataBaseError:
         conn.rollback()
@@ -1121,7 +1119,6 @@ def update_demo_id(old_demo_id: int, new_demo_id: int) -> list:
     finally:
         if conn is not None:
             conn.close()
-    return data
 
 
 @app.get("/demos_using_template/{template_id}", status_code=200)
@@ -1197,5 +1194,4 @@ def read_authorized_patterns() -> list:
 app.include_router(private_route)
 
 log = init_logging()
-init_database()
 init_database()
