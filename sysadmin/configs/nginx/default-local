@@ -21,23 +21,28 @@ server {
 	# Change this variable with your own user name
 	set $my_user miguel;
 
-	# Path of the static content
-	location /cp/static/ {
-		alias  /home/$my_user/IPOLWEBAPP_STATIC/;
-	}
-
 	# DemoExtras static resources
 	location ~ ^/demo/clientApp/static/(?<demo>\d+)/(?<resource>.+) {
-		expires 1d;
+        # Request the browser to check cache dates
+        add_header Cache-Control "no-cache";
 		alias /home/ipol/ipolDevel/shared_folder/demoExtras/$demo/http/$resource;
 	}
 
 	# Static files for the web interface
 	location /demo/clientApp/ {
+        # Request the browser to check cache dates
+        add_header Cache-Control "no-cache";
+
 		alias  /home/$my_user/ipolDevel/ipol_demo/clientApp/;
-		add_header        Cache-Control private;
 		add_header 		  X-Frame-Options SAMEORIGIN always;
-		expires 1s;
+
+        # Content-Security-Policy (CSP) for JQuery and MapLibre
+        # JQuery:
+        # default-src 'self' data: https: blob: 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval' https: code.jquery.com cdnjs.cloudflare.com;
+        # MapLibre:
+        # worker-src blob: ; child-src blob: ; frame-src * data: blob: ; 
+        add_header 'Content-Security-Policy' "default-src 'self' data: https: blob: 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval' https: code.jquery.com cdnjs.cloudflare.com; worker-src blob: ; child-src blob: ; frame-src * data: blob: ; ";
+        add_header 'Access-Control-Allow-Origin' '*';
 	}
 
 	# DEMOS
@@ -49,18 +54,18 @@ server {
 		proxy_pass  http://$host:8080;
 	}
 
-	# CP
-	location /cp/ {
-		add_header X-debug-message "$host" always;
-		add_header X-Frame-Options SAMEORIGIN always;
-		# If the distribution is Debian you need the resolver
+    # Root
+	location /  {
+		return  301 /demo/;
+		# If the distribution is Debian you need the resolver		
 		# resolver 127.0.0.1;
-		proxy_pass http://$host:8001;
+		proxy_pass  http://$host:8080;
 	}
 
-	location /cp2/static/ {
-		alias /home/ipol/CP2_STATIC/;
-	}
+    location /cp2/static/ {
+        add_header Cache-Control "public";
+        alias /home/ipol/ipolDevel/cp2/ControlPanel/static_cp/;
+    }
 
 	location /cp2/ {
 		resolver 127.0.0.1;
@@ -92,9 +97,9 @@ server {
 		proxy_pass  http://$host:8080;
 	}
 
-	# shared_folder, run static data
+	# shared_folder, serve static data
 	location /api/core/shared_folder/run/ {
-		expires 24h;
+		add_header Cache-Control "no-cache";
 		add_header 'Access-Control-Allow-Origin' '*';
 		add_header 'Access-Control-Allow-Methods' 'GET';
 		alias  /home/ipol/ipolDevel/shared_folder/run/;
@@ -110,7 +115,7 @@ server {
 	#
 	# BLOBS static data
 	location /api/blobs/staticData/ {
-		expires 24h;
+		add_header Cache-Control "public";    
 		add_header 'Access-Control-Allow-Origin' '*';
 		add_header 'Access-Control-Allow-Methods' 'GET';
 		alias  /home/ipol/ipolDevel/ipol_demo/modules/blobs/staticData/;
@@ -126,25 +131,18 @@ server {
 	#
 	# ARCHIVE static data
 	location /api/archive/staticData/ {
-		expires 1y;
+		add_header Cache-Control "public";    
 		add_header 'Access-Control-Allow-Origin' '*';
 		add_header 'Access-Control-Allow-Methods' 'GET';
 		alias  /home/ipol/ipolDevel/ipol_demo/modules/archive/staticData/;
 	}
 
 	# DEMORUNNER
-	location /api/demorunner/my-dr {
+	location ~ /api/demorunner/my-dr {
 		rewrite ^/api/demorunner/my-dr/(.*) /$1 break;
 		# If the distribution is Debian you need the resolver		
 		# resolver 127.0.0.1;
 		proxy_pass   http://$host:9004;
 		proxy_buffering off;
-	}
-
-	location /  {
-		return  301 /demo/;
-		# If the distribution is Debian you need the resolver		
-		# resolver 127.0.0.1;
-		proxy_pass  http://$host:8080;
 	}
 }

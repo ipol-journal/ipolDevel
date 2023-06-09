@@ -1,3 +1,16 @@
+upstream ipol_webapp_server {
+  # fail_timeout=0 means we always retry an upstream even if it failed
+  # to return a good HTTP response (in case the Unicorn master nukes a
+  # single worker for timing out).
+
+  server unix:/home/ipol/ipolDevel/ipol_webapp/run/gunicorn.sock fail_timeout=0;
+}
+
+# CP2 socket
+upstream cp2_socket {  
+        server unix:/home/ipol/ipolDevel/cp2/ControlPanel/run/gunicorn.sock fail_timeout=0;
+}
+
 # This is used by named sections since they can't have alias, but proxy
 # It simply serves static files
 server {
@@ -13,28 +26,29 @@ server {
         proxy_send_timeout          700;
         proxy_read_timeout          700;
         send_timeout                700;
-        client_max_body_size        500m;
+        client_max_body_size        3000m;
 
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 
         location /demo/clientApp/ {
-                expires 24h;
-                resolver 127.0.0.1;
-                alias  /home/ipol/ipolDevel/ipol_demo/clientApp/;
+            # Request the browser to check cache dates
+            add_header Cache-Control "no-cache";
+
+            resolver 127.0.0.1;
+            alias  /home/ipol/ipolDevel/ipol_demo/clientApp/;
         }
 }
 
-
 server {
-    listen       [::]:80 default_server;
-    listen       *:80 default_server;
+    listen [::]:80 default_server;
+    listen *:80 default_server;
     server_name   ipolcore.ipol.im;
 
     proxy_send_timeout          700;
     proxy_read_timeout          700;
     send_timeout                700;
-    client_max_body_size        500m;
+    client_max_body_size        3000m;
 
     # Enable SSL
     listen *:443 ssl http2 default_server;
@@ -45,49 +59,49 @@ server {
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 
+    access_log  /home/ipol/ipolDevel/ipol_webapp/logs/host.access.log;
+
     # robots.txt
     location /robots.txt {
-        expires 7d;
+        add_header Cache-Control "public";
         alias  /home/ipol/ipolDevel/sysadmin/robots.txt;
     }
 
     # Generic static data
     location /static/ {
-        expires 24h;
+        add_header Cache-Control "public";
         alias  /home/ipol/static/;
     }
 
     # Easter egg
     location /sexy.gif {
-        expires 30d;
+        add_header Cache-Control "public";
         alias  /home/ipol/static/easter-egg/sexy.gif;
     }
 
     # IPOL favicon
     location /favicon.ico {
-        expires 1y;
+        add_header Cache-Control "public";
         add_header 'Access-Control-Allow-Origin' '*';
         add_header 'Access-Control-Allow-Methods' 'GET';
         alias  /home/ipol/ipolDevel/ipol_demo/clientApp/assets/favicon.ico;
     }
 
-    # Path of the static content
-    location /cp/static/ {
-        expires 24h;
-        alias  /home/ipol/IPOLWEBAPP_STATIC/;
-    }
-
     # DemoExtras static resources
     location ~ ^/demo/clientApp/static/(?<demo>\d+)/(?<resource>.+) {
+        # Request the browser to check cache dates
+        add_header Cache-Control "no-cache";
+
         add_header 'Access-Control-Allow-Origin' '*';
-		add_header 'Access-Control-Allow-Methods' 'GET';
-        expires 1d;
+        add_header 'Access-Control-Allow-Methods' 'GET';
+
         alias /home/ipol/ipolDevel/shared_folder/demoExtras/$demo/http/$resource;
     }
 
     # Static files of the web interface
     location /demo/clientApp/ {
-        expires 24h;
+        # Request the browser to check cache dates
+        add_header Cache-Control "no-cache";
 
         # Private demos
         # Change the CompanyName to the real name
@@ -125,18 +139,18 @@ server {
         proxy_pass  http://$host:8080;
     }
     location /api/dispatcher/ {
-        proxy_pass  http://$host:8080;
+        proxy_pass http://$host:8080;
     }
     location /api/conversion/ {
-        proxy_pass  http://$host:8080;
+        proxy_pass http://$host:8080;
     }
     location /api/demoinfo/ {
-        proxy_pass  http://$host:8080;
+        proxy_pass http://$host:8080;
     }
 
-    # shared_folder, run static data
+    # shared_folder, serve static data
     location /api/core/shared_folder/run/ {
-        expires 24h;
+        add_header Cache-Control "no-cache";
         add_header 'Access-Control-Allow-Origin' '*';
         add_header 'Access-Control-Allow-Methods' 'GET';
         alias  /home/ipol/ipolDevel/shared_folder/run/;
@@ -151,12 +165,11 @@ server {
     #
     # BLOBS static data
     location /api/blobs/staticData/ {
-        expires 24h;
+        add_header Cache-Control "public";        
         add_header 'Access-Control-Allow-Origin' '*';
         add_header 'Access-Control-Allow-Methods' 'GET';
         alias  /home/ipol/ipolDevel/ipol_demo/modules/blobs/staticData/;
     }
-
 
     # ARCHIVE
     location /api/archive/ {
@@ -167,24 +180,39 @@ server {
     #
     # ARCHIVE static data
     location /api/archive/staticData/ {
-        expires 1y;
+        add_header Cache-Control "public";        
         add_header 'Access-Control-Allow-Origin' '*';
         add_header 'Access-Control-Allow-Methods' 'GET';
         alias  /home/ipol/ipolDevel/ipol_demo/modules/archive/staticData/;
     }
 
-
     # DEMORUNNER
-    location /api/demorunner/my-dr/ {
+    location ~ /api/demorunner/my-dr/ {
         rewrite ^/api/demorunner/my-dr/(.*) /$1 break;
         resolver 127.0.0.1;
         proxy_pass  http://$host:9004;
         proxy_buffering off;
     }
 
-    # CP
+    # Root
     location /  {
         return  301 /demo/;
         proxy_pass  http://ipolcore.ipol.im:8080;
     }
+
+    location /cp2/static/ {
+        add_header Cache-Control "public";
+        alias /home/ipol/ipolDevel/cp2/ControlPanel/static_cp/;
+    }
+
+    location /cp2/ {
+        resolver 127.0.0.1;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $http_host;
+        if (!-f $request_filename) {
+            proxy_pass http://cp2_socket;
+            break;
+        }
+        proxy_pass http://$host:8002;
+    }    
 }
