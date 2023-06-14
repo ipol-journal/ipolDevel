@@ -623,7 +623,7 @@ def ajax_save_DDL(request):
         demoinfo_response, _ = api_post(
             "/api/demoinfo/save_ddl",
             method="post",
-            data=ddl,
+            data=ddl.encode("utf-8"),
             params={"demoid": demo_id},
             headers=headers,
         )
