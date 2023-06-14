@@ -1,0 +1,17 @@
+[Unit]
+Description=Run demorunner-docker (for integration)
+After=network.target
+
+[Service]
+ExecStart=/home/ipol/ipolDevel/ipol_demo/modules/demorunner-docker/bin/ipol-demorunner
+ExecStartPre=-/home/ipol/.cargo/bin/cargo install --git https://github.com/ipol-journal/ipol-demorunner.git --rev cf4dce8a406580964dbea58a77b0d780b3878656 --root . --target-dir target --debug --force --locked
+TimeoutStartSec=300
+WorkingDirectory=/home/ipol/ipolDevel/ipol_demo/modules/demorunner-docker/
+Environment=ROCKET_PROFILE=ipol-integration
+Environment=ROCKET_ADDRESS=0.0.0.0
+RestartSec=10
+Restart=always
+SyslogIdentifier=demorunner-docker
+
+[Install]
+WantedBy=default.target

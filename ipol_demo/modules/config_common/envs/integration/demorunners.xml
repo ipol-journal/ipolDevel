@@ -15,4 +15,11 @@
     <serviceName>ipol-demorunner --user</serviceName>
   </demorunner>
 
+  <demorunner name="dr-integration-docker">
+    <module>demorunner-docker</module>
+    <capability>docker!</capability>
+    <serverSSH>ipol_integration</serverSSH>
+    <serviceName>ipol-demorunner-docker --user</serviceName>
+  </demorunner>
+
 </data>
