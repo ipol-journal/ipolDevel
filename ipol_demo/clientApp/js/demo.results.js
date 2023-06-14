@@ -89,8 +89,12 @@ $.fn.text_file = function (result, index) {
     var reader = new FileReader();
     reader.readAsText(request.response);
     reader.onload = function (e) {
-      $('.result_' + index).append('<h3>' + result.label + '</h3>');
-      $('.result_' + index).append('<pre class=text_file_content id=text_file_' + index + ' >' + e.target.result + '</pre>');
+      $('.result_' + index).append(`<h3>${result.label}</h3>`);
+      let content = document.createElement("pre");
+      content.classList.add("text_file_content");
+      content.id = `text_file_${index}`;
+      content.innerText = e.target.result;
+      $('.result_' + index).append(content);
  
       if (result.style) $('#text_file_' + index).css(JSON.parse(result.style.replace(/'/g, '"')));
     };
