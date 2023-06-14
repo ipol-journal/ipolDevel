@@ -388,13 +388,13 @@ class DemoInfoAPI:
     def save_ddl(self, demoid):
         demoid = int(demoid)
         cl = cherrypy.request.headers["Content-Length"]
-        ddl = cherrypy.request.body.read(int(cl)).decode()
+        ddl = cherrypy.request.body.read(int(cl)).decode("utf-8")
         result = self.demoinfo.save_ddl(demoid, ddl)
         if isinstance(result, Ok):
             data = {"status": "OK"}
         else:
             data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
+        return json.dumps(data).encode("utf-8")
 
     @cherrypy.expose
     def get_interface_ddl(self, demo_id, sections=None):
