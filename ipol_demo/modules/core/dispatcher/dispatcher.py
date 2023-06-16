@@ -55,24 +55,21 @@ class APIWorkloadProvider(WorkloadProvider):
 
     def get_workload(self, demorunner: DemoRunnerInfo) -> Result[float, str]:
         name = demorunner.name
-        url = f"{self.base_url}/api/demorunner/{name}/get_workload"
+        url = f"{self.base_url}/api/demorunner/{name}/workloads"
 
         try:
             resp = requests.get(url, timeout=self.timeout)
             resp.raise_for_status()
+            if resp.status_code != 201:
+                return Err("KO response")
         except requests.RequestException as e:
             return Err(repr(e))
 
         try:
-            response = resp.json()
+            workload = resp.json()
+            return Ok(workload)
         except requests.JSONDecodeError as e:
             return Err(repr(e))
-
-        if response["status"] != "OK":
-            return Err("KO response")
-
-        workload = response["workload"]
-        return Ok(workload)
 
 
 class PingProvider:
