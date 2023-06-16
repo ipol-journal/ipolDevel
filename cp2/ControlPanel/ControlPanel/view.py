@@ -541,20 +541,22 @@ def edit_demo(request):
     demoinfo_response, _ = api_post(
         "/api/demoinfo/update_demo", method="post", params=settings
     )
-    settings = {"old_demo_id": demo_id, "new_demo_id": new_demo_id}
-    blobs_response, _ = api_post(
-        "/api/blobs/update_demo_id", method="post", params=settings
+    settings = {"new_demo_id": new_demo_id}
+    _, blobs_response_code = api_post(
+        f"/api/blobs/demos/{demo_id}",
+        method="put",
+        params=settings,
     )
     settings = {"new_demo_id": new_demo_id}
-    _, status_code = api_post(
+    _, archive_response_code = api_post(
         f"/api/archive/demo/{demo_id}?new_demo_id={new_demo_id}", "put"
     )
 
     response = {}
     if (
         demoinfo_response.get("status") != "OK"
-        or blobs_response.get("status") != "OK"
-        or status_code != 204
+        or blobs_response_code != 201
+        or archive_response_code != 204
     ):
         response["status"] = "KO"
         response["message"] = demoinfo_response.get("error")
