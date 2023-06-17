@@ -40,7 +40,6 @@ class Settings(BaseSettings):
     database_dir = "db"
     database_file: str = os.path.join("db", "blobs.db")
     module_dir: str = os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/blobs"
-    logs_dir: str = "logs/"
     config_common_dir: str = (
         os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/config_common"
     )
@@ -79,16 +78,14 @@ def init_logging():
     """
     Initialize the error logs of the module.
     """
-    logger = logging.getLogger("blobs_log")
-    # handle all messages for the moment
+    logger = logging.getLogger("blobs")
     logger.setLevel(logging.DEBUG)
-    handler = logging.FileHandler(os.path.join(settings.logs_dir, "error.log"))
+    handler = logging.StreamHandler()
     formatter = logging.Formatter(
         "%(asctime)s; [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
     handler.setFormatter(formatter)
-
     logger.addHandler(handler)
     return logger
 
