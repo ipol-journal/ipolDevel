@@ -23,7 +23,6 @@ class Settings(BaseSettings):
     blobs_dir: str = "staticData/blobs/"
     blobs_thumbs_dir: str = "staticData/blobs_thumbs/"
     database_file: str = os.path.join("db", "archive.db")
-    logs_dir: str = "logs/"
     config_common_dir: str = (
         os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/config_common"
     )
@@ -539,11 +538,12 @@ def init_logging():
     """
     Initialize the error logs of the module.
     """
-    logger = logging.getLogger("archive_log")
-    logger.setLevel(logging.ERROR)
-    handler = logging.FileHandler(os.path.join(settings.logs_dir, "error.log"))
+    logger = logging.getLogger("archive")
+    logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler()
     formatter = logging.Formatter(
-        "%(asctime)s ERROR in %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+        "%(asctime)s; [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
