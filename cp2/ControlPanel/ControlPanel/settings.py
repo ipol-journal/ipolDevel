@@ -15,9 +15,7 @@ import socket
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 CP2_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # ControlPanel
-IPOLDEVEL_DIR = os.path.normpath(os.path.join(CP2_DIR, "../.."))  # ipolDevel
-HOME_DIR = os.path.normpath(os.path.join(IPOLDEVEL_DIR, ".."))  # ipol user folder
-
+RUNTIME_DIR = os.environ.get("CP2_RUNTIME_DIR", "./")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
@@ -63,7 +61,7 @@ elif HOST_NAME in production_servers:
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 # python3 manage.py collectstatic pour copier les fichiers static (du projet et de l'admin) dans
 STATIC_URL = "cp2/static/"
-STATIC_ROOT = os.path.join(HOME_DIR, "CP2_STATIC")
+# STATIC_ROOT = os.path.join(HOME_DIR, "CP2_STATIC")
 STATICFILES_DIRS = (
     #     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     #     # Always use forward slashes, even on Windows.
@@ -123,7 +121,7 @@ WSGI_APPLICATION = "ControlPanel.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(CP2_DIR, "db.sqlite3"),
+        "NAME": os.path.join(RUNTIME_DIR, "db.sqlite3"),
     }
 }
 
