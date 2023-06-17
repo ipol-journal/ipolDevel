@@ -31,13 +31,14 @@ from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, UploadF
 from ipolutils.utils import thumbnail
 from pydantic import BaseSettings
 
+ROOT = os.path.abspath(os.path.dirname(__file__))
+
 
 class Settings(BaseSettings):
     # Blobs
     blobs_dir: str = "staticData/blobs/"
     blobs_thumbs_dir: str = "staticData/blobs_thumbs/"
     # Database
-    database_dir = "db"
     database_file: str = os.path.join("db", "blobs.db")
     module_dir: str = os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/blobs"
     config_common_dir: str = (
@@ -121,9 +122,7 @@ def init_database() -> bool:
 
             sql_buffer = ""
 
-            with open(
-                settings.database_dir + "/drop_create_db_schema.sql", "r"
-            ) as sql_file:
+            with open(f"{ROOT}/db/drop_create_db_schema.sql", "r") as sql_file:
                 for line in sql_file:
                     sql_buffer += line
                     if lite.complete_statement(sql_buffer):
