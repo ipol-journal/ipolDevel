@@ -18,6 +18,8 @@ import magic
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request
 from pydantic import BaseModel, BaseSettings
 
+ROOT = os.path.abspath(os.path.dirname(__file__))
+
 
 class Settings(BaseSettings):
     blobs_dir: str = "staticData/blobs/"
@@ -577,9 +579,7 @@ def init_database() -> bool:
 
             sql_buffer = ""
 
-            with open(
-                settings.database_dir + "/drop_create_db_schema.sql", "r"
-            ) as sql_file:
+            with open(f"{ROOT}/db/drop_create_db_schema.sql", "r") as sql_file:
                 for line in sql_file:
                     sql_buffer += line
                     if lite.complete_statement(sql_buffer):
