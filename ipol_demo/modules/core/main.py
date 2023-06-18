@@ -51,9 +51,13 @@ def err_tb():
 if __name__ == "__main__":
     cherrypy.tools.CORS = cherrypy.Tool("before_handler", CORS)
 
-    ## config file and location settings
+    import argparse
 
-    config_file = sys.argv[1]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("config", help="path to core.conf file")
+    args = parser.parse_args()
+    config_file = args.config
+
     if not os.path.isfile(config_file):
         print("Error: the conf file is missing")
         sys.exit(-1)
