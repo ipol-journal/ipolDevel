@@ -16,8 +16,10 @@ import re
 import shutil
 import sqlite3 as lite
 from contextlib import contextmanager
+from pathlib import Path
 from sqlite3 import Error
 from threading import Lock
+from typing import Optional
 
 import database
 import magic
@@ -35,21 +37,25 @@ ROOT = os.path.abspath(os.path.dirname(__file__))
 
 
 class Settings(BaseSettings):
-    # Blobs
-    blobs_dir: str = "staticData/blobs/"
-    blobs_thumbs_dir: str = "staticData/blobs_thumbs/"
-    # Database
-    database_file: str = os.path.join("db", "blobs.db")
+    data_root: Path
+    authorized_patterns_path: Path
     module_dir: str = os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/blobs"
-    config_common_dir: str = (
-        os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/config_common"
-    )
-    authorized_patterns: str = "authorized_patterns.conf"
 
-    # Paths
-    blob_dir: str = "staticData/blob_directory"
-    thumb_dir: str = "staticData/thumbnail"
-    vr_dir: str = "staticData/visrep"
+    @property
+    def blob_dir(self) -> str:
+        return os.path.join(self.data_root, "staticData/blob_directory/")
+
+    @property
+    def thumb_dir(self) -> str:
+        return os.path.join(self.data_root, "staticData/thumbnail/")
+
+    @property
+    def vr_dir(self) -> str:
+        return os.path.join(self.data_root, "staticData/visrep/")
+
+    @property
+    def database_file(self) -> str:
+        return os.path.join(self.data_root, "db", "blobs.db")
 
 
 settings = Settings()
@@ -591,26 +597,20 @@ def get_demo_owned_blobs(demo_id: int) -> list:
             conn.close()
 
 
-def blob_has_thumbnail(blob_hash: str) -> str:
+def blob_has_thumbnail(blob_hash: str) -> bool:
     """
     Check if the blob has already thumbnail
     """
     subdir = get_subdir(blob_hash)
-    thumb_physical_dir = os.path.join(settings.thumb_dir, subdir)
-    return os.path.isfile(
-        os.path.join(settings.module_dir, thumb_physical_dir, blob_hash + ".jpg")
-    )
+    return os.path.isfile(os.path.join(settings.thumb_dir, subdir, blob_hash + ".jpg"))
 
 
-def blob_has_VR(blob_hash: str) -> str:
+def blob_has_VR(blob_hash: str) -> bool:
     """
     Check if the blob is associated to a VR
     """
     subdir = get_subdir(blob_hash)
-    vr_physical_dir = os.path.join(settings.vr_dir, subdir)
-    vr_extension = get_vr_extension(
-        os.path.join(settings.module_dir, vr_physical_dir), blob_hash
-    )
+    vr_extension = get_vr_extension(os.path.join(settings.vr_dir, subdir), blob_hash)
     return vr_extension is not None
 
 
@@ -620,12 +620,10 @@ def get_blob_info(blob) -> list:
     """
     subdir = get_subdir(blob["hash"])
     vr_physical_dir = os.path.join(settings.vr_dir, subdir)
-    thumb_physical_dir = os.path.join(settings.thumb_dir, subdir)
-    blob_physical_dir = os.path.join(settings.blob_dir, subdir)
 
-    vr_url = "/api/blobs/" + vr_physical_dir
-    thumbnail_url = "/api/blobs/" + thumb_physical_dir
-    blob_url = "/api/blobs/" + blob_physical_dir
+    vr_url = f"/api/blobs/staticData/visrep/{subdir}"
+    thumbnail_url = f"/api/blobs/staticData/thumbnail/{subdir}"
+    blob_url = f"/api/blobs/staticData/blob_directory/{subdir}"
 
     vr_path = os.path.join(vr_physical_dir, blob["hash"] + blob["extension"])
     vr_mtime = ""
@@ -656,7 +654,7 @@ def get_blob_info(blob) -> list:
     return blob_info
 
 
-def get_vr_extension(vr_dir: str, blob_hash: str) -> str:
+def get_vr_extension(vr_dir: str, blob_hash: str) -> Optional[str]:
     """
     If the visual representation exists, the function returns its extension
     if not, returns None
@@ -668,7 +666,7 @@ def get_vr_extension(vr_dir: str, blob_hash: str) -> str:
         if vr:
             _, vr_extension = os.path.splitext(vr[0])
 
-    return vr_extension
+        return vr_extension
 
 
 @app.get("/demo_templates/{demo_id}", status_code=200)
@@ -1164,9 +1162,7 @@ def read_authorized_patterns() -> list:
     Read from the IPs conf file
     """
     # Check if the config file exists
-    authorized_patterns_path = os.path.join(
-        settings.config_common_dir, settings.authorized_patterns
-    )
+    authorized_patterns_path = settings.authorized_patterns_path.as_posix()
     if not os.path.isfile(authorized_patterns_path):
         log.exception(
             f"read_authorized_patterns: \
