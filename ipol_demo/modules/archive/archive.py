@@ -12,6 +12,7 @@ import sqlite3 as lite
 import traceback
 from collections import OrderedDict
 from datetime import datetime
+from pathlib import Path
 from typing import Union
 
 import magic
@@ -22,14 +23,21 @@ ROOT = os.path.abspath(os.path.dirname(__file__))
 
 
 class Settings(BaseSettings):
-    blobs_dir: str = "staticData/blobs/"
-    blobs_thumbs_dir: str = "staticData/blobs_thumbs/"
-    database_file: str = os.path.join("db", "archive.db")
-    config_common_dir: str = (
-        os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/config_common"
-    )
+    data_root: Path
+    authorized_patterns_path: Path
     number_of_experiments_by_pages: int = 5
-    authorized_patterns: str = "authorized_patterns.conf"
+
+    @property
+    def blobs_dir(self) -> str:
+        return os.path.join(self.data_root, "staticData/blobs/")
+
+    @property
+    def blobs_thumbs_dir(self) -> str:
+        return os.path.join(self.data_root, "staticData/blobs_thumbs/")
+
+    @property
+    def database_file(self) -> str:
+        return os.path.join(self.data_root, "db/archive.db")
 
 
 settings = Settings()
@@ -938,9 +946,7 @@ def read_authorized_patterns() -> list:
     Read from the IPs conf file
     """
     # Check if the config file exists
-    authorized_patterns_path = os.path.join(
-        settings.config_common_dir, settings.authorized_patterns
-    )
+    authorized_patterns_path = settings.authorized_patterns_path.as_posix()
     if not os.path.isfile(authorized_patterns_path):
         log.exception(
             f"read_authorized_patterns: \
