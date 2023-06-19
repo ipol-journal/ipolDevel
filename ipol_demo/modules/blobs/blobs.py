@@ -1,10 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding:utf-8 -*-
-
-"""
-This file implements the system core of the server
-It implements Blob object and web service
-"""
 import configparser
 import glob
 import hashlib
@@ -39,7 +32,6 @@ ROOT = os.path.abspath(os.path.dirname(__file__))
 class Settings(BaseSettings):
     data_root: Path
     authorized_patterns_path: Path
-    module_dir: str = os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/blobs"
 
     @property
     def blob_dir(self) -> str:
@@ -641,13 +633,9 @@ def get_blob_info(blob) -> list:
     }
 
     if blob_has_thumbnail(blob["hash"]):
-        blob_info["thumbnail"] = os.path.join(
-            settings.module_dir, thumbnail_url, blob["hash"] + ".jpg"
-        )
+        blob_info["thumbnail"] = os.path.join(thumbnail_url, blob["hash"] + ".jpg")
 
-    vr_extension = get_vr_extension(
-        os.path.join(settings.module_dir, vr_physical_dir), blob["hash"]
-    )
+    vr_extension = get_vr_extension(vr_physical_dir, blob["hash"])
     if vr_extension is not None:
         blob_info["vr"] = os.path.join(vr_url, blob["hash"] + vr_extension)
 
@@ -854,9 +842,9 @@ def remove_files_associated_to_a_blob(blob_hash: str) -> None:
     """
     subdir = get_subdir(blob_hash)
 
-    blob_folder = os.path.join(settings.module_dir, settings.blob_dir, subdir)
-    thumb_folder = os.path.join(settings.module_dir, settings.thumb_dir, subdir)
-    vr_folder = os.path.join(settings.module_dir, settings.vr_dir, subdir)
+    blob_folder = os.path.join(settings.blob_dir, subdir)
+    thumb_folder = os.path.join(settings.thumb_dir, subdir)
+    vr_folder = os.path.join(settings.vr_dir, subdir)
 
     blob_file = glob.glob(os.path.join(blob_folder, blob_hash + ".*"))
     thumb_file = glob.glob(os.path.join(thumb_folder, blob_hash + ".*"))
@@ -1065,7 +1053,7 @@ def delete_vr_from_blob(blob_id: int) -> None:
             remove_dirs(vr_folder)
 
         # Delete old thumbnail
-        thumb_folder = os.path.join(settings.module_dir, settings.thumb_dir, subdir)
+        thumb_folder = os.path.join(settings.thumb_dir, subdir)
         if os.path.isdir(thumb_folder):
             thumb_files_in_dir = glob.glob(os.path.join(thumb_folder, blob_hash + ".*"))
             if thumb_files_in_dir:
