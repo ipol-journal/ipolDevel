@@ -13,7 +13,7 @@ import traceback
 from collections import OrderedDict
 from datetime import datetime
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
 import magic
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request
@@ -69,12 +69,19 @@ class Experiment(BaseModel):
     execution: Union[str, None] = None
 
 
-class Stored_Experiment(BaseModel):
+class DictFile(BaseModel):
+    id: int
+    name: str
+    url: str
+    url_thumb: Optional[str]
+
+
+class StoredExperiment(BaseModel):
     id: int
     date: datetime
-    parameters: dict = None
+    parameters: dict
     execution: str
-    files: list
+    files: list[DictFile]
 
 
 @app.on_event("shutdown")
@@ -217,7 +224,7 @@ def create_experiment(experiment: Experiment) -> dict[str, int]:
 
 
 @app.get("/experiment/{experiment_id}", status_code=200)
-def get_experiment(experiment_id: int) -> Stored_Experiment:
+def get_experiment(experiment_id: int) -> StoredExperiment:
     """
     Get a single experiment
     """
@@ -492,24 +499,23 @@ def delete_blob(conn, id_blob: int) -> None:
     This function delete the given id_blob, in the database and physically.
     """
     cursor_db = conn.cursor()
-    cursor_db.execute("SELECT * FROM blobs WHERE id = ?", (id_blob,))
-    tmp = cursor_db.fetchone()
+    cursor_db.execute("SELECT hash, type FROM blobs WHERE id = ?", (id_blob,))
+    row = cursor_db.fetchone()
 
-    # get the new path of the blob and thumbnail
-    path_blob = None
-    path_thumb = None
-    if tmp is not None:
-        path_blob, _ = get_new_path(settings.blobs_dir, tmp[1], tmp[2])
-        path_thumb, _ = get_new_path(settings.blobs_thumbs_dir, tmp[1], "jpeg")
+    if not row:
+        return
 
     cursor_db.execute("DELETE FROM blobs WHERE id = ?", (id_blob,))
 
-    # delete the files of this blob
-    try:
+    hash, ext = row
+
+    path_blob, _ = build_hashed_path(settings.blobs_dir, hash, ext)
+    if path_blob and os.path.exists(path_blob):
         os.remove(path_blob)
+
+    path_thumb, _ = build_hashed_path(settings.blobs_thumbs_dir, hash, "jpeg")
+    if path_thumb and os.path.exists(path_thumb):
         os.remove(path_thumb)
-    except Exception:
-        pass
 
 
 def mkdir_p(path: str) -> None:
@@ -617,7 +623,7 @@ def init_database() -> bool:
 #####
 
 
-def get_new_path(
+def build_hashed_path(
     main_directory: str, hash_name: str, file_extension: str, depth: int = 2
 ) -> tuple[str, str]:
     """
@@ -632,13 +638,9 @@ def get_new_path(
     length = min(len(hash_name), depth)
 
     subdirs = "/".join(list(hash_name[:length]))
-    new_directory_name = main_directory + subdirs + "/"
+    new_directory_name = os.path.join(main_directory, subdirs)
 
-    if not os.path.isdir(new_directory_name):
-        os.makedirs(new_directory_name)
-
-    new_path = new_directory_name + hash_name + "." + file_extension
-
+    new_path = os.path.join(new_directory_name, hash_name + "." + file_extension)
     return new_path, subdirs
 
 
@@ -647,8 +649,9 @@ def copy_file_in_folder(original_path, main_dir, hash_file, extension) -> str:
     Write a file in its respective folder
     """
     try:
-        final_path, _ = get_new_path(main_dir, hash_file, extension)
+        final_path, _ = build_hashed_path(main_dir, hash_file, extension)
         if not os.path.exists(final_path):
+            os.makedirs(os.path.dirname(final_path), exist_ok=True)
             shutil.copyfile(original_path, final_path)
         return final_path
     except Exception as ex:
@@ -796,23 +799,18 @@ def update_correspondence_table(conn, id_experiment: int, dict_corresp: dict) ->
         )
 
 
-def get_dict_file(path_file, path_thumb: str, name: str, id_blob: int) -> dict:
-    """
-    Build a dict containing the path to the file, the path to the thumb
-            and the name of the file.
-    """
-    dict_file = {}
-    dict_file["url"] = "/api/archive/" + path_file
-    dict_file["name"] = name
-    dict_file["id"] = id_blob
+def get_dict_file(
+    rel_path_file, rel_path_thumb: str, name: str, id_blob: int
+) -> DictFile:
+    url = "/api/archive/" + rel_path_file
+    url_thumb = None
+    if os.path.exists(os.path.join(settings.data_root, rel_path_thumb)):
+        url_thumb = "/api/archive/" + rel_path_thumb
 
-    if os.path.exists(path_thumb):
-        dict_file["url_thumb"] = "/api/archive/" + path_thumb
-
-    return dict_file
+    return DictFile(url=url, name=name, id=id_blob, url_thumb=url_thumb)
 
 
-def get_experiment_page(conn, demo_id: int, page: int) -> list:
+def get_experiment_page(conn, demo_id: int, page: int) -> list[StoredExperiment]:
     """
     This function return a list of dicts with all the informations needed
             for displaying the experiments on a given page.
@@ -844,15 +842,11 @@ def get_experiment_page(conn, demo_id: int, page: int) -> list:
 
 def get_data_experiment(
     conn, id_exp: int, parameters: str, execution: str, date: datetime
-) -> dict:
+) -> StoredExperiment:
     """
     Build a dictionnary containing all the datas needed on a given
             experiment for building the archive page.
     """
-    dict_exp = {}
-    list_files = []
-    path_file = str()
-    path_thumb = str()
 
     try:
         cursor_db = conn.cursor()
@@ -868,22 +862,21 @@ def get_data_experiment(
 
         all_rows = cursor_db.fetchall()
 
-        for row in all_rows:
-            path_file, subdirs = get_new_path(settings.blobs_dir, row[0], row[1])
-            thumb_dir = "{}{}".format(settings.blobs_thumbs_dir, subdirs)
-            thumb_name = "{}.jpeg".format(row[0])
-            path_thumb = os.path.join(thumb_dir, thumb_name)
-            list_files.append(get_dict_file(path_file, path_thumb, row[2], row[3]))
+        list_files: list[DictFile] = []
+        for hash, ext, name, id in all_rows:
+            rel_path_file, subdirs = build_hashed_path("staticData/blobs", hash, ext)
+            rel_path_thumb = f"staticData/blobs_thumbs/{subdirs}/{hash}.jpeg"
+            list_files.append(get_dict_file(rel_path_file, rel_path_thumb, name, id))
 
-        dict_exp["id"] = id_exp
-        dict_exp["date"] = date
-        dict_exp["parameters"] = json.loads(parameters, object_pairs_hook=OrderedDict)
-        dict_exp["execution"] = execution
-        dict_exp["files"] = list_files
-        return dict_exp
+        return StoredExperiment(
+            id=id_exp,
+            date=date,
+            parameters=json.loads(parameters, object_pairs_hook=OrderedDict),
+            execution=execution,
+            files=list_files,
+        )
     except Exception as ex:
         message = "Failure in get_data_experiment. Error = {}".format(ex)
-        print(message)
         log.exception(message)
         raise
 
