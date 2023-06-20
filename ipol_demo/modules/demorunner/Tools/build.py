@@ -14,7 +14,7 @@ import urllib.request
 import zipfile
 from subprocess import Popen
 
-from .error import IPOLCompileError, VirtualEnvError
+from .error import VirtualEnvError
 
 TIME_FMT = "%a, %d %b %Y %H:%M:%S %Z"
 
@@ -53,7 +53,7 @@ def download(url, fname, username=None, password=None):
         url_info = url_handle.info()
 
         if "last-modified" not in url_info:
-            raise IPOLCompileError(
+            raise Exception(
                 "Incomplete HTTP response. Missing 'last-modified' \
             HTTP header. Hint: do not use GitHub, GitLab, or Dropbox as a file server."
             )
@@ -92,7 +92,7 @@ def extract(fname, target):
 
         # Report bad path in case of starting with "/" or containing ".."
         if any([os.path.isabs(f) or ".." in f for f in content]):
-            raise IPOLCompileError(
+            raise Exception(
                 'Build Zip contains forbidden paths. It can not extract on/from a parent directory like "../".'
             )
     else:

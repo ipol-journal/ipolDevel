@@ -28,7 +28,7 @@ import zipfile
 from string import Template
 from subprocess import PIPE, Popen
 from threading import Lock
-from typing import Annotated
+from typing import Annotated, List
 
 import Tools.build as build
 import Tools.run_demo_base as run_demo_base
@@ -47,6 +47,7 @@ from fastapi import (
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseSettings
+from starlette.responses import StreamingResponse
 from Tools.run_demo_base import IPOLTimeoutError
 
 
@@ -425,8 +426,7 @@ def ensure_compilation(demo_id: int, build_data: dict) -> None:
         message = f"INTERNAL ERROR in ensure_compilation. {ex}"
         logger.exception(f"INTERNAL ERROR in ensure_compilation, demo {demo_id}")
 
-    response = {"message": message}
-    raise HTTPException(status_code=500, detail=response)
+    raise HTTPException(status_code=500, detail=message)
 
 
 @private_route.post("/compilations", status_code=201)
@@ -454,7 +454,7 @@ def delete_compilation(demo_id: int) -> None:
     """
     Remove compilation folder if exists
     """
-    compilation_path = os.path.join(settings.main_bin_dir, demo_id)
+    compilation_path = os.path.join(settings.main_bin_dir, str(demo_id))
     if os.path.isdir(compilation_path):
         shutil.rmtree(compilation_path)
 
@@ -539,7 +539,7 @@ def variable_substitution(ddl_run: str, demo_id: int, params: dict) -> str:
     """
     Replace the variables with its values and return the command to be executed
     """
-    params["demoextras"] = os.path.join(settings.share_demoExtras_dir, demo_id)
+    params["demoextras"] = os.path.join(settings.share_demoExtras_dir, str(demo_id))
     params["matlab_path"] = settings.MATLAB_path
     params["bin"] = get_bin_dir(demo_id)
     params["virtualenv"] = get_bin_dir(demo_id) + "venv"
@@ -550,7 +550,7 @@ def get_bin_dir(demo_id: int) -> str:
     """
     Returns the directory with the peer-reviewed author programs
     """
-    return os.path.join(settings.main_bin_dir, demo_id, "bin/")
+    return os.path.join(settings.main_bin_dir, f"{demo_id}bin/")
 
 
 def read_workdir_file(work_dir: str, filename: str) -> str:
@@ -565,21 +565,20 @@ def read_workdir_file(work_dir: str, filename: str) -> str:
     return content
 
 
-@app.post("/exec_and_wait/{demo_id}", status_code=201)
+@app.post("/exec_and_wait/{demo_id}", status_code=200)
 async def exec_and_wait(
     response: Response,
     demo_id: int,
     key: str,
     ddl_run: str,
-    timeout: int,
-    params: Annotated[str, Body()],
-    files: Annotated[list[UploadFile], File()],
-) -> dict:
+    parameters: Annotated[str, Body()],
+    files: Annotated[List[UploadFile], File()],
+    timeout: int = settings.default_timeout,
+) -> UploadFile:
     """
     Run the algorithm
     """
-    print(ddl_run, key, timeout, params, files)
-    params = params
+    parameters = json.loads(parameters)
 
     work_dir_handle = tempfile.TemporaryDirectory()
     work_dir = work_dir_handle.name
@@ -591,10 +590,10 @@ async def exec_and_wait(
         os.makedirs(dirname, exist_ok=True)
         open(path, "wb").write(input.file.read())
 
-    path_with_the_binaries = os.path.join(settings.main_bin_dir, demo_id + "/")
+    path_with_the_binaries = os.path.join(settings.main_bin_dir, f"{demo_id}/")
     res_data = {}
     res_data["key"] = key
-    res_data["params"] = params
+    res_data["params"] = parameters
     res_data["algo_info"] = {}
     # run the algorithm
     try:
@@ -611,7 +610,7 @@ async def exec_and_wait(
             work_dir,
             path_with_the_binaries,
             ddl_run,
-            params,
+            parameters,
             res_data,
             timeout,
         )
@@ -683,9 +682,12 @@ stderr: {}\nstdout: {}".format(
                 zip.write(path, in_zip_path)
 
     # send the zip as the reply to the request
-    response.headers["Content-Type"] = "application/zip"
     fd.seek(0)
-    return fd.read()
+    return StreamingResponse(
+        fd,
+        media_type="application/zip",
+        headers={"Content-Disposition": "attachment;filename=uploaded_files.zip"},
+    )
 
 
 def read_authorized_patterns() -> list:

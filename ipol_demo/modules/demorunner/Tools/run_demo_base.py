@@ -58,7 +58,7 @@ class RunDemoBase:
 
     # -----------------------------------------------------------------------------
     def get_demo_id(self):
-        return self.demo_id
+        return str(self.demo_id)
 
     # -----------------------------------------------------------------------------
     # set the algorihtm parameters as a  dictionnary
@@ -95,7 +95,7 @@ class RunDemoBase:
 
     # ------------------- demoextras functions ------------------------------------
     def set_share_demoExtras_dirs(self, share_demoExtras_dir, demo_id):
-        self.main_demoExtras_Folder = os.path.join(share_demoExtras_dir, demo_id)
+        self.main_demoExtras_Folder = os.path.join(share_demoExtras_dir, str(demo_id))
 
     def get_demoExtras_main_folder(self):
         return self.main_demoExtras_Folder

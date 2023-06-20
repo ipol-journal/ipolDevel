@@ -501,7 +501,7 @@ class Core:
         os.makedirs(self.dl_extras_dir, exist_ok=True)
         os.makedirs(self.demo_extras_main_dir, exist_ok=True)
 
-        base_url = os.environ["IPOL_URL"]
+        base_url = os.environ.get("IPOL_URL", "http://" + socket.getfqdn())
         demorunners_path = cherrypy.config["demorunners_file"]
         policy = cherrypy.config["dispatcher_policy"]
         self.dispatcher = dispatcher.Dispatcher(
@@ -1527,7 +1527,7 @@ attached the failed experiment data.".format(
         """
         Ensure that the source codes of the demo are all updated and compiled correctly
         """
-        build_data = {"demo_id": demo_id, "ddl_build": json.dumps(ddl_build)}
+        build_data = {"ddl_build": ddl_build}
         ssh_response, _ = self.post(
             "api/demoinfo/get_ssh_keys", "post", data={"demo_id": demo_id}
         )
@@ -1536,28 +1536,20 @@ attached the failed experiment data.".format(
             build_data["ssh_key.public"] = ssh_response["pubkey"]
             build_data["ssh_key.private"] = ssh_response["privkey"]
 
-        url = f"api/demorunner/{dr_name}/ensure_compilation"
-        dr_response, _ = self.post(url, "post", data=build_data)
+        url = f"api/demorunner/{dr_name}/compilations/{demo_id}"
+        dr_response, dr_response_code = self.post(
+            url, "post", data=json.dumps(build_data)
+        )
 
         # Read the JSON response from the DR
-        try:
-            demorunner_response = dr_response.json()
-        except Exception as ex:
-            dr_response_content = Core.get_response_error_or_content(dr_response)
-            error_message = "**An internal error has occurrred in the demo system, sorry for the inconvenience.\
-                The IPOL Team has been notified and will fix the issue as soon as possible**. Bad format in the response \
-                        from DR server {} in demo #{}. {} - {}".format(
-                dr_name, demo_id, dr_response_content, ex
-            )
-            self.logger.exception(error_message)
-            raise IPOLEnsureCompilationError(error_message)
+        demorunner_response = dr_response.json()
 
         # Check if the compilation was successful
-        if demorunner_response["status"] != "OK":
+        if dr_response_code != 201:
             print("Compilation error in demo #{}".format(demo_id))
             # Add the compilation failure info into the exception
             buildlog = demorunner_response.get("buildlog", "")
-            demorunner_message = demorunner_response["message"]
+            demorunner_message = demorunner_response["detail"]
             error_message = "DR={}, {}  - {}".format(
                 dr_name, buildlog, demorunner_message
             )
@@ -1684,7 +1676,7 @@ attached the failed experiment data.".format(
         dr_name,
         demo_id,
         key,
-        params,
+        parameters,
         inputs_names,
         ddl_run,
         ddl_general,
@@ -1693,50 +1685,57 @@ attached the failed experiment data.".format(
         """
         Execute the experiment in the given DR.
         """
-        params = {**params}
+        parameters = {**parameters}
         for i, input_item in inputs_names.items():
-            params[f"orig_input_{i}"] = input_item["origin"]
-            params[f"input_{i}"] = input_item["converted"]
+            parameters[f"orig_input_{i}"] = input_item["origin"]
+            parameters[f"input_{i}"] = input_item["converted"]
 
         userdata = {
-            "demo_id": demo_id,
             "key": key,
-            "params": json.dumps(params),
             "ddl_run": ddl_run,
         }
 
         if "timeout" in ddl_general:
             userdata["timeout"] = ddl_general["timeout"]
 
-        i = 0
-        inputs = {}
-        for root, _, files in os.walk(work_dir):
-            for file in files:
+        files = []
+        for root, _, wd_files in os.walk(work_dir):
+            for file in wd_files:
                 path = os.path.join(root, file)
-                relative_path = path.replace(work_dir, "./")
-                fd = open(path, "rb")
-                inputs[f"inputs.{i}"] = (relative_path, fd, "application/octet-stream")
-                i += 1
+                files.append(
+                    (
+                        "files",
+                        (
+                            file,
+                            open(path, "rb"),
+                            "application/octet-stream",
+                        ),
+                    )
+                )
 
-        url = f"api/demorunner/{dr_name}/exec_and_wait"
-        resp, status_code = self.post(url, "post", data=userdata, files=inputs)
+        url = f"api/demorunner/{dr_name}/exec_and_wait/{demo_id}"
+        dr_response, status_code = self.post(
+            url,
+            "post",
+            params=userdata,
+            data={"parameters": json.dumps(parameters)},
+            files=files,
+        )
 
         if status_code != 200:
             demo_state = self.get_demo_metadata(demo_id)["state"].lower()
             error = "IPOLDemorunnerUnresponsive"
             website_message = (
-                f"Demorunner {dr_name} not responding (error {resp.status_code})"
+                f"Demorunner {dr_name} not responding (error {dr_response.status_code})"
             )
             raise IPOLDemoRunnerResponseError(website_message, demo_state, key, error)
 
-        zipcontent = io.BytesIO(resp.content)
+        zipcontent = io.BytesIO(dr_response.content)
         zip = zipfile.ZipFile(zipcontent)
         zip.extractall(work_dir)
 
         try:
-            demorunner_response = json.load(
-                open(os.path.join(work_dir, "exec_info.json"))
-            )
+            dr_response = json.load(open(os.path.join(work_dir, "exec_info.json")))
         except Exception as ex:
             error_message = "**An internal error has occurred in the demo system, sorry for the inconvenience.\
                     The IPOL team has been notified and will fix the issue as soon as possible**. Bad format in the response from DR server {} in demo #{}. - {}".format(
@@ -1745,7 +1744,7 @@ attached the failed experiment data.".format(
             self.logger.exception(error_message)
             raise IPOLExecutionError(error_message, error_message)
 
-        if demorunner_response["status"] != "OK":
+        if status_code != 200:
             print("DR answered KO for demo #{}".format(demo_id))
 
             try:
@@ -1754,8 +1753,8 @@ attached the failed experiment data.".format(
                 demo_state = "<???>"
 
             # Message for the web interface
-            error_msg = (demorunner_response["algo_info"]["error_message"]).strip()
-            error = demorunner_response.get("error", "").strip()
+            error_msg = (dr_response["algo_info"]["error_message"]).strip()
+            error = dr_response.get("error", "").strip()
 
             # Prepare a message for the website.
             website_message = "DR={}\n{}".format(dr_name, error_msg)
@@ -1789,9 +1788,9 @@ attached the failed experiment data.".format(
 
         algo_info_dic = self.read_algo_info(work_dir)
         for name in algo_info_dic:
-            demorunner_response["algo_info"][name] = algo_info_dic[name]
+            dr_response["algo_info"][name] = algo_info_dic[name]
 
-        demorunner_response["work_url"] = (
+        dr_response["work_url"] = (
             os.path.join(
                 "/api/core/",
                 self.shared_folder_rel,
@@ -1802,7 +1801,7 @@ attached the failed experiment data.".format(
             + "/"
         )
 
-        return demorunner_response
+        return dr_response
 
     @cherrypy.expose
     def run(self, **kwargs):
@@ -2110,20 +2109,17 @@ attached the failed experiment data.".format(
         General purpose function to make http requests.
         """
         base_url = os.environ.get("IPOL_URL", "http://" + socket.getfqdn())
-        headers = {"Content-Type": "application/json; charset=UTF-8"}
         if method == "get":
             response = requests.get(f"{base_url}/{api_url}")
             return response.json(), response.status_code
         elif method == "put":
-            response = requests.put(f"{base_url}/{api_url}", **kwargs, headers=headers)
+            response = requests.put(f"{base_url}/{api_url}", **kwargs)
             return response.json(), response.status_code
         elif method == "post":
             response = requests.post(f"{base_url}/{api_url}", **kwargs)
             return response, response.status_code
         elif method == "delete":
-            response = requests.delete(
-                f"{base_url}/{api_url}", **kwargs, headers=headers
-            )
+            response = requests.delete(f"{base_url}/{api_url}", **kwargs)
             return response, response.status_code
         else:
             assert False
