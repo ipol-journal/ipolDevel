@@ -66,7 +66,16 @@ if __name__ == "__main__":
     cherrypy.log.error_log.setLevel("ERROR")
     cherrypy.tools.cgitb = cherrypy.Tool("before_error_response", err_tb)
 
-    core = Core.get_instance()
+    core = Core(
+        authorized_patterns_path=os.environ["AUTHORIZED_PATTERNS_PATH"],
+        emails_conf_path=os.environ["EMAILS_CONF_PATH"],
+        blobs_folder=os.environ["BLOBS_DATA_ROOT"],
+        demorunners_path=os.environ["DEMORUNNERS_PATH"],
+        core_data_root=os.environ["CORE_DATA_ROOT"],
+        shared_folder_root=os.environ["SHARED_FOLDER_ROOT"],
+    )
+    Core.instance = core
+
     cherrypy.tree.mount(
         core.get_dispatcher_api(), "/api/dispatcher", config=config_file
     )

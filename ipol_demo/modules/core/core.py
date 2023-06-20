@@ -1,6 +1,5 @@
-"""
-IPOL Core module
-"""
+from __future__ import annotations
+
 import configparser
 import glob
 import hashlib
@@ -26,7 +25,7 @@ from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from random import random
-from typing import Any
+from typing import Any, ClassVar
 
 import cherrypy
 import magic
@@ -81,7 +80,7 @@ def authenticate(func):
         """
         Validates the given IP
         """
-        core = Core.get_instance()
+        core = Core.instance
         patterns = []
         # Creates the patterns  with regular expressions
         for authorized_pattern in core.authorized_patterns:
@@ -450,59 +449,39 @@ class DemoInfoAPI:
 
 
 class Core:
-    """
-    Core index used as the root app
-    """
+    instance: ClassVar[Core]
 
-    instance = None
-
-    @staticmethod
-    def get_instance():
-        """
-        Singleton pattern
-        """
-        if Core.instance is None:
-            Core.instance = Core()
-        return Core.instance
-
-    def __init__(self):
-        """
-        Constructor
-        """
+    def __init__(
+        self,
+        authorized_patterns_path: str,
+        emails_conf_path: str,
+        blobs_folder: str,
+        demorunners_path: str,
+        core_data_root: str,
+        shared_folder_root: str,
+    ):
         ### Read the configuration file
+        self.emails_conf_path = emails_conf_path
         self.server_environment = cherrypy.config.get("env")
 
         self.logger = init_logging()
-        self.project_folder = cherrypy.config.get("project_folder")
-        self.blobs_folder = cherrypy.config.get("blobs_folder")
+        self.blobs_folder = blobs_folder
 
-        self.shared_folder_rel = cherrypy.config.get("shared_folder")
-        self.shared_folder_abs = os.path.join(
-            self.project_folder, self.shared_folder_rel
-        )
-        self.demo_extras_main_dir = os.path.join(
-            self.shared_folder_abs, cherrypy.config.get("demoExtrasDir")
-        )
-        self.dl_extras_dir = os.path.join(
-            self.shared_folder_abs, cherrypy.config.get("dl_extras_dir")
-        )
-        self.share_run_dir_rel = cherrypy.config.get("running.dir")
-        self.share_run_dir_abs = os.path.join(
-            self.shared_folder_abs, self.share_run_dir_rel
-        )
+        self.shared_folder_root = shared_folder_root
+        self.demo_extras_main_dir = os.path.join(self.shared_folder_root, "demoExtras")
+        self.dl_extras_dir = os.path.join(self.shared_folder_root, "dl_extras")
 
         # Security: authorized IPs
-        self.authorized_patterns_file = cherrypy.config.get("authorized_patterns_file")
-        self.authorized_patterns = self.read_authorized_patterns()
+        self.authorized_patterns = self.read_authorized_patterns(
+            authorized_patterns_path
+        )
 
         # create needed directories
-        os.makedirs(self.share_run_dir_abs, exist_ok=True)
-        os.makedirs(self.shared_folder_abs, exist_ok=True)
-        os.makedirs(self.dl_extras_dir, exist_ok=True)
-        os.makedirs(self.demo_extras_main_dir, exist_ok=True)
+        os.makedirs(f"{shared_folder_root}/run", exist_ok=True)
+        os.makedirs(f"{shared_folder_root}/dl_extras", exist_ok=True)
+        os.makedirs(f"{shared_folder_root}/demoExtras", exist_ok=True)
 
         base_url = os.environ["IPOL_URL"]
-        demorunners_path = cherrypy.config["demorunners_file"]
         policy = cherrypy.config["dispatcher_policy"]
         self.dispatcher = dispatcher.Dispatcher(
             workload_provider=dispatcher.APIWorkloadProvider(base_url),
@@ -513,11 +492,9 @@ class Core:
 
         self.converter = conversion.Converter()
 
-        demoinfo_db = cherrypy.config["demoinfo_db"]
-        demoinfo_dl_extras_dir = cherrypy.config["demoinfo_dl_extras_dir"]
         self.demoinfo = demoinfo.DemoInfo(
-            dl_extras_dir=demoinfo_dl_extras_dir,
-            database_path=demoinfo_db,
+            dl_extras_dir=os.path.join(core_data_root, "staticData/demoExtras"),
+            database_path=os.path.join(core_data_root, "db/demoinfo.db"),
             base_url=base_url,
         )
 
@@ -530,15 +507,15 @@ class Core:
     def get_demoinfo_api(self) -> DemoInfoAPI:
         return DemoInfoAPI(self.demoinfo)
 
-    def read_authorized_patterns(self):
+    def read_authorized_patterns(self, authorized_patterns_file: str):
         """
         Read from the IPs conf file
         """
         # Check if the config file exists
-        if not os.path.isfile(self.authorized_patterns_file):
+        if not os.path.isfile(authorized_patterns_file):
             self.logger.error(
                 "read_authorized_patterns: Can't open {}".format(
-                    self.authorized_patterns_file
+                    authorized_patterns_file
                 )
             )
             return []
@@ -546,15 +523,13 @@ class Core:
         # Read config file
         try:
             cfg = configparser.ConfigParser()
-            cfg.read([self.authorized_patterns_file])
+            cfg.read([authorized_patterns_file])
             patterns = []
             for item in cfg.items("Patterns"):
                 patterns.append(item[1])
             return patterns
         except configparser.Error:
-            self.logger.exception(
-                "Bad format in {}".format(self.authorized_patterns_file)
-            )
+            self.logger.exception("Bad format in {}".format(authorized_patterns_file))
             return []
 
     @cherrypy.expose
@@ -1135,9 +1110,7 @@ class Core:
         """
         Create the directory of the execution.
         """
-        demo_path = os.path.join(
-            self.shared_folder_abs, self.share_run_dir_abs, str(demo_id), key
-        )
+        demo_path = os.path.join(self.shared_folder_root, "run", str(demo_id), key)
         os.makedirs(demo_path, exist_ok=True)
         return demo_path
 
@@ -1274,22 +1247,17 @@ class Core:
         Read the list of emails from the configuration file
         """
         try:
-            emails_file_path = os.path.join(
-                self.project_folder,
-                "ipol_demo",
-                "modules",
-                "config_common",
-                "emails.conf",
-            )
             cfg = configparser.ConfigParser()
-            if not os.path.isfile(emails_file_path):
+            if not os.path.isfile(self.emails_file_path):
                 self.logger.error(
-                    "read_emails_from_config: Can't open {}".format(emails_file_path)
+                    "read_emails_from_config: Can't open {}".format(
+                        self.emails_file_path
+                    )
                 )
                 return {}
 
             emails = {}
-            cfg.read([emails_file_path])
+            cfg.read([self.emails_file_path])
             for section in cfg.sections():
                 name = cfg.get(section, "name")
                 email = cfg.get(section, "email")
@@ -1359,7 +1327,7 @@ attached the failed experiment data.".format(
         # Zip the contents of the tmp/ directory of the failed experiment
         zip_filename = "/tmp/{}.zip".format(key)
         zipf = zipfile.ZipFile(zip_filename, "w", zipfile.ZIP_DEFLATED)
-        self.zipdir("{}/run/{}/{}".format(self.shared_folder_abs, demo_id, key), zipf)
+        self.zipdir("{}/run/{}/{}".format(self.shared_folder_root, demo_id, key), zipf)
         zipf.close()
 
         # Send email only if the demo is not in the ignored id list
@@ -1793,9 +1761,7 @@ attached the failed experiment data.".format(
 
         demorunner_response["work_url"] = (
             os.path.join(
-                "/api/core/",
-                self.shared_folder_rel,
-                self.share_run_dir_rel,
+                "/api/core/shared_folder/run",
                 str(demo_id),
                 key,
             )
@@ -2004,7 +1970,7 @@ attached the failed experiment data.".format(
         Load the data needed to recreate an execution.
         """
         filename = os.path.join(
-            self.share_run_dir_abs, str(demo_id), key, "execution.json"
+            self.shared_folder_root, "run", str(demo_id), key, "execution.json"
         )
         if not os.path.isfile(filename):
             message = "Execution with key={} not found".format(key)
