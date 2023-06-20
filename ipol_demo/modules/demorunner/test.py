@@ -90,12 +90,10 @@ class DemorunnerTests(unittest.TestCase):
         status_list = []
         try:
             for dr in self.demorunners.values():
-                response = self.post_to_dr(dr, "ping")
-                json_response = response.json()
-                status_list.append(json_response.get("status"))
+                _, status = self.post_to_dr(dr, "ping", method="get")
         finally:
             for status in status_list:
-                self.assertEqual(status, "OK")
+                self.assertEqual(status, 200)
 
     def test_workload(self):
         """
@@ -105,12 +103,12 @@ class DemorunnerTests(unittest.TestCase):
         workload_list = []
         try:
             for dr in self.demorunners.values():
-                response = self.get_workload(dr)
-                status_list.append(response.get("status"))
-                workload_list.append(response.get("workload"))
+                response, status = self.get_workload(dr)
+                status_list.append(status)
+                workload_list.append(response)
         finally:
             for status in status_list:
-                self.assertEqual(status, "OK")
+                self.assertEqual(status, 201)
             for workload in workload_list:
                 self.assertTrue(isinstance(workload, float))
 
@@ -126,18 +124,15 @@ class DemorunnerTests(unittest.TestCase):
                 with open(self.ddl_file, "r") as f:
                     ddl = f.read()
                 ddl_json = json.loads(ddl)
-                build = json.dumps(ddl_json["build"])
 
-                self.post_to_dr(
-                    dr, "delete_compilation", data={"demo_id": self.demo_id}
-                )
-                response = self.ensure_compilation(dr, self.demo_id, build)
-                status_list.append(response.get("status"))
+                self.post_to_dr(dr, f"compilations/{self.demo_id}", method="delete")
+                status = self.ensure_compilation(dr, self.demo_id, ddl_json["build"])
+                status_list.append(status)
 
                 self.delete_extras_folder()
         finally:
             for status in status_list:
-                self.assertEqual(status, "OK")
+                self.assertEqual(status, 201)
 
     def test_ensure_compilation_without_demo_extras_folder(self):
         """
@@ -149,17 +144,14 @@ class DemorunnerTests(unittest.TestCase):
                 with open(self.ddl_file, "r") as f:
                     ddl = f.read()
                 ddl_json = json.loads(ddl)
-                build = json.dumps(ddl_json["build"])
 
-                self.post_to_dr(
-                    dr, "delete_compilation", data={"demo_id": self.demo_id}
-                )
-                response = self.ensure_compilation(dr, self.demo_id, build)
-                status_list.append(response.get("status"))
+                self.post_to_dr(dr, f"compilations/{self.demo_id}", method="delete")
+                status = self.ensure_compilation(dr, self.demo_id, ddl_json["build"])
+                status_list.append(status)
 
         finally:
             for status in status_list:
-                self.assertEqual(status, "OK")
+                self.assertEqual(status, 201)
 
     def test_exec_and_wait(self):
         """
@@ -177,26 +169,20 @@ class DemorunnerTests(unittest.TestCase):
                     ddl = f.read()
                 ddl_json = json.loads(ddl)
                 run = ddl_json["run"]
-                build = json.dumps(ddl_json["build"])
 
-                self.post_to_dr(
-                    dr,
-                    self.module,
-                    "delete_compilation",
-                    data={"demo_id": self.demo_id},
-                )
-                self.ensure_compilation(dr, self.demo_id, build)
+                self.post_to_dr(dr, f"compilations/{self.demo_id}", method="delete")
+                self.ensure_compilation(dr, self.demo_id, ddl_json["build"])
 
                 params = json.dumps({"x0": 0, "x1": width, "y0": 0, "y1": height})
-                response = self.exec_and_wait(
+                _, status = self.exec_and_wait(
                     dr, self.demo_id, self.key, params, run, files
                 )
-                status_list.append(response.get("status"))
+                status_list.append(status)
 
                 self.delete_extras_folder()
         finally:
             for status in status_list:
-                self.assertEqual(status, "OK")
+                self.assertEqual(status, 200)
 
     def test_exec_and_wait_without_inputs(self):
         """
@@ -216,41 +202,52 @@ class DemorunnerTests(unittest.TestCase):
                 run = ddl_json["run"]
                 build = json.dumps(ddl_json["build"])
 
-                self.post_to_dr(
-                    dr, "delete_compilation", data={"demo_id": self.demo_id}
-                )
+                self.post_to_dr(dr, f"compilations/{self.demo_id}", method="delete")
                 self.ensure_compilation(dr, self.demo_id, build)
 
                 params = json.dumps({"x0": 0, "x1": width, "y0": 0, "y1": height})
-                response = self.exec_and_wait(
+                _, status = self.exec_and_wait(
                     dr, self.demo_id, self.key, params, run, files
                 )
-                status_list.append(response.get("status"))
+                status_list.append(status)
 
                 self.delete_extras_folder()
         finally:
             for status in status_list:
-                self.assertEqual(status, "KO")
+                self.assertEqual(status, 400)
 
     #####################
     #       TOOLS       #
     #####################
 
-    def post_to_dr(self, demorunner, service, params=None, data=None, files=None):
+    def post_to_dr(self, demorunner, service, method="post", **kwargs):
         """
         post
         """
         url = "{}/api/demorunner/{}/{}".format(
             self.base_url, demorunner["name"], service
         )
-        return requests.post(url, params=params, data=data, files=files)
+        if method == "get":
+            response = requests.get(url)
+            return response, response.status_code
+        elif method == "put":
+            response = requests.put(url, **kwargs)
+            return response, response.status_code
+        elif method == "post":
+            response = requests.post(url, **kwargs)
+            return response, response.status_code
+        elif method == "delete":
+            response = requests.delete(url, **kwargs)
+            return response, response.status_code
+        else:
+            assert False
 
     def get_input_files(self):
         """
         create input files
         """
         inputs = {
-            "inputs.0": (
+            "files": (
                 "./input_0.png",
                 open(self.blob_path, "rb"),
                 "application/octet-stream",
@@ -296,34 +293,40 @@ class DemorunnerTests(unittest.TestCase):
         """
         get workload
         """
-        response = self.post_to_dr(dr, "get_workload")
-        return response.json()
+        response, response_code = self.post_to_dr(dr, "workloads", "get")
+        return response.json(), response_code
 
     def exec_and_wait(self, dr, demo_id, key, params, ddl_run, files):
         """
         exec and wait
         """
         data = {
-            "demo_id": str(demo_id),
             "key": key,
-            "params": params,
             "ddl_run": ddl_run,
         }
-        zip_response = self.post_to_dr(dr, "exec_and_wait", data=data, files=files)
-
-        zipcontent = io.BytesIO(zip_response.content)
-        zip = zipfile.ZipFile(zipcontent)
-        exec_info = zip.read("exec_info.json")
-        response = json.loads(exec_info)
-        return response
+        dr_response, status_code = self.post_to_dr(
+            dr,
+            f"exec_and_wait/{demo_id}",
+            params=data,
+            data={"parameters": params},
+            files=files,
+        )
+        if status_code == 200:
+            zipcontent = io.BytesIO(dr_response.content)
+            zip = zipfile.ZipFile(zipcontent)
+            exec_info = zip.read("exec_info.json")
+            response = json.loads(exec_info)
+            return response, status_code
+        else:
+            return dr_response, status_code
 
     def ensure_compilation(self, dr, demo_id, ddl_build):
         """
         ensure compilation
         """
-        data = {"demo_id": demo_id, "ddl_build": ddl_build}
-        response = self.post_to_dr(dr, "ensure_compilation", data=data)
-        return response.json()
+        data = json.dumps({"ddl_build": ddl_build})
+        _, status_code = self.post_to_dr(dr, f"compilations/{demo_id}", data=data)
+        return status_code
 
 
 if __name__ == "__main__":

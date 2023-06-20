@@ -45,7 +45,7 @@ from fastapi import (
     status,
 )
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import JSONResponse
 from pydantic import BaseSettings
 from starlette.responses import StreamingResponse
 from Tools.run_demo_base import IPOLTimeoutError
@@ -567,7 +567,6 @@ def read_workdir_file(work_dir: str, filename: str) -> str:
 
 @app.post("/exec_and_wait/{demo_id}", status_code=200)
 async def exec_and_wait(
-    response: Response,
     demo_id: int,
     key: str,
     ddl_run: str,
@@ -595,6 +594,9 @@ async def exec_and_wait(
     res_data["key"] = key
     res_data["params"] = parameters
     res_data["algo_info"] = {}
+    if len(files) < 1:
+        messsage = "No input files located in the request"
+        raise HTTPException(status_code=400, detail=messsage)
     # run the algorithm
     try:
         run_time = time.time()
