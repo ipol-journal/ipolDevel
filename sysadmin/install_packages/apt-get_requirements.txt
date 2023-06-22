@@ -46,6 +46,7 @@ python3-distutils
 gnuplot
 gnuplot-nox
 python3-pip
+virtualenv
 python-yaml
 libpq-dev
 texlive-full
