@@ -1744,7 +1744,7 @@ attached the failed experiment data.".format(
             self.logger.exception(error_message)
             raise IPOLExecutionError(error_message, error_message)
 
-        if status_code != 200:
+        if dr_response.get("error"):
             print("DR answered KO for demo #{}".format(demo_id))
 
             try:

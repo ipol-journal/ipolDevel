@@ -45,9 +45,8 @@ from fastapi import (
     status,
 )
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseSettings
-from starlette.responses import StreamingResponse
 from Tools.run_demo_base import IPOLTimeoutError
 
 
