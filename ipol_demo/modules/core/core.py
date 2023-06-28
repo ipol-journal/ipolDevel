@@ -1533,8 +1533,10 @@ attached the failed experiment data.".format(
         )
         ssh_response = ssh_response.json()
         if ssh_response["status"] == "OK":
-            build_data["ssh_key.public"] = ssh_response["pubkey"]
-            build_data["ssh_key.private"] = ssh_response["privkey"]
+            build_data["ssh_keys"] = {
+                "public_key": ssh_response["pubkey"],
+                "private_key": ssh_response["privkey"],
+            }
 
         url = f"api/demorunner/{dr_name}/compilations/{demo_id}"
         dr_response, dr_response_code = self.post(

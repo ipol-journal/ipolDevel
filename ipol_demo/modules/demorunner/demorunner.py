@@ -28,7 +28,7 @@ import zipfile
 from string import Template
 from subprocess import PIPE, Popen
 from threading import Lock
-from typing import Annotated, List
+from typing import Annotated, Dict, List
 
 import Tools.build as build
 import Tools.run_demo_base as run_demo_base
@@ -46,13 +46,12 @@ from fastapi import (
 )
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, StreamingResponse
-from pydantic import BaseSettings
+from pydantic import BaseModel, BaseSettings
 from Tools.run_demo_base import IPOLTimeoutError
 
 
 class Settings(BaseSettings):
     default_timeout = 60
-    logs_dir: str = "logs/"
     authorized_patterns: str = "authorized_patterns.conf"
 
     compilation_lock_filename: str = "ipol_construct.lock"
@@ -127,10 +126,10 @@ def init_logging():
     """
     Initialize the error logs of the module.
     """
-    logger = logging.getLogger("core_log")
+    logger = logging.getLogger("demorunner")
     # handle all messages for the moment
     logger.setLevel(logging.DEBUG)
-    handler = logging.FileHandler(os.path.join(settings.logs_dir, "error.log"))
+    handler = logging.StreamHandler()
     formatter = logging.Formatter(
         "%(asctime)s ERROR in %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
     )
@@ -190,6 +189,7 @@ def get_workload() -> float:
         return total / float(nproc)
     except Exception:
         logger.exception("Could not get workload from the DR")
+        return 100.0
 
 
 def remove_path(path):
@@ -373,23 +373,29 @@ def all_files_exist(files):
     return all([os.path.isfile(f) or os.path.isdir(f) for f in files])
 
 
+class ssh_keys(BaseModel):
+    public_key: str
+    private_key: str
+
+
 @app.post("/compilations/{demo_id}", status_code=201)
-def ensure_compilation(demo_id: int, build_data: dict) -> None:
+def ensure_compilation(
+    demo_id: int,
+    ddl_build: Annotated[dict, Body()],
+    ssk_keys: ssh_keys = None,
+) -> None:
     """
     Ensures that the source codes of the given demo are compiled and
     moved correctly.
     """
-    ddl_build = build_data.get("ddl_build")
-
     compilation_path = os.path.join(settings.main_bin_dir, str(demo_id))
     mkdir_p(compilation_path)
     try:
         if "build1" in ddl_build:
             # we should have a dict or a list of dict
             compile_source(ddl_build, compilation_path)
-            return None
+            return
         message = f"Bad build syntax: 'build1' not found. Build: {str(ddl_build)}"
-        log_content = None
     except IPOLCompileError as ex:
         message = f"Demo #{demo_id} could not compile \n{ex}"
 
@@ -599,7 +605,6 @@ async def exec_and_wait(
     # run the algorithm
     try:
         run_time = time.time()
-        timeout = float(timeout)
         # A maximum of 10 min, regardless the config
         timeout = min(timeout, 10 * 60)
         # At least five seconds
@@ -630,7 +635,7 @@ async def exec_and_wait(
         res_data["algo_info"][
             "error_message"
         ] = "IPOLTimeoutError, Timeout={} s".format(timeout)
-        print("exec_and_wait IPOLTimeoutError, demo_id={}".format(demo_id))
+        logger.error(f"exec_and_wait IPOLTimeoutError, demo_id={demo_id}")
     except RuntimeError as ex:
         # Read stderr and stdout
         stderr_content = read_workdir_file(work_dir, "stderr.txt")
@@ -643,7 +648,7 @@ stderr: {}\nstdout: {}".format(
             stderr_content, stdout_content
         )
         res_data["error"] = str(ex)
-        print(res_data)
+        logger.error(res_data)
 
     except OSError as ex:
         error_str = "{} - errno={}, filename={}, ddl_run={}".format(
@@ -652,7 +657,6 @@ stderr: {}\nstdout: {}".format(
         logger.error(f"exec_and_wait: OSError, demo_id={demo_id}, {error_str}")
         res_data["algo_info"]["error_message"] = error_str
         res_data["error"] = error_str
-        print(res_data)
     except KeyError as ex:
         error_str = "KeyError. Hint: variable not defined? - {}, ddl_run={}".format(
             str(ex), ddl_run
@@ -660,13 +664,11 @@ stderr: {}\nstdout: {}".format(
         logger.error(f"exec_and_wait: KeyError, demo_id={demo_id}, {error_str}")
         res_data["algo_info"]["error_message"] = error_str
         res_data["error"] = error_str
-        print(res_data)
     except Exception as ex:
         error_str = "Uncatched Exception, demo_id={}".format(demo_id)
         logger.exception(error_str)
         res_data["algo_info"]["error_message"] = error_str
         res_data["error"] = "Error: {}".format(ex)
-        print(res_data)
 
     # write in exec_info.json the status of the execution (error if any, run time, ...)
     open(os.path.join(work_dir, "exec_info.json"), "w").write(json.dumps(res_data))
@@ -737,4 +739,6 @@ app.include_router(private_route)
 mkdir_p(settings.main_bin_dir)
 mkdir_p(settings.main_log_dir)
 
+logger = init_logging()
+logger = init_logging()
 logger = init_logging()
