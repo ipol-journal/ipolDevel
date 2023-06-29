@@ -1678,7 +1678,7 @@ attached the failed experiment data.".format(
         dr_name,
         demo_id,
         key,
-        parameters,
+        params,
         inputs_names,
         ddl_run,
         ddl_general,
@@ -1687,7 +1687,7 @@ attached the failed experiment data.".format(
         """
         Execute the experiment in the given DR.
         """
-        parameters = {**parameters}
+        parameters = {**params}
         for i, input_item in inputs_names.items():
             parameters[f"orig_input_{i}"] = input_item["origin"]
             parameters[f"input_{i}"] = input_item["converted"]

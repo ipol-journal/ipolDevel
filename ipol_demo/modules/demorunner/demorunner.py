@@ -28,7 +28,7 @@ import zipfile
 from string import Template
 from subprocess import PIPE, Popen
 from threading import Lock
-from typing import Annotated, Dict, List
+from typing import Annotated, List
 
 import Tools.build as build
 import Tools.run_demo_base as run_demo_base
@@ -739,6 +739,4 @@ app.include_router(private_route)
 mkdir_p(settings.main_bin_dir)
 mkdir_p(settings.main_log_dir)
 
-logger = init_logging()
-logger = init_logging()
 logger = init_logging()
