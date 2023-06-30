@@ -184,38 +184,6 @@ class DemorunnerTests(unittest.TestCase):
             for status in status_list:
                 self.assertEqual(status, 200)
 
-    def test_exec_and_wait_without_inputs(self):
-        """
-        Test exec and wait without inputs
-        """
-        status_list = []
-        try:
-            blob_image = Image.open(self.blob_path)
-            width, height = blob_image.size
-            files = {}
-            for dr in self.demorunners.values():
-                self.create_extras_folder()
-
-                with open(self.ddl_file, "r") as f:
-                    ddl = f.read()
-                ddl_json = json.loads(ddl)
-                run = ddl_json["run"]
-                build = json.dumps(ddl_json["build"])
-
-                self.post_to_dr(dr, f"compilations/{self.demo_id}", method="delete")
-                self.ensure_compilation(dr, self.demo_id, build)
-
-                params = json.dumps({"x0": 0, "x1": width, "y0": 0, "y1": height})
-                _, status = self.exec_and_wait(
-                    dr, self.demo_id, self.key, params, run, files
-                )
-                status_list.append(status)
-
-                self.delete_extras_folder()
-        finally:
-            for status in status_list:
-                self.assertEqual(status, 400)
-
     #####################
     #       TOOLS       #
     #####################

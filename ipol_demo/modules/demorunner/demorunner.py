@@ -599,9 +599,6 @@ async def exec_and_wait(
     res_data["key"] = key
     res_data["params"] = parameters
     res_data["algo_info"] = {}
-    if len(files) < 1:
-        messsage = "No input files located in the request"
-        raise HTTPException(status_code=400, detail=messsage)
     # run the algorithm
     try:
         run_time = time.time()
