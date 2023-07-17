@@ -21,6 +21,13 @@ def user_created_handler(sender, instance, *args, **kwargs):
     # User stored in django DB.
     # no email means nothing to look for in demoinfo
     if not new_editor.email:
+        old_editor = User.objects.filter(username=new_editor).first()
+        # If old_editor isn't found it means it is a new editor right before the step
+        # to set up email. Return allows to create user and wait
+        # for email to be set
+        if old_editor:
+            error = "Please do not remove the email"
+            raise ValidationError(error)
         return
 
     old_editor = User.objects.get(username=new_editor)
