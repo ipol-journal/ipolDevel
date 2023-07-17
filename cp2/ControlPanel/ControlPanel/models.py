@@ -1,7 +1,6 @@
 import logging
 
-from django.conf import settings
-from django.contrib.auth.models import User as usera
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db.models.signals import post_delete, pre_save
 
@@ -10,7 +9,6 @@ from django.dispatch import receiver
 
 from .utils import api_post
 
-User = settings.AUTH_USER_MODEL
 logger = logging.getLogger(__name__)
 
 
@@ -20,27 +18,27 @@ def user_created_handler(sender, instance, *args, **kwargs):
     Signal pre-save in djagno DB will try to update the editor with given email if it exists.
     """
     new_editor = instance
+    # User stored in django DB.
     # no email means nothing to look for in demoinfo
     if not new_editor.email:
         return
 
-    # User stored in django DB.
-    old_editor = usera.objects.get(pk=new_editor.pk)
-    if not old_editor.email:
-        add_editor(f"{new_editor.first_name} {new_editor.last_name}", new_editor.email)
-        return
-
-    settings = {"email": new_editor.email}
-    demoinfo_editor, _ = api_post("/api/demoinfo/get_editor", "post", data=settings)
-    new_editor_exists = demoinfo_editor.get("editor", None)
-
-    settings = {"email": old_editor.email}
-    demoinfo_editor, _ = api_post("/api/demoinfo/get_editor", "post", data=settings)
-    old_editor_exists = demoinfo_editor.get("editor", None)
+    old_editor = User.objects.get(username=new_editor)
+    logger.info("old", old_editor, old_editor.email, old_editor.first_name, old_editor.last_name)
+    logger.info("new", new_editor, new_editor.email, new_editor.first_name, new_editor.last_name)
 
     # Same email means no change to make
-    if old_editor.email == new_editor.email:
+    if new_editor and old_editor.email == new_editor.email:
+        logger.info("Same email, nothing to do")
         return
+
+    demoinfo_editor, _ = api_post("/api/demoinfo/get_editor", "post", data={"email": new_editor.email})
+    new_editor_exists = demoinfo_editor.get("editor", None)
+
+    demoinfo_editor, _ = api_post("/api/demoinfo/get_editor", "post", data={"email": old_editor.email})
+    old_editor_exists = demoinfo_editor.get("editor", None)
+
+    logger.info("old", old_editor_exists, "new", new_editor_exists)
     # new email not in demoinfo and an editor existed before with an email -> Update editor
     if not new_editor_exists and old_editor_exists:
         update_editor(
@@ -48,12 +46,16 @@ def user_created_handler(sender, instance, *args, **kwargs):
             new_editor.email,
             old_editor.email,
         )
+        return
+
+    if not new_editor_exists:
+        add_editor(f"{new_editor.first_name} {new_editor.last_name}", new_editor.email)
+        return
     # new email exists in demoinfo and different from CP -> email in use.
     # Possible missmatch in demoinfo, needs admin intervention.
-    elif new_editor_exists and old_editor_exists:
-        error = f"Failed to add editor '{new_editor.first_name} {new_editor.last_name}' with email '{new_editor.email}'. Already in use?"
-        logger.error(error)
-        raise ValidationError(error)
+    error = f"Failed to add editor '{new_editor.first_name} {new_editor.last_name}' with email '{new_editor.email}'. Already in use?"
+    logger.error(error)
+    raise ValidationError(error)
 
 
 @receiver(post_delete, sender=User)
@@ -73,11 +75,11 @@ def delete_profile(sender, instance, *args, **kwargs):
 
 
 def add_editor(name: str, email: str):
-    settings = {
+    data = {
         "name": name,
         "mail": email,
     }
-    response, _ = api_post("/api/demoinfo/add_editor", "post", data=settings)
+    response, _ = api_post("/api/demoinfo/add_editor", "post", data=data)
 
     if response.get("status") != "OK":
         error = "Error, user tried to set up an email which is already in use."
@@ -89,13 +91,13 @@ def add_editor(name: str, email: str):
 
 
 def update_editor(username, email, old_email):
-    settings = {
+    data = {
         "name": username,
         "old_email": old_email,
         "new_email": email,
     }
     update_response, _ = api_post(
-        "/api/demoinfo/update_editor_email", "post", data=settings
+        "/api/demoinfo/update_editor_email", "post", data=data
     )
 
     if update_response.get("status") != "OK":
