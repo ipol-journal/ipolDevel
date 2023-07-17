@@ -24,18 +24,26 @@ def user_created_handler(sender, instance, *args, **kwargs):
         return
 
     old_editor = User.objects.get(username=new_editor)
-    logger.info("old", old_editor, old_editor.email, old_editor.first_name, old_editor.last_name)
-    logger.info("new", new_editor, new_editor.email, new_editor.first_name, new_editor.last_name)
+    logger.info(
+        "old", old_editor, old_editor.email, old_editor.first_name, old_editor.last_name
+    )
+    logger.info(
+        "new", new_editor, new_editor.email, new_editor.first_name, new_editor.last_name
+    )
 
     # Same email means no change to make
     if new_editor and old_editor.email == new_editor.email:
         logger.info("Same email, nothing to do")
         return
 
-    demoinfo_editor, _ = api_post("/api/demoinfo/get_editor", "post", data={"email": new_editor.email})
+    demoinfo_editor, _ = api_post(
+        "/api/demoinfo/get_editor", "post", data={"email": new_editor.email}
+    )
     new_editor_exists = demoinfo_editor.get("editor", None)
 
-    demoinfo_editor, _ = api_post("/api/demoinfo/get_editor", "post", data={"email": old_editor.email})
+    demoinfo_editor, _ = api_post(
+        "/api/demoinfo/get_editor", "post", data={"email": old_editor.email}
+    )
     old_editor_exists = demoinfo_editor.get("editor", None)
 
     logger.info("old", old_editor_exists, "new", new_editor_exists)
