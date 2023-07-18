@@ -16,8 +16,13 @@ body {
   line-height: 1;
 }
 
-ol, ul {
-  list-style: none;
+ol, ul, li {
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+li {
+  list-style-position: inside;
 }
 
 blockquote, q {
