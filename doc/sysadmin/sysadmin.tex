@@ -524,8 +524,10 @@ To access the CP the users need to go to \url{http://ipolcore.ipol.im/cp/} and l
 A docker image is available to develop and run the IPOL demo system in any enviroment (say, MacOS and others).
 The necessary commands to work with Docker are described in Section~\ref{sec:docker_commands}.
 
-The first is to build the Docker image. Then you will be able to create as many containers as needed. After running the container you
-will have a terminal which allows to execute {\tt terminal} and bring up all modules. Nginx and ssh will be already
+First, add your user to the {\tt docker} group with the commando {\tt usermod -a -G docker user}.
+Then you can proceed to build the Docker image, for which you can create as many containers as needed.
+
+After running the container you will have a terminal which allows to execute {\tt terminal} and bring up all modules. Nginx and ssh will be already
 configured and running.
 
 Once inside the container's TTY there will be an `ipol" user to execute any task related to modules, terminal, 
