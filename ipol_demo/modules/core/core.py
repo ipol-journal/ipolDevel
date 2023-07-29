@@ -482,7 +482,6 @@ class Core:
         os.makedirs(f"{shared_folder_root}/demoExtras", exist_ok=True)
 
         base_url = os.environ.get("IPOL_URL", "http://" + socket.getfqdn())
-        demorunners_path = cherrypy.config["demorunners_file"]
         policy = cherrypy.config["dispatcher_policy"]
         self.dispatcher = dispatcher.Dispatcher(
             workload_provider=dispatcher.APIWorkloadProvider(base_url),
