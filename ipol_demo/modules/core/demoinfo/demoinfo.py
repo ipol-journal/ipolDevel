@@ -73,8 +73,8 @@ class DemoInfo:
         if not demoextras_file:
             return None
         demoextras_name = pathname2url(os.path.basename(demoextras_file[0]))
-        return "{}/api/demoinfo/{}{}/{}".format(
-            self.base_url, self.dl_extras_dir, demo_id, demoextras_name
+        return "{}/api/demoinfo/{}/{}/{}".format(
+            self.base_url, "staticData/demoExtras", demo_id, demoextras_name
         )
 
     def delete_demoextras(self, demo_id: int) -> Result[None, str]:
