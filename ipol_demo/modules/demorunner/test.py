@@ -108,7 +108,7 @@ class DemorunnerTests(unittest.TestCase):
                 workload_list.append(response)
         finally:
             for status in status_list:
-                self.assertEqual(status, 201)
+                self.assertEqual(status, 200)
             for workload in workload_list:
                 self.assertTrue(isinstance(workload, float))
 

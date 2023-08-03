@@ -157,7 +157,7 @@ def shutdown_event():
     logger.info("Application shutdown")
 
 
-@app.get("/workloads", status_code=201)
+@app.get("/workload", status_code=200)
 def get_workload() -> float:
     """
     Return the workload of this DR
