@@ -89,10 +89,9 @@ class IntegrationTests(unittest.TestCase):
                 blob_id = self.get_blob_id(self.demo_id, self.blob_pos_in_set)
                 # Run the demo with the uploaded image
                 blob_image = Image.open(blob.name)
-            response = self.run_demo_with_blobset(
+            response, run_status = self.run_demo_with_blobset(
                 self.demo_id, blob_image, blob_id, self.blobset_id
             )
-            run_status = response.get("status")
 
             # Delete demo in Demoinfo and Blobs
             response, _ = self.delete_demo(self.demo_id)
@@ -104,7 +103,7 @@ class IntegrationTests(unittest.TestCase):
             self.assertEqual(demo_extras_status, "OK")
             self.assertEqual(add_blob_status, 201)
             self.assertTrue(isinstance(blob_id, int))
-            self.assertEqual(run_status, "OK")
+            self.assertEqual(run_status, 200)
             self.assertEqual(delete_demo_status, "OK")
 
     def test_execution_with_upload(self):
@@ -145,10 +144,9 @@ class IntegrationTests(unittest.TestCase):
             with open(self.test_image_file, "rb") as blob:
                 with Image.open(self.test_image_file) as blob_image:
                     width, height = blob_image.size
-                response = self.run_demo_with_uploaded_blob(
+                response, run_status = self.run_demo_with_uploaded_blob(
                     self.demo_id, blob, width, height
                 )
-            run_status = response.get("status")
 
             response, status_code = self.get_archive_experiments_by_page(
                 self.BASE_URL, self.demo_id
@@ -169,7 +167,7 @@ class IntegrationTests(unittest.TestCase):
             self.assertEqual(create_demo_status, "OK")
             self.assertEqual(add_ddl_status, "OK")
             self.assertEqual(demo_extras_status, "OK")
-            self.assertEqual(run_status, "OK")
+            self.assertEqual(run_status, 200)
             self.assertEqual(archive_status, 200)
             self.assertTrue(isinstance(experiments, list))
             self.assertTrue(n_experiments > 0)
@@ -284,7 +282,7 @@ class IntegrationTests(unittest.TestCase):
         response = self.post(
             "core", "post", "run", data={"clientData": json.dumps(params)}
         )
-        return response.json()
+        return response.json(), response.status_code
 
     def run_demo_with_uploaded_blob(self, demo_id, blob, width, height):
         params = {
@@ -296,7 +294,7 @@ class IntegrationTests(unittest.TestCase):
         response = self.post(
             "core", "post", "run", data={"clientData": json.dumps(params)}, files=files
         )
-        return response.json()
+        return response.json(), response.status_code
 
     def delete_demo(self, demo_id):
         """
