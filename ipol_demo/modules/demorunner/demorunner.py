@@ -28,7 +28,7 @@ import zipfile
 from string import Template
 from subprocess import PIPE, Popen
 from threading import Lock
-from typing import Annotated, List
+from typing import Annotated, List, Optional
 
 import Tools.build as build
 import Tools.run_demo_base as run_demo_base
@@ -373,7 +373,7 @@ def all_files_exist(files):
     return all([os.path.isfile(f) or os.path.isdir(f) for f in files])
 
 
-class ssh_keys(BaseModel):
+class SSHKeys(BaseModel):
     public_key: str
     private_key: str
 
@@ -382,7 +382,7 @@ class ssh_keys(BaseModel):
 def ensure_compilation(
     demo_id: int,
     ddl_build: Annotated[dict, Body()],
-    ssk_keys: ssh_keys = None,
+    ssk_keys: Optional[SSHKeys] = None,
 ) -> None:
     """
     Ensures that the source codes of the given demo are compiled and
@@ -575,7 +575,7 @@ async def exec_and_wait(
     demo_id: int,
     key: str,
     ddl_run: str,
-    parameters: Annotated[str, Body()],
+    parameters: str,
     files: Annotated[List[UploadFile], File()],
     timeout: int = settings.default_timeout,
 ) -> UploadFile:

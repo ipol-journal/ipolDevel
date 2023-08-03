@@ -1543,11 +1543,11 @@ attached the failed experiment data.".format(
             url, "post", data=json.dumps(build_data)
         )
 
-        # Read the JSON response from the DR
-        demorunner_response = dr_response.json()
-
         # Check if the compilation was successful
         if dr_response_code != 201:
+            # Read the JSON response from the DR
+            demorunner_response = dr_response.json()
+
             print("Compilation error in demo #{}".format(demo_id))
             # Add the compilation failure info into the exception
             buildlog = demorunner_response.get("buildlog", "")
@@ -1692,13 +1692,14 @@ attached the failed experiment data.".format(
             parameters[f"orig_input_{i}"] = input_item["origin"]
             parameters[f"input_{i}"] = input_item["converted"]
 
-        userdata = {
+        payload = {
             "key": key,
             "ddl_run": ddl_run,
+            "parameters": json.dumps(parameters),
         }
 
         if "timeout" in ddl_general:
-            userdata["timeout"] = ddl_general["timeout"]
+            payload["timeout"] = ddl_general["timeout"]
 
         files = []
         for root, _, wd_files in os.walk(work_dir):
@@ -1719,8 +1720,7 @@ attached the failed experiment data.".format(
         dr_response, status_code = self.post(
             url,
             "post",
-            params=userdata,
-            data={"parameters": json.dumps(parameters)},
+            params=payload,
             files=files,
         )
 
