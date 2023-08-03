@@ -1248,16 +1248,16 @@ class Core:
         """
         try:
             cfg = configparser.ConfigParser()
-            if not os.path.isfile(self.emails_file_path):
+            if not os.path.isfile(self.emails_conf_path):
                 self.logger.error(
-                    "read_emails_from_config: Can't open {}".format(
-                        self.emails_file_path
+                    "Can't open {}".format(
+                        self.emails_conf_path
                     )
                 )
                 return {}
 
             emails = {}
-            cfg.read([self.emails_file_path])
+            cfg.read([self.emails_conf_path])
             for section in cfg.sections():
                 name = cfg.get(section, "name")
                 email = cfg.get(section, "email")
