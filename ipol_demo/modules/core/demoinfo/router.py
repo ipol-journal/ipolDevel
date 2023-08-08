@@ -1,0 +1,400 @@
+import configparser
+import json
+import logging
+import os
+import re
+import socket
+from typing import Any
+
+from demoinfo import demoinfo
+from fastapi import APIRouter, Body, Depends, HTTPException, Request
+from pydantic import BaseSettings
+from result import Ok
+
+
+class Settings(BaseSettings):
+    config_common_dir: str = (
+        os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/config_common"
+    )
+    authorized_patterns: str = f"{config_common_dir}/authorized_patterns.conf"
+    base_url: str = os.environ.get("IPOL_URL", "http://" + socket.getfqdn())
+
+    demoinfo_db: str = "db/demoinfo.db"
+    demoinfo_dl_extras_dir: str = "staticData/demoExtras"
+
+
+settings = Settings()
+demoinfoRouter = APIRouter(prefix="/demoinfo")
+demoinfo = demoinfo.DemoInfo(
+    dl_extras_dir=settings.demoinfo_dl_extras_dir,
+    database_path=settings.demoinfo_db,
+    base_url=settings.base_url,
+)
+
+
+def validate_ip(request: Request) -> bool:
+    # Check if the request is coming from an allowed IP address
+    patterns = []
+    ip = request.headers["x-real-ip"]
+    # try:
+    for pattern in read_authorized_patterns():
+        patterns.append(
+            re.compile(pattern.replace(".", "\\.").replace("*", "[0-9a-zA-Z]+"))
+        )
+    for pattern in patterns:
+        if pattern.match(ip) is not None:
+            return True
+    raise HTTPException(status_code=403, detail="IP not allowed")
+
+
+def read_authorized_patterns() -> list:
+    """
+    Read from the IPs conf file
+    """
+    # Check if the config file exists
+    authorized_patterns_path = os.path.join(
+        settings.config_common_dir, settings.authorized_patterns
+    )
+    if not os.path.isfile(authorized_patterns_path):
+        logger.exception(
+            f"read_authorized_patterns: \
+                      File {authorized_patterns_path} doesn't exist"
+        )
+        return []
+
+    # Read config file
+    try:
+        cfg = configparser.ConfigParser()
+        cfg.read([authorized_patterns_path])
+        patterns = []
+        for item in cfg.items("Patterns"):
+            patterns.append(item[1])
+        return patterns
+    except configparser.Error:
+        logger.exception(f"Bad format in {authorized_patterns_path}")
+        return []
+
+
+def init_logging():
+    """
+    Initialize the error logs of the module.
+    """
+    logger = logging.getLogger("core")
+
+    logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter(
+        "%(asctime)s; [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    handler.setFormatter(formatter)
+
+    logger.addHandler(handler)
+    return logger
+
+
+@demoinfoRouter.delete(
+    "/demoextras", dependencies=[Depends(validate_ip)], status_code=204
+)
+def delete_demoextras(demo_id: int):
+    result = demoinfo.delete_demoextras(demo_id)
+
+    if result.is_ok():
+        data = {}
+    else:
+        data = {"error": result.value}
+    return data
+
+
+@demoinfoRouter.post(
+    "/demoextras", dependencies=[Depends(validate_ip)], status_code=201
+)
+def add_demoextras(demo_id, demoextras, demoextras_name):
+    demo_id = int(demo_id)
+    demoextras = demoextras.file.read()
+    result = demoinfo.add_demoextras(demo_id, demoextras, demoextras_name)
+    if isinstance(result, Ok):
+        data = {}
+    else:
+        data = {"error": result.value}
+    return data
+
+
+@demoinfoRouter.get("/demoextras/{demo_id}", status_code=200)
+def get_demo_extras_info(demo_id: int):
+    result = demoinfo.get_demo_extras_info(demo_id)
+    if isinstance(result, Ok):
+        data = {}
+        if result.value is not None:
+            data.update(**result.value)
+    else:
+        data = {"error": result.value}
+    return data
+
+
+@demoinfoRouter.get("/demos", status_code=200)
+def demo_list() -> list:
+    result = demoinfo.demo_list()
+    if isinstance(result, Ok):
+        data = result.value
+    else:
+        data = {"error": result.value}
+    return data
+
+
+@demoinfoRouter.get("/demo_list_by_editorid", status_code=200)
+def demo_list_by_editorid(editorid: int):
+    result = demoinfo.demo_list_by_editorid(editorid)
+    if isinstance(result, Ok):
+        data = result.value
+    else:
+        data = {"error": result.value}
+    return data
+
+
+@demoinfoRouter.get("/demo_list_pagination_and_filter", status_code=201)
+def demo_list_pagination_and_filter(
+    num_elements_page: int, page: int, qfilter: str = None
+):
+    result = demoinfo.demo_list_pagination_and_filter(num_elements_page, page, qfilter)
+    if isinstance(result, Ok):
+        data = {}
+        data.update(**result.value)
+    else:
+        data = {"error": result.value}
+    return data
+
+
+@demoinfoRouter.get(
+    "/editors/{demo_id}", dependencies=[Depends(validate_ip)], status_code=200
+)
+def demo_get_editors_list(demo_id: int):
+    result = demoinfo.demo_get_editors_list(demo_id)
+    if isinstance(result, Ok):
+        data = result.value
+    else:
+        data = {"error": result.value}
+    return data
+
+
+@demoinfoRouter.get(
+    "/available_editors/{demo_id}",
+    dependencies=[Depends(validate_ip)],
+    status_code=200,
+)
+def demo_get_available_editors_list(demo_id: int):
+    result = demoinfo.demo_get_available_editors_list(demo_id)
+    if isinstance(result, Ok):
+        data = result.value
+    else:
+        data = {"error": result.value}
+    return data
+
+
+@demoinfoRouter.get("/demo_metainfo/{demo_id}", status_code=200)
+def read_demo_metainfo(demo_id: int):
+    result = demoinfo.read_demo_metainfo(demo_id)
+    if isinstance(result, Ok):
+        data = {}
+        data.update(**result.value)
+    else:
+        data = {"error": result.value}
+    return data
+
+
+@demoinfoRouter.post("/demo", dependencies=[Depends(validate_ip)], status_code=201)
+def add_demo(demo_id: int, title: str, state: str, ddl: str = None):
+    result = demoinfo.add_demo(demo_id, title, state, ddl)
+    if isinstance(result, Ok):
+        data = {"demo_id": result.value}
+    else:
+        data = {"error": result.value}
+    return data
+
+
+@demoinfoRouter.patch("/demo", dependencies=[Depends(validate_ip)], status_code=201)
+def update_demo(demo: str, old_editor_demoid: int):
+    demo_dict = json.loads(demo)
+    assert "demo_id" in demo_dict
+    assert "title" in demo_dict
+    assert "state" in demo_dict
+    result = demoinfo.update_demo(demo_dict, old_editor_demoid)
+    if isinstance(result, Ok):
+        data = {}
+    else:
+        data = {"error": result.value}
+    return data
+
+
+@demoinfoRouter.get("editor_list", dependencies=[Depends(validate_ip)], status_code=200)
+def editor_list():
+    result = demoinfo.editor_list()
+    if isinstance(result, Ok):
+        data = {"status": "OK", "editor_list": result.value}
+    else:
+        data = {"error": result.value}
+    return data
+
+
+@demoinfoRouter.get("/editor", dependencies=[Depends(validate_ip)], status_code=200)
+def get_editor(email: str):
+    result = demoinfo.get_editor(email)
+    if isinstance(result, Ok):
+        data: dict[str, Any] = {}
+        if editor := result.value:
+            data["editor"] = editor
+    else:
+        data = {"error": result.value}
+    return data
+
+
+@demoinfoRouter.patch(
+    "/update_editor_email", dependencies=[Depends(validate_ip)], status_code=201
+)
+def update_editor_email(new_email: str, old_email: str, name: str):
+    result = demoinfo.update_editor_email(new_email, old_email, name)
+    if isinstance(result, Ok):
+        data = {}
+        if message := result.value:
+            data["message"] = message
+    else:
+        data = {"error": result.value}
+    return data
+
+
+@demoinfoRouter.post("/editor", dependencies=[Depends(validate_ip)], status_code=201)
+def add_editor(name: str, mail: str):
+    result = demoinfo.add_editor(name, mail)
+    if isinstance(result, Ok):
+        data = {}
+    else:
+        data = {"error": result.value}
+    return data
+
+
+@demoinfoRouter.post(
+    "/add_editor_to_demo", dependencies=[Depends(validate_ip)], status_code=201
+)
+def add_editor_to_demo(demo_id: int, editor_id: int):
+    result = demoinfo.add_editor_to_demo(demo_id, editor_id)
+    if isinstance(result, Ok):
+        data = {}
+    else:
+        data = {"error": result.value}
+    return data
+
+
+@demoinfoRouter.delete(
+    "/editor_from_demo", dependencies=[Depends(validate_ip)], status_code=204
+)
+def remove_editor_from_demo(demo_id: int, editor_id: int):
+    result = demoinfo.remove_editor_from_demo(demo_id, editor_id)
+    if isinstance(result, Ok):
+        data = {}
+    else:
+        data = {"error": result.value}
+    return data
+
+
+@demoinfoRouter.delete("/editor", dependencies=[Depends(validate_ip)], status_code=204)
+def remove_editor(editor_id: int):
+    result = demoinfo.remove_editor(editor_id)
+    if isinstance(result, Ok):
+        return
+    else:
+        data = {"error": result.value}
+        # TODO raise httperror
+        return data
+
+
+@demoinfoRouter.get(
+    "/ddl_history/{demo_id}", dependencies=[Depends(validate_ip)], status_code=200
+)
+def get_ddl_history(demo_id: int):
+    result = demoinfo.get_ddl_history(demo_id)
+    if isinstance(result, Ok):
+        data = {"ddl_history": result.value}
+    else:
+        data = {"error": result.value}
+    return data
+
+
+@demoinfoRouter.get(
+    "/ddl/{demo_id}", dependencies=[Depends(validate_ip)], status_code=200
+)
+def get_ddl(demo_id: int):
+    result = demoinfo.get_ddl(demo_id)
+    if isinstance(result, Ok):
+        data = result.value
+    else:
+        data = {"error": result.value}
+    return data
+
+
+@demoinfoRouter.post(
+    "/ddl/{demo_id}", dependencies=[Depends(validate_ip)], status_code=201
+)
+def save_ddl(demo_id: int, ddl: dict = Body()):
+    ddl_text = json.dumps(ddl, ensure_ascii=False, indent=3).encode("utf-8")
+    result = demoinfo.save_ddl(demo_id, ddl_text)
+    if isinstance(result, Ok):
+        data = {}
+    else:
+        data = {"error": result.value}
+    return data
+
+
+@demoinfoRouter.get("get_interface_ddl", status_code=200)
+def get_interface_ddl(demo_id: int, sections=None):
+    result = demoinfo.get_interface_ddl(demo_id, sections)
+    if isinstance(result, Ok):
+        data = {
+            "last_demodescription": {
+                "ddl": result.value,
+            },
+        }
+    else:
+        data = {"error": result.value}
+    return data
+
+
+@demoinfoRouter.get(
+    "/ssh_keys/{demo_id}", dependencies=[Depends(validate_ip)], status_code=200
+)
+def get_ssh_keys(demo_id: int):
+    result = demoinfo.get_ssh_keys(demo_id)
+    if isinstance(result, Ok):
+        pubkey, privkey = result.value
+        data = {
+            "pubkey": pubkey,
+            "privkey": privkey,
+        }
+    else:
+        data = {"error": result.value}
+    return data
+
+
+@demoinfoRouter.get(
+    "/reset_ssh_keys/{demo_id}", dependencies=[Depends(validate_ip)], status_code=200
+)
+def reset_ssh_keys(demo_id: int):
+    result = demoinfo.reset_ssh_keys(demo_id)
+    if isinstance(result, Ok):
+        data = {}
+    else:
+        data = {"error": result.value}
+    return data
+
+
+@demoinfoRouter.get("/stats", dependencies=[Depends(validate_ip)], status_code=200)
+def stats():
+    result = demoinfo.stats()
+    if isinstance(result, Ok):
+        data = {}
+        data.update(**result.value)
+    else:
+        data = {"error": result.value}
+    return data
+
+
+logger = init_logging()

@@ -20,13 +20,11 @@ import urllib.parse
 import urllib.request
 import zipfile
 from collections import OrderedDict
-from dataclasses import dataclass
 from datetime import datetime
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from random import random
-from typing import Any
 
 import cherrypy
 import magic
@@ -56,397 +54,85 @@ from errors import (
     IPOLUploadedInputRejectedError,
     IPOLWorkDirError,
 )
+from fastapi import APIRouter, Depends, HTTPException, Request
 from ipolutils.evaluator.evaluator import IPOLEvaluateError, evaluate
 from ipolutils.read_text_file import read_commented_text_file
+from pydantic import BaseSettings
 from result import Err, Ok
 
 
-def authenticate(func):
-    """
-    Wrapper to authenticate before using an exposed function
-    """
+class Settings(BaseSettings):
+    server_environment: str = os.environ.get("env", "local")
+    module_dir: str = os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/blobs"
+    logs_dir: str = "logs/"
+    config_common_dir: str = (
+        os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/config_common"
+    )
+    authorized_patterns: str = f"{config_common_dir}/authorized_patterns.conf"
 
-    def authenticate_and_call(*args, **kwargs):
-        """
-        Invokes the wrapped function if authenticated
-        """
-        if "X-Real-IP" in cherrypy.request.headers and is_authorized_ip(
-            cherrypy.request.headers["X-Real-IP"]
-        ):
-            return func(*args, **kwargs)
-        error = {"status": "KO", "error": "Authentication Failed"}
-        return json.dumps(error).encode()
+    base_url: str = os.environ.get("IPOL_URL", "http://" + socket.getfqdn())
 
-    def is_authorized_ip(ip):
-        """
-        Validates the given IP
-        """
-        core = Core.get_instance()
-        patterns = []
-        # Creates the patterns  with regular expressions
-        for authorized_pattern in core.authorized_patterns:
-            patterns.append(
-                re.compile(
-                    authorized_pattern.replace(".", "\\.").replace("*", "[0-9a-zA-Z]+")
-                )
-            )
-        # Compare the IP with the patterns
-        for pattern in patterns:
-            if pattern.match(ip) is not None:
-                return True
-        return False
+    project_folder = os.path.expanduser("~") + "/ipolDevel"
+    blobs_folder = os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/blobs"
 
-    return authenticate_and_call
+    shared_folder_rel: str = "shared_folder/"
+    shared_folder_abs = os.path.join(project_folder, shared_folder_rel)
+    demo_extras_main_dir = os.path.join(shared_folder_abs, "demoExtras/")
+    dl_extras_dir = os.path.join(shared_folder_abs, "dl_extras/")
+    share_run_dir_rel: str = "run/"
+    share_run_dir_abs = os.path.join(shared_folder_abs, share_run_dir_rel)
+
+    demorunners_path = (
+        os.path.expanduser("~")
+        + "/ipolDevel/ipol_demo/modules/config_common/demorunners.xml"
+    )
 
 
-@dataclass
-class DispatcherAPI:
-    dispatcher: dispatcher.Dispatcher
-
-    @cherrypy.expose
-    def get_demorunners_stats(self):
-        """
-        Get workload of all DRs.
-        """
-        stats = self.dispatcher.get_demorunners_stats()
-        return json.dumps({"status": "OK", "demorunners": stats}).encode()
+settings = Settings()
+coreRouter = APIRouter(prefix="/core")
 
 
-@dataclass
-class ConversionAPI:
-    converter: conversion.Converter
-
-    @cherrypy.expose
-    def convert_tiff_to_png(self, img):
-        """
-        Converts the input TIFF to PNG.
-        This is used by the web interface for visualization purposes
-        """
-        data = self.converter.convert_tiff_to_png(img)
-        return json.dumps(data, indent=4).encode()
-
-
-@dataclass
-class DemoInfoAPI:
-    demoinfo: demoinfo.DemoInfo
-
-    @cherrypy.expose
-    @authenticate
-    def delete_demoextras(self, demo_id):
-        result = self.demoinfo.delete_demoextras(demo_id)
-
-        if result.is_ok():
-            data = {"status": "OK"}
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @authenticate
-    def add_demoextras(self, demo_id, demoextras, demoextras_name):
-        demo_id = int(demo_id)
-        demoextras = demoextras.file.read()
-        result = self.demoinfo.add_demoextras(demo_id, demoextras, demoextras_name)
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    def get_demo_extras_info(self, demo_id):
-        demo_id = int(demo_id)
-        result = self.demoinfo.get_demo_extras_info(demo_id)
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-            if result.value is not None:
-                data.update(**result.value)
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    def demo_list(self):
-        result = self.demoinfo.demo_list()
-        if isinstance(result, Ok):
-            data = {
-                "demo_list": result.value,
-                "status": "OK",
-            }
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    def demo_list_by_editorid(self, editorid):
-        editorid = int(editorid)
-        result = self.demoinfo.demo_list_by_editorid(editorid)
-        if isinstance(result, Ok):
-            data = {
-                "demo_list": result.value,
-                "status": "OK",
-            }
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    def demo_list_pagination_and_filter(self, num_elements_page, page, qfilter=None):
-        num_elements_page = int(num_elements_page)
-        page = int(page)
-        result = self.demoinfo.demo_list_pagination_and_filter(
-            num_elements_page, page, qfilter
+def validate_ip(request: Request) -> bool:
+    # Check if the request is coming from an allowed IP address
+    patterns = []
+    ip = request.headers["x-real-ip"]
+    # try:
+    for pattern in read_authorized_patterns():
+        patterns.append(
+            re.compile(pattern.replace(".", "\\.").replace("*", "[0-9a-zA-Z]+"))
         )
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-            data.update(**result.value)
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
+    for pattern in patterns:
+        if pattern.match(ip) is not None:
+            return True
+    raise HTTPException(status_code=403, detail="IP not allowed")
 
-    @cherrypy.expose
-    @authenticate
-    def demo_get_editors_list(self, demo_id):
-        demo_id = int(demo_id)
-        result = self.demoinfo.demo_get_editors_list(demo_id)
-        if isinstance(result, Ok):
-            data = {
-                "editor_list": result.value,
-                "status": "OK",
-            }
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
 
-    @cherrypy.expose
-    @authenticate
-    def demo_get_available_editors_list(self, demo_id):
-        demo_id = int(demo_id)
-        result = self.demoinfo.demo_get_available_editors_list(demo_id)
-        if isinstance(result, Ok):
-            data = {
-                "editor_list": result.value,
-                "status": "OK",
-            }
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
+def read_authorized_patterns() -> list:
+    """
+    Read from the IPs conf file
+    """
+    # Check if the config file exists
+    authorized_patterns_path = os.path.join(
+        settings.config_common_dir, settings.authorized_patterns
+    )
+    if not os.path.isfile(authorized_patterns_path):
+        logger.exception(
+            f"read_authorized_patterns: \
+                      File {authorized_patterns_path} doesn't exist"
+        )
+        return []
 
-    @cherrypy.expose
-    def read_demo_metainfo(self, demoid):
-        demoid = int(demoid)
-        result = self.demoinfo.read_demo_metainfo(demoid)
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-            data.update(**result.value)
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @cherrypy.tools.allow(methods=["POST"])  # allow only post
-    @authenticate
-    def add_demo(self, demo_id, title, state, ddl=None):
-        demo_id = int(demo_id)
-        result = self.demoinfo.add_demo(demo_id, title, state, ddl)
-        if isinstance(result, Ok):
-            data = {"status": "OK", "demo_id": result.value}
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @cherrypy.tools.allow(methods=["POST"])  # allow only post
-    @authenticate
-    def update_demo(self, demo: str, old_editor_demoid: int):
-        old_editor_demoid = int(old_editor_demoid)
-        demo_dict = json.loads(demo)
-        assert "demo_id" in demo_dict
-        assert "title" in demo_dict
-        assert "state" in demo_dict
-        result = self.demoinfo.update_demo(demo_dict, old_editor_demoid)
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @authenticate
-    def editor_list(self):
-        result = self.demoinfo.editor_list()
-        if isinstance(result, Ok):
-            data = {"status": "OK", "editor_list": result.value}
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @authenticate
-    def get_editor(self, email):
-        result = self.demoinfo.get_editor(email)
-        if isinstance(result, Ok):
-            data: dict[str, Any] = {"status": "OK"}
-            if editor := result.value:
-                data["editor"] = editor
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @cherrypy.tools.allow(methods=["POST"])
-    @authenticate
-    def update_editor_email(self, new_email, old_email, name):
-        result = self.demoinfo.update_editor_email(new_email, old_email, name)
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-            if message := result.value:
-                data["message"] = message
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @cherrypy.tools.allow(methods=["POST"])  # allow only post
-    @authenticate
-    def add_editor(self, name, mail):
-        result = self.demoinfo.add_editor(name, mail)
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @cherrypy.tools.allow(methods=["POST"])  # allow only post
-    @authenticate
-    def add_editor_to_demo(self, demo_id, editor_id):
-        demo_id = int(demo_id)
-        editor_id = int(editor_id)
-        result = self.demoinfo.add_editor_to_demo(demo_id, editor_id)
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @cherrypy.tools.allow(methods=["POST"])  # allow only post
-    @authenticate
-    def remove_editor_from_demo(self, demo_id, editor_id):
-        demo_id = int(demo_id)
-        editor_id = int(editor_id)
-        result = self.demoinfo.remove_editor_from_demo(demo_id, editor_id)
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @cherrypy.tools.allow(methods=["POST"])  # allow only post
-    @authenticate
-    def remove_editor(self, editor_id):
-        editor_id = int(editor_id)
-        result = self.demoinfo.remove_editor(editor_id)
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @authenticate
-    def get_ddl_history(self, demo_id):
-        demo_id = int(demo_id)
-        result = self.demoinfo.get_ddl_history(demo_id)
-        if isinstance(result, Ok):
-            data = {"status": "OK", "ddl_history": result.value}
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @authenticate
-    def get_ddl(self, demo_id):
-        demo_id = int(demo_id)
-        result = self.demoinfo.get_ddl(demo_id)
-        if isinstance(result, Ok):
-            data = {
-                "status": "OK",
-                "last_demodescription": {
-                    "ddl": result.value,
-                },
-            }
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @cherrypy.tools.allow(methods=["POST"])  # allow only post
-    @authenticate
-    def save_ddl(self, demoid):
-        demoid = int(demoid)
-        cl = cherrypy.request.headers["Content-Length"]
-        ddl = cherrypy.request.body.read(int(cl)).decode("utf-8")
-        result = self.demoinfo.save_ddl(demoid, ddl)
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode("utf-8")
-
-    @cherrypy.expose
-    def get_interface_ddl(self, demo_id, sections=None):
-        demo_id = int(demo_id)
-        result = self.demoinfo.get_interface_ddl(demo_id, sections)
-        if isinstance(result, Ok):
-            data = {
-                "status": "OK",
-                "last_demodescription": {
-                    "ddl": result.value,
-                },
-            }
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @authenticate
-    def get_ssh_keys(self, demo_id):
-        demo_id = int(demo_id)
-        result = self.demoinfo.get_ssh_keys(demo_id)
-        if isinstance(result, Ok):
-            pubkey, privkey = result.value
-            data = {
-                "status": "OK",
-                "pubkey": pubkey,
-                "privkey": privkey,
-            }
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @authenticate
-    def reset_ssh_keys(self, demo_id):
-        demo_id = int(demo_id)
-        result = self.demoinfo.reset_ssh_keys(demo_id)
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    def stats(self):
-        result = self.demoinfo.stats()
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-            data.update(**result.value)
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
+    # Read config file
+    try:
+        cfg = configparser.ConfigParser()
+        cfg.read([authorized_patterns_path])
+        patterns = []
+        for item in cfg.items("Patterns"):
+            patterns.append(item[1])
+        return patterns
+    except configparser.Error:
+        logger.exception(f"Bad format in {authorized_patterns_path}")
+        return []
 
 
 class Core:
@@ -511,7 +197,7 @@ class Core:
             policy=dispatcher.make_policy(policy),
         )
 
-        self.converter = conversion.Converter()
+        # self.converter = conversion.Converter()
 
         demoinfo_db = cherrypy.config["demoinfo_db"]
         demoinfo_dl_extras_dir = cherrypy.config["demoinfo_dl_extras_dir"]
@@ -521,14 +207,14 @@ class Core:
             base_url=base_url,
         )
 
-    def get_dispatcher_api(self) -> DispatcherAPI:
-        return DispatcherAPI(self.dispatcher)
+    # def get_dispatcher_api(self) -> DispatcherAPI:
+    #     return DispatcherAPI(self.dispatcher)
 
-    def get_conversion_api(self) -> ConversionAPI:
-        return ConversionAPI(self.converter)
+    # def get_conversion_api(self) -> ConversionAPI:
+    #     return ConversionAPI(self.converter)
 
-    def get_demoinfo_api(self) -> DemoInfoAPI:
-        return DemoInfoAPI(self.demoinfo)
+    # def get_demoinfo_api(self) -> DemoInfoAPI:
+    #     return DemoInfoAPI(self.demoinfo)
 
     def read_authorized_patterns(self):
         """
@@ -557,7 +243,7 @@ class Core:
             )
             return []
 
-    @cherrypy.expose
+    @coreRouter.get("/index", status_code=201)
     def index(self, code_starts=None):
         """
         Index page
@@ -650,7 +336,7 @@ class Core:
 
         return string
 
-    @cherrypy.expose
+    @coreRouter.get("/demo", status_code=201)
     def demo(self, code_starts=None):
         """
         Return an HTML page with the list of demos.
@@ -658,36 +344,16 @@ class Core:
         return self.index(code_starts=code_starts)
 
     @staticmethod
-    @cherrypy.expose
+    @coreRouter.get("/ping", status_code=201)
     def ping():
         """
         Ping: answer with a PONG.
         """
-        data = {"status": "OK", "ping": "pong"}
-        return json.dumps(data).encode()
+        return {"status": "OK", "ping": "pong"}
 
-    @cherrypy.expose
-    @authenticate
-    def shutdown(self):
-        """
-        Shutdown the module.
-        """
-        data = {"status": "KO"}
-        try:
-            cherrypy.engine.exit()
-            data["status"] = "OK"
-        except Exception:
-            self.logger.exception("shutdown")
-        return json.dumps(data).encode()
-
-    @staticmethod
-    @cherrypy.expose
-    def default(attr):
-        """
-        Default method invoked when asked for a non-existing service.
-        """
-        data = {"status": "KO", "message": "Unknown service '{}'".format(attr)}
-        return json.dumps(data).encode()
+    @coreRouter.on_event("shutdown")
+    def shutdown_event():
+        logger.info("Application shutdown")
 
     # --------------------------------------------------------------------------
     #           END BLOCK OF INPUT TOOLS
@@ -1145,29 +811,24 @@ class Core:
         """
         Gets demo meta data given its editor's ID
         """
-        userdata = {"demoid": demo_id}
-        resp, _ = self.post("api/demoinfo/read_demo_metainfo", "post", data=userdata)
-        return resp.json()
+        return self.post(f"api/demoinfo/demo_metainfo/{demo_id}", "get")
 
     def get_demo_editor_list(self, demo_id):
         """
         Get the list of editors of the given demo
         """
         # Get the list of editors of the demo
-        userdata = {"demo_id": demo_id}
-        resp, status_code = self.post(
-            "api/demoinfo/demo_get_editors_list", "post", data=userdata
-        )
-        response = resp.json()
-        status = response["status"]
+        response, status_code = self.post(f"api/demoinfo/editors/{demo_id}", "get")
+
+        error = response["error"]
 
         if status_code != 200:
             self.error_log(
-                f"Failed to obtain the editors of demo #{demo_id} from demoInfo: {status}"
+                f"Failed to obtain the editors of demo #{demo_id} from demoInfo: {error}"
             )
             return ()
 
-        editor_list = response["editor_list"]
+        editor_list = response
 
         if not editor_list:
             return ()  # No editors given
@@ -1528,11 +1189,8 @@ attached the failed experiment data.".format(
         Ensure that the source codes of the demo are all updated and compiled correctly
         """
         build_data = {"ddl_build": ddl_build}
-        ssh_response, _ = self.post(
-            "api/demoinfo/get_ssh_keys", "post", data={"demo_id": demo_id}
-        )
-        ssh_response = ssh_response.json()
-        if ssh_response["status"] == "OK":
+        ssh_response, _ = self.post(f"api/demoinfo/ssh_keys/{demo_id}", "get")
+        if ssh_response == 200:
             build_data["ssh_keys"] = {
                 "public_key": ssh_response["pubkey"],
                 "private_key": ssh_response["privkey"],
@@ -1805,7 +1463,7 @@ attached the failed experiment data.".format(
 
         return dr_response
 
-    @cherrypy.expose
+    @coreRouter.post("run", status_code=201)
     def run(self, **kwargs):
         """
         Run a demo. The presentation layer requests the Core to execute a demo.
@@ -1999,7 +1657,7 @@ attached the failed experiment data.".format(
         with open(os.path.join(work_dir, "execution.json"), "w") as outfile:
             json.dump(execution_json, outfile)
 
-    @cherrypy.expose
+    @coreRouter.get("load_execution", status_code=201)
     def load_execution(self, demo_id, key):
         """
         Load the data needed to recreate an execution.
@@ -2060,9 +1718,9 @@ attached the failed experiment data.".format(
         open_file.close()
         return dic
 
-    @cherrypy.expose
-    @cherrypy.tools.allow(methods=["POST"])  # allow only post
-    @authenticate
+    @coreRouter.delete(
+        "delete_demo", dependencies=[Depends(validate_ip)], status_code=201
+    )
     def delete_demo(self, demo_id):
         """
         Delete the specified demo
@@ -2143,3 +1801,6 @@ def init_logging():
 
     logger.addHandler(handler)
     return logger
+
+
+logger = init_logging()
