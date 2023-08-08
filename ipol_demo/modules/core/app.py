@@ -1,9 +1,8 @@
 from conversion.router import conversionRouter
+from core import coreRouter
 from demoinfo.router import demoinfoRouter
 from dispatcher.router import dispatcherRouter
 from fastapi import FastAPI
-
-from core import coreRouter
 
 app = FastAPI(root_path="/api")
 
