@@ -6,6 +6,17 @@ $(document).ready(function(){
     });
 });
 
+function displayWarning(){
+    let selectDemoState = document.getElementById('SelectDemoState');
+    let testDemoStateSelect = document.getElementById('TestDemoStateSelect');
+    if (selectDemoState.value == "Test"){
+        testDemoStateSelect.innerHTML = 'WARNING: Test demo is only for testing and will be removed in 6 months. Use workshop state to keep the unpublished demo';
+    } else {
+        testDemoStateSelect.innerHTML = '';
+    }
+    return;
+}
+
 function showModal(){
    var id = '#modal';
    $(id).html(`
@@ -18,7 +29,7 @@ function showModal(){
                 <label for="newDemoTitle">Title: </label>
                 <input type="text" id="newDemoTitle" name="title" required>
                 <label for="SelectDemoState">State: </label>
-                <select form="DemoForm" id="SelectDemoState" name="state">
+                <select form="DemoForm" id="SelectDemoState" name="state" onclick="displayWarning()">
                     <option>Preprint</option>
                     <option>Published</option>
                     <option>Test</option>
@@ -26,6 +37,7 @@ function showModal(){
                     <option>Workshop</option>
                 </select>
             </div>
+            <p id="TestDemoStateSelect" style="color:red;"></p>
             <div id="newDemo-buttons">
                 <button id="ButtonAddDemo" type="submit">Create</button>
                 <button class="close">Cancel</button>
