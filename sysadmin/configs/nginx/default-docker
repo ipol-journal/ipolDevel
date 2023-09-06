@@ -59,10 +59,7 @@ server {
 
 	# DEMOS
 	location /demo/ {
-		# If you want to see the value of a variable, the easiest way is 
-		# adding a header like the example below
-		# add_header X-debug-message "$host" always;
-		proxy_pass  http://$host:8080;
+		proxy_pass  http://127.0.0.1:8080;
 	}
 
 	# CP
@@ -70,7 +67,7 @@ server {
 		add_header X-debug-message "$host" always;
 		# If the distribution is Debian you need the resolver
 		# resolver 127.0.0.1;
-		proxy_pass http://$host:8000;
+		proxy_pass http://127.0.0.1:8000;
 	}
 
 	location /cp2/static/ {
@@ -87,7 +84,7 @@ server {
 			proxy_pass http://cp2_socket;
 			break;
 		}
-		proxy_pass http://$host:8002;
+		proxy_pass http://127.0.0.1:8002;
 	}
 
 	# CORE
@@ -95,16 +92,16 @@ server {
 		rewrite ^/api/core/(.*) /$1 break;
 		# If the distribution is Debian you need the resolver		
 		# resolver 127.0.0.1;
-		proxy_pass  http://$host:8080;
+		proxy_pass  http://127.0.0.1:8080;
 	}
 	location /api/dispatcher/ {
-		proxy_pass  http://$host:8080;
+		proxy_pass  http://127.0.0.1:8080;
 	}
 	location /api/conversion/ {
-		proxy_pass  http://$host:8080;
+		proxy_pass  http://127.0.0.1:8080;
 	}
 	location /api/demoinfo/ {
-		proxy_pass  http://$host:8080;
+		proxy_pass  http://127.0.0.1:8080;
 	}
 
 	# shared_folder, run static data
@@ -120,7 +117,7 @@ server {
 		rewrite ^/api/blobs/(.*) /$1 break;
 		# If the distribution is Debian you need the resolver		
 		# resolver 127.0.0.1;
-		proxy_pass  http://$host:9001;
+		proxy_pass  http://127.0.0.1:9001;
 	}
 	#
 	# BLOBS static data
@@ -136,7 +133,7 @@ server {
 		rewrite ^/api/archive/(.*) /$1 break;
 		# If the distribution is Debian you need the resolver		
 		# resolver 127.0.0.1;
-		proxy_pass  http://$host:9000;
+		proxy_pass  http://127.0.0.1:9000;
 	}
 	#
 	# ARCHIVE static data
@@ -152,7 +149,7 @@ server {
 		rewrite ^/api/demorunner/dr/(.*) /$1 break;
 		# If the distribution is Debian you need the resolver		
 		# resolver 127.0.0.1;
-		proxy_pass   http://$host:9004;
+		proxy_pass   http://127.0.0.1:9004;
 		proxy_buffering off;
 	}
 
@@ -160,6 +157,6 @@ server {
 		return  301 /demo/;
 		# If the distribution is Debian you need the resolver		
 		# resolver 127.0.0.1;
-		proxy_pass  http://$host:8080;
+		proxy_pass  http://127.0.0.1:8080;
    	}
 }
