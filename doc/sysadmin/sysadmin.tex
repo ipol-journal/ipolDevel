@@ -87,7 +87,7 @@ This document contains System Administration documentation for the IPOL Demo Sys
 Use git to get the IPOL sources. The ipolDevel folder MUST be in your home directory.
 \begin{verbatim}
 ~$ cd
-~$ git clone https://github.com/mcolom/ipolDevel.git
+~$ git clone https://github.com/ipol-journal/ipolDevel.git
 ~$ cd ipolDevel/
 ~/ipolDevel$
 \end{verbatim}
@@ -142,8 +142,8 @@ ipol@smartalgo:~/ipolDevel$ cat .git/config
 	bare = false
 	logallrefupdates = true
 [remote "origin"]
-	#url = https://github.com/mcolom/ipolDevel
-	url = git@github_deploy:mcolom/ipolDevel.git
+	#url = https://github.com/ipol-journal/ipolDevel
+	url = git@github_deploy:ipol-journal/ipolDevel.git
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [branch "master"]
 	remote = origin
@@ -201,7 +201,7 @@ host github_deploy
       identityfile ~/.ssh/id_rsa_deploy
 \end{verbatim}
 
-Then, clone the repository with {\tt git clone git@github\_deploy:mcolom/ipolDevel.git}
+Then, clone the repository with {\tt git clone git@github\_deploy:ipol-journal/ipolDevel.git}
 
 In {\tt ipolDevel/sysadmin/install\_packages/} there is a script that needs to be run with {\tt sudo ./install\_dist\_packages.sh}. It will install all required Debian packages listed in apt\_requirements.txt.
 To run the demorunner without having to install all its dependency on the host, one can use the Dockerfile at {\tt ipolDevel/ipol\_demo/modules/demorunner/Dockerfile} which depends on {\tt ipolDevel/sysadmin/install\_packages/Dockerfile}.

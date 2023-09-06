@@ -3,7 +3,7 @@ How to remove large files from the repository, from all commits
 mkdir ipol_DELETE
 cd ipol_DELETE/
 
-git clone --mirror git@github.com:mcolom/ipolDevel.git
+git clone --mirror git@github.com:ipol-journal/ipolDevel.git
 
 java -jar ~/progs/bfg-1.12.14.jar --delete-files error.zip ipolDevel.git
 java -jar ~/progs/bfg-1.12.14.jar --delete-files input_many.zip ipolDevel.git
@@ -19,4 +19,4 @@ git reflog expire --expire=now --all && git gc --prune=now --aggressive
 git push
 
 After that, remove completely the repository ipolDevel and clone it again.
-For example, using SSH:  git clone git@github.com:mcolom/ipolDevel.git
+For example, using SSH:  git clone git@github.com:ipol-journal/ipolDevel.git
