@@ -4,7 +4,7 @@ let buttons = document.getElementsByClassName('ddl');
 let aceEditor = ace.edit("aceEditor", {
     mode: "ace/mode/json",
     autoScrollEditorIntoView: false,
-    maxLines: 100,
+    maxLines: 20,
     minLines: 20
 });
 aceEditor.setValue('{}');
