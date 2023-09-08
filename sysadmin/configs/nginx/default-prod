@@ -123,29 +123,29 @@ server {
     location @CompanyNamePasswd {
         auth_basic "Restricted";
         auth_basic_user_file /etc/nginx/.passwd/CompanyName;
-        proxy_pass  http://$host:8080;
+        proxy_pass  http://127.0.0.1:8080;
     }
 
     # DEMO INDEX FROM CORE
     location /demo/  {
         resolver 127.0.0.1;
-        proxy_pass   http://$host:8080;
+        proxy_pass   http://127.0.0.1:8080;
     }
 
     # CORE
     location /api/core/{
         rewrite ^/api/core/(.*) /$1 break;
         resolver 127.0.0.1;
-        proxy_pass  http://$host:8080;
+        proxy_pass  http://127.0.0.1:8080;
     }
     location /api/dispatcher/ {
-        proxy_pass http://$host:8080;
+        proxy_pass http://127.0.0.1:8080;
     }
     location /api/conversion/ {
-        proxy_pass http://$host:8080;
+        proxy_pass http://127.0.0.1:8080;
     }
     location /api/demoinfo/ {
-        proxy_pass http://$host:8080;
+        proxy_pass http://127.0.0.1:8080;
     }
 
     # shared_folder, serve static data
@@ -160,7 +160,7 @@ server {
     location /api/blobs/ {
         rewrite ^/api/blobs/(.*) /$1 break;
         resolver 127.0.0.1;
-        proxy_pass  http://$host:9001;
+        proxy_pass  http://127.0.0.1:9001;
     }
     #
     # BLOBS static data
@@ -175,7 +175,7 @@ server {
     location /api/archive/ {
         rewrite ^/api/archive/(.*) /$1 break;
         resolver 127.0.0.1;
-        proxy_pass  http://$host:9000;
+        proxy_pass  http://127.0.0.1:9000;
     }
     #
     # ARCHIVE static data
@@ -190,14 +190,14 @@ server {
     location ~ /api/demorunner/my-dr/ {
         rewrite ^/api/demorunner/my-dr/(.*) /$1 break;
         resolver 127.0.0.1;
-        proxy_pass  http://$host:9004;
+        proxy_pass  http://127.0.0.1:9004;
         proxy_buffering off;
     }
 
     # Root
     location /  {
         return  301 /demo/;
-        proxy_pass  http://ipolcore.ipol.im:8080;
+        proxy_pass  http://127.0.0.1:8080;
     }
 
     location /cp2/static/ {
@@ -213,6 +213,6 @@ server {
             proxy_pass http://cp2_socket;
             break;
         }
-        proxy_pass http://$host:8002;
+        proxy_pass http://127.0.0.1:8002;
     }    
 }
