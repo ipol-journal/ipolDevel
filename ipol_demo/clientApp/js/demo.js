@@ -57,7 +57,6 @@ function getDDL() {
   .then(handleErrors)
   .then(response => response.json())
   .then(responseJSON => {
-    if (responseJSON.status != 'OK') showWrongDemoIdError();
     ddl = responseJSON.last_demodescription.ddl;
 
     // Map
@@ -80,6 +79,7 @@ function getDDL() {
 
   })
   .catch(error => {
+    showWrongDemoIdError();
     alert(error, 'Network error. Cannot reach Demoinfo service.');
     window.location = '/demo';
   });
