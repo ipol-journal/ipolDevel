@@ -9,7 +9,7 @@ import cv2
 import magic
 import numpy as np
 import pytest
-from conversion.conversion import ConversionStatus, Converter
+from conversion import ConversionStatus, Converter
 from ipolutils.image.Image import Image
 from ipolutils.video.Video import Video
 

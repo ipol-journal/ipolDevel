@@ -4,10 +4,21 @@ import logging
 import os
 import re
 import socket
-from typing import Any
+from typing import Any, Dict
 
 from demoinfo import demoinfo
-from fastapi import APIRouter, Body, Depends, HTTPException, Request
+from fastapi import (
+    APIRouter,
+    Body,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Request,
+    Response,
+    UploadFile,
+    status,
+)
 from pydantic import BaseSettings
 from result import Ok
 
@@ -79,7 +90,7 @@ def init_logging():
     """
     Initialize the error logs of the module.
     """
-    logger = logging.getLogger("core")
+    logger = logging.getLogger("demoinfo")
 
     logger.setLevel(logging.DEBUG)
     handler = logging.StreamHandler()
@@ -94,23 +105,22 @@ def init_logging():
 
 
 @demoinfoRouter.delete(
-    "/demoextras", dependencies=[Depends(validate_ip)], status_code=204
+    "/demoextras/{demo_id}", dependencies=[Depends(validate_ip)], status_code=204
 )
 def delete_demoextras(demo_id: int):
     result = demoinfo.delete_demoextras(demo_id)
 
-    if result.is_ok():
-        data = {}
-    else:
-        data = {"error": result.value}
-    return data
+    if not result.is_ok():
+        logger.exception(result.value)
+        raise HTTPException(status_code=500, detail=result.value)
 
 
 @demoinfoRouter.post(
-    "/demoextras", dependencies=[Depends(validate_ip)], status_code=201
+    "/demoextras/{demo_id}", dependencies=[Depends(validate_ip)], status_code=201
 )
-def add_demoextras(demo_id, demoextras, demoextras_name):
-    demo_id = int(demo_id)
+def add_demoextras(
+    demo_id: int, demoextras_name: str = Form(...), demoextras: UploadFile = File(...)
+):
     demoextras = demoextras.file.read()
     result = demoinfo.add_demoextras(demo_id, demoextras, demoextras_name)
     if isinstance(result, Ok):
@@ -142,7 +152,7 @@ def demo_list() -> list:
     return data
 
 
-@demoinfoRouter.get("/demo_list_by_editorid", status_code=200)
+@demoinfoRouter.get("/demo_list_by_editorid/{editorid}", status_code=200)
 def demo_list_by_editorid(editorid: int):
     result = demoinfo.demo_list_by_editorid(editorid)
     if isinstance(result, Ok):
@@ -154,7 +164,7 @@ def demo_list_by_editorid(editorid: int):
 
 @demoinfoRouter.get("/demo_list_pagination_and_filter", status_code=201)
 def demo_list_pagination_and_filter(
-    num_elements_page: int, page: int, qfilter: str = None
+    num_elements_page: int, page: int = 1, qfilter: str = None
 ):
     result = demoinfo.demo_list_pagination_and_filter(num_elements_page, page, qfilter)
     if isinstance(result, Ok):
@@ -166,7 +176,7 @@ def demo_list_pagination_and_filter(
 
 
 @demoinfoRouter.get(
-    "/editors/{demo_id}", dependencies=[Depends(validate_ip)], status_code=200
+    "/demos/{demo_id}/editors", dependencies=[Depends(validate_ip)], status_code=200
 )
 def demo_get_editors_list(demo_id: int):
     result = demoinfo.demo_get_editors_list(demo_id)
@@ -203,7 +213,7 @@ def read_demo_metainfo(demo_id: int):
 
 
 @demoinfoRouter.post("/demo", dependencies=[Depends(validate_ip)], status_code=201)
-def add_demo(demo_id: int, title: str, state: str, ddl: str = None):
+def add_demo(demo_id: int, title: str, state: str, ddl: str = None) -> dict:
     result = demoinfo.add_demo(demo_id, title, state, ddl)
     if isinstance(result, Ok):
         data = {"demo_id": result.value}
@@ -212,45 +222,49 @@ def add_demo(demo_id: int, title: str, state: str, ddl: str = None):
     return data
 
 
-@demoinfoRouter.patch("/demo", dependencies=[Depends(validate_ip)], status_code=201)
-def update_demo(demo: str, old_editor_demoid: int):
-    demo_dict = json.loads(demo)
-    assert "demo_id" in demo_dict
-    assert "title" in demo_dict
-    assert "state" in demo_dict
-    result = demoinfo.update_demo(demo_dict, old_editor_demoid)
+@demoinfoRouter.patch(
+    "/demo/{old_demo_id}", dependencies=[Depends(validate_ip)], status_code=201
+)
+def update_demo(
+    old_demo_id: int,
+    demo_id: int = Form(),
+    state: str = Form(),
+    title: str = Form(None),
+):
+    demo_dict = {"demo_id": demo_id, "state": state, "title": title}
+    result = demoinfo.update_demo(demo_dict, old_demo_id)
     if isinstance(result, Ok):
-        data = {}
+        data = {"demo_id": demo_id}
     else:
         data = {"error": result.value}
     return data
 
 
-@demoinfoRouter.get("editor_list", dependencies=[Depends(validate_ip)], status_code=200)
+@demoinfoRouter.get("/editors", dependencies=[Depends(validate_ip)], status_code=200)
 def editor_list():
     result = demoinfo.editor_list()
     if isinstance(result, Ok):
-        data = {"status": "OK", "editor_list": result.value}
+        data = result.value
     else:
         data = {"error": result.value}
     return data
 
 
 @demoinfoRouter.get("/editor", dependencies=[Depends(validate_ip)], status_code=200)
-def get_editor(email: str):
+def get_editor(email: str, response: Response):
     result = demoinfo.get_editor(email)
     if isinstance(result, Ok):
         data: dict[str, Any] = {}
         if editor := result.value:
             data["editor"] = editor
+        if editor is None:
+            response.status_code = status.HTTP_204_NO_CONTENT
     else:
         data = {"error": result.value}
     return data
 
 
-@demoinfoRouter.patch(
-    "/update_editor_email", dependencies=[Depends(validate_ip)], status_code=201
-)
+@demoinfoRouter.patch("/editor", dependencies=[Depends(validate_ip)], status_code=201)
 def update_editor_email(new_email: str, old_email: str, name: str):
     result = demoinfo.update_editor_email(new_email, old_email, name)
     if isinstance(result, Ok):
@@ -272,8 +286,22 @@ def add_editor(name: str, mail: str):
     return data
 
 
+@demoinfoRouter.delete(
+    "/editor/{editor_id}", dependencies=[Depends(validate_ip)], status_code=204
+)
+def remove_editor(editor_id: int):
+    result = demoinfo.remove_editor(editor_id)
+    if isinstance(result, Ok):
+        return
+    else:
+        data = {"error": result.value}
+        return data
+
+
 @demoinfoRouter.post(
-    "/add_editor_to_demo", dependencies=[Depends(validate_ip)], status_code=201
+    "/demos/{demo_id}/editor/{editor_id}",
+    dependencies=[Depends(validate_ip)],
+    status_code=201,
 )
 def add_editor_to_demo(demo_id: int, editor_id: int):
     result = demoinfo.add_editor_to_demo(demo_id, editor_id)
@@ -285,7 +313,9 @@ def add_editor_to_demo(demo_id: int, editor_id: int):
 
 
 @demoinfoRouter.delete(
-    "/editor_from_demo", dependencies=[Depends(validate_ip)], status_code=204
+    "/demos/{demo_id}/editor/{editor_id}",
+    dependencies=[Depends(validate_ip)],
+    status_code=204,
 )
 def remove_editor_from_demo(demo_id: int, editor_id: int):
     result = demoinfo.remove_editor_from_demo(demo_id, editor_id)
@@ -296,24 +326,13 @@ def remove_editor_from_demo(demo_id: int, editor_id: int):
     return data
 
 
-@demoinfoRouter.delete("/editor", dependencies=[Depends(validate_ip)], status_code=204)
-def remove_editor(editor_id: int):
-    result = demoinfo.remove_editor(editor_id)
-    if isinstance(result, Ok):
-        return
-    else:
-        data = {"error": result.value}
-        # TODO raise httperror
-        return data
-
-
 @demoinfoRouter.get(
     "/ddl_history/{demo_id}", dependencies=[Depends(validate_ip)], status_code=200
 )
 def get_ddl_history(demo_id: int):
     result = demoinfo.get_ddl_history(demo_id)
     if isinstance(result, Ok):
-        data = {"ddl_history": result.value}
+        data = result.value
     else:
         data = {"error": result.value}
     return data
@@ -325,7 +344,7 @@ def get_ddl_history(demo_id: int):
 def get_ddl(demo_id: int):
     result = demoinfo.get_ddl(demo_id)
     if isinstance(result, Ok):
-        data = result.value
+        data = json.loads(result.value)
     else:
         data = {"error": result.value}
     return data
@@ -334,7 +353,7 @@ def get_ddl(demo_id: int):
 @demoinfoRouter.post(
     "/ddl/{demo_id}", dependencies=[Depends(validate_ip)], status_code=201
 )
-def save_ddl(demo_id: int, ddl: dict = Body()):
+def save_ddl(demo_id: int, ddl: Dict[str, Any] = Body()):
     ddl_text = json.dumps(ddl, ensure_ascii=False, indent=3).encode("utf-8")
     result = demoinfo.save_ddl(demo_id, ddl_text)
     if isinstance(result, Ok):
@@ -344,7 +363,7 @@ def save_ddl(demo_id: int, ddl: dict = Body()):
     return data
 
 
-@demoinfoRouter.get("get_interface_ddl", status_code=200)
+@demoinfoRouter.get("/get_interface_ddl", status_code=200)
 def get_interface_ddl(demo_id: int, sections=None):
     result = demoinfo.get_interface_ddl(demo_id, sections)
     if isinstance(result, Ok):

@@ -1,5 +1,5 @@
 from conversion.router import conversionRouter
-from core import coreRouter
+from core.router import coreRouter
 from demoinfo.router import demoinfoRouter
 from dispatcher.router import dispatcherRouter
 from fastapi import FastAPI
