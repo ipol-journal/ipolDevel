@@ -117,7 +117,9 @@ def profile(request):
 def save_profile(request):
     profiles = User.objects.filter(email=request.user.email)
     demoinfo_editor = api_post(
-        "/api/demoinfo/get_editor", {"email": request.POST.get("email", "")}
+        "/api/demoinfo/editor",
+        method="get",
+        params={"email": request.POST.get("email", "")},
     )
     new_email_exists = demoinfo_editor["editor"]
 

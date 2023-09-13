@@ -44,12 +44,12 @@ def user_created_handler(sender, instance, *args, **kwargs):
         return
 
     demoinfo_editor, _ = api_post(
-        "/api/demoinfo/get_editor", "post", data={"email": new_editor.email}
+        "/api/demoinfo/editor", "get", data={"email": new_editor.email}
     )
     new_editor_exists = demoinfo_editor.get("editor", None)
 
     demoinfo_editor, _ = api_post(
-        "/api/demoinfo/get_editor", "post", data={"email": old_editor.email}
+        "/api/demoinfo/editor", "get", data={"email": old_editor.email}
     )
     old_editor_exists = demoinfo_editor.get("editor", None)
 
@@ -79,13 +79,19 @@ def delete_profile(sender, instance, *args, **kwargs):
     Signal post-delete in djagno DB will try to remove the editor from demoinfo if it is found.
     """
     demoinfo_editor, _ = api_post(
-        "/api/demoinfo/get_editor", "post", data={"email": instance.email}
+        "/api/demoinfo/editor", "get", data={"email": instance.email}
     )
     editor_info = demoinfo_editor.get("editor", None)
+    editor_id = editor_info["id"]
     if editor_info:
-        demoinfo_editor = api_post(
-            "/api/demoinfo/remove_editor", "post", data={"editor_id": editor_info["id"]}
+        demoinfo_editor, status = api_post(
+            f"/api/demoinfo/editor/{editor_id}", "delete"
         )
+        if status != 204:
+            error = demoinfo_editor.json()
+            error_message = error.get("error")
+            logger.error(f"User could not be deleted. {error_message}")
+
         logger.info("User deleted.")
 
 
@@ -94,9 +100,9 @@ def add_editor(name: str, email: str):
         "name": name,
         "mail": email,
     }
-    response, _ = api_post("/api/demoinfo/add_editor", "post", data=data)
+    _, status = api_post("/api/demoinfo/editor", "post", data=data)
 
-    if response.get("status") != "OK":
+    if status != 201:
         error = "Error, user tried to set up an email which is already in use."
         logger.error(error)
         raise ValidationError(error)
@@ -111,11 +117,9 @@ def update_editor(username, email, old_email):
         "old_email": old_email,
         "new_email": email,
     }
-    update_response, _ = api_post(
-        "/api/demoinfo/update_editor_email", "post", data=data
-    )
+    _, status = api_post("/api/demoinfo/editor", "patch", data=data)
 
-    if update_response.get("status") != "OK":
+    if status != 200:
         logger.error(
             f"Could not update email of user '{username}', '{old_email}' --> '{email}'"
         )
