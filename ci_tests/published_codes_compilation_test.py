@@ -129,7 +129,7 @@ def build(base_url, demo_id, build_section, requirements, demorunners):
             "compilation_path": get_compilation_path(demo_id),
         }
         response = post(
-            f"{base_url}api/demorunner/{demorunner.name}/test_compilation", params
+            f"{base_url}api/demorunner/{demorunner.name}/compilations", params
         )
 
         if response is None or response.status_code is None:
@@ -138,24 +138,12 @@ def build(base_url, demo_id, build_section, requirements, demorunners):
             )
             return False
 
-        if response.status_code == 200:
-            json_response = response.json()
-            if json_response.get("status") == "OK":
-                continue
-            else:
-                print(
-                    f"Couldn't build demo #{demo_id} in DR={demorunner.name} ({json_response})."
-                )
-                return False
+        if response.status_code == 201:
+            continue
         else:
-            msg = f"Bad HTTP response status_code from DR={demorunner.name} when trying to build demo #{demo_id}."
-            if response.status_code == 504:
-                msg += " HTTP error 504 (gateway timeout)"
-            elif response.status_code == 404:
-                msg += " HTTP error 404 (not found)"
-            else:
-                msg += f" HTTP error {response.status_code}"
-            print(msg)
+            print(
+                f"Bad HTTP response status_code from DR={demorunner.name} when trying to build demo #{demo_id}. HTTP error: {response.status_code}"
+            )
             return False
 
     # No DR failed or KO: compilation test passed
