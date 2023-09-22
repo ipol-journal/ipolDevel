@@ -4,11 +4,12 @@ After=network.target
 
 [Service]
 ExecStart=/home/ipol/ipolDevel/ipol_demo/modules/demorunner-docker/bin/ipol-demorunner
-ExecStartPre=-/home/ipol/.cargo/bin/cargo install --git https://github.com/ipol-journal/ipol-demorunner.git --rev 4d1dfe31d471244bcc2f29a7ccd679a8b25224ea --root . --target-dir target --debug --force --locked
+ExecStartPre=-/home/ipol/.cargo/bin/cargo install --git https://github.com/ipol-journal/ipol-demorunner.git --rev 1cf7e851590cda71ae9b9f12dd02d477baffaee6 --root . --target-dir target --debug --force --locked
 TimeoutStartSec=300
 WorkingDirectory=/home/ipol/ipolDevel/ipol_demo/modules/demorunner-docker/
 Environment=ROCKET_PROFILE=ipol-limule-gpu
 Environment=ROCKET_ADDRESS=0.0.0.0
+Environment=RUST_LOG=info,ipol_demorunner=debug
 RestartSec=10
 Restart=always
 SyslogIdentifier=demorunner-docker-gpu
