@@ -63,7 +63,7 @@ def status(request):
 def demo_editors(request):
     demo_id = request.GET["demo_id"]
 
-    editor_list, _ = api_post("/api/demoinfo/demos/{demo_id}/editors", method="get")
+    editor_list, _ = api_post(f"/api/demoinfo/demos/{demo_id}/editors", method="get")
     available_editors, _ = api_post(
         f"/api/demoinfo/available_editors/{demo_id}", method="get"
     )
@@ -171,7 +171,7 @@ def ajax_delete_demo(request):
     demo_id = request.POST["demo_id"]
 
     if user_can_edit_demo(request.user, demo_id):
-        result, status = api_post("/api/core/demo/{demo_id}", method="delete")
+        result, status = api_post(f"/api/core/demo/{demo_id}", method="delete")
 
     response = {}
     if status != 204:
@@ -575,7 +575,7 @@ def ajax_save_DDL(request):
         api_post(
             f"/api/demoinfo/ddl/{demo_id}",
             method="post",
-            json=json.loads(ddl.encode("utf-8")),
+            json=json.loads(ddl),
         )
         return JsonResponse({"status": "OK"}, status=200)
     else:
@@ -665,12 +665,13 @@ def ajax_add_demo_extras(request):
             files=files,
         )
         if status != 201:
-            context["error"] = response.get("error", "Could not add the demoextras")
+            context["error"] = response.get("detail", "Could not add the demoextras")
+            return render(request, "demoExtras.html", context, status=500)
 
     info = get_demo_extras_info(int(demo_id))
     context.update(**info)
 
-    return render(request, "demoExtras.html", context)
+    return render(request, "demoExtras.html", context, status=200)
 
 
 @login_required(login_url="login")
