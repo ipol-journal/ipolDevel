@@ -80,8 +80,6 @@ function getDDL() {
   })
   .catch(error => {
     showWrongDemoIdError();
-    alert(error, 'Network error. Cannot reach Demoinfo service.');
-    window.location = '/demo';
   });
 }
 

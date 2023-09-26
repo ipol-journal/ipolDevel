@@ -5,7 +5,7 @@ import re
 import socket
 
 from dispatcher import dispatcher
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseSettings
 
 
@@ -96,7 +96,7 @@ def init_logging():
     return logger
 
 
-@dispatcherRouter.get("/stats", dependencies=[Depends(validate_ip)], status_code=201)
+@dispatcherRouter.get("/stats", status_code=200)
 def get_demorunners_stats():
     """
     Get workload of all DRs.

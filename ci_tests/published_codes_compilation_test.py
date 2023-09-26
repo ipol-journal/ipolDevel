@@ -11,7 +11,7 @@ from sys import exit
 import requests
 from ipolutils.read_text_file import read_commented_text_file
 
-sys.path.append("../ipol_demo/modules/core/")
+sys.path.append(os.path.join(os.path.dirname(__file__), "../ipol_demo/modules/core/"))
 from dispatcher.demorunnerinfo import DemoRunnerInfo
 from dispatcher.policy import get_suitable_demorunners
 

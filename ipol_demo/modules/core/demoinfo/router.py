@@ -20,7 +20,7 @@ from fastapi import (
     status,
 )
 from pydantic import BaseSettings
-from result import Ok
+from result import Err, Ok
 
 
 class Settings(BaseSettings):
@@ -123,11 +123,8 @@ def add_demoextras(
 ):
     demoextras = demoextras.file.read()
     result = demoinfo.add_demoextras(demo_id, demoextras, demoextras_name)
-    if isinstance(result, Ok):
-        data = {}
-    else:
-        data = {"error": result.value}
-    return data
+    if isinstance(result, Err):
+        raise HTTPException(status_code=500, detail=result.value)
 
 
 @demoinfoRouter.get("/demoextras/{demo_id}", status_code=200)
