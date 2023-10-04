@@ -3,20 +3,9 @@ import logging
 import os
 import re
 
-from conversion import conversion
+from config import settings
 from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseSettings
 
-
-class Settings(BaseSettings):
-    config_common_dir: str = (
-        os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/config_common"
-    )
-    authorized_patterns: str = f"{config_common_dir}/authorized_patterns.conf"
-    converter = conversion.Converter()
-
-
-settings = Settings()
 conversionRouter = APIRouter(prefix="/conversion")
 
 

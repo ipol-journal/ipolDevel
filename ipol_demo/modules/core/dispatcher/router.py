@@ -2,36 +2,10 @@ import configparser
 import logging
 import os
 import re
-import socket
 
-from dispatcher import dispatcher
+from config import settings
 from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseSettings
 
-
-class Settings(BaseSettings):
-    config_common_dir: str = (
-        os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/config_common"
-    )
-    authorized_patterns: str = f"{config_common_dir}/authorized_patterns.conf"
-    base_url: str = os.environ.get("IPOL_URL", "http://" + socket.getfqdn())
-
-    demorunners_path = (
-        os.path.expanduser("~")
-        + "/ipolDevel/ipol_demo/modules/config_common/demorunners.xml"
-    )
-
-    policy: str = "lowest_workload"
-
-    dispatcher = dispatcher.Dispatcher(
-        workload_provider=dispatcher.APIWorkloadProvider(base_url),
-        ping_provider=dispatcher.APIPingProvider(base_url),
-        demorunners=dispatcher.parse_demorunners(demorunners_path),
-        policy=dispatcher.make_policy(policy),
-    )
-
-
-settings = Settings()
 dispatcherRouter = APIRouter(prefix="/dispatcher")
 
 
