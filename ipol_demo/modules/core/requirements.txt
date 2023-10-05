@@ -12,3 +12,4 @@ tifffile==2021.8.8
 result==0.8.0
 imagecodecs==2021.8.26
 cryptography==37.0.4
+python-multipart==0.0.6
