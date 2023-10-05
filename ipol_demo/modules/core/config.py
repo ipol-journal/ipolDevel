@@ -1,9 +1,6 @@
 import os
 import socket
 
-from conversion import conversion
-from demoinfo import demoinfo
-from dispatcher import dispatcher
 from pydantic import BaseSettings
 
 
@@ -31,11 +28,6 @@ class Settings(BaseSettings):
     demoinfo_db = "db/demoinfo.db"
     demoinfo_dl_extras_dir = "staticData/demoExtras"
     # demoinfo
-    demoinfo = demoinfo.DemoInfo(
-        dl_extras_dir=demoinfo_dl_extras_dir,
-        database_path=demoinfo_db,
-        base_url=base_url,
-    )
     demoinfo_db: str = "db/demoinfo.db"
     demoinfo_dl_extras_dir: str = "staticData/demoExtras"
     demoinfo_db: str = "db/demoinfo.db"
@@ -47,14 +39,6 @@ class Settings(BaseSettings):
         + "/ipolDevel/ipol_demo/modules/config_common/demorunners.xml"
     )
     policy: str = "lowest_workload"
-    dispatcher = dispatcher.Dispatcher(
-        workload_provider=dispatcher.APIWorkloadProvider(base_url),
-        ping_provider=dispatcher.APIPingProvider(base_url),
-        demorunners=dispatcher.parse_demorunners(demorunners_path),
-        policy=dispatcher.make_policy(policy),
-    )
-    # conversion
-    converter = conversion.Converter()
 
 
 settings = Settings()

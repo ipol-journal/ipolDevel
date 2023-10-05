@@ -1,8 +1,5 @@
-import configparser
 import json
-import logging
 import os
-import re
 import socket
 import traceback
 
@@ -24,74 +21,21 @@ from core.errors import (
     IPOLUploadedInputRejectedError,
     IPOLWorkDirError,
 )
+from demoinfo import demoinfo
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse
+from guards import validate_ip
 from ipolutils.evaluator.evaluator import IPOLEvaluateError
+from logger import logger
 from result import Ok
 
 coreRouter = APIRouter(prefix="/core")
 core = core.Core()
-
-
-def validate_ip(request: Request) -> bool:
-    # Check if the request is coming from an allowed IP address
-    patterns = []
-    ip = request.headers["x-real-ip"]
-    # try:
-    for pattern in read_authorized_patterns():
-        patterns.append(
-            re.compile(pattern.replace(".", "\\.").replace("*", "[0-9a-zA-Z]+"))
-        )
-    for pattern in patterns:
-        if pattern.match(ip) is not None:
-            return True
-    raise HTTPException(status_code=403, detail="IP not allowed")
-
-
-def read_authorized_patterns() -> list:
-    """
-    Read from the IPs conf file
-    """
-    # Check if the config file exists
-    authorized_patterns_path = os.path.join(
-        settings.config_common_dir, settings.authorized_patterns
-    )
-    if not os.path.isfile(authorized_patterns_path):
-        logger.exception(
-            f"read_authorized_patterns: \
-                      File {authorized_patterns_path} doesn't exist"
-        )
-        return []
-
-    # Read config file
-    try:
-        cfg = configparser.ConfigParser()
-        cfg.read([authorized_patterns_path])
-        patterns = []
-        for item in cfg.items("Patterns"):
-            patterns.append(item[1])
-        return patterns
-    except configparser.Error:
-        logger.exception(f"Bad format in {authorized_patterns_path}")
-        return []
-
-
-def init_logging():
-    """
-    Initialize the error logs of the module.
-    """
-    logger = logging.getLogger("core")
-
-    logger.setLevel(logging.DEBUG)
-    handler = logging.StreamHandler()
-    formatter = logging.Formatter(
-        "%(asctime)s; [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    handler.setFormatter(formatter)
-
-    logger.addHandler(handler)
-    return logger
+demoinfo = demoinfo.DemoInfo(
+    dl_extras_dir=settings.demoinfo_dl_extras_dir,
+    database_path=settings.demoinfo_db,
+    base_url=settings.base_url,
+)
 
 
 @coreRouter.get("/demo", status_code=201)
@@ -156,11 +100,11 @@ def delete_demo(demo_id: int) -> None:
 
     try:
         # delete demo, blobs and extras associated to it
-        result = settings.demoinfo.delete_demo(demo_id)
+        result = demoinfo.delete_demo(demo_id)
         if not isinstance(result, Ok):
             error_message += f"Error when removing demo: {result.value} \n"
 
-        result = settings.demoinfo.delete_demoextras(demo_id)
+        result = demoinfo.delete_demoextras(demo_id)
         if not isinstance(result, Ok):
             error_message += f"Error when removing demoextras: {result.value} \n"
         resp = requests.delete(f"{settings.base_url}/api/blobs/demos/{demo_id}")
@@ -362,6 +306,3 @@ async def run(
         logger.exception(error_message)
         core.send_internal_error_email(error_message)
         return {"status": "KO", "error": error_message}
-
-
-logger = init_logging()
