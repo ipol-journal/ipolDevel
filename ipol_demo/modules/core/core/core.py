@@ -27,6 +27,7 @@ from random import random
 
 import magic
 import requests
+from config import settings
 from conversion import conversion
 from core.errors import (
     IPOLCheckDDLError,
@@ -119,9 +120,9 @@ class Core:
         )
 
         self.demoinfo = demoinfo.DemoInfo(
-            dl_extras_dir="staticData/demoExtras",
-            database_path="db/demoinfo.db",
-            base_url=base_url,
+            dl_extras_dir=settings.demoinfo_dl_extras_dir,
+            database_path=settings.demoinfo_db,
+            base_url=settings.base_url,
         )
 
         self.converter = conversion.Converter()
