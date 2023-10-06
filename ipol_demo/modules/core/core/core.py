@@ -9,7 +9,6 @@ import json
 import logging
 import mimetypes
 import os
-import re
 import shutil
 import smtplib
 import socket
@@ -20,22 +19,17 @@ import urllib.parse
 import urllib.request
 import zipfile
 from collections import OrderedDict
-from dataclasses import dataclass
 from datetime import datetime
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from random import random
-from typing import Any
 
-import cherrypy
 import magic
 import requests
-from archive import send_to_archive
+from config import settings
 from conversion import conversion
-from demoinfo import demoinfo
-from dispatcher import dispatcher
-from errors import (
+from core.errors import (
     IPOLCheckDDLError,
     IPOLConversionError,
     IPOLCopyBlobsError,
@@ -56,404 +50,14 @@ from errors import (
     IPOLUploadedInputRejectedError,
     IPOLWorkDirError,
 )
+from demoinfo import demoinfo
+from dispatcher import dispatcher
 from ipolutils.evaluator.evaluator import IPOLEvaluateError, evaluate
 from ipolutils.read_text_file import read_commented_text_file
-from result import Err, Ok
-
-
-def authenticate(func):
-    """
-    Wrapper to authenticate before using an exposed function
-    """
-
-    def authenticate_and_call(*args, **kwargs):
-        """
-        Invokes the wrapped function if authenticated
-        """
-        if "X-Real-IP" in cherrypy.request.headers and is_authorized_ip(
-            cherrypy.request.headers["X-Real-IP"]
-        ):
-            return func(*args, **kwargs)
-        error = {"status": "KO", "error": "Authentication Failed"}
-        return json.dumps(error).encode()
-
-    def is_authorized_ip(ip):
-        """
-        Validates the given IP
-        """
-        core = Core.get_instance()
-        patterns = []
-        # Creates the patterns  with regular expressions
-        for authorized_pattern in core.authorized_patterns:
-            patterns.append(
-                re.compile(
-                    authorized_pattern.replace(".", "\\.").replace("*", "[0-9a-zA-Z]+")
-                )
-            )
-        # Compare the IP with the patterns
-        for pattern in patterns:
-            if pattern.match(ip) is not None:
-                return True
-        return False
-
-    return authenticate_and_call
-
-
-@dataclass
-class DispatcherAPI:
-    dispatcher: dispatcher.Dispatcher
-
-    @cherrypy.expose
-    def get_demorunners_stats(self):
-        """
-        Get workload of all DRs.
-        """
-        stats = self.dispatcher.get_demorunners_stats()
-        return json.dumps({"status": "OK", "demorunners": stats}).encode()
-
-
-@dataclass
-class ConversionAPI:
-    converter: conversion.Converter
-
-    @cherrypy.expose
-    def convert_tiff_to_png(self, img):
-        """
-        Converts the input TIFF to PNG.
-        This is used by the web interface for visualization purposes
-        """
-        data = self.converter.convert_tiff_to_png(img)
-        return json.dumps(data, indent=4).encode()
-
-
-@dataclass
-class DemoInfoAPI:
-    demoinfo: demoinfo.DemoInfo
-
-    @cherrypy.expose
-    @authenticate
-    def delete_demoextras(self, demo_id):
-        result = self.demoinfo.delete_demoextras(demo_id)
-
-        if result.is_ok():
-            data = {"status": "OK"}
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @authenticate
-    def add_demoextras(self, demo_id, demoextras, demoextras_name):
-        demo_id = int(demo_id)
-        demoextras = demoextras.file.read()
-        result = self.demoinfo.add_demoextras(demo_id, demoextras, demoextras_name)
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    def get_demo_extras_info(self, demo_id):
-        demo_id = int(demo_id)
-        result = self.demoinfo.get_demo_extras_info(demo_id)
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-            if result.value is not None:
-                data.update(**result.value)
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    def demo_list(self):
-        result = self.demoinfo.demo_list()
-        if isinstance(result, Ok):
-            data = {
-                "demo_list": result.value,
-                "status": "OK",
-            }
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    def demo_list_by_editorid(self, editorid):
-        editorid = int(editorid)
-        result = self.demoinfo.demo_list_by_editorid(editorid)
-        if isinstance(result, Ok):
-            data = {
-                "demo_list": result.value,
-                "status": "OK",
-            }
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    def demo_list_pagination_and_filter(self, num_elements_page, page, qfilter=None):
-        num_elements_page = int(num_elements_page)
-        page = int(page)
-        result = self.demoinfo.demo_list_pagination_and_filter(
-            num_elements_page, page, qfilter
-        )
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-            data.update(**result.value)
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @authenticate
-    def demo_get_editors_list(self, demo_id):
-        demo_id = int(demo_id)
-        result = self.demoinfo.demo_get_editors_list(demo_id)
-        if isinstance(result, Ok):
-            data = {
-                "editor_list": result.value,
-                "status": "OK",
-            }
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @authenticate
-    def demo_get_available_editors_list(self, demo_id):
-        demo_id = int(demo_id)
-        result = self.demoinfo.demo_get_available_editors_list(demo_id)
-        if isinstance(result, Ok):
-            data = {
-                "editor_list": result.value,
-                "status": "OK",
-            }
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    def read_demo_metainfo(self, demoid):
-        demoid = int(demoid)
-        result = self.demoinfo.read_demo_metainfo(demoid)
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-            data.update(**result.value)
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @cherrypy.tools.allow(methods=["POST"])  # allow only post
-    @authenticate
-    def add_demo(self, demo_id, title, state, ddl=None):
-        demo_id = int(demo_id)
-        result = self.demoinfo.add_demo(demo_id, title, state, ddl)
-        if isinstance(result, Ok):
-            data = {"status": "OK", "demo_id": result.value}
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @cherrypy.tools.allow(methods=["POST"])  # allow only post
-    @authenticate
-    def update_demo(self, demo: str, old_editor_demoid: int):
-        old_editor_demoid = int(old_editor_demoid)
-        demo_dict = json.loads(demo)
-        assert "demo_id" in demo_dict
-        assert "title" in demo_dict
-        assert "state" in demo_dict
-        result = self.demoinfo.update_demo(demo_dict, old_editor_demoid)
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @authenticate
-    def editor_list(self):
-        result = self.demoinfo.editor_list()
-        if isinstance(result, Ok):
-            data = {"status": "OK", "editor_list": result.value}
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @authenticate
-    def get_editor(self, email):
-        result = self.demoinfo.get_editor(email)
-        if isinstance(result, Ok):
-            data: dict[str, Any] = {"status": "OK"}
-            if editor := result.value:
-                data["editor"] = editor
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @cherrypy.tools.allow(methods=["POST"])
-    @authenticate
-    def update_editor_email(self, new_email, old_email, name):
-        result = self.demoinfo.update_editor_email(new_email, old_email, name)
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-            if message := result.value:
-                data["message"] = message
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @cherrypy.tools.allow(methods=["POST"])  # allow only post
-    @authenticate
-    def add_editor(self, name, mail):
-        result = self.demoinfo.add_editor(name, mail)
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @cherrypy.tools.allow(methods=["POST"])  # allow only post
-    @authenticate
-    def add_editor_to_demo(self, demo_id, editor_id):
-        demo_id = int(demo_id)
-        editor_id = int(editor_id)
-        result = self.demoinfo.add_editor_to_demo(demo_id, editor_id)
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @cherrypy.tools.allow(methods=["POST"])  # allow only post
-    @authenticate
-    def remove_editor_from_demo(self, demo_id, editor_id):
-        demo_id = int(demo_id)
-        editor_id = int(editor_id)
-        result = self.demoinfo.remove_editor_from_demo(demo_id, editor_id)
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @cherrypy.tools.allow(methods=["POST"])  # allow only post
-    @authenticate
-    def remove_editor(self, editor_id):
-        editor_id = int(editor_id)
-        result = self.demoinfo.remove_editor(editor_id)
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @authenticate
-    def get_ddl_history(self, demo_id):
-        demo_id = int(demo_id)
-        result = self.demoinfo.get_ddl_history(demo_id)
-        if isinstance(result, Ok):
-            data = {"status": "OK", "ddl_history": result.value}
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @authenticate
-    def get_ddl(self, demo_id):
-        demo_id = int(demo_id)
-        result = self.demoinfo.get_ddl(demo_id)
-        if isinstance(result, Ok):
-            data = {
-                "status": "OK",
-                "last_demodescription": {
-                    "ddl": result.value,
-                },
-            }
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @cherrypy.tools.allow(methods=["POST"])  # allow only post
-    @authenticate
-    def save_ddl(self, demoid):
-        demoid = int(demoid)
-        cl = cherrypy.request.headers["Content-Length"]
-        ddl = cherrypy.request.body.read(int(cl)).decode("utf-8")
-        result = self.demoinfo.save_ddl(demoid, ddl)
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode("utf-8")
-
-    @cherrypy.expose
-    def get_interface_ddl(self, demo_id, sections=None):
-        demo_id = int(demo_id)
-        result = self.demoinfo.get_interface_ddl(demo_id, sections)
-        if isinstance(result, Ok):
-            data = {
-                "status": "OK",
-                "last_demodescription": {
-                    "ddl": result.value,
-                },
-            }
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @authenticate
-    def get_ssh_keys(self, demo_id):
-        demo_id = int(demo_id)
-        result = self.demoinfo.get_ssh_keys(demo_id)
-        if isinstance(result, Ok):
-            pubkey, privkey = result.value
-            data = {
-                "status": "OK",
-                "pubkey": pubkey,
-                "privkey": privkey,
-            }
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @authenticate
-    def reset_ssh_keys(self, demo_id):
-        demo_id = int(demo_id)
-        result = self.demoinfo.reset_ssh_keys(demo_id)
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    def stats(self):
-        result = self.demoinfo.stats()
-        if isinstance(result, Ok):
-            data = {"status": "OK"}
-            data.update(**result.value)
-        else:
-            data = {"status": "KO", "error": result.value}
-        return json.dumps(data).encode()
+from result import Err
 
 
 class Core:
-    """
-    Core index used as the root app
-    """
-
     instance = None
 
     @staticmethod
@@ -469,31 +73,32 @@ class Core:
         """
         Constructor
         """
-        ### Read the configuration file
-        self.server_environment = cherrypy.config.get("env")
+        self.server_environment: str = os.environ.get("env", "local")
+        self.module_dir: str = (
+            os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/blobs"
+        )
+        self.logs_dir: str = "logs/"
+        self.config_common_dir: str = (
+            os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/config_common"
+        )
 
-        self.logger = init_logging()
-        self.project_folder = cherrypy.config.get("project_folder")
-        self.blobs_folder = cherrypy.config.get("blobs_folder")
+        self.base_url: str = os.environ.get("IPOL_URL", "http://" + socket.getfqdn())
 
-        self.shared_folder_rel = cherrypy.config.get("shared_folder")
+        self.project_folder = os.path.expanduser("~") + "/ipolDevel"
+        self.blobs_folder = (
+            os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/blobs"
+        )
+
+        self.shared_folder_rel: str = "shared_folder/"
         self.shared_folder_abs = os.path.join(
             self.project_folder, self.shared_folder_rel
         )
-        self.demo_extras_main_dir = os.path.join(
-            self.shared_folder_abs, cherrypy.config.get("demoExtrasDir")
-        )
-        self.dl_extras_dir = os.path.join(
-            self.shared_folder_abs, cherrypy.config.get("dl_extras_dir")
-        )
-        self.share_run_dir_rel = cherrypy.config.get("running.dir")
+        self.demo_extras_main_dir = os.path.join(self.shared_folder_abs, "demoExtras/")
+        self.dl_extras_dir = os.path.join(self.shared_folder_abs, "dl_extras/")
+        self.share_run_dir_rel: str = "run/"
         self.share_run_dir_abs = os.path.join(
             self.shared_folder_abs, self.share_run_dir_rel
         )
-
-        # Security: authorized IPs
-        self.authorized_patterns_file = cherrypy.config.get("authorized_patterns_file")
-        self.authorized_patterns = self.read_authorized_patterns()
 
         # create needed directories
         os.makedirs(self.share_run_dir_abs, exist_ok=True)
@@ -502,8 +107,11 @@ class Core:
         os.makedirs(self.demo_extras_main_dir, exist_ok=True)
 
         base_url = os.environ.get("IPOL_URL", "http://" + socket.getfqdn())
-        demorunners_path = cherrypy.config["demorunners_file"]
-        policy = cherrypy.config["dispatcher_policy"]
+        demorunners_path = (
+            os.path.expanduser("~")
+            + "/ipolDevel/ipol_demo/modules/config_common/demorunners.xml"
+        )
+        policy = "lowest_workload"
         self.dispatcher = dispatcher.Dispatcher(
             workload_provider=dispatcher.APIWorkloadProvider(base_url),
             ping_provider=dispatcher.APIPingProvider(base_url),
@@ -511,75 +119,35 @@ class Core:
             policy=dispatcher.make_policy(policy),
         )
 
-        self.converter = conversion.Converter()
-
-        demoinfo_db = cherrypy.config["demoinfo_db"]
-        demoinfo_dl_extras_dir = cherrypy.config["demoinfo_dl_extras_dir"]
         self.demoinfo = demoinfo.DemoInfo(
-            dl_extras_dir=demoinfo_dl_extras_dir,
-            database_path=demoinfo_db,
-            base_url=base_url,
+            dl_extras_dir=settings.demoinfo_dl_extras_dir,
+            database_path=settings.demoinfo_db,
+            base_url=settings.base_url,
         )
 
-    def get_dispatcher_api(self) -> DispatcherAPI:
-        return DispatcherAPI(self.dispatcher)
+        self.converter = conversion.Converter()
 
-    def get_conversion_api(self) -> ConversionAPI:
-        return ConversionAPI(self.converter)
-
-    def get_demoinfo_api(self) -> DemoInfoAPI:
-        return DemoInfoAPI(self.demoinfo)
-
-    def read_authorized_patterns(self):
-        """
-        Read from the IPs conf file
-        """
-        # Check if the config file exists
-        if not os.path.isfile(self.authorized_patterns_file):
-            self.logger.error(
-                "read_authorized_patterns: Can't open {}".format(
-                    self.authorized_patterns_file
-                )
-            )
-            return []
-
-        # Read config file
-        try:
-            cfg = configparser.ConfigParser()
-            cfg.read([self.authorized_patterns_file])
-            patterns = []
-            for item in cfg.items("Patterns"):
-                patterns.append(item[1])
-            return patterns
-        except configparser.Error:
-            self.logger.exception(
-                "Bad format in {}".format(self.authorized_patterns_file)
-            )
-            return []
-
-    @cherrypy.expose
     def index(self, code_starts=None):
         """
         Index page
         """
         result = self.demoinfo.demo_list()
 
-        cherrypy.response.headers["Content-Type"] = "text/html"
         if result.is_err():
             self.send_internal_error_email("Unable to get the list of demos")
-            string = """
-                 <!DOCTYPE html>
-                 <html lang="en">
-                 <head>
-                 <meta charset="utf-8">
-                 <title>IPOL demos</title>
-                 </head>
-                 <body>
-                 <h2>IPOL internal error: unable to get the list of demos</h2><br>
-                 </body>
-                 </html>
-                 """
-            return string
+            html_content = """
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                    <meta charset="utf-8">
+                    <title>IPOL demos</title>
+                    </head>
+                    <body>
+                    <h2>IPOL internal error: unable to get the list of demos</h2><br>
+                    </body>
+                    </html>
+                    """
+            return html_content
 
         demo_list = result.value
 
@@ -624,74 +192,30 @@ class Core:
                     demo_data["title"],
                 )
 
-        string = """
-                 <!DOCTYPE html>
-                 <html lang="en">
-                 <head>
-                 <meta charset="utf-8">
-                 <title>IPOL demos</title>
-                 </head>
-                 <body>
-                 <h1>List of demos</h1>
-                 """
+        html_content = """
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                    <meta charset="utf-8">
+                    <title>IPOL demos</title>
+                    </head>
+                    <body>
+                    <h1>List of demos</h1>
+                    """
         # Only show the message if the user didn't specify a code start
         if not code_starts:
-            string += """
-                     <h3>The demos whose ID begins with '77777' are public workshops and those with '33333' are private.
-                     Test demos begin with '55555' whereas Example demos begin with '11111'.</h3><br>
-                     """
-        string += """
-                 {}
-                 </body>
-                 </html>
-                 """.format(
+            html_content += """
+                        <h3>The demos whose ID begins with '77777' are public workshops and those with '33333' are private.
+                        Test demos begin with '55555' whereas Example demos begin with '11111'.</h3><br>
+                        """
+        html_content += """
+                    {}
+                    </body>
+                    </html>
+                    """.format(
             demos_string
         )
-
-        return string
-
-    @cherrypy.expose
-    def demo(self, code_starts=None):
-        """
-        Return an HTML page with the list of demos.
-        """
-        return self.index(code_starts=code_starts)
-
-    @staticmethod
-    @cherrypy.expose
-    def ping():
-        """
-        Ping: answer with a PONG.
-        """
-        data = {"status": "OK", "ping": "pong"}
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    @authenticate
-    def shutdown(self):
-        """
-        Shutdown the module.
-        """
-        data = {"status": "KO"}
-        try:
-            cherrypy.engine.exit()
-            data["status"] = "OK"
-        except Exception:
-            self.logger.exception("shutdown")
-        return json.dumps(data).encode()
-
-    @staticmethod
-    @cherrypy.expose
-    def default(attr):
-        """
-        Default method invoked when asked for a non-existing service.
-        """
-        data = {"status": "KO", "message": "Unknown service '{}'".format(attr)}
-        return json.dumps(data).encode()
-
-    # --------------------------------------------------------------------------
-    #           END BLOCK OF INPUT TOOLS
-    # --------------------------------------------------------------------------
+        return html_content
 
     @staticmethod
     def input_upload(work_dir, blobs, inputs_desc):
@@ -770,14 +294,14 @@ class Core:
         try:
             demo_blobs, status = self.post(f"api/blobs/demo_blobs/{demo_id}", "get")
         except json.JSONDecodeError as ex:
-            self.logger.exception(f"{ex}")
+            logger.exception(f"{ex}")
             raise IPOLCopyBlobsError(f"{ex}")
 
         if not demo_blobs or status != 200:
             error_msg = (
                 "Failed to get blobs at Core's copy_blobset_from_physical_location"
             )
-            self.logger.exception(error_msg)
+            logger.exception(error_msg)
             raise IPOLCopyBlobsError(error_msg)
 
         try:
@@ -796,7 +320,7 @@ class Core:
                 )
                 shutil.copy(os.path.join(self.blobs_folder, blob_path), final_path)
             except Exception as ex:
-                self.logger.exception(
+                logger.exception(
                     "Error copying blob from {} to {}".format(blob_path, final_path)
                 )
                 print(
@@ -1099,7 +623,7 @@ class Core:
             self.extract_demo_extras(demo_id, demoextras_filename)
 
         except Exception as ex:
-            self.logger.exception(ex)
+            logger.exception(ex)
             error_message = "Error processing the demoExtras of demo #{}: {}".format(
                 demo_id, ex
             )
@@ -1112,10 +636,10 @@ class Core:
         """
         keygen = hashlib.md5()
         seeds = [
-            cherrypy.request.remote.ip,
+            # cherrypy.request.remote.ip,
             # use port to improve discrimination
             # for proxied or NAT clients
-            cherrypy.request.remote.port,
+            # cherrypy.request.remote.port,
             datetime.now(),
             random(),
         ]
@@ -1145,29 +669,25 @@ class Core:
         """
         Gets demo meta data given its editor's ID
         """
-        userdata = {"demoid": demo_id}
-        resp, _ = self.post("api/demoinfo/read_demo_metainfo", "post", data=userdata)
-        return resp.json()
+        resp = self.demoinfo.read_demo_metainfo(demo_id)
+        return resp.value
 
     def get_demo_editor_list(self, demo_id):
         """
         Get the list of editors of the given demo
         """
         # Get the list of editors of the demo
-        userdata = {"demo_id": demo_id}
-        resp, status_code = self.post(
-            "api/demoinfo/demo_get_editors_list", "post", data=userdata
-        )
-        response = resp.json()
-        status = response["status"]
+        response, status_code = self.post(f"api/demoinfo/editors/{demo_id}", "get")
+
+        error = response["error"]
 
         if status_code != 200:
             self.error_log(
-                f"Failed to obtain the editors of demo #{demo_id} from demoInfo: {status}"
+                f"Failed to obtain the editors of demo #{demo_id} from demoInfo: {error}"
             )
             return ()
 
-        editor_list = response["editor_list"]
+        editor_list = response
 
         if not editor_list:
             return ()  # No editors given
@@ -1283,7 +803,7 @@ class Core:
             )
             cfg = configparser.ConfigParser()
             if not os.path.isfile(emails_file_path):
-                self.logger.error(
+                logger.error(
                     "read_emails_from_config: Can't open {}".format(emails_file_path)
                 )
                 return {}
@@ -1297,7 +817,7 @@ class Core:
 
             return emails
         except Exception as ex:
-            self.logger.exception("Can't read emails of journal staff")
+            logger.exception("Can't read emails of journal staff")
             print("Fail reading emails config. Exception:", ex)
 
     # From http://stackoverflow.com/questions/1855095/how-to-create-a-zip-archive-of-a-directory
@@ -1344,8 +864,8 @@ class Core:
 
         # Attach experiment in zip file and send the email
         text = "This is the IPOL Core machine.\n\n\
-The execution with key={} of demo #{} on {} has failed.\nProblem: {}.\nPlease find \
-attached the failed experiment data.".format(
+    The execution with key={} of demo #{} on {} has failed.\nProblem: {}.\nPlease find \
+    attached the failed experiment data.".format(
             key, demo_id, demorunner, message
         )
 
@@ -1431,13 +951,11 @@ attached the failed experiment data.".format(
         self.send_email(subject, text, emails, config_emails["sender"])
 
     @staticmethod
-    def decode_interface_request(interface_arguments):
+    def decode_interface_request(interface_arguments, files):
         """
         Decode the arguments and extract the files send by the web interface
         """
-        if "clientData" not in interface_arguments:
-            raise IPOLDecodeInterfaceRequestError("clientData not found.")
-        clientdata = json.loads(interface_arguments["clientData"])
+        clientdata = interface_arguments
         origin = clientdata.get("origin", None)
         if origin is not None:
             origin = origin.lower()
@@ -1445,8 +963,8 @@ attached the failed experiment data.".format(
         blobs = {}
         blobset_id = None
         if origin == "upload":
-            for key, value in interface_arguments.items():
-                if key.startswith("file_"):
+            for key, value in files.items():
+                if key.startswith("file"):
                     fname = key
                     blobs[fname] = value
 
@@ -1460,7 +978,7 @@ attached the failed experiment data.".format(
                 "Wrong origin value from the interface."
             )
 
-        for key, value in interface_arguments.items():
+        for key, value in files.items():
             if key.startswith("inpainting_data_"):
                 fname = key
                 blobs[fname] = value
@@ -1528,14 +1046,12 @@ attached the failed experiment data.".format(
         Ensure that the source codes of the demo are all updated and compiled correctly
         """
         build_data = {"ddl_build": ddl_build}
-        ssh_response, _ = self.post(
-            "api/demoinfo/get_ssh_keys", "post", data={"demo_id": demo_id}
-        )
-        ssh_response = ssh_response.json()
-        if ssh_response["status"] == "OK":
+        result = self.demoinfo.get_ssh_keys(demo_id)
+        if result.is_ok():
+            pubkey, privkey = result.value
             build_data["ssh_keys"] = {
-                "public_key": ssh_response["pubkey"],
-                "private_key": ssh_response["privkey"],
+                "public_key": pubkey,
+                "private_key": privkey,
             }
 
         url = f"api/demorunner/{dr_name}/compilations/{demo_id}"
@@ -1564,12 +1080,12 @@ attached the failed experiment data.".format(
         Creates the working directory for a new execution. Then it copies and
         eventually converts the input blobs
         """
-        key = self.create_new_execution_key(self.logger)
+        key = self.create_new_execution_key(logger)
         if not key:
             raise IPOLKeyError(
                 "**An internal error has occurred in the demo system, sorry for the inconvenience.\
                 The IPOL team has been notified and will fix the issue as soon as possible**.\
-                     Failed to create a valid execution key"
+                        Failed to create a valid execution key"
             )
         try:
             work_dir = self.create_run_dir(demo_id, key)
@@ -1583,7 +1099,7 @@ attached the failed experiment data.".format(
                 error_message = "Failed to save {} in demo {}".format(
                     json_filename, demo_id
                 )
-                self.logger.exception(error_message)
+                logger.exception(error_message)
         except Exception as ex:
             raise IPOLWorkDirError(ex)
 
@@ -1628,13 +1144,13 @@ attached the failed experiment data.".format(
                     demo_id, ex
                 )
             )
-            self.logger.exception(error_message)
+            logger.exception(error_message)
             raise IPOLPrepareFolderError(error_message, error_message)
         except IPOLInputUploadError as ex:
             error_message = "Error uploading input of demo #{} with key={}: {}".format(
                 demo_id, key, ex
             )
-            self.logger.exception(error_message)
+            logger.exception(error_message)
             raise IPOLPrepareFolderError(error_message)
         except IPOLProcessInputsError as ex:
             error_message = (
@@ -1642,14 +1158,14 @@ attached the failed experiment data.".format(
                     demo_id, ex
                 )
             )
-            self.logger.exception(error_message)
+            logger.exception(error_message)
             raise IPOLPrepareFolderError(error_message, error_message)
         except (IOError, OSError) as ex:
             error_message = "** INTERNAL ERROR **. I/O error processing inputs"
             log_message = (error_message + ". {}: {}").format(
                 type(ex).__name__, str(ex)
             )
-            self.logger.exception(log_message)
+            logger.exception(log_message)
             raise IPOLPrepareFolderError(error_message, log_message)
 
         messages = []
@@ -1723,7 +1239,6 @@ attached the failed experiment data.".format(
             params=payload,
             files=files,
         )
-
         if status_code != 200:
             demo_state = self.get_demo_metadata(demo_id)["state"].lower()
             error = "IPOLDemorunnerUnresponsive"
@@ -1743,7 +1258,7 @@ attached the failed experiment data.".format(
                     The IPOL team has been notified and will fix the issue as soon as possible**. Bad format in the response from DR server {} in demo #{}. - {}".format(
                 dr_name, demo_id, ex
             )
-            self.logger.exception(error_message)
+            logger.exception(error_message)
             raise IPOLExecutionError(error_message, error_message)
 
         if dr_response.get("error"):
@@ -1763,7 +1278,7 @@ attached the failed experiment data.".format(
             # In case of a timeout, send a human-oriented message to the web interface
             if error == "IPOLTimeoutError":
                 website_message = "This execution had to be stopped because of TIMEOUT. \
-                                      Please reduce the size of your input."
+                                        Please reduce the size of your input."
 
             raise IPOLDemoRunnerResponseError(website_message, demo_state, key, error)
 
@@ -1785,7 +1300,7 @@ attached the failed experiment data.".format(
             error_message = "Failed to read {} in demo {}".format(
                 failure_filepath, demo_id
             )
-            self.logger.exception(error_message)
+            logger.exception(error_message)
             raise IPOLExecutionError(error_message, error_message)
 
         algo_info_dic = self.read_algo_info(work_dir)
@@ -1805,189 +1320,16 @@ attached the failed experiment data.".format(
 
         return dr_response
 
-    @cherrypy.expose
-    def run(self, **kwargs):
-        """
-        Run a demo. The presentation layer requests the Core to execute a demo.
-        """
-        demo_id = None
-        try:
-            (
-                demo_id,
-                origin,
-                params,
-                crop_info,
-                private_mode,
-                blobs,
-                blobset_id,
-            ) = self.decode_interface_request(kwargs)
-
-            ddl = self.read_ddl(demo_id)
-
-            # Check the DDL for missing required sections and their format
-            self.check_ddl(ddl)
-
-            # Find a demorunner according the requirements of the demo and the dispatcher policy
-            dr_name = self.find_suitable_demorunner(ddl["general"])
-
-            # Ensure that the demoExtras are updated
-            self.ensure_extras_updated(demo_id)
-
-            # Ensure that the source code is updated
-            self.ensure_compilation(dr_name, demo_id, ddl["build"])
-
-            ddl_inputs = ddl.get("inputs")
-            # Create run directory in the shared folder, copy blobs and delegate in the conversion module
-            # the conversion of the input data if it is requested and not forbidden
-            (
-                work_dir,
-                key,
-                prepare_folder_messages,
-                input_names,
-            ) = self.prepare_folder_for_execution(
-                demo_id, origin, blobs, blobset_id, ddl_inputs, params, crop_info
-            )
-
-            # Delegate in the the chosen DR the execution of the experiment in the run folder
-            demorunner_response = self.execute_experiment(
-                dr_name,
-                demo_id,
-                key,
-                params,
-                input_names,
-                ddl["run"],
-                ddl["general"],
-                work_dir,
-            )
-
-            # Archive the experiment, if the 'archive' section exists in the DDL and it is not a private execution
-            # Also check if it is an original uploaded data from the user (origin != 'blobset') or is enabled archive_always
-            if (
-                not private_mode
-                and "archive" in ddl
-                and (origin != "blobset" or ddl["archive"].get("archive_always"))
-            ):
-                base_url = os.environ.get("IPOL_URL", "http://" + socket.getfqdn())
-                try:
-                    response, status_code = send_to_archive(
-                        demo_id,
-                        work_dir,
-                        kwargs,
-                        ddl["archive"],
-                        demorunner_response,
-                        base_url,
-                        input_names,
-                    )
-                    if status_code != 201:
-                        response = response.json()
-                        id_experiment = response.get("experiment_id", None)
-                        message = f"Error {status_code} from archive module when archiving an experiment: demo={demo_id}, key={key}, id={id_experiment}."
-                        self.logger.exception(message)
-                except Exception as ex:
-                    message = (
-                        "Error archiving an experiment: demo={}, key={}. Error: {}."
-                    )
-                    self.logger.exception(message.format(demo_id, key, str(ex)))
-
-            # Save the execution, so the users can recover it from the URL
-            self.save_execution(demo_id, kwargs, demorunner_response, work_dir)
-
-            messages = []
-            messages.extend(prepare_folder_messages)
-
-            return json.dumps(
-                dict(demorunner_response, **{"messages": messages})
-            ).encode()
-        except (IPOLDecodeInterfaceRequestError, IPOLUploadedInputRejectedError) as ex:
-            return json.dumps({"error": str(ex), "status": "KO"}).encode()
-        except (IPOLDemoExtrasError, IPOLKeyError) as ex:
-            error_message = str(ex)
-            self.send_internal_error_email(error_message)
-            self.logger.exception(error_message)
-            return json.dumps({"error": error_message, "status": "KO"}).encode()
-        except IPOLEnsureCompilationError as ex:
-            error_message = " --- Compilation error. --- {}".format(str(ex))
-            self.send_compilation_error_email(demo_id, error_message, dr_name)
-            return json.dumps({"error": str(ex), "status": "KO"}).encode()
-        except IPOLFindSuitableDR as ex:
-            try:
-                if self.get_demo_metadata(demo_id)["state"].lower() == "published":
-                    self.send_email_no_demorunner(demo_id)
-            except BrokenPipeError:
-                pass
-
-            error_message = str(ex)
-            self.logger.exception(error_message)
-            return json.dumps({"error": error_message, "status": "KO"}).encode()
-        except IPOLWorkDirError as ex:
-            error_message = "Could not create work_dir for demo {}".format(demo_id)
-            # do not output full path for public
-            internal_error_message = (error_message + ". Error: {}").format(str(ex))
-            self.logger.exception(internal_error_message)
-            self.send_internal_error_email(internal_error_message)
-            return json.dumps({"error": error_message, "status": "KO"}).encode()
-        except IPOLReadDDLError as ex:
-            # code -1: the DDL of the requested ID doesn't exist
-            # code -2: Invalid demo_id
-            error_message = "{} Demo #{}".format(str(ex.error_message), demo_id)
-            self.logger.exception(error_message)
-            if not ex.error_code or ex.error_code not in (-1, -2):
-                self.send_internal_error_email(error_message)
-            return json.dumps({"error": error_message, "status": "KO"}).encode()
-        except IPOLCheckDDLError as ex:
-            error_message = "{} Demo #{}".format(str(ex), demo_id)
-            if self.get_demo_metadata(demo_id)["state"].lower() == "published":
-                self.send_runtime_error_email(demo_id, "<NA>", error_message, "no-dr")
-            return json.dumps({"error": error_message, "status": "KO"}).encode()
-        except IPOLPrepareFolderError as ex:
-            # Do not log: function prepare_folder_for_execution will decide when to log
-            if ex.email_message:
-                self.send_internal_error_email(ex.email_message)
-            return json.dumps({"error": ex.interface_message, "status": "KO"}).encode()
-        except IPOLExecutionError as ex:
-            # Do not log: function execute_experiment will decide when to log
-            if ex.email_message:
-                self.send_internal_error_email(ex.email_message)
-            return json.dumps({"error": ex.interface_message, "status": "KO"}).encode()
-        except IPOLEvaluateError as ex:
-            error_message = "IPOLEvaluateError '{}' detected in demo {}".format(
-                str(ex), demo_id
-            )
-            self.logger.exception(error_message)
-            self.send_internal_error_email(error_message)
-            return json.dumps({"error": error_message, "status": "KO"}).encode()
-        except IPOLDemoRunnerResponseError as ex:
-            # Send email to the editors
-            # (unless it's a timeout in a published demo)
-            if not (ex.demo_state == "published" and ex.error == "IPOLTimeoutError"):
-                self.send_runtime_error_email(demo_id, ex.key, ex.message, dr_name)
-            return json.dumps({"error": ex.message, "status": "KO"}).encode()
-        except Exception as ex:
-            # We should never get here.
-            #
-            # If we arrive here it means that we missed to catch and
-            # take care of some exception type.
-            error_message = "**An internal error has occurred in the demo system, sorry for the inconvenience.\
-                The IPOL team has been notified and will fix the issue as soon as possible.** \
-                  Error in the run function of the Core in demo {}, {}. Received kwargs: {}".format(
-                demo_id, ex, str(kwargs)
-            )
-            print(traceback.format_exc())
-            self.logger.exception(error_message)
-            self.send_internal_error_email(error_message)
-            return json.dumps({"status": "KO", "error": error_message}).encode()
-
     @staticmethod
-    def save_execution(demo_id, request, response, work_dir):
+    def save_execution(demo_id, clientdata, response, work_dir, files):
         """
         Save all needed data to recreate an execution.
         """
-        clientdata = json.loads(request["clientData"])
 
         if clientdata.get("origin", "") == "upload":
             # Count how many file entries and remove them
-            file_keys = [key for key in request if key.startswith("file_")]
-            list(map(request.pop, file_keys))
+            file_keys = [key for key in files if key.startswith("file_")]
+            list(map(files.pop, file_keys))
             clientdata["files"] = len(file_keys)
 
         execution_json = {}
@@ -1998,36 +1340,6 @@ attached the failed experiment data.".format(
         # Save file
         with open(os.path.join(work_dir, "execution.json"), "w") as outfile:
             json.dump(execution_json, outfile)
-
-    @cherrypy.expose
-    def load_execution(self, demo_id, key):
-        """
-        Load the data needed to recreate an execution.
-        """
-        filename = os.path.join(
-            self.share_run_dir_abs, str(demo_id), key, "execution.json"
-        )
-        if not os.path.isfile(filename):
-            message = "Execution with key={} not found".format(key)
-            res_data = {"error": message, "status": "KO"}
-            print(message)
-            return json.dumps(res_data).encode()
-
-        try:
-            with open(filename, "r") as open_file:
-                lines = open_file.read()
-        except Exception as ex:
-            message = (
-                "** INTERNAL ERROR ** while reading execution with key={}: {}".format(
-                    key, ex
-                )
-            )
-            self.logger.exception(message)
-            self.send_internal_error_email(message)
-            res_data = {"error": message, "status": "KO"}
-            return json.dumps(res_data).encode()
-
-        return json.dumps({"status": "OK", "experiment": lines}).encode()
 
     def read_algo_info(self, work_dir):
         """
@@ -2047,7 +1359,7 @@ attached the failed experiment data.".format(
             # Read with format A = B, where B can contain the '=' sign
             if len(line.split("=", 1)) < 2 or line.split("=", 1)[0].strip() == "":
                 print("incorrect format in algo_info.txt, in line {}".format(line))
-                self.logger.error(
+                logger.error(
                     "run: incorrect format in algo_info.txt, at line {}".format(line)
                 )
                 continue
@@ -2059,51 +1371,6 @@ attached the failed experiment data.".format(
 
         open_file.close()
         return dic
-
-    @cherrypy.expose
-    @cherrypy.tools.allow(methods=["POST"])  # allow only post
-    @authenticate
-    def delete_demo(self, demo_id):
-        """
-        Delete the specified demo
-        """
-        demo_id = int(demo_id)
-        data = {}
-        data["status"] = "OK"
-        error_message = ""
-
-        try:
-            # delete demo, blobs and extras associated to it
-            result = self.demoinfo.delete_demo(demo_id)
-            if not isinstance(result, Ok):
-                error_message += f"Error when removing demo: {result.value} \n"
-
-            result = self.demoinfo.delete_demoextras(demo_id)
-            if not isinstance(result, Ok):
-                error_message += f"Error when removing demoextras: {result.value} \n"
-
-            _, status_code = self.post(f"/api/blobs/demos/{demo_id}", "delete")
-            if status_code != 204:
-                error_message += "API call /blobs/delete_demo failed.'\n"
-
-            # delete the archive
-            _, status_code = self.post(f"/api/archive/demo/{demo_id}", "delete")
-            if status_code == 404:
-                error_message += (
-                    f"API call /api/archive/demo to delete  demo failed. {demo_id}"
-                )
-            if error_message:
-                data["status"] = "KO"
-                data["error"] = f"Failed to delete demo: {demo_id}."
-                self.send_internal_error_email(error_message)
-
-        except Exception as ex:
-            error_message = f"Failed to delete demo {demo_id}. Error: {ex}"
-            data["status"] = "KO"
-            data["error"] = error_message
-            self.send_internal_error_email(error_message)
-
-        return json.dumps(data).encode()
 
     @staticmethod
     def post(api_url, method=None, **kwargs):
@@ -2143,3 +1410,6 @@ def init_logging():
 
     logger.addHandler(handler)
     return logger
+
+
+logger = init_logging()

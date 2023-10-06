@@ -134,17 +134,20 @@ server {
 
     # CORE
     location /api/core/{
-        rewrite ^/api/core/(.*) /$1 break;
+        rewrite ^/api/(.*) /$1 break;
         resolver 127.0.0.1;
         proxy_pass  http://$host:8080;
     }
     location /api/dispatcher/ {
+        rewrite ^/api/(.*) /$1 break;
         proxy_pass http://$host:8080;
     }
     location /api/conversion/ {
+        rewrite ^/api/(.*) /$1 break;
         proxy_pass http://$host:8080;
     }
     location /api/demoinfo/ {
+        rewrite ^/api/(.*) /$1 break;
         proxy_pass http://$host:8080;
     }
 

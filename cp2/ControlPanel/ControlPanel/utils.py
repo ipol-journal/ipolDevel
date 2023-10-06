@@ -16,11 +16,14 @@ def api_post(resource, method, **kwargs):
             "IPOL_URL", f"http://{socket.gethostbyname(socket.getfqdn())}"
         )
         if method == "get":
-            response = requests.get(f"{host}{resource}")
+            response = requests.get(f"{host}{resource}", **kwargs)
             return response.json(), response.status_code
         elif method == "put":
             response = requests.put(f"{host}{resource}", **kwargs)
             return response, response.status_code
+        elif method == "patch":
+            response = requests.patch(f"{host}{resource}", **kwargs)
+            return response.json(), response.status_code
         elif method == "post":
             response = requests.post(f"{host}{resource}", **kwargs)
             return response.json(), response.status_code
@@ -46,11 +49,8 @@ def api_post(resource, method, **kwargs):
 def user_can_edit_demo(user, demo_id):
     if user.is_staff or user.is_superuser:
         return True
-    settings = {"demo_id": demo_id}
-    editors_list, _ = api_post(
-        "/api/demoinfo/demo_get_editors_list", method="post", params=settings
-    )
-    for editor in editors_list.get("editor_list"):
+    editors_list, _ = api_post(f"/api/demoinfo/editors/{demo_id}", method="get")
+    for editor in editors_list:
         if editor.get("mail") == user.email:
             return True
     return False

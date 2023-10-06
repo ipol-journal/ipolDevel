@@ -49,7 +49,13 @@ $(document).ready(function () {
                 method: 'POST',
                 body: formData
             })
-                .then(() => window.location.reload())
+                .then(response => {
+                    if(response.ok) {
+                        window.location.reload();
+                    } else {
+                        throw new Error('Something went wrong.');
+                    }
+                })
                 .catch(() => {
                     showErrorMessage()
                 })

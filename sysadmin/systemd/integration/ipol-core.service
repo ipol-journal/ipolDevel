@@ -7,6 +7,7 @@ ExecStart=/bin/bash -c "source ./venv/bin/activate && python main.py core.conf"
 WorkingDirectory=/home/ipol/ipolDevel/ipol_demo/modules/core/
 Environment=IPOL_HOST=integration.ipol.im
 Environment=IPOL_URL=https://integration.ipol.im
+Environment=env=integration
 RestartSec=10
 Restart=always
 SyslogIdentifier=ipol-core

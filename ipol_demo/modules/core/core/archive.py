@@ -33,7 +33,7 @@ def create_thumbnail(src_file):
 
 
 def send_to_archive(
-    demo_id, work_dir, request, ddl_archive, res_data, base_url, input_names
+    demo_id, work_dir, request, ddl_archive, res_data, base_url, input_names, files
 ):
     """
     Prepare an execution folder for archiving an experiment (thumbnails).
@@ -92,12 +92,12 @@ def send_to_archive(
         and ddl_archive["enable_reconstruct"]
         and request is not None
     ):
-        clientData = json.loads(request["clientData"])
+        clientData = request
 
         if clientData.get("origin", "") == "upload":
             # Count how many file entries and remove them
-            file_keys = [key for key in request if key.startswith("file_")]
-            files = request.copy()
+            file_keys = [key for key in files if key.startswith("file_")]
+            files = files.copy()
             list(map(files.pop, file_keys))
             clientData["files"] = len(file_keys)
 

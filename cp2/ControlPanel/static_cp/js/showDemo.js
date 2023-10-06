@@ -132,23 +132,17 @@ function update_edit_demo() {
 function showDDL() {
 	$.ajax({
 		data: ({
-			demoID: demo_id,
+			demo_id: demo_id,
 			csrfmiddlewaretoken: csrftoken,
 		}),
 		type: 'POST',
 		dataType: 'json',
 		url: 'showDemo/ajax_showDDL',
-		success: function(data) {
-			if (data.status === 'OK') {
-				aceEditor.setValue(data.last_demodescription.ddl, -1);
-				last_DDL_saved = aceEditor.getValue();
-				aceEditor.session.getUndoManager().markClean();
-				aceEditor.getSession().setUndoManager(new ace.UndoManager());
-			} else {
-				toast(`Error: ${data.error}`);
-				aceEditor.setValue({}, -1);
-				last_DDL_saved = aceEditor.getValue();
-			}
+		success: function(ddl) {
+			aceEditor.setValue(JSON.stringify(ddl, null, 3), -1);
+			last_DDL_saved = aceEditor.getValue();
+			aceEditor.session.getUndoManager().markClean();
+			aceEditor.getSession().setUndoManager(new ace.UndoManager());
 		},
 		error: function(error) {
 			toast('Error getting DDL, please reload or contact support');
@@ -215,10 +209,10 @@ $('.editor > button').click(function() {
 })
 
 async function get_demos() {
-	demo_ids = await fetch(`${location_url}/api/demoinfo/demo_list`)
+	demo_ids = await fetch(`${location_url}/api/demoinfo/demos`)
 		.then(response => response.json())
 		.then(data => {
-			let ids = data.demo_list.map(demo => demo.editorsdemoid);
+			let ids = data.map(demo => demo.editorsdemoid);
 			return ids;
 		});
 
@@ -248,7 +242,7 @@ async function get_demos() {
 }
 
 async function getDemoState() {
-	let demoMetadata = await fetch(`${location_url}/api/demoinfo/read_demo_metainfo?demoid=${demo_id}`)
+	let demoMetadata = await fetch(`${location_url}/api/demoinfo/demo_metainfo/${demo_id}`)
 	.then(response => response.json())
 	$(`option[value=${demoMetadata.state}]`)
 	document.querySelector(`option[value=${demoMetadata.state}]`).selected = true;

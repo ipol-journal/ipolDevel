@@ -16,13 +16,12 @@ source $ZSH/oh-my-zsh.sh
 # IPOL Terminal 
 alias terminal="cd ~/ipolDevel/tools/terminal && ./terminal.py"
 # Control Panel
-alias cpanel="cd ~/ipolDevel/ipol_webapp && source venv/bin/activate && python manage.py runserver 127.0.0.1:8001"
 alias cp2="cd ~/ipolDevel/cp2 && ./gunicorn_start_cp2"
 alias cp2devel="cd ~/ipolDevel/cp2 && source venv/bin/activate && python ControlPanel/manage.py runserver 127.0.0.1:8002"
 alias venvcp2="cd ~/ipolDevel/cp2 && source bin/activate"
 
 # Collect all static files from CP.
-alias collectstatic="cd ~/ipolDevel/ipol_webapp && source venv/bin/activate && python manage.py collectstatic --noinput --clear"
+alias collectstatic="cd ~/ipolDevel/cp2 && source venv/bin/activate && python manage.py collectstatic --noinput --clear"
 
 # Test all
 alias runtest="cd ~/ipolDevel/ci_tests && python3 all.py"
@@ -43,5 +42,5 @@ alias core="cd ~/ipolDevel/ipol_demo/modules/core && source venv/bin/activate &&
 alias conversion="cd ~/ipolDevel/ipol_demo/modules/conversion && source venv/bin/activate && ./main.py conversion.conf"
 alias blobs="cd ~/ipolDevel/ipol_demo/modules/blobs && source venv/bin/activate && ./start.sh"
 alias dispatcher="cd ~/ipolDevel/ipol_demo/modules/dispatcher && source venv/bin/activate && ./main.py dispatcher.conf"
-alias demorunner="cd ~/ipolDevel/ipol_demo/modules/demorunner && source venv/bin/activate && ./main.py demorunner.conf"
+alias demorunner="cd ~/ipolDevel/ipol_demo/modules/demorunner && source venv/bin/activate && ./start.sh"
 alias archive="cd ~/ipolDevel/ipol_demo/modules/archive && source venv/bin/activate && ./start.sh"

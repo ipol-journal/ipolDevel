@@ -23,26 +23,22 @@ def homepage(request):
     except Exception:
         page = 1
 
-    settings = {"num_elements_page": "100", "page": page, "qfilter": qfilter}
+    settings = {"num_elements_page": 100, "page": page, "qfilter": qfilter}
     demos, _ = api_post(
-        "/api/demoinfo/demo_list_pagination_and_filter", method="post", data=settings
+        "/api/demoinfo/demo_list_pagination_and_filter", method="get", params=settings
     )
 
     # display the editor's demos
     if page == 1 and not qfilter:
         editor_info, _ = api_post(
-            "/api/demoinfo/get_editor",
-            "post",
+            "/api/demoinfo/editor",
+            "get",
             params={"email": request.user.email},
         )
-        editor_id = editor_info["editor"]["id"]
-        params = {
-            "editorid": editor_id,
-        }
-        response, _ = api_post(
-            "/api/demoinfo/demo_list_by_editorid", method="post", params=params
+        editorid = editor_info["editor"]["id"]
+        own_demos, _ = api_post(
+            f"/api/demoinfo/demo_list_by_editorid/{editorid}", method="get"
         )
-        own_demos = response["demo_list"]
     else:
         own_demos = []
 
@@ -67,18 +63,10 @@ def status(request):
 def demo_editors(request):
     demo_id = request.GET["demo_id"]
 
-    demo_editors, _ = api_post(
-        "/api/demoinfo/demo_get_editors_list",
-        method="post",
-        params={"demo_id": demo_id},
-    )
-    editor_list = demo_editors["editor_list"]
+    editor_list, _ = api_post(f"/api/demoinfo/demos/{demo_id}/editors", method="get")
     available_editors, _ = api_post(
-        "/api/demoinfo/demo_get_available_editors_list",
-        method="post",
-        params={"demo_id": demo_id},
+        f"/api/demoinfo/available_editors/{demo_id}", method="get"
     )
-    available_editors = available_editors["editor_list"]
     available_editors = sorted(available_editors, key=lambda e: e["name"])
 
     can_edit = user_can_edit_demo(request.user, demo_id)
@@ -97,14 +85,13 @@ def demo_editors(request):
 def add_demo_editor(request):
     demo_id = request.POST["demo_id"]
     editor_id = request.POST["editor_id"]
-    settings = {"demo_id": demo_id, "editor_id": editor_id}
     if user_can_edit_demo(request.user, demo_id):
-        demoinfo_response, _ = api_post(
-            "/api/demoinfo/add_editor_to_demo", method="post", params=settings
+        demoinfo_response, status = api_post(
+            f"/api/demoinfo/demos/{demo_id}/editor/{editor_id}", method="post"
         )
 
     response = {}
-    if demoinfo_response.get("status") != "OK":
+    if status != 201:
         response["status"] = "KO"
         response["message"] = demoinfo_response.get("error")
         return HttpResponse(json.dumps(response), "application/json")
@@ -115,16 +102,13 @@ def add_demo_editor(request):
 @login_required(login_url="login")
 def reset_ssh_key(request):
     demo_id = request.POST["demo_id"]
-    payload = {
-        "demo_id": demo_id,
-    }
     if user_can_edit_demo(request.user, demo_id):
-        demoinfo_response, _ = api_post(
-            "/api/demoinfo/reset_ssh_keys", method="post", params=payload
+        demoinfo_response, status = api_post(
+            f"/api/demoinfo/reset_ssh_keys/{demo_id}", method="get"
         )
 
     response = {}
-    if demoinfo_response.get("status") != "OK":
+    if status != 200:
         response["status"] = "KO"
         response["message"] = demoinfo_response.get("error")
         return HttpResponse(json.dumps(response), "application/json")
@@ -136,14 +120,13 @@ def reset_ssh_key(request):
 def remove_demo_editor(request):
     demo_id = request.POST["demo_id"]
     editor_id = request.POST["editor_id"]
-    settings = {"demo_id": demo_id, "editor_id": editor_id}
     if user_can_edit_demo(request.user, demo_id):
-        demoinfo_response, _ = api_post(
-            "/api/demoinfo/remove_editor_from_demo", method="post", params=settings
+        demoinfo_response, status = api_post(
+            f"/api/demoinfo/demos/{demo_id}/editor/{editor_id}", method="delete"
         )
 
     response = {}
-    if demoinfo_response.get("status") != "OK":
+    if status != 204:
         response["status"] = "KO"
         response["message"] = demoinfo_response.get("error")
         return HttpResponse(json.dumps(response), "application/json")
@@ -160,19 +143,18 @@ def ajax_add_demo(request):
     demo_id = request.POST["demo_id"]
 
     settings = {"state": state, "title": title, "demo_id": demo_id, "ddl": "{}"}
-    result, _ = api_post("/api/demoinfo/add_demo", method="post", params=settings)
+    result, demo_status = api_post("/api/demoinfo/demo", method="post", params=settings)
 
     editor_info, _ = api_post(
-        "/api/demoinfo/get_editor", method="post", params={"email": request.user.email}
+        "/api/demoinfo/editor", method="get", params={"email": request.user.email}
     )
     editor_id = editor_info["editor"]["id"]
-    settings = {"demo_id": demo_id, "editor_id": editor_id}
-    editor_add, _ = api_post(
-        "/api/demoinfo/add_editor_to_demo", method="post", params=settings
+    _, editor_status = api_post(
+        f"/api/demoinfo/demos/{demo_id}/editor/{editor_id}", method="post"
     )
 
     response = {}
-    if result.get("status") != "OK" or editor_add.get("status") != "OK":
+    if demo_status != 201 or editor_status != 201:
         response["status"] = "KO"
         response["message"] = result.get("error")
         return JsonResponse(
@@ -189,14 +171,10 @@ def ajax_delete_demo(request):
     demo_id = request.POST["demo_id"]
 
     if user_can_edit_demo(request.user, demo_id):
-        settings = {"demo_id": demo_id}
-        response_api, _ = api_post(
-            "/api/core/delete_demo", method="post", params=settings
-        )
-        result = response_api
+        result, status = api_post(f"/api/core/demo/{demo_id}", method="delete")
 
     response = {}
-    if result.get("status") != "OK":
+    if status != 204:
         response["status"] = "KO"
         response["message"] = result.get("error")
     else:
@@ -477,41 +455,26 @@ def ajax_edit_blob_template(request):
 @login_required(login_url="login")
 def showDemo(request):
     demo_id = request.GET["demo_id"]
-    demoinfo_response, _ = api_post(
-        "/api/demoinfo/get_ddl", method="post", params={"demo_id": demo_id}
-    )
-    ssh_response, _ = api_post(
-        "/api/demoinfo/get_ssh_keys", method="post", params={"demo_id": demo_id}
-    )
-    ddl = None
-    demo_editors, _ = api_post(
-        "/api/demoinfo/demo_get_editors_list",
-        method="post",
-        params={"demo_id": demo_id},
-    )
-    editor_list = demo_editors["editor_list"]
+    ddl, ddl_status_code = api_post(f"/api/demoinfo/ddl/{demo_id}", method="get")
+    ssh_keys, ssh_response = api_post(f"/api/demoinfo/ssh_keys/{demo_id}", method="get")
+    editor_list, _ = api_post(f"/api/demoinfo/demos/{demo_id}/editors", method="get")
     available_editors, _ = api_post(
-        "/api/demoinfo/demo_get_available_editors_list",
-        method="post",
-        params={"demo_id": demo_id},
+        f"/api/demoinfo/available_editors/{demo_id}", method="get"
     )
-    available_editors = available_editors["editor_list"]
     available_editors = sorted(available_editors, key=lambda e: e["name"])
 
-    if demoinfo_response["status"] == "OK":
-        ddl = demoinfo_response["last_demodescription"]
-    else:
+    if ddl_status_code != 200:
         ddl = "{}"
 
-    if ssh_response["status"] != "OK":
+    if ssh_response != 200:
         pubkey = "(error fetching the ssh public key)"
     else:
-        pubkey = ssh_response["pubkey"]
+        pubkey = ssh_keys["pubkey"]
 
     can_edit = user_can_edit_demo(request.user, demo_id)
 
     metainfo_response, _ = api_post(
-        "/api/demoinfo/read_demo_metainfo", method="post", params={"demoid": demo_id}
+        f"/api/demoinfo/demo_metainfo/{demo_id}", method="get"
     )
     title = metainfo_response.get("title", "")
 
@@ -530,34 +493,28 @@ def showDemo(request):
 
 @login_required(login_url="login")
 def edit_demo(request):
-    demo_id = request.POST["demo_id"]
+    old_demo_id = request.POST["demo_id"]
     new_demo_id = request.POST["new_demo_id"]
     title = request.POST["demoTitle"]
     state = request.POST["state"]
-    demo = {"demo_id": int(new_demo_id), "title": title, "state": state}
+    settings = {"demo_id": int(new_demo_id), "title": title, "state": state}
 
-    settings = {"old_editor_demoid": demo_id, "demo": json.dumps(demo)}
-
-    demoinfo_response, _ = api_post(
-        "/api/demoinfo/update_demo", method="post", params=settings
+    demoinfo_response, demo_status = api_post(
+        f"/api/demoinfo/demo/{old_demo_id}", method="patch", data=settings
     )
     settings = {"new_demo_id": new_demo_id}
     _, blobs_response_code = api_post(
-        f"/api/blobs/demos/{demo_id}",
+        f"/api/blobs/demos/{old_demo_id}",
         method="put",
         params=settings,
     )
     settings = {"new_demo_id": new_demo_id}
     _, archive_response_code = api_post(
-        f"/api/archive/demo/{demo_id}?new_demo_id={new_demo_id}", "put"
+        f"/api/archive/demo/{old_demo_id}?new_demo_id={new_demo_id}", "put"
     )
 
     response = {}
-    if (
-        demoinfo_response.get("status") != "OK"
-        or blobs_response_code != 201
-        or archive_response_code != 204
-    ):
+    if demo_status != 201 or blobs_response_code != 201 or archive_response_code != 204:
         response["status"] = "KO"
         response["message"] = demoinfo_response.get("error")
         return HttpResponse(json.dumps(response), "application/json")
@@ -570,10 +527,7 @@ def ddl_history(request):
     demo_id = request.GET["demo_id"]
     title = request.GET.get("title", "")
 
-    dll_history_response, _ = api_post(
-        "/api/demoinfo/get_ddl_history", method="post", params={"demo_id": demo_id}
-    )
-    ddl_history = dll_history_response["ddl_history"]
+    ddl_history, _ = api_post(f"/api/demoinfo/ddl_history/{demo_id}", method="get")
 
     context = {
         "demo_id": demo_id,
@@ -606,10 +560,9 @@ def ajax_remove_vr(request):
 
 @login_required(login_url="login")
 def ajax_show_DDL(request):
-    demo_id = request.POST["demoID"]
-    settings = {"demo_id": demo_id}
+    demo_id = request.POST["demo_id"]
     response = {}
-    response, _ = api_post("/api/demoinfo/get_ddl", method="post", params=settings)
+    response, _ = api_post(f"/api/demoinfo/ddl/{demo_id}", method="get")
     return HttpResponse(json.dumps(response), "application/json")
 
 
@@ -619,13 +572,10 @@ def ajax_save_DDL(request):
     ddl = request.POST["ddl"]
 
     if user_can_edit_demo(request.user, demo_id):
-        headers = {"Content-type": "application/json"}
-        demoinfo_response, _ = api_post(
-            "/api/demoinfo/save_ddl",
+        api_post(
+            f"/api/demoinfo/ddl/{demo_id}",
             method="post",
-            data=ddl.encode("utf-8"),
-            params={"demoid": demo_id},
-            headers=headers,
+            json=json.loads(ddl),
         )
         return JsonResponse({"status": "OK"}, status=200)
     else:
@@ -656,9 +606,7 @@ def showBlobsDemo(request):
 
 
 def get_demo_extras_info(demo_id: int) -> dict:
-    response, _ = api_post(
-        "/api/demoinfo/get_demo_extras_info", method="post", params={"demo_id": demo_id}
-    )
+    response, _ = api_post(f"/api/demoinfo/demoextras/{demo_id}", method="get")
     size = response.get("size")
     extras_url = response.get("url")
 
@@ -708,30 +656,36 @@ def ajax_add_demo_extras(request):
     }
 
     if user_can_edit_demo(request.user, demo_id):
-        params = {"demo_id": demo_id, "demoextras_name": filename}
+        params = {"demoextras_name": filename}
         files = {"demoextras": file}
-        response, _ = api_post(
-            "/api/demoinfo/add_demoextras", method="post", params=params, files=files
+        response, status = api_post(
+            f"/api/demoinfo/demoextras/{demo_id}",
+            method="post",
+            data=params,
+            files=files,
         )
-        if response["status"] == "KO":
-            context["error"] = response.get("error", "Could not add the demoextras")
+        if status != 201:
+            context["error"] = response.get("detail", "Could not add the demoextras")
+            return render(request, "demoExtras.html", context, status=500)
 
     info = get_demo_extras_info(int(demo_id))
     context.update(**info)
 
-    return render(request, "demoExtras.html", context)
+    return render(request, "demoExtras.html", context, status=200)
 
 
 @login_required(login_url="login")
 def ajax_delete_demo_extras(request):
     demo_id = request.GET["demo_id"]
     if user_can_edit_demo(request.user, demo_id):
-        response, _ = api_post(
-            "/api/demoinfo/delete_demoextras",
-            method="post",
-            params={"demo_id": demo_id},
+        _, status_code = api_post(
+            f"/api/demoinfo/demoextras/{demo_id}", method="delete"
         )
-        # TODO
+        if status_code != 204:
+            message = "Error while removing demoextras"
+            return render(
+                request, "error.html", {"error_code": 404, "message": message}
+            )
     return HttpResponseRedirect(f"/cp2/demoExtras?demo_id={demo_id}")
 
 

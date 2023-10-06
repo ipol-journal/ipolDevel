@@ -22,6 +22,7 @@ from pydantic import BaseModel, BaseSettings
 class Settings(BaseSettings):
     blobs_dir: str = "staticData/blobs/"
     blobs_thumbs_dir: str = "staticData/blobs_thumbs/"
+    database_dir: str = "db"
     database_file: str = os.path.join("db", "archive.db")
     logs_dir: str = "logs/"
     config_common_dir: str = (

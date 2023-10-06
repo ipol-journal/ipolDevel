@@ -56,24 +56,21 @@ class IntegrationTests(unittest.TestCase):
         delete_demo_status = None
         try:
             # Create Demo
-            response, _ = self.create_demo(
+            _, create_demo_status = self.create_demo(
                 self.demo_id, self.demo_title, self.demo_state
             )
-            create_demo_status = response.get("status")
 
             # Add DDL to demo
             with open(self.test_ddl_file, "r") as f:
                 ddl = f.read()
-            response, _ = self.add_ddl(self.demo_id, ddl)
-            add_ddl_status = response.get("status")
+            _, add_ddl_status = self.add_ddl(self.demo_id, ddl)
 
             # Add DemoExtras.gz
             with open(self.test_demo_extras_file, "rb") as demo_extras:
                 demo_extras_name = os.path.basename(demo_extras.name)
-                response, _ = self.add_demo_extras(
+                _, demo_extras_status = self.add_demo_extras(
                     self.demo_id, demo_extras, demo_extras_name
                 )
-            demo_extras_status = response.get("status")
 
             # Add the test blob to the demo in the Blobs module
             with open(self.test_image_file, "rb") as blob:
@@ -89,22 +86,21 @@ class IntegrationTests(unittest.TestCase):
                 blob_id = self.get_blob_id(self.demo_id, self.blob_pos_in_set)
                 # Run the demo with the uploaded image
                 blob_image = Image.open(blob.name)
-            response, run_status = self.run_demo_with_blobset(
+            _, run_status = self.run_demo_with_blobset(
                 self.demo_id, blob_image, blob_id, self.blobset_id
             )
 
             # Delete demo in Demoinfo and Blobs
-            response, _ = self.delete_demo(self.demo_id)
-            delete_demo_status = response.get("status")
+            _, delete_demo_status = self.delete_demo(self.demo_id)
 
         finally:
-            self.assertEqual(create_demo_status, "OK")
-            self.assertEqual(add_ddl_status, "OK")
-            self.assertEqual(demo_extras_status, "OK")
+            self.assertEqual(create_demo_status, 201)
+            self.assertEqual(add_ddl_status, 201)
+            self.assertEqual(demo_extras_status, 201)
             self.assertEqual(add_blob_status, 201)
             self.assertTrue(isinstance(blob_id, int))
-            self.assertEqual(run_status, 200)
-            self.assertEqual(delete_demo_status, "OK")
+            self.assertEqual(run_status, 201)
+            self.assertEqual(delete_demo_status, 204)
 
     def test_execution_with_upload(self):
         """
@@ -121,24 +117,21 @@ class IntegrationTests(unittest.TestCase):
         delete_demo_status = None
         try:
             # Create Demo
-            response, _ = self.create_demo(
+            response, create_demo_status = self.create_demo(
                 self.demo_id, self.demo_title, self.demo_state
             )
-            create_demo_status = response.get("status")
 
             # Add DDL to demo
             with open(self.test_ddl_file, "r") as f:
                 ddl = f.read()
-            response, _ = self.add_ddl(self.demo_id, ddl)
-            add_ddl_status = response.get("status")
+            response, add_ddl_status = self.add_ddl(self.demo_id, ddl)
 
             # Add DemoExtras.gz
             with open(self.test_demo_extras_file, "rb") as demo_extras:
                 demo_extras_name = os.path.basename(demo_extras.name)
-                response, _ = self.add_demo_extras(
+                response, demo_extras_status = self.add_demo_extras(
                     self.demo_id, demo_extras, demo_extras_name
                 )
-            demo_extras_status = response.get("status")
 
             # Run the demo with the uploaded image
             with open(self.test_image_file, "rb") as blob:
@@ -148,10 +141,9 @@ class IntegrationTests(unittest.TestCase):
                     self.demo_id, blob, width, height
                 )
 
-            response, status_code = self.get_archive_experiments_by_page(
+            response, archive_status = self.get_archive_experiments_by_page(
                 self.BASE_URL, self.demo_id
             )
-            archive_status = status_code
             experiments = response.get("experiments")
             exp_meta = response.get("meta_info")
             try:
@@ -160,18 +152,17 @@ class IntegrationTests(unittest.TestCase):
                 pass
 
             # Delete demo
-            response, _ = self.delete_demo(self.demo_id)
-            delete_demo_status = response.get("status")
+            response, delete_demo_status = self.delete_demo(self.demo_id)
 
         finally:
-            self.assertEqual(create_demo_status, "OK")
-            self.assertEqual(add_ddl_status, "OK")
-            self.assertEqual(demo_extras_status, "OK")
-            self.assertEqual(run_status, 200)
+            self.assertEqual(create_demo_status, 201)
+            self.assertEqual(add_ddl_status, 201)
+            self.assertEqual(demo_extras_status, 201)
+            self.assertEqual(run_status, 201)
             self.assertEqual(archive_status, 200)
             self.assertTrue(isinstance(experiments, list))
             self.assertTrue(n_experiments > 0)
-            self.assertEqual(delete_demo_status, "OK")
+            self.assertEqual(delete_demo_status, 204)
 
     #####################
     #       TOOLS       #
@@ -208,7 +199,7 @@ class IntegrationTests(unittest.TestCase):
         response = self.post(
             "demoinfo",
             "post",
-            "add_demo",
+            "demo",
             params=params,
         )
         return response.json(), response.status_code
@@ -217,10 +208,7 @@ class IntegrationTests(unittest.TestCase):
         """
         Add the ddl to the demo
         """
-        params = {"demoid": demo_id}
-        response = self.post(
-            "demoinfo", "post", "save_ddl", params=params, json=json.loads(ddl)
-        )
+        response = self.post("demoinfo", "post", f"ddl/{demo_id}", json=json.loads(ddl))
         return response.json(), response.status_code
 
     def add_demo_extras(self, demo_id, demo_extras, demo_extras_name):
@@ -228,9 +216,9 @@ class IntegrationTests(unittest.TestCase):
         Add DemoExtras to the demo
         """
         files = {"demoextras": demo_extras}
-        params = {"demo_id": demo_id, "demoextras_name": demo_extras_name}
+        data = {"demoextras_name": demo_extras_name}
         response = self.post(
-            "demoinfo", "post", "add_demoextras", params=params, files=files
+            "demoinfo", "post", f"demoextras/{demo_id}", data=data, files=files
         )
         return response.json(), response.status_code
 
@@ -300,9 +288,8 @@ class IntegrationTests(unittest.TestCase):
         """
         Delete demo from demoinfo
         """
-        params = {"demo_id": demo_id}
-        response = self.post("core", "post", "delete_demo", params=params)
-        return response.json(), response.status_code
+        response = self.post("core", "delete", f"demo/{demo_id}")
+        return response, response.status_code
 
     def get_archive_experiments_by_page(self, url, demo_id, page=None):
         if page is None:
