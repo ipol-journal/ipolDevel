@@ -324,7 +324,7 @@ def reset_ssh_keys(demo_id: int):
     return data
 
 
-@demoinfoRouter.get("/stats", dependencies=[Depends(validate_ip)], status_code=200)
+@demoinfoRouter.get("/stats", status_code=200)
 def stats():
     result = demoinfo.stats()
     if isinstance(result, Ok):

@@ -9,8 +9,8 @@
     }
     //-----------------------------------------Request AJAX---------------------------------//   
     //-----------------------------------------DR-----------------------------------------//
-    function chargeDR(data) {
-        for (const dr of data.demorunners) {
+    function chargeDR(demorunners) {
+        for (const dr of demorunners) {
             let DRStatus = '<i class="fa-solid fa-triangle-exclamation">';
             let workload = dr.workload
             if (dr.status == 'OK') {
@@ -32,7 +32,7 @@
         $.ajax({
             type: 'GET',
             dataType: 'json',
-            url: '/api/dispatcher/get_demorunners_stats',
+            url: '/api/dispatcher/stats',
             success: function(data) {
                 $('#DR').prepend(`<h2>Demorunner module:</i></h2>`);
                 chargeDR(data);
