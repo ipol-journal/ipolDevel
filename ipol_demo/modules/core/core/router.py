@@ -48,7 +48,7 @@ def demo(code_starts=None) -> HTMLResponse:
 
 
 @staticmethod
-@coreRouter.get("/ping", status_code=201)
+@coreRouter.get("/ping", status_code=200)
 def ping():
     """
     Ping: answer with a PONG.
