@@ -261,22 +261,18 @@ class DemorunnerTests(unittest.TestCase):
         """
         get workload
         """
-        response, response_code = self.post_to_dr(dr, "workloads", "get")
+        response, response_code = self.post_to_dr(dr, "workload", "get")
         return response.json(), response_code
 
     def exec_and_wait(self, dr, demo_id, key, params, ddl_run, files):
         """
         exec and wait
         """
-        data = {
-            "key": key,
-            "ddl_run": ddl_run,
-        }
+        data = {"key": key, "ddl_run": ddl_run, "parameters": params}
         dr_response, status_code = self.post_to_dr(
             dr,
             f"exec_and_wait/{demo_id}",
             params=data,
-            data={"parameters": params},
             files=files,
         )
         if status_code == 200:
