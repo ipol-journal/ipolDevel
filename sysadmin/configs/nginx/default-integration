@@ -136,6 +136,14 @@ server {
             proxy_pass http://smartalgo.cmla.fr:7777;
 	}
 
+	# DEMOINFO static data
+	location /api/demoinfo/staticData/ {
+			expires 24h;
+			add_header 'Access-Control-Allow-Origin' '*';
+			add_header 'Access-Control-Allow-Methods' 'GET';
+			alias  /home/ipol/ipolDevel/ipol_demo/modules/core/staticData/;
+	}
+
 	# CORE
 	location /api/core/{
         rewrite ^/api/(.*) /$1 break;
