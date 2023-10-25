@@ -1,0 +1,14 @@
+services:
+  demorunner:
+    build: .
+    ports:
+      - 127.0.0.1:$PORT:8000
+    volumes:
+      # relative to ipol_demo/modules/demorunner/
+      - ../../../.:/home/ipol/ipolDevel
+    user: $UID:$GID
+    working_dir: /home/ipol/ipolDevel/ipol_demo/modules/demorunner/
+    environment:
+      HOME: /home/ipol
+      IPOL_HOST: $IPOL_HOST
+      IPOL_URL: $IPOL_URL
