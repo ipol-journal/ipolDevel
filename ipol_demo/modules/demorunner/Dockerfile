@@ -13,3 +13,4 @@ RUN mkdir -p /home/ipol && chmod -R 777 /home/ipol
 # to build:
 # DOCKER_BUILDKIT=1 docker build ipol_demo/modules/demorunner -t registry.ipol.im/ipol-debian-demorunner
 # docker push
+CMD ["/bin/bash", "-c", "uvicorn demorunner:app --host 0.0.0.0 --port 8000"]

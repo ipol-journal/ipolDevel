@@ -3,9 +3,16 @@ Description=Run demorunner (for limule)
 After=docker.service
 
 [Service]
-ExecStart=/usr/bin/docker run --rm --name ipol-demorunner -p 0.0.0.0:3002:9004 --env HOME=/home/ipol --user 1005:1005 -v /home/ipol/ipolDevel:/home/ipol/ipolDevel --workdir /home/ipol/ipolDevel/ipol_demo/modules/demorunner/ registry.ipol.im/ipol-debian-demorunner python3 main.py demorunner.conf
+ExecStart=/usr/bin/docker compose up --build
+WorkingDirectory=/home/ipol/ipolDevel/ipol_demo/modules/demorunner/
+Environment=UID=1005
+Environment=GID=1005
+Environment=PORT=3002
+Environment=IPOL_HOST=ipolcore.ipol.im
+Environment=IPOL_URL=https://ipolcore.ipol.im
 TimeoutStartSec=300
-ExecStop=/usr/bin/docker stop ipol-demorunner
+RestartSec=10
+Restart=always
 SyslogIdentifier=demorunner
 
 [Install]
