@@ -11,7 +11,7 @@ import os
 from collections import OrderedDict
 
 import requests
-from ipolutils.utils import thumbnail
+from ..ipolutils.utils import thumbnail
 
 
 def create_thumbnail(src_file):

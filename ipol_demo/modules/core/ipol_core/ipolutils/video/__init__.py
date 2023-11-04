@@ -1,0 +1,3 @@
+"""
+An IPOL video package
+"""

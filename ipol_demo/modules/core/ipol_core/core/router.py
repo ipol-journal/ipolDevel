@@ -4,10 +4,10 @@ import socket
 import traceback
 
 import requests
-from config import settings
-from core import core
-from core.archive import send_to_archive
-from core.errors import (
+from ..config import settings
+from . import core
+from .archive import send_to_archive
+from .errors import (
     IPOLCheckDDLError,
     IPOLDecodeInterfaceRequestError,
     IPOLDemoExtrasError,
@@ -21,12 +21,12 @@ from core.errors import (
     IPOLUploadedInputRejectedError,
     IPOLWorkDirError,
 )
-from demoinfo import demoinfo
+from ..demoinfo import demoinfo
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse
-from guards import validate_ip
-from ipolutils.evaluator.evaluator import IPOLEvaluateError
-from logger import logger
+from ..guards import validate_ip
+from ..ipolutils.evaluator.evaluator import IPOLEvaluateError
+from ..logger import logger
 from result import Ok
 
 coreRouter = APIRouter(prefix="/core")

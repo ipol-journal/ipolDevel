@@ -15,11 +15,11 @@ from enum import Enum
 from typing import Optional
 
 import numpy as np
-from conversion.errors import IPOLConvertInputError, IPOLCropInputError
-from ipolutils.errors import IPOLImageReadError
-from ipolutils.evaluator.evaluator import evaluate
-from ipolutils.image.Image import Image
-from ipolutils.video.Video import Video
+from .errors import IPOLConvertInputError, IPOLCropInputError
+from ..ipolutils.errors import IPOLImageReadError
+from ..ipolutils.evaluator.evaluator import evaluate
+from ..ipolutils.image.Image import Image
+from ..ipolutils.video.Video import Video
 from result import Err, Ok, Result
 
 

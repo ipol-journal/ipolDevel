@@ -7,8 +7,8 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 
 import requests
-from dispatcher.demorunnerinfo import DemoRunnerInfo
-from dispatcher.policy import (
+from .demorunnerinfo import DemoRunnerInfo
+from .policy import (
     LowestWorkloadPolicy,
     Policy,
     RandomPolicy,

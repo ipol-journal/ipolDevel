@@ -27,9 +27,9 @@ from random import random
 
 import magic
 import requests
-from config import settings
-from conversion import conversion
-from core.errors import (
+from ..config import settings
+from ..conversion import conversion
+from .errors import (
     IPOLCheckDDLError,
     IPOLConversionError,
     IPOLCopyBlobsError,
@@ -50,10 +50,10 @@ from core.errors import (
     IPOLUploadedInputRejectedError,
     IPOLWorkDirError,
 )
-from demoinfo import demoinfo
-from dispatcher import dispatcher
-from ipolutils.evaluator.evaluator import IPOLEvaluateError, evaluate
-from ipolutils.read_text_file import read_commented_text_file
+from ..demoinfo import demoinfo
+from ..dispatcher import dispatcher
+from ..ipolutils.evaluator.evaluator import IPOLEvaluateError, evaluate
+from ..ipolutils.read_text_file import read_commented_text_file
 from result import Err
 
 

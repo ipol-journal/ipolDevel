@@ -1,0 +1,53 @@
+[project]
+name = "ipol_core"
+version = "1.0.0"
+description = "IPOL core backend service"
+requires-python = ">=3.9"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pydantic",
+    "imageio",
+    "ipython",
+    "numpy",
+    "opencv-python-headless",
+    "Pillow",
+    "python-magic",
+    "requests",
+    "tifffile",
+    "result",
+    "imagecodecs",
+    "cryptography",
+    "python-multipart",
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = [
+    "ipol_core",
+    "ipol_core.core",
+    "ipol_core.demoinfo",
+    "ipol_core.dispatcher",
+    "ipol_core.conversion",
+    "ipol_core.ipolutils",
+    "ipol_core.ipolutils.evaluator",
+    "ipol_core.ipolutils.image",
+    "ipol_core.ipolutils.video",
+]
+
+[tool.black]
+target_version = ['py39']
+
+[tool.isort]
+profile = "black"
+py_version = 39
+
+[tool.ruff]
+ignore = []
+
+# for now we don't force black formatting
+# once we do, we can remove this line
+line-length = 200

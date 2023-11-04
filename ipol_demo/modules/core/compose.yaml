@@ -1,0 +1,14 @@
+services:
+  demorunner:
+    build: .
+    ports:
+      - 127.0.0.1:$PORT:8000
+    volumes:
+      # relative to ipol_demo/modules/core/
+      - ../../../.:/home/ipol/ipolDevel
+    user: $UID:$GID
+    working_dir: /
+    environment:
+      IPOL_HOST: $IPOL_HOST
+      IPOL_URL: $IPOL_URL
+    command: uvicorn ipol_core.app:app

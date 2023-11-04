@@ -2,9 +2,9 @@ import configparser
 import os
 import re
 
-from config import settings
+from .config import settings
 from fastapi import HTTPException, Request
-from logger import logger
+from .logger import logger
 
 
 def validate_ip(request: Request) -> bool:

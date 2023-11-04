@@ -1,4 +1,4 @@
-from config import settings
+from ..config import settings
 from fastapi import APIRouter
 
 conversionRouter = APIRouter(prefix="/conversion")
