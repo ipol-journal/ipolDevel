@@ -128,7 +128,7 @@ server {
 
     # DEMO INDEX FROM CORE
     location /demo/  {
-        resolver 127.0.0.1;
+        rewrite ^/(.*) /core/$1 break;
         proxy_pass   http://$host:8080;
     }
 

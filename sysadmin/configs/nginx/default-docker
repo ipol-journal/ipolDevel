@@ -62,6 +62,7 @@ server {
 		# If you want to see the value of a variable, the easiest way is 
 		# adding a header like the example below
 		# add_header X-debug-message "$host" always;
+		rewrite ^/(.*) /core/$1 break;
 		proxy_pass  http://$host:8080;
 	}
 
