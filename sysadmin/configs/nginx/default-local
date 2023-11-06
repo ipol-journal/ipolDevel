@@ -51,6 +51,7 @@ server {
 		# adding a header like the example below
 		# add_header X-debug-message "$host" always;
 		add_header X-Frame-Options SAMEORIGIN always;
+		rewrite ^/(.*) /core/$1 break;
 		proxy_pass  http://$host:8080;
 	}
 

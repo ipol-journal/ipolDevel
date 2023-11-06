@@ -106,7 +106,7 @@ server {
 	location /demo/  {
 		auth_basic "Restricted";
 		auth_basic_user_file /etc/nginx/.passwd/integration;
-		resolver 127.0.0.1;
+		rewrite ^/(.*) /core/$1 break;
 		proxy_pass   http://$host:8080;
 	}
 
