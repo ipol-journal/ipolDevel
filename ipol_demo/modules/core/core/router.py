@@ -241,7 +241,7 @@ async def run(
         return {"error": str(ex), "status": "KO"}
     except IPOLFindSuitableDR as ex:
         try:
-            if core.get_demo_metadata(demo_id).json()["state"].lower() == "published":
+            if core.get_demo_metadata(demo_id)["state"].lower() == "published":
                 core.send_email_no_demorunner(demo_id)
         except BrokenPipeError:
             pass
