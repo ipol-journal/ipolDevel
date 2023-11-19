@@ -7,7 +7,6 @@ import io
 import json
 import os
 import shutil
-import socket
 import sys
 import tarfile
 
