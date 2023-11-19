@@ -1,5 +1,4 @@
 import os
-import socket
 
 from pydantic import BaseSettings
 
