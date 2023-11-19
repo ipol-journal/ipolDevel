@@ -4,9 +4,10 @@ After=network.target
 
 [Service]
 ExecStart=/bin/bash -c "source venv/bin/activate && ./gunicorn_start_cp2"
-WorkingDirectory=/home/ipol/ipolDevel/cp2/
+WorkingDirectory=/home/integration/ipolDevel/cp2/
 Environment=IPOL_HOST=integration.ipol.im
-Environment=IPOL_URL=http://integration.ipol.im
+Environment=IPOL_URL=https://integration.ipol.im
+Environment=CP2_PORT=10002
 RestartSec=10
 Restart=always
 SyslogIdentifier=ipol-cp2

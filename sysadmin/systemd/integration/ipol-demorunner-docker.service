@@ -3,13 +3,14 @@ Description=Run demorunner-docker (for integration)
 After=network.target
 
 [Service]
-ExecStart=/home/ipol/ipolDevel/ipol_demo/modules/demorunner-docker/bin/ipol-demorunner
-ExecStartPre=-/home/ipol/.cargo/bin/cargo install --git https://github.com/ipol-journal/ipol-demorunner.git --rev 6fa8ce059c30a4c2eef485050f1c4394ab1cef1d --root . --target-dir target --debug --force --locked
+ExecStart=/home/integration/ipolDevel/ipol_demo/modules/demorunner-docker/bin/ipol-demorunner
+ExecStartPre=-/home/integration/.cargo/bin/cargo install --git https://github.com/ipol-journal/ipol-demorunner.git --rev e920d05b63ba5dc7da9700f05e6b89e6a993738c --root . --target-dir target --debug --force --locked
 TimeoutStartSec=300
-WorkingDirectory=/home/ipol/ipolDevel/ipol_demo/modules/demorunner-docker/
+WorkingDirectory=/home/integration/ipolDevel/ipol_demo/modules/demorunner-docker/
 Environment=ROCKET_PROFILE=ipol-integration
 Environment=ROCKET_ADDRESS=0.0.0.0
 Environment=RUST_LOG=info,ipol_demorunner=debug
+Environment=DOCKER_HOST=unix:///var/run/docker-integration.sock
 RestartSec=10
 Restart=always
 SyslogIdentifier=demorunner-docker

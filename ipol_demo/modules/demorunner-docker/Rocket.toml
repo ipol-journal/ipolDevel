@@ -14,8 +14,8 @@ port = 3000
 user_uid_gid = "1001:1001"
 
 [ipol-integration]
-port = 3000
-user_uid_gid = "1002:1002"
+port = 10010
+user_uid_gid = "1005:1005"
 env_vars = {"IPOL_URL"="https://integration.ipol.im"}
 
 [ipol-limule]
