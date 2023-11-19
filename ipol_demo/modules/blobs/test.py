@@ -18,7 +18,7 @@ class BlobsTests(unittest.TestCase):
     BlobsTests
     """
 
-    BASE_URL = os.environ.get("IPOL_URL", "http://" + socket.getfqdn())
+    BASE_URL = os.environ.get("IPOL_URL")
     module = "blobs"
 
     # Blob info

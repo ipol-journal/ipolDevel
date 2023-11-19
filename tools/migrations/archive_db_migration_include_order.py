@@ -277,6 +277,7 @@ def insert_experiments_ordered_in_database(database_file, exp):
 #-----------------------------------------------------------------------
 if __name__ == '__main__':
 
+    assert False, "this requires to be updated with correct urls"
     server = socket.getfqdn()
     os.system("clear")
     try:

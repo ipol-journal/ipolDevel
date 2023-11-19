@@ -28,8 +28,8 @@ SECRET_KEY = "ng&u0bv6bm6cs+w+c#=*b0-#g-e_*t(my7(q@&1@^b5m@-)&^!"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-HOST_NAME = os.environ.get("IPOL_HOST", socket.getfqdn())
-IPOL_URL = os.environ.get("IPOL_URL", "http://" + socket.getfqdn())
+HOST_NAME = os.environ["IPOL_HOST"]
+IPOL_URL = os.environ["IPOL_URL"]
 ALLOWED_HOSTS = []
 
 ACCOUNT_EMAIL_VERIFICATION = "none"

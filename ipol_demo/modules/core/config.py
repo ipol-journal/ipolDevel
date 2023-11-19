@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     )
     authorized_patterns: str = f"{config_common_dir}/authorized_patterns.conf"
 
-    base_url: str = os.environ.get("IPOL_URL", "http://" + socket.getfqdn())
+    base_url: str = os.environ["IPOL_URL"]
 
     project_folder = os.path.expanduser("~") + "/ipolDevel"
     blobs_folder = os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/blobs"
