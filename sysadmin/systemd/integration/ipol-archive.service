@@ -3,8 +3,8 @@ Description=Run archive
 After=network.target
 
 [Service]
-ExecStart=/bin/bash -c "source ./venv/bin/activate && uvicorn archive:app --host 0.0.0.0 --port 9000"
-WorkingDirectory=/home/ipol/ipolDevel/ipol_demo/modules/archive/
+ExecStart=/bin/bash -c "source ./venv/bin/activate && uvicorn archive:app --host 127.0.0.1 --port 10000"
+WorkingDirectory=/home/integration/ipolDevel/ipol_demo/modules/archive/
 Environment=IPOL_HOST=integration.ipol.im
 Environment=IPOL_URL=https://integration.ipol.im
 RestartSec=10
