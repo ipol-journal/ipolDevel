@@ -16,7 +16,7 @@ class IntegrationTests(unittest.TestCase):
     """
 
     # General
-    BASE_URL = os.environ.get("IPOL_URL", "http://" + socket.getfqdn())
+    BASE_URL = os.environ["IPOL_URL"]
 
     # These variables are initialized in the __main__
     test_ddl_file = None

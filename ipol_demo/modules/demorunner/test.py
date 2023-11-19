@@ -69,7 +69,7 @@ class DemorunnerTests(unittest.TestCase):
 
     # Demo Runners
     demorunners = {}
-    base_url = os.environ.get("IPOL_URL", "http://" + socket.getfqdn())
+    base_url = os.environ["IPOL_URL"]
 
     #####################
     #       Tests       #

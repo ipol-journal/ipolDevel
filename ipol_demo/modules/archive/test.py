@@ -19,7 +19,7 @@ class ArchiveTests(unittest.TestCase):
     ArchiveTests
     """
 
-    BASE_URL = os.environ.get("IPOL_URL", "http://" + socket.getfqdn())
+    BASE_URL = os.environ["IPOL_URL"]
     module = "archive"
 
     # Blob info

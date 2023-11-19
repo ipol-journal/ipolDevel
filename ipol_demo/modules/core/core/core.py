@@ -82,7 +82,7 @@ class Core:
             os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/config_common"
         )
 
-        self.base_url: str = os.environ.get("IPOL_URL", "http://" + socket.getfqdn())
+        self.base_url: str = os.environ["IPOL_URL"]
 
         self.project_folder = os.path.expanduser("~") + "/ipolDevel"
         self.blobs_folder = (
@@ -106,7 +106,7 @@ class Core:
         os.makedirs(self.dl_extras_dir, exist_ok=True)
         os.makedirs(self.demo_extras_main_dir, exist_ok=True)
 
-        base_url = os.environ.get("IPOL_URL", "http://" + socket.getfqdn())
+        base_url = os.environ["IPOL_URL"]
         demorunners_path = (
             os.path.expanduser("~")
             + "/ipolDevel/ipol_demo/modules/config_common/demorunners.xml"
@@ -1377,7 +1377,7 @@ class Core:
         """
         General purpose function to make http requests.
         """
-        base_url = os.environ.get("IPOL_URL", "http://" + socket.getfqdn())
+        base_url = os.environ["IPOL_URL"]
         if method == "get":
             response = requests.get(f"{base_url}/{api_url}")
             return response.json(), response.status_code

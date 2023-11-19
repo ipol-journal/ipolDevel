@@ -200,7 +200,7 @@ async def run(
             and "archive" in ddl
             and (origin != "blobset" or ddl["archive"].get("archive_always"))
         ):
-            base_url = os.environ.get("IPOL_URL", "http://" + socket.getfqdn())
+            base_url = os.environ["IPOL_URL"]
             try:
                 response, status_code = send_to_archive(
                     demo_id,

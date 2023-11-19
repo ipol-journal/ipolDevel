@@ -132,6 +132,7 @@ else:
     origin_host = "ipolcore.ipol.im"
 
 # Host destination of the demo
+assert False, "this requires to be updated with correct urls"
 destination_host = socket.getfqdn()
 if (destination_host != "integration.ipol.im" and destination_host != "ipolcore.ipol.im"):
     destination_host = "127.0.0.1"

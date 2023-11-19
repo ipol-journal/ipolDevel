@@ -12,9 +12,7 @@ logger = logging.getLogger(__name__)
 
 def api_post(resource, method, **kwargs):
     try:
-        host = os.environ.get(
-            "IPOL_URL", f"http://{socket.gethostbyname(socket.getfqdn())}"
-        )
+        host = os.environ["IPOL_URL"]
         if method == "get":
             response = requests.get(f"{host}{resource}", **kwargs)
             return response.json(), response.status_code
