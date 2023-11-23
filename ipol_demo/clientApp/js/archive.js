@@ -21,7 +21,7 @@ async function fetchDDLInfo() {
   try {
     const demoinfoResponse = await fetch("/api/demoinfo/get_interface_ddl?demo_id=" + demo_id + "&sections=archive,general");
     const data = await demoinfoResponse.json();
-    if (data.status != "OK") returnToDemoList("Wrong demo id: " + demo_id);
+    if (demoinfoResponse.status != 200) returnToDemoList("Wrong demo id: " + demo_id);
 
     ddl = data.last_demodescription.ddl;
     $("#pageTitle").html(ddl.general.demo_title);
