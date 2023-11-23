@@ -10,7 +10,9 @@ from subprocess import PIPE, Popen
 user = getpass.getuser()
 
 system_test = "/home/{}/ipolDevel/ci_tests/system.py".format(user)
-archive_test = "/home/{}/ipolDevel/ipol_demo/modules/core/archive/test.py".format(user)
+archive_test = "/home/{}/ipolDevel/ipol_demo/modules/core/tests/test_archive.py".format(
+    user
+)
 blobs_test = "/home/{}/ipolDevel/ipol_demo/modules/blobs/test.py".format(user)
 demorunner_test = "/home/{}/ipolDevel/ipol_demo/modules/demorunner/test.py".format(user)
 
