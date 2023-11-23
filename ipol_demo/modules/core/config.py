@@ -24,11 +24,7 @@ class Settings(BaseSettings):
     # dl_extras_dir = os.path.join(shared_folder_abs, "dl_extras/")
     share_run_dir_rel: str = "run/"
     share_run_dir_abs = os.path.join(shared_folder_abs, share_run_dir_rel)
-    demoinfo_db = "db/demoinfo.db"
-    demoinfo_dl_extras_dir = "staticData/demoExtras"
     # demoinfo
-    demoinfo_db: str = "db/demoinfo.db"
-    demoinfo_dl_extras_dir: str = "staticData/demoExtras"
     demoinfo_db: str = "db/demoinfo.db"
     demoinfo_dl_extras_dir: str = "staticData/demoExtras"
 
@@ -38,6 +34,12 @@ class Settings(BaseSettings):
         + "/ipolDevel/ipol_demo/modules/config_common/demorunners.xml"
     )
     policy: str = "lowest_workload"
+    # archive
+    blobs_dir: str = "staticData/archive_blobs/"
+    blobs_thumbs_dir: str = "staticData/archive_thumbs/"
+    database_dir: str = "db"
+    database_file: str = "db/archive.db"
+    number_of_experiments_by_pages: int = 5
 
 
 settings = Settings()
