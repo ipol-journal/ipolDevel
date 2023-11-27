@@ -163,7 +163,7 @@ class Archive:
                 # Execute deletion of copied files
                 for copied_file in copied_files_list:
                     os.remove(copied_file)
-
+                return Err({"experiment_id": id_experiment})
             except Exception:
                 return Err({"experiment_id": id_experiment})
 
