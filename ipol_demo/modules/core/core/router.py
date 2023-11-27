@@ -221,8 +221,8 @@ async def run(
                     execution=execution,
                 )
                 if isinstance(result, Err):
-                    id_experiment = result.value
-                    message = f"Error from archive module when archiving an experiment: demo={demo_id}, key={key}, id={id_experiment}."
+                    experiment_id = result.value["experiment_id"]
+                    message = f"Error from archive module when archiving an experiment: demo={demo_id}, key={key}, id={experiment_id}."
                     logger.exception(message)
             except Exception as ex:
                 message = "Error archiving an experiment: demo={}, key={}. Error: {}."

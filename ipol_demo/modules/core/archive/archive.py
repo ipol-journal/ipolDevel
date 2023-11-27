@@ -12,7 +12,7 @@ from datetime import datetime
 
 import magic
 from config import settings
-from result import Ok, Result
+from result import Err, Ok, Result
 
 
 class Archive:
@@ -84,8 +84,10 @@ class Archive:
         path_blob = None
         path_thumb = None
         if tmp is not None:
-            path_blob, _ = self.get_new_path(settings.blobs_dir, tmp[1], tmp[2])
-            path_thumb, _ = self.get_new_path(settings.blobs_thumbs_dir, tmp[1], "jpeg")
+            path_blob, _ = self.get_new_path(settings.archive_blobs_dir, tmp[1], tmp[2])
+            path_thumb, _ = self.get_new_path(
+                settings.archive_thumbs_dir, tmp[1], "jpeg"
+            )
 
         cursor_db.execute("DELETE FROM blobs WHERE id = ?", (id_blob,))
 
@@ -163,7 +165,7 @@ class Archive:
                     os.remove(copied_file)
 
             except Exception:
-                pass
+                return Err({"experiment_id": id_experiment})
 
     def get_new_path(
         self, main_directory: str, hash_name: str, file_extension: str, depth: int = 2
@@ -276,12 +278,12 @@ class Archive:
             )
             # copy the files in their respective folders
             path_new_blob = self.copy_file_in_folder(
-                blob_path, settings.blobs_dir, hash_file, type_file
+                blob_path, settings.archive_blobs_dir, hash_file, type_file
             )
             copied_files_list.append(path_new_blob)
             if thumb_key:
                 path_new_thumbnail = self.copy_file_in_folder(
-                    blob_thumbnail_path, settings.blobs_thumbs_dir, hash_file, "jpeg"
+                    blob_thumbnail_path, settings.archive_thumbs_dir, hash_file, "jpeg"
                 )
                 copied_files_list.append(path_new_thumbnail)
             return id_blob, blob_name
@@ -421,11 +423,11 @@ class Archive:
 
             for row in all_rows:
                 path_file, subdirs = self.get_new_path(
-                    main_directory=settings.blobs_dir,
+                    main_directory=settings.archive_blobs_dir,
                     hash_name=row[0],
                     file_extension=row[1],
                 )
-                thumb_dir = "{}{}".format(settings.blobs_thumbs_dir, subdirs)
+                thumb_dir = "{}{}".format(settings.archive_thumbs_dir, subdirs)
                 thumb_name = "{}.jpeg".format(row[0])
                 path_thumb = os.path.join(thumb_dir, thumb_name)
                 list_files.append(
@@ -525,8 +527,9 @@ class Archive:
 
                 sql_buffer = ""
 
+                curdir = os.path.dirname(__file__)
                 with open(
-                    settings.database_dir + "/drop_create_db_schema.sql", "r"
+                    os.path.join(curdir, "drop_create_db_schema.sql"), "r"
                 ) as sql_file:
                     for line in sql_file:
                         sql_buffer += line

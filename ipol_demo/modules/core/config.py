@@ -35,8 +35,8 @@ class Settings(BaseSettings):
     )
     policy: str = "lowest_workload"
     # archive
-    blobs_dir: str = "staticData/archive_blobs/"
-    blobs_thumbs_dir: str = "staticData/archive_thumbs/"
+    archive_blobs_dir: str = "staticData/archive_blobs/"
+    archive_thumbs_dir: str = "staticData/archive_thumbs/"
     database_dir: str = "db"
     database_file: str = "db/archive.db"
     number_of_experiments_by_pages: int = 5
