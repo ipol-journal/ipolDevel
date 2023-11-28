@@ -140,8 +140,7 @@ async function loadExecution(url){
       experiment = data;
       var execution = JSON.parse(experiment.execution);
     }else{ //KEY reconstruction
-      experiment = JSON.parse(data.experiment);
-      var execution = experiment;
+      var execution = data.experiment;
     }
 
     renderExperiment(execution.request, execution.response);

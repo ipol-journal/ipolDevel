@@ -3,9 +3,10 @@ import os
 import traceback
 
 import requests
+from archive import archive
 from config import settings
 from core import core
-from core.archive import send_to_archive
+from core.archive_utils import send_to_archive
 from core.errors import (
     IPOLCheckDDLError,
     IPOLDecodeInterfaceRequestError,
@@ -26,7 +27,7 @@ from fastapi.responses import HTMLResponse
 from guards import validate_ip
 from ipolutils.evaluator.evaluator import IPOLEvaluateError
 from logger import logger
-from result import Ok
+from result import Err, Ok
 
 coreRouter = APIRouter(prefix="/core")
 core = core.Core()
@@ -35,6 +36,8 @@ demoinfo = demoinfo.DemoInfo(
     database_path=settings.demoinfo_db,
     base_url=settings.base_url,
 )
+
+archive = archive.Archive()
 
 
 @coreRouter.get("/demo", status_code=201)
@@ -201,7 +204,7 @@ async def run(
         ):
             base_url = os.environ["IPOL_URL"]
             try:
-                response, status_code = send_to_archive(
+                blobs, parameters, execution = send_to_archive(
                     demo_id,
                     work_dir,
                     clientData,
@@ -211,10 +214,15 @@ async def run(
                     input_names,
                     form,
                 )
-                if status_code != 201:
-                    response = response.json()
-                    id_experiment = response.get("experiment_id", None)
-                    message = f"Error {status_code} from archive module when archiving an experiment: demo={demo_id}, key={key}, id={id_experiment}."
+                result = archive.create_experiment(
+                    demo_id=demo_id,
+                    blobs=blobs,
+                    parameters=parameters,
+                    execution=execution,
+                )
+                if isinstance(result, Err):
+                    experiment_id = result.value["experiment_id"]
+                    message = f"Error from archive module when archiving an experiment: demo={demo_id}, key={key}, id={experiment_id}."
                     logger.exception(message)
             except Exception as ex:
                 message = "Error archiving an experiment: demo={}, key={}. Error: {}."

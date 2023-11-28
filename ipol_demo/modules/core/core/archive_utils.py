@@ -10,7 +10,6 @@ import json
 import os
 from collections import OrderedDict
 
-import requests
 from ipolutils.utils import thumbnail
 
 
@@ -111,15 +110,7 @@ def send_to_archive(
     else:
         execution_json = None
 
-    url = "{}/api/archive/experiment".format(base_url)
-    data = {
-        "demo_id": demo_id,
-        "blobs": json.dumps(blobs),
-        "parameters": json.dumps(parameters),
-        "execution": execution_json,
-    }
-    resp = requests.post(url, json=data)
-    return resp, resp.status_code
+    return json.dumps(blobs), json.dumps(parameters), execution_json
 
 
 def non_viewable_blob(file_name):

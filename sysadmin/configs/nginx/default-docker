@@ -108,6 +108,10 @@ server {
 		rewrite ^/api/(.*) /$1 break;
 		proxy_pass  http://$host:8080;
 	}
+	location /api/archive/ {
+		rewrite ^/api/(.*) /$1 break;
+		proxy_pass  http://$host:8080;
+	}
 
 	# shared_folder, run static data
 	location /api/core/shared_folder/run/ {
@@ -132,22 +136,14 @@ server {
 		add_header 'Access-Control-Allow-Methods' 'GET';
 		alias  /home/ipol/ipolDevel/ipol_demo/modules/blobs/staticData/;
 	}
-
-	# ARCHIVE
-	location /api/archive/ {
-		rewrite ^/api/archive/(.*) /$1 break;
-		# If the distribution is Debian you need the resolver		
-		# resolver 127.0.0.1;
-		proxy_pass  http://$host:9000;
-	}
 	#
 	# ARCHIVE static data
-	location /api/archive/staticData/ {
-		expires 1y;
-		add_header 'Access-Control-Allow-Origin' '*';
-		add_header 'Access-Control-Allow-Methods' 'GET';
-		alias  /home/ipol/ipolDevel/ipol_demo/modules/archive/staticData/;
-	}
+    location /api/archive/staticData/ {
+        expires 1y;
+        add_header 'Access-Control-Allow-Origin' '*';
+        add_header 'Access-Control-Allow-Methods' 'GET';
+        alias  /home/ipol/ipolDevel/ipol_demo/modules/core/staticData/;
+    }
 
 	# DEMORUNNER
 	location /api/demorunner/dr/ {
