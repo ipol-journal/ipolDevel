@@ -11,7 +11,7 @@ user = getpass.getuser()
 
 system_test = "/home/{}/ipolDevel/ci_tests/system.py".format(user)
 archive_test = "/home/{}/ipolDevel/ipol_demo/modules/core/archive/test.py".format(user)
-blobs_test = "/home/{}/ipolDevel/ipol_demo/modules/blobs/test.py".format(user)
+blobs_test = "/home/{}/ipolDevel/ipol_demo/modules/core/blobs/test.py".format(user)
 demorunner_test = "/home/{}/ipolDevel/ipol_demo/modules/demorunner/test.py".format(user)
 
 resources = "/home/{}/ipolDevel/ci_tests/resources".format(user)
@@ -52,9 +52,9 @@ def run_tests():
     """
     Execute all the tests
     """
+    core_dir = os.path.dirname("core")
     for test in tests:
-        module_dir = os.path.dirname(test)
-        python_dir = os.path.join(module_dir, "venv/bin/python")
+        python_dir = os.path.join(core_dir, "venv/bin/python")
 
         # Execute test
         cmd = shlex.split(

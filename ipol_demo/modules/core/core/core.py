@@ -27,6 +27,7 @@ from random import random
 
 import magic
 import requests
+from blobs import blobs
 from config import settings
 from conversion import conversion
 from core.errors import (
@@ -86,7 +87,7 @@ class Core:
 
         self.project_folder = os.path.expanduser("~") + "/ipolDevel"
         self.blobs_folder = (
-            os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/blobs"
+            os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/core"
         )
 
         self.shared_folder_rel: str = "shared_folder/"
@@ -124,6 +125,8 @@ class Core:
             database_path=settings.demoinfo_db,
             base_url=settings.base_url,
         )
+
+        self.blobs = blobs.Blobs()
 
         self.converter = conversion.Converter()
 
@@ -291,13 +294,9 @@ class Core:
         input parameters:
         returns:
         """
-        try:
-            demo_blobs, status = self.post(f"api/blobs/demo_blobs/{demo_id}", "get")
-        except json.JSONDecodeError as ex:
-            logger.exception(f"{ex}")
-            raise IPOLCopyBlobsError(f"{ex}")
+        result = self.blobs.get_blobs(demo_id)
 
-        if not demo_blobs or status != 200:
+        if isinstance(result, Err):
             error_msg = (
                 "Failed to get blobs at Core's copy_blobset_from_physical_location"
             )
@@ -305,7 +304,7 @@ class Core:
             raise IPOLCopyBlobsError(error_msg)
 
         try:
-            blobset = demo_blobs[blobset_id]
+            blobset = result.value[blobset_id]
         except IndexError:
             raise IPOLCopyBlobsError("Blobset {} doesn't exist".format(blobset_id))
 
