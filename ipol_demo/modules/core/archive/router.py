@@ -312,32 +312,9 @@ def delete_blob_w_deps(blob_id: int) -> None:
     "/demo/{demo_id}", dependencies=[Depends(validate_ip)], status_code=204
 )
 def delete_demo(demo_id: int) -> None:
-    """
-    Delete the demo from the archive.
-    """
-    try:
-        # Get all experiments for this demo
-        conn = lite.connect(settings.database_file)
-        cursor_db = conn.cursor()
-        cursor_db.execute(
-            "SELECT DISTINCT id FROM experiments WHERE id_demo = ?", (demo_id,)
-        )
-
-        experiment_id_list = cursor_db.fetchall()
-
-        if not experiment_id_list:
-            return None
-
-        # Delete experiments and files
-        for experiment_id in experiment_id_list:
-            archive.delete_exp_w_deps(conn, experiment_id[0])
-        conn.commit()
-        conn.close()
-
-    except Exception:
-        logging.exception(f"Error deleting demo #{demo_id}")
+    result = archive.delete_demo(demo_id)
+    if isinstance(result, Err):
         raise HTTPException(status_code=404, detail=f"Error deleting demo {demo_id}")
-
     return None
 
 

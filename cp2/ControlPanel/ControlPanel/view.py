@@ -175,8 +175,9 @@ def ajax_delete_demo(request):
 
     response = {}
     if status != 204:
+        result = result.json()
         response["status"] = "KO"
-        response["message"] = result.get("error")
+        response["message"] = result.get("detail").get("error")
     else:
         response["status"] = "OK"
     return HttpResponse(json.dumps(response), "application/json")
