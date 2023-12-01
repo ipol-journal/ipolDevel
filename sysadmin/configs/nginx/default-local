@@ -110,6 +110,10 @@ server {
         rewrite ^/api/(.*) /$1 break;
 		proxy_pass  http://$host:8080;
 	}
+	location /api/blobs/ {
+        rewrite ^/api/(.*) /$1 break;
+		proxy_pass  http://$host:8080;
+	}
 
 	# shared_folder, serve static data
 	location /api/core/shared_folder/run/ {
@@ -119,20 +123,13 @@ server {
 		alias  /home/ipol/ipolDevel/shared_folder/run/;
 	}
 
-	# BLOBS
-	location /api/blobs/ {
-		rewrite ^/api/blobs/(.*) /$1 break;
-		# If the distribution is Debian you need the resolver		
-		# resolver 127.0.0.1;
-		proxy_pass  http://$host:9001;
-	}
 	#
 	# BLOBS static data
 	location /api/blobs/staticData/ {
 		add_header Cache-Control "public";    
 		add_header 'Access-Control-Allow-Origin' '*';
 		add_header 'Access-Control-Allow-Methods' 'GET';
-		alias  /home/ipol/ipolDevel/ipol_demo/modules/blobs/staticData/;
+		alias  /home/ipol/ipolDevel/ipol_demo/modules/core/staticData/;
 	}
 
 	#
