@@ -6,7 +6,6 @@ from pydantic import BaseSettings
 class Settings(BaseSettings):
     # core
     server_environment: str = os.environ.get("env", "local")
-    module_dir: str = os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/core"
     logs_dir: str = "logs/"
     config_common_dir: str = (
         os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/config_common"
@@ -16,7 +15,6 @@ class Settings(BaseSettings):
     base_url: str = os.environ["IPOL_URL"]
 
     project_folder = os.path.expanduser("~") + "/ipolDevel"
-    blobs_folder = os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/core"
 
     shared_folder_rel: str = "shared_folder/"
     shared_folder_abs = os.path.join(project_folder, shared_folder_rel)
@@ -45,6 +43,7 @@ class Settings(BaseSettings):
 
     # Blobs
     blobs_database_file: str = "db/blobs.db"
+    blobs_data_root: str = os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/core"
 
     blob_dir: str = "staticData/blobs/blob_directory"
     thumb_dir: str = "staticData/blobs/thumbnail"

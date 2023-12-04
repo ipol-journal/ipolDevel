@@ -392,7 +392,9 @@ class Blobs:
         subdir = self.get_subdir(blob_hash)
         thumb_physical_dir = os.path.join(settings.thumb_dir, subdir)
         return os.path.isfile(
-            os.path.join(settings.module_dir, thumb_physical_dir, blob_hash + ".jpg")
+            os.path.join(
+                settings.blobs_data_root, thumb_physical_dir, blob_hash + ".jpg"
+            )
         )
 
     def blob_has_VR(self, blob_hash: str) -> str:
@@ -402,7 +404,7 @@ class Blobs:
         subdir = self.get_subdir(blob_hash)
         vr_physical_dir = os.path.join(settings.vr_dir, subdir)
         vr_extension = self.get_vr_extension(
-            os.path.join(settings.module_dir, vr_physical_dir), blob_hash
+            os.path.join(settings.blobs_data_root, vr_physical_dir), blob_hash
         )
         return vr_extension is not None
 
@@ -437,11 +439,11 @@ class Blobs:
 
         if self.blob_has_thumbnail(blob["hash"]):
             blob_info["thumbnail"] = os.path.join(
-                settings.module_dir, thumbnail_url, blob["hash"] + ".jpg"
+                settings.blobs_data_root, thumbnail_url, blob["hash"] + ".jpg"
             )
 
         vr_extension = self.get_vr_extension(
-            os.path.join(settings.module_dir, vr_physical_dir), blob["hash"]
+            os.path.join(settings.blobs_data_root, vr_physical_dir), blob["hash"]
         )
 
         if vr_extension is not None:
@@ -600,9 +602,11 @@ class Blobs:
         """
         subdir = self.get_subdir(blob_hash)
 
-        blob_folder = os.path.join(settings.module_dir, settings.blob_dir, subdir)
-        thumb_folder = os.path.join(settings.module_dir, settings.thumb_dir, subdir)
-        vr_folder = os.path.join(settings.module_dir, settings.vr_dir, subdir)
+        blob_folder = os.path.join(settings.blobs_data_root, settings.blob_dir, subdir)
+        thumb_folder = os.path.join(
+            settings.blobs_data_root, settings.thumb_dir, subdir
+        )
+        vr_folder = os.path.join(settings.blobs_data_root, settings.vr_dir, subdir)
 
         blob_file = glob.glob(os.path.join(blob_folder, blob_hash + ".*"))
         thumb_file = glob.glob(os.path.join(thumb_folder, blob_hash + ".*"))

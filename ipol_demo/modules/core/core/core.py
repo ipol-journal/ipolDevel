@@ -27,7 +27,6 @@ from random import random
 
 import magic
 import requests
-from blobs import blobs
 from config import settings
 from conversion import conversion
 from core.errors import (
@@ -51,7 +50,6 @@ from core.errors import (
     IPOLUploadedInputRejectedError,
     IPOLWorkDirError,
 )
-from demoinfo import demoinfo
 from dispatcher import dispatcher
 from ipolutils.evaluator.evaluator import IPOLEvaluateError, evaluate
 from ipolutils.read_text_file import read_commented_text_file
@@ -70,14 +68,11 @@ class Core:
             Core.instance = Core()
         return Core.instance
 
-    def __init__(self):
+    def __init__(self, blobs, demoinfo):
         """
         Constructor
         """
         self.server_environment: str = os.environ.get("env", "local")
-        self.module_dir: str = (
-            os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/blobs"
-        )
         self.logs_dir: str = "logs/"
         self.config_common_dir: str = (
             os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/config_common"
@@ -86,9 +81,6 @@ class Core:
         self.base_url: str = os.environ["IPOL_URL"]
 
         self.project_folder = os.path.expanduser("~") + "/ipolDevel"
-        self.blobs_folder = (
-            os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/core"
-        )
 
         self.shared_folder_rel: str = "shared_folder/"
         self.shared_folder_abs = os.path.join(
@@ -120,13 +112,9 @@ class Core:
             policy=dispatcher.make_policy(policy),
         )
 
-        self.demoinfo = demoinfo.DemoInfo(
-            dl_extras_dir=settings.demoinfo_dl_extras_dir,
-            database_path=settings.demoinfo_db,
-            base_url=settings.base_url,
-        )
+        self.demoinfo = demoinfo
 
-        self.blobs = blobs.Blobs()
+        self.blobs = blobs
 
         self.converter = conversion.Converter()
 
@@ -317,7 +305,9 @@ class Core:
                 final_path = os.path.join(
                     work_dir, "input_{0}{1}".format(input_idx, extension)
                 )
-                shutil.copy(os.path.join(self.blobs_folder, blob_path), final_path)
+                shutil.copy(
+                    os.path.join(settings.blobs_data_root, blob_path), final_path
+                )
             except Exception as ex:
                 logger.exception(
                     "Error copying blob from {} to {}".format(blob_path, final_path)

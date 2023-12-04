@@ -29,16 +29,16 @@ from ipolutils.evaluator.evaluator import IPOLEvaluateError
 from logger import logger
 from result import Err, Ok
 
-coreRouter = APIRouter(prefix="/core")
-core = core.Core()
 demoinfo = demoinfo.DemoInfo(
     dl_extras_dir=settings.demoinfo_dl_extras_dir,
     database_path=settings.demoinfo_db,
     base_url=settings.base_url,
 )
-
 blobs = blobs.Blobs()
 archive = archive.Archive()
+
+coreRouter = APIRouter(prefix="/core")
+core = core.Core(blobs, demoinfo)
 
 
 @coreRouter.get("/demo", status_code=201)
