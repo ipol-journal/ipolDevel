@@ -347,7 +347,9 @@ def delete_vr_from_blob(blob_id: int) -> None:
             blobs.remove_dirs(vr_folder)
 
         # Delete old thumbnail
-        thumb_folder = os.path.join(settings.blobs_data_root, settings.thumb_dir, subdir)
+        thumb_folder = os.path.join(
+            settings.blobs_data_root, settings.thumb_dir, subdir
+        )
         if os.path.isdir(thumb_folder):
             thumb_files_in_dir = glob.glob(os.path.join(thumb_folder, blob_hash + ".*"))
             if thumb_files_in_dir:
