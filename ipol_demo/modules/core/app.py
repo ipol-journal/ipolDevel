@@ -1,4 +1,5 @@
 from archive.router import archiveRouter
+from blobs.router import blobsRouter
 from conversion.router import conversionRouter
 from core.router import coreRouter
 from demoinfo.router import demoinfoRouter
@@ -13,3 +14,4 @@ app.include_router(demoinfoRouter)
 app.include_router(dispatcherRouter)
 app.include_router(conversionRouter)
 app.include_router(archiveRouter)
+app.include_router(blobsRouter)

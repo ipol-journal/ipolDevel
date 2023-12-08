@@ -17,7 +17,6 @@ COPY ./docker/zsh_conf /home/ipol/zsh_conf
 
 # Nginx config file generation
 COPY ./sysadmin/configs/nginx/default-docker /etc/nginx/sites-available/default
-RUN sed -i 's@miguel@ipol@g' /etc/nginx/sites-available/default
 
 USER ipol
 RUN bash -c "$(wget https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O -)" && \

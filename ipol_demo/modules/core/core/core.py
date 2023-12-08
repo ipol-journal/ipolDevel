@@ -50,7 +50,6 @@ from core.errors import (
     IPOLUploadedInputRejectedError,
     IPOLWorkDirError,
 )
-from demoinfo import demoinfo
 from dispatcher import dispatcher
 from ipolutils.evaluator.evaluator import IPOLEvaluateError, evaluate
 from ipolutils.read_text_file import read_commented_text_file
@@ -69,14 +68,11 @@ class Core:
             Core.instance = Core()
         return Core.instance
 
-    def __init__(self):
+    def __init__(self, blobs, demoinfo):
         """
         Constructor
         """
         self.server_environment: str = os.environ.get("env", "local")
-        self.module_dir: str = (
-            os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/blobs"
-        )
         self.logs_dir: str = "logs/"
         self.config_common_dir: str = (
             os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/config_common"
@@ -85,9 +81,6 @@ class Core:
         self.base_url: str = os.environ["IPOL_URL"]
 
         self.project_folder = os.path.expanduser("~") + "/ipolDevel"
-        self.blobs_folder = (
-            os.path.expanduser("~") + "/ipolDevel/ipol_demo/modules/blobs"
-        )
 
         self.shared_folder_rel: str = "shared_folder/"
         self.shared_folder_abs = os.path.join(
@@ -119,11 +112,9 @@ class Core:
             policy=dispatcher.make_policy(policy),
         )
 
-        self.demoinfo = demoinfo.DemoInfo(
-            dl_extras_dir=settings.demoinfo_dl_extras_dir,
-            database_path=settings.demoinfo_db,
-            base_url=settings.base_url,
-        )
+        self.demoinfo = demoinfo
+
+        self.blobs = blobs
 
         self.converter = conversion.Converter()
 
@@ -291,13 +282,9 @@ class Core:
         input parameters:
         returns:
         """
-        try:
-            demo_blobs, status = self.post(f"api/blobs/demo_blobs/{demo_id}", "get")
-        except json.JSONDecodeError as ex:
-            logger.exception(f"{ex}")
-            raise IPOLCopyBlobsError(f"{ex}")
+        result = self.blobs.get_blobs(demo_id)
 
-        if not demo_blobs or status != 200:
+        if isinstance(result, Err):
             error_msg = (
                 "Failed to get blobs at Core's copy_blobset_from_physical_location"
             )
@@ -305,7 +292,7 @@ class Core:
             raise IPOLCopyBlobsError(error_msg)
 
         try:
-            blobset = demo_blobs[blobset_id]
+            blobset = result.value[blobset_id]
         except IndexError:
             raise IPOLCopyBlobsError("Blobset {} doesn't exist".format(blobset_id))
 
@@ -318,7 +305,9 @@ class Core:
                 final_path = os.path.join(
                     work_dir, "input_{0}{1}".format(input_idx, extension)
                 )
-                shutil.copy(os.path.join(self.blobs_folder, blob_path), final_path)
+                shutil.copy(
+                    os.path.join(settings.blobs_data_root, blob_path), final_path
+                )
             except Exception as ex:
                 logger.exception(
                     "Error copying blob from {} to {}".format(blob_path, final_path)

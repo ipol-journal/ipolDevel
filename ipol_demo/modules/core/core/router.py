@@ -2,8 +2,8 @@ import json
 import os
 import traceback
 
-import requests
 from archive import archive
+from blobs import blobs
 from config import settings
 from core import core
 from core.archive_utils import send_to_archive
@@ -29,15 +29,16 @@ from ipolutils.evaluator.evaluator import IPOLEvaluateError
 from logger import logger
 from result import Err, Ok
 
-coreRouter = APIRouter(prefix="/core")
-core = core.Core()
 demoinfo = demoinfo.DemoInfo(
     dl_extras_dir=settings.demoinfo_dl_extras_dir,
     database_path=settings.demoinfo_db,
     base_url=settings.base_url,
 )
-
+blobs = blobs.Blobs()
 archive = archive.Archive()
+
+coreRouter = APIRouter(prefix="/core")
+core = core.Core(blobs, demoinfo)
 
 
 @coreRouter.get("/demo", status_code=201)
@@ -109,22 +110,20 @@ def delete_demo(demo_id: int) -> None:
         result = demoinfo.delete_demoextras(demo_id)
         if not isinstance(result, Ok):
             error_message += f"Error when removing demoextras: {result.value} \n"
-        resp = requests.delete(f"{settings.base_url}/api/blobs/demos/{demo_id}")
 
-        if resp.status_code != 204:
-            error_message += "API call /blobs/delete_demo failed.'\n"
+        delete_blobs = blobs.delete_blob_container({"dest": "demo", "demo_id": demo_id})
+        if not delete_blobs:
+            error_message += f"Blobs failed to delete demo {demo_id} related content.\n"
 
         # delete the archive
-        resp = requests.delete(f"{settings.base_url}/api/archive/demo/{demo_id}")
-        if resp.status_code == 404:
-            error_message += (
-                f"API call /api/archive/demo to delete  demo failed. {demo_id}"
-            )
+        resp = archive.delete_demo(demo_id)
+        if isinstance(resp, Err):
+            error_message += f"Archive failed to delete demo {demo_id} related content"
+
         if error_message:
-            data["status"] = "KO"
-            data["error"] = f"Failed to delete demo: {demo_id}."
+            error = f"Failed to delete demo: {demo_id}."
             core.send_internal_error_email(error_message)
-            raise HTTPException(status_code=500, detail=data)
+            raise HTTPException(status_code=500, detail=error)
 
     except Exception as ex:
         error_message = f"Failed to delete demo {demo_id}. Error: {ex}"

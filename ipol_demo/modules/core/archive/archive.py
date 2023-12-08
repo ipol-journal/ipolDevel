@@ -20,6 +20,35 @@ class Archive:
         self.logger = init_logging()
         self.init_database()
 
+    def delete_demo(self, demo_id: int) -> Result:
+        """
+        Delete the demo from the archive.
+        """
+        try:
+            # Get all experiments for this demo
+            conn = lite.connect(settings.database_file)
+            cursor_db = conn.cursor()
+            cursor_db.execute(
+                "SELECT DISTINCT id FROM experiments WHERE id_demo = ?", (demo_id,)
+            )
+
+            experiment_id_list = cursor_db.fetchall()
+            if not experiment_id_list:
+                return Ok
+
+            # Delete experiments and files
+            for experiment_id in experiment_id_list:
+                self.delete_exp_w_deps(conn, experiment_id[0])
+            conn.commit()
+            conn.close()
+
+        except Exception:
+            message = f"Error deleting demo #{demo_id}"
+            logging.exception(message)
+            return Err(message)
+
+        return Ok
+
     def delete_exp_w_deps(self, conn, experiment_id: int) -> int:
         """
         This function remove, in the database, an experiment from

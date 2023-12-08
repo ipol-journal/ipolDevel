@@ -1,7 +1,7 @@
 """
 Blobs database
 """
-from errors import IPOLBlobsDataBaseError
+from .errors import IPOLBlobsDataBaseError
 
 
 def store_blob(conn, blob_hash, blob_format, extension, credit):
