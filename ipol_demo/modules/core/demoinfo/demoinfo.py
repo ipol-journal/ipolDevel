@@ -455,7 +455,8 @@ class DemoInfo:
 
         if editor:
             editor = editor.__dict__
-        return Ok(editor)
+            return Ok(editor)
+        return Err("Editor not found")
 
     def update_editor_email(
         self, new_email: str, old_email: str, name: str
