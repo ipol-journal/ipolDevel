@@ -44,12 +44,12 @@ def user_created_handler(sender, instance, *args, **kwargs):
         return
 
     demoinfo_editor, _ = api_post(
-        "/api/demoinfo/editor", "get", data={"email": new_editor.email}
+        f"/api/demoinfo/editor?email={new_editor.email}", "get"
     )
     new_editor_exists = demoinfo_editor.get("editor", None)
 
     demoinfo_editor, _ = api_post(
-        "/api/demoinfo/editor", "get", data={"email": old_editor.email}
+        f"/api/demoinfo/editor?email={old_editor.email}", "get"
     )
     old_editor_exists = demoinfo_editor.get("editor", None)
 
@@ -79,7 +79,7 @@ def delete_profile(sender, instance, *args, **kwargs):
     Signal post-delete in djagno DB will try to remove the editor from demoinfo if it is found.
     """
     demoinfo_editor, _ = api_post(
-        "/api/demoinfo/editor", "get", data={"email": instance.email}
+        "/api/demoinfo/editor", "get", params={"email": instance.email}
     )
     editor_info = demoinfo_editor.get("editor", None)
     editor_id = editor_info["id"]
@@ -100,7 +100,7 @@ def add_editor(name: str, email: str):
         "name": name,
         "mail": email,
     }
-    _, status = api_post("/api/demoinfo/editor", "post", data=data)
+    _, status = api_post("/api/demoinfo/editor", "post", params=data)
 
     if status != 201:
         error = "Error, user tried to set up an email which is already in use."
@@ -117,9 +117,11 @@ def update_editor(username, email, old_email):
         "old_email": old_email,
         "new_email": email,
     }
-    _, status = api_post("/api/demoinfo/editor", "patch", data=data)
+    _, status = api_post("/api/demoinfo/editor", "patch", params=data)
 
-    if status != 200:
-        logger.error(
+    if status != 201:
+        error_message = (
             f"Could not update email of user '{username}', '{old_email}' --> '{email}'"
         )
+        logger.error(error_message)
+        raise ValidationError(error_message)
