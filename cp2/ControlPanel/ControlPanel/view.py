@@ -142,6 +142,13 @@ def ajax_add_demo(request):
     title = request.POST["title"]
     demo_id = request.POST["demo_id"]
 
+    try:
+        demo_id = int(demo_id)
+    except ValueError:
+        return JsonResponse(
+            {"status": "KO", "message": "The demo ID should be an integer."}, status=400
+        )
+
     settings = {"state": state, "title": title, "demo_id": demo_id, "ddl": "{}"}
     result, demo_status = api_post("/api/demoinfo/demo", method="post", params=settings)
 
