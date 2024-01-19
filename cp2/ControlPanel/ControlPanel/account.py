@@ -116,31 +116,40 @@ def profile(request):
 @csrf_protect
 def save_profile(request):
     profiles = User.objects.filter(email=request.user.email)
-    demoinfo_editor = api_post(
-        "/api/demoinfo/editor",
-        method="get",
-        params={"email": request.POST.get("email", "")},
-    )
-    new_email_exists = demoinfo_editor["editor"]
-
     if not profiles.exists():
         messages.warning(request, "The profile you are trying to modify does not exist")
         return HttpResponseRedirect("/cp2/profile")
-    email_changed = request.user.email != request.POST.get("email", "")
+
+    requested_email = request.POST.get("email")
+    if not requested_email:
+        messages.warning(request, "The email cannot be empty.")
+        return HttpResponseRedirect("/cp2/profile")
+
+    demoinfo_editor, status = api_post(
+        "/api/demoinfo/editor",
+        method="get",
+        params={"email": requested_email},
+    )
+    if status != 200:
+        messages.warning(
+            request, "Internal error: {} {}".format(status, demoinfo_editor)
+        )
+        return HttpResponseRedirect("/cp2/profile")
+
+    new_email_exists = "editor" in demoinfo_editor
+    email_changed = request.user.email != requested_email
     if new_email_exists and email_changed:
         messages.warning(request, "New email is already in use.")
         return HttpResponseRedirect("/cp2/profile")
-    if new_email_exists:
-        for profile in profiles:
-            profile.username = request.POST.get("username", "")
-            profile.first_name = request.POST.get("firstName", "")
-            profile.last_name = request.POST.get("lastName", "")
-    else:
-        for profile in profiles:
-            profile.username = request.POST.get("username", "")
-            profile.first_name = request.POST.get("firstName", "")
-            profile.last_name = request.POST.get("lastName", "")
-            profile.email = request.POST.get("email", "")
+
+    for profile in profiles:
+        profile.username = request.POST["username"]
+        profile.first_name = request.POST["firstName"]
+        profile.last_name = request.POST["lastName"]
+        profile.email = requested_email
+
+    # NOTE: this does not trigger change on the demoinfo
+    # so for now we disable the profile form
 
     profile.save()
     messages.success(request, "Your profile has been changed successfully.")
