@@ -41,6 +41,10 @@ def user_created_handler(sender, instance, *args, **kwargs):
     # Same email means no change to make
     if new_editor and old_editor.email == new_editor.email:
         logger.info("Same email, nothing to do")
+        # NOTE: here we should patch the editor in case the names changed
+        # but the endpoint for that does not exist in demoinfo
+        # in practice, it means that the ipol staff has to update the email if they want to update a name
+        # and then revert the email change
         return
 
     demoinfo_editor, _ = api_post(
