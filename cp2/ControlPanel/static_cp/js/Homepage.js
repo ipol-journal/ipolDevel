@@ -25,7 +25,7 @@ function showModal(){
             <input type="hidden" name="csrfmiddlewaretoken" value="${csrftoken}">
             <div id="newDemo-formFields">
                 <label for="newDemoID">Demo ID: </label>
-                <input type="text" id="newDemoID" name="demo_id" required>
+                <input type="number" id="newDemoID" name="demo_id" required>
                 <label for="newDemoTitle">Title: </label>
                 <input type="text" id="newDemoTitle" name="title" required>
                 <label for="SelectDemoState">State: </label>
