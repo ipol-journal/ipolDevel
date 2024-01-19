@@ -46,7 +46,14 @@ def api_post(resource, method, **kwargs):
 def user_can_edit_demo(user, demo_id):
     if user.is_staff or user.is_superuser:
         return True
-    editors_list, _ = api_post(f"/api/demoinfo/editors/{demo_id}", method="get")
+    editors_list, status = api_post(
+        f"/api/demoinfo/demos/{demo_id}/editors", method="get"
+    )
+    if status != 200:
+        logger.error(
+            "Something wrong in user_can_edit_demo, %s %s", editors_list, status
+        )
+        return False
     for editor in editors_list:
         if editor.get("mail") == user.email:
             return True
