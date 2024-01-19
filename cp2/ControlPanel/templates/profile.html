@@ -12,21 +12,26 @@
         <input type="hidden" name="email_old" value="{{email}}">
         <div>
             <label for="username">Username</label>
-            <input type="text" name="username" id="username-input" value="{{username}}">
+            <input type="text" name="username" id="username-input" value="{{username}}" disabled>
         </div>
         <div>
             <label for="email">Email</label>
-            <input type="email" name="email" id="email-input" value="{{email}}">
+            <input type="email" name="email" id="email-input" value="{{email}}" disabled>
         </div>
         <div>
             <label for="firstName">First Name</label>
-            <input type="text" name="firstName" id="firstName-input" value="{{firstName}}">
+            <input type="text" name="firstName" id="firstName-input" value="{{firstName}}" disabled>
         </div>
         <div>
             <label for="firstName">Last Name</label>
-            <input type="text" name="lastName" id="lastName-input" value="{{lastName}}">
+            <input type="text" name="lastName" id="lastName-input" value="{{lastName}}" disabled>
         </div>
-        <input type="submit" class="btn btn-submit" value="Save">
+	<!-- disabled since it doesn't work well between django and demoinfo -->
+	<p>
+	</br>
+	To change your profile, contact the IPOL staff.
+	</p>
+	<!-- <input type="submit" class="btn btn-submit" value="Save"> -->
     </form>
     {% if messages %}
         {% for message in messages %}
