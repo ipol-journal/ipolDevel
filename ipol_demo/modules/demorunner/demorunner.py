@@ -555,7 +555,7 @@ def get_bin_dir(demo_id: int) -> str:
     """
     Returns the directory with the peer-reviewed author programs
     """
-    return os.path.join(settings.main_bin_dir, f"{demo_id}bin/")
+    return os.path.join(settings.main_bin_dir, f"{demo_id}/bin/")
 
 
 def read_workdir_file(work_dir: str, filename: str) -> str:
