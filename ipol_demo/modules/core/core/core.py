@@ -1,6 +1,7 @@
 """
 IPOL Core module
 """
+
 import configparser
 import glob
 import hashlib
@@ -666,12 +667,13 @@ class Core:
         Get the list of editors of the given demo
         """
         # Get the list of editors of the demo
-        response, status_code = self.post(f"api/demoinfo/editors/{demo_id}", "get")
-
-        error = response["error"]
+        response, status_code = self.post(
+            f"api/demoinfo/demos/{demo_id}/editors", "get"
+        )
 
         if status_code != 200:
-            self.error_log(
+            error = response["error"]
+            logger.error(
                 f"Failed to obtain the editors of demo #{demo_id} from demoInfo: {error}"
             )
             return ()
