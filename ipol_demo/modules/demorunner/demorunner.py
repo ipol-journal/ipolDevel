@@ -406,7 +406,7 @@ def ensure_compilation(
             log_content = read_workdir_file(compilation_path, build_filename)
         else:
             log_content = ""
-        response = {"message": message, "buildlog": log_content}
+        response = {"detail": message, "buildlog": log_content}
         raise HTTPException(status_code=500, detail=response)
 
     except urllib.error.HTTPError as ex:
@@ -431,7 +431,8 @@ def ensure_compilation(
         message = f"INTERNAL ERROR in ensure_compilation. {ex}"
         logger.exception(f"INTERNAL ERROR in ensure_compilation, demo {demo_id}")
 
-    raise HTTPException(status_code=500, detail=message)
+    response = {"detail": message}
+    raise HTTPException(status_code=500, detail=response)
 
 
 @private_route.post("/compilations", status_code=201)
