@@ -3,7 +3,7 @@ Description=Run demorunner
 After=network.target
 
 [Service]
-ExecStart=/bin/bash -c "source ./venv/bin/activate && uvicorn demorunner:app --host 127.0.0.1 --port 10004"
+ExecStart=/bin/bash -c "source ./venv/bin/activate && uvicorn demorunner:app --host 127.0.0.1 --port 10004 --workers 6"
 WorkingDirectory=/home/integration/ipolDevel/ipol_demo/modules/demorunner/
 Environment=IPOL_HOST=integration.ipol.im
 Environment=IPOL_URL=https://integration.ipol.im
