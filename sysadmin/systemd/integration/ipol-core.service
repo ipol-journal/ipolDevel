@@ -3,7 +3,7 @@ Description=Run core
 After=network.target
 
 [Service]
-ExecStart=/bin/bash -c "source ./venv/bin/activate && uvicorn app:app --host 127.0.0.1 --port 10080"
+ExecStart=/bin/bash -c "source ./venv/bin/activate && uvicorn app:app --host 127.0.0.1 --port 10080 --workers 8"
 WorkingDirectory=/home/integration/ipolDevel/ipol_demo/modules/core/
 Environment=IPOL_HOST=integration.ipol.im
 Environment=IPOL_URL=https://integration.ipol.im
