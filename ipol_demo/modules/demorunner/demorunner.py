@@ -45,7 +45,7 @@ from fastapi import (
     status,
 )
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, BaseSettings
 from Tools.run_demo_base import IPOLTimeoutError
 
@@ -131,7 +131,7 @@ def init_logging():
     logger.setLevel(logging.DEBUG)
     handler = logging.StreamHandler()
     formatter = logging.Formatter(
-        "%(asctime)s ERROR in %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+        "%(asctime)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
     )
     handler.setFormatter(formatter)
 
@@ -579,7 +579,7 @@ async def exec_and_wait(
     parameters: str,
     files: Annotated[List[UploadFile], File()],
     timeout: int = settings.default_timeout,
-) -> UploadFile:
+) -> Response:
     """
     Run the algorithm
     """
@@ -684,8 +684,10 @@ stderr: {}\nstdout: {}".format(
 
     # send the zip as the reply to the request
     fd.seek(0)
-    return StreamingResponse(
-        fd,
+    content = fd.getvalue()
+
+    return Response(
+        content=content,
         media_type="application/zip",
         headers={"Content-Disposition": "attachment;filename=uploaded_files.zip"},
     )
