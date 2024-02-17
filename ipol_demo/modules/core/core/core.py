@@ -1053,7 +1053,16 @@ class Core:
         # Check if the compilation was successful
         if dr_response_code != 201:
             # Read the JSON response from the DR
-            demorunner_response = dr_response.json()
+            try:
+                demorunner_response = dr_response.json()
+            except json.decoder.JSONDecodeError:
+                # for the docker DR:
+                #   in case the payload sent to the DR was invalid,
+                #   the answer might be returned as html
+                #   so we clean it before forwarding it to the front
+                from lxml.html.clean import clean_html
+
+                demorunner_response = {"detail": clean_html(dr_response.content)}
 
             print("Compilation error in demo #{}".format(demo_id))
             # Add the compilation failure info into the exception
