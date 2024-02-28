@@ -1332,6 +1332,11 @@ class Core:
             list(map(files.pop, file_keys))
             clientdata["files"] = len(file_keys)
 
+        # Remove possible inpainting data files
+        file_keys = [key for key in files if key.startswith("inpainting_")]
+        list(map(files.pop, file_keys))
+        clientdata["blobs"] = len(file_keys)
+
         execution_json = {}
         execution_json["demo_id"] = demo_id
         execution_json["request"] = clientdata
