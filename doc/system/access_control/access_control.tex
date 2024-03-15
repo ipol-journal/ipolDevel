@@ -17,5 +17,4 @@ allows the access of multiple IPs.
 The syntax for the pattern uses the asterisk to mean ``any''. For example: {\tt``local = 127.*.*.*''}
 
 \subsection{Usage}
-To add the authentication requisite to a method it is enough to add the {\tt@authenticate} decorator. It is important to add it 
-below the {\tt@cherrypy.expose} decorator. Otherwise the method will not be longer exposed.
+To require IP validation in order to be able to reach an endpoint it is enough to add the dependency {\tt Depends(validate\_ip)} in the parameters of the decorator for each endpoint and import said method from ``guards.py''.
