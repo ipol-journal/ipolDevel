@@ -5,10 +5,10 @@ Note: to avoid confusion, we refer the modules of the IPOL system as ``ipol modu
 \subsection{Introduction}
 Each demo of IPOL offers to the user a set of defaults blobs (\textbf{b}inary \textbf{l}arge \textbf{o}bjects). Thus, the users are not forced to supply their own files for the executions of the algorithms. These defaults blobs can be tagged and linked to differents demos.
 
-The blobs module is composed of several Python modules. It is composed of the same technical stack as the rest of the rest of the IPOL modules: written in Python, using a web server, a database, and using templates for generating HTML responses for webservices destinated to humans.
+The blobs module is composed of several Python modules. It is composed of the same technical stack as the rest of the rest of the IPOL modules: written in Python, with fastAPI, mounts a router for every endpoind, a database, and using templates for generating HTML responses for webservices destinated to humans.
 
-\subsection{Main}
-The main module is called by ``start.sh'', the script called by the control terminal to get modules running on different servers over ssh. It consist of setting up some variables used by cherrypy, as well as mounting the blobs class at the root of the used server.
+\subsection{Router}
+Blobs router is mounted in ``app.py'' and depends on the Core module in order to run. This router will listen to all http requests  destinated to blobs api.
 
 \subsection{Error control}
 This module describes the errors issued by the Blobs IPOL module and adds color to the error messages printed in the terminal.
@@ -34,7 +34,7 @@ Otherwise, this Python module offers us simple methods for interacting with the 
 \subsection{The Blobs module}
 The blobs Python module is the core of this. It implement three classes, DatabaseConnection as referenced earlier in the present documentation, and MyFieldStorage, for intermediate storage of the uploaded blobs in the /tmp/ directory, and Blobs as an encapsulation of the webservices and the data they use. It also has some utilitary function.
 
-The Blobs class implements all the webservices constituting this module, as well as web pages generated via HTML templates. An instance of the Blobs class should possess information about the storage of blobs and the networking parameters cherrypy use, such as a port number. A cherrypy configuration file, named ``blobs.conf'' contains the informations one might need to change to run the module on another server, without changing the code, such as the directories where the blobs can be found, the port used by the cherrypy engine, or the path to the database.
+The Blobs class implements all methods needed to create, update and remove blobs and templates in relation to demos.
 
 The webservices of the module access the database via instanciations of Database objects managed by the DatabaseConnection class. Some read information, and some modify the database by adding or removing information. For handling a webservice automatically and charging his JSON response as a Python object, the utilitary function use\_web\_service is used.
 

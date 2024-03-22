@@ -9,18 +9,17 @@
 The archive module is a standalone application destined to communicate with other modules using webservices. It is designed to implement a stable, simple, and scalable system for archiving all experiments done with IPOL.
 
 \paragraph{Technologies used} \hspace{0pt} \\
-The archive module, written in Python, is using the Cherrypy framework for webservices, the Mako template library for webpage rendering, Python Image Library for thumbnails creations, and the python-magic library available on pip (not to be mistaken with python-magic5 which is the one available on the Ubuntu repositories). The module communicates using JSON, both in input and output. The database engine used is SQLite.
+The archive module, written in Python, is using fastAPI for webservices, Python Image Library for thumbnails creations, and the python-magic library available on pip (not to be mistaken with python-magic5 which is the one available on the Ubuntu repositories). The module communicates using JSON, both in input and output. The database engine used is SQLite.
 
 \subsection{Architecture}
 
 \paragraph{Module composition} \hspace{0pt} \\
-The module is composed of very few files, the code itself in ``module.py'', a cherrypy configuration file ``archive.conf'', and a database. It will also need four directories, respectively for storing blobs, thumbnails, the database, and logs.
+The module is composed of very few files, the code itself in ``archive.py'', a ``router.py'', and a database.
 
 \paragraph{Module architecture} \hspace{0pt} \\
-The module is composed of a class, 'Archive', encapsulating the data needed to function. The services offered by the module are all methods of this class. The cherrypy framework provide the abstraction for making the methods available as webservices. \\
-Upon starting the module, the cherrypy engine is launched, an object of the Archive class is created, and the cherrypy configuration is loaded from ``archive.conf''. If they don't exist, both the database and the directories needed for the storage of blobs, logs, the database and thumbnails will be created, provided that the user launching the module has the necessary rights. Otherwise, the module will not start. These directories are indicated in the cherrypy configuration for maximum configurability, if they are missing from it, the module will not start. \\
-The webservices communicate with the server via arguments given through URL, as unicode strings directly passed to the methods. \\
-The services all connect to the database in a thread-safe way, instanciating its own connection when called, commiting when done if there are modifications, or rollbacking, if there is an error, and closing the connection. \\
+The module is composed of a class, 'Archive', encapsulating the data needed to function. The services offered by the module are all methods of this class. FastAPI will expose all archive http endpoints to make them available and take incoming requests. \\
+Upon starting the core module, it will mount archive's router where all endpoints are defined. If they don't exist, both the database and the directories needed for the storage of blobs, logs, the database and thumbnails will be created in their corresponding locations specified in the ``config.py'' file, provided that the user launching the module has the necessary rights. Otherwise, the module will not start. These directories are indicated in the ``config.py'' file, if they are missing from it, the module will not start. \\
+The services all connect to each database in a thread-safe way, instanciating its own connection when called, commiting when done if there are modifications, or rollbacking individual queries, if there is an error, and closing the connection. \\
 There is a logger initialised with the Archive object, writing errors in ``error.log'' in the logs directory given in the configuration file.
 
 \subsection{Database design}
