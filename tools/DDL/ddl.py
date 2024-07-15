@@ -23,40 +23,42 @@ import os
 import requests
 
 
+def get(service, host, params=None, json=None):
+    try:
+        url = "http://{}/api/demoinfo/{}".format(host, service)
+        return requests.get(url, params=params, data=json)
+    except Exception as ex:
+        print(f"ERROR: Failure in the post function - {ex}")
+
+
 def post(service, host, params=None, json=None):
     try:
-        url = 'http://{}/api/demoinfo/{}'.format(
-            host,
-            service
-        )
+        url = "http://{}/api/demoinfo/{}".format(host, service)
         return requests.post(url, params=params, data=json)
     except Exception as ex:
-        print("ERROR: Failure in the post function - {}".format(str(ex)))
+        print(f"ERROR: Failure in the post function - {ex}")
 
 
 def do_read(demos, host):
-    '''
+    """
     Read a DDL
-    '''
+    """
     for editorsdemoid in demos:
         try:
             file = None
-            resp = post('get_ddl', host, params={"demo_id": editorsdemoid})
+            resp = get(f"ddl/{editorsdemoid}", host)
             response = resp.json()
-            if response['status'] != 'OK':
-                print("ERROR: get_ddl returned KO for demo {}".format(editorsdemoid))
+            if resp.status_code != 200:
+                print(f"ERROR: get_ddl returned KO for demo {editorsdemoid}")
                 continue
-                
-            DDL = response['last_demodescription']
-            if not DDL:
-                print("ERROR: Empty or non-existing DDL for demo #{}".format(editorsdemoid))
-                continue
-                
-            last_demodescription = DDL
-            ddl_json = last_demodescription['ddl']
 
-            file = open("DDLs/" + str(editorsdemoid) + ".json", "w")
-            file.write(ddl_json)
+            DDL = response
+            if not DDL:
+                print(f"ERROR: Empty or non-existing DDL for demo #{editorsdemoid}")
+                continue
+
+            with open("DDLs/" + str(editorsdemoid) + ".json", "w") as f:
+                json.dump(DDL, f, ensure_ascii=False, indent=3)
         except Exception as ex:
             print("ERROR: Failed to read DDL from {} - {}".format(editorsdemoid, ex))
         finally:
@@ -65,66 +67,98 @@ def do_read(demos, host):
 
 
 def do_read_all(host):
-    '''
+    """
     Read all DDLs
-    '''
-    resp = post('demo_list', host)
+    """
+    resp = get("demos", host)
     response = resp.json()
-    if response['status'] != 'OK':
+    if resp.status_code != 200:
         print("ERROR: demo_list returned KO")
         return
     demos = []
-    for demo in response['demo_list']:
-        demos.append(demo['editorsdemoid'])
+    for demo in response:
+        demos.append(demo["editorsdemoid"])
     do_read(demos, host)
 
 
 def do_write(demos, host):
-    '''
+    """
     Write a DDL
-    '''
+    """
     for editorsdemoid in demos:
         try:
+            request = get("demos", host)
+            if request.status_code != 200:
+                print(f"ERROR: save_ddl returned KO for demo {editorsdemoid}")
+            demos = request.json()
             ddl_json = open("DDLs/" + str(editorsdemoid) + ".json", "r").read()
             # Check if is a valid JSON
-            json.loads(ddl_json)
+            ddl = json.loads(ddl_json)
 
-            resp = post('save_ddl', host, params={"demoid": editorsdemoid}, json=ddl_json)
-            response = resp.json()
-            if response['status'] != 'OK':
-                print("ERROR: save_ddl returned KO for demo {}".format(editorsdemoid))
+            if not demo_exist(demos, editorsdemoid):
+                create_demo(editorsdemoid, host, ddl["general"]["demo_title"], "test")
+
+            resp = post(f"ddl/{editorsdemoid}", host, json=ddl_json)
+            # response = resp.json()
+            if resp.status_code != 201:
+                print(f"ERROR: Could not save DDL for demo {editorsdemoid}")
         except ValueError:
-            print("ERROR: Invalid JSON for demo {}".format(editorsdemoid))
+            print(f"ERROR: Invalid JSON for demo {editorsdemoid}")
         except Exception as ex:
-            print("ERROR: Could not write DDL for demo {} - {}".format(editorsdemoid, ex))
+            print(f"ERROR: Could not write DDL for demo {editorsdemoid} - {ex}")
 
 
 def do_write_all(host):
-    '''
+    """
     Write all DDLs
-    '''
-    resp = post('demo_list', host)
+    """
+    resp = get("demos", host)
     response = resp.json()
-    if response['status'] != 'OK':
+    if resp.status_code != 201:
         print("ERROR: demo_list returned KO")
         return
 
     demos = []
-    for demo in response['demo_list']:
-        demos.append(demo['editorsdemoid'])
+    for demo in response["demo_list"]:
+        demos.append(demo["editorsdemoid"])
     do_write(demos, host)
 
 
+def demo_exist(demos, demo_id):
+    """
+    Check if demo already exists
+    """
+    for demo in demos:
+        if str(demo["editorsdemoid"]) == str(demo_id):
+            return demo
+    return False
+
+
+def create_demo(demo_id, host, title, state):
+    """
+    Create demo in a target host
+    """
+    params = {"demo_id": demo_id, "title": title, "state": state}
+    request = post("demo", host, params)
+    if request.status_code != 201:
+        print(f"Could not create demo {demo_id}")
+
+
 # Parse program arguments
-LOCAL_IP = '127.0.0.1'
+LOCAL_IP = "127.0.0.1"
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-i", "--integration",
-  help="Use the Integration environment", action="store_true")
-parser.add_argument("-l", "--local",
-  help="Use the Local ({}) environment".format(LOCAL_IP), action="store_true")
-parser.add_argument("command", nargs='+')
-  
+parser.add_argument(
+    "-i", "--integration", help="Use the Integration environment", action="store_true"
+)
+parser.add_argument(
+    "-l",
+    "--local",
+    help="Use the Local ({}) environment".format(LOCAL_IP),
+    action="store_true",
+)
+parser.add_argument("command", nargs="+")
+
 args = parser.parse_args()
 
 # Get host
@@ -142,13 +176,13 @@ if not os.path.isdir("DDLs"):
 command = args.command[0].lower()
 
 # Execute command
-if command == 'readall' or command == 'getall':
+if command == "readall" or command == "getall":
     do_read_all(host)
-elif command == 'read' or command == 'get':
+elif command == "read" or command == "get":
     do_read(args.command[1:], host)
-elif command == 'write' or command == 'put':
+elif command == "write" or command == "put":
     do_write(args.command[1:], host)
-elif command == 'writeall' or command == 'putall':
+elif command == "writeall" or command == "putall":
     do_write_all(host)
 else:
-    print("Error: unknown command '{}'".format(command))
+    print(f"Error: unknown command '{command}'")
