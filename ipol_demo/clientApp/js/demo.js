@@ -115,6 +115,7 @@ function displayInputHeaders() {
 
 function displayDemoHeader() {
   $("#pageTitle").html(ddl.general.demo_title);
+  document.title = "IPOL Journal - " + ddl.general.demo_title;
   $("#articleTab, #citation-link").attr('href', ddl.general.xlink_article);
 }
 
