@@ -134,7 +134,6 @@ def read_demo_metainfo(demo_id: int):
 @demoinfoRouter.post("/demo", dependencies=[Depends(validate_ip)], status_code=201)
 def add_demo(demo_id: int, title: str, state: str, ddl: str = None) -> dict:
     result = demoinfo.add_demo(demo_id, title, state, ddl)
-    print(result)
     if isinstance(result, Ok):
         data = {"demo_id": result.value}
     else:
