@@ -155,17 +155,6 @@ def ajax_add_demo(request):
 
     response = {}
     if demo_status != 201:
-        # response = JsonResponse({"status": "OK"})
-        # response["HX-Trigger"] = json.dumps(
-        #     {
-        #         "show-toast": {
-        #             "level": "error",
-        #             "title": "Error",
-        #             "message": "This demo ID is already taken",
-        #         }
-        #     }
-        # )
-        # return response
         messages.warning(request, "This demo ID is already taken")
         return HttpResponseRedirect(request.META["HTTP_REFERER"])
 
