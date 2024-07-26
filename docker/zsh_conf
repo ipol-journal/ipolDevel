@@ -21,7 +21,7 @@ alias cp2devel="cd ~/ipolDevel/cp2 && source venv/bin/activate && python Control
 alias venvcp2="cd ~/ipolDevel/cp2 && source bin/activate"
 
 # Collect all static files from CP.
-alias collectstatic="cd ~/ipolDevel/cp2 && source venv/bin/activate && python manage.py collectstatic --noinput --clear"
+alias collectstatic="cd ~/ipolDevel/cp2/ControlPanel && source ../venv/bin/activate && python manage.py collectstatic --noinput --clear"
 
 # Test all
 alias runtest="cd ~/ipolDevel/ci_tests && python3 all.py"

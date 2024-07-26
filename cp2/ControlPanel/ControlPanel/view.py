@@ -3,6 +3,7 @@ import logging
 import urllib
 from datetime import datetime
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
@@ -152,6 +153,11 @@ def ajax_add_demo(request):
     settings = {"state": state, "title": title, "demo_id": demo_id, "ddl": "{}"}
     result, demo_status = api_post("/api/demoinfo/demo", method="post", params=settings)
 
+    response = {}
+    if demo_status != 201:
+        messages.warning(request, "This demo ID is already taken")
+        return HttpResponseRedirect(request.META["HTTP_REFERER"])
+
     editor_info, _ = api_post(
         "/api/demoinfo/editor", method="get", params={"email": request.user.email}
     )
@@ -160,12 +166,11 @@ def ajax_add_demo(request):
         f"/api/demoinfo/demos/{demo_id}/editor/{editor_id}", method="post"
     )
 
-    response = {}
-    if demo_status != 201 or editor_status != 201:
+    if editor_status != 201:
         response["status"] = "KO"
         response["message"] = result.get("error")
         return JsonResponse(
-            {"status": "KO", "message": result.get("error")}, status=400
+            {"status": "KO", "message": response["message"]}, status=400
         )
     else:
         response["status"] = "OK"

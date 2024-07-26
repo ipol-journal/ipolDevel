@@ -138,6 +138,7 @@ def add_demo(demo_id: int, title: str, state: str, ddl: str = None) -> dict:
         data = {"demo_id": result.value}
     else:
         data = {"error": result.value}
+        raise HTTPException(status_code=409, detail=data)
     return data
 
 

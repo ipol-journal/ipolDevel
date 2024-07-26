@@ -1,5 +1,6 @@
 let csrftoken = getCookie('csrftoken');
 
+
 $(document).ready(function(){
     $('#show').click(function (event) {
         showModal();
