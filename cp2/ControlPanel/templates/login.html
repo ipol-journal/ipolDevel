@@ -13,5 +13,12 @@
             <a class="forgot" href="password_reset">Forgot Password</a>
         </div>
     </form>
+    {% if messages %}
+    <ul>
+        {% for message in messages %}
+        <li style="color:red;">{{message}}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
 </div>
 {% endblock %}
