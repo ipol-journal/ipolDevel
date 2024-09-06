@@ -35,7 +35,10 @@ def loginPage(request):
         loginMethod(request, user)
         return HttpResponseRedirect("/cp2/")
     else:
-        return render(request, "login.html", {"form": form})
+        if username or password:
+            messages.error(request, "Invalid username or password")
+
+    return render(request, "login.html", {"form": form})
 
 
 @login_required(login_url="login")
