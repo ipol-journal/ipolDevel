@@ -201,7 +201,7 @@ def update_experiment_date(
         SET timestamp = ?
         WHERE id = ?
         """,
-            (datetime.strptime(date, date_format), experiment_id),
+            (date, experiment_id),
         )
 
         conn.commit()
