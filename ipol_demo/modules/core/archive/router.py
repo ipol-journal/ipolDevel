@@ -184,7 +184,7 @@ def get_experiment(experiment_id: int) -> Stored_Experiment:
     "/experiment/{experiment_id}", dependencies=[Depends(validate_ip)], status_code=200
 )
 def update_experiment_date(
-    experiment_id: int, date: datetime, date_format: str
+    experiment_id: int, date: datetime
 ) -> dict[str, int]:
     """
     MIGRATION
