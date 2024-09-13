@@ -183,9 +183,7 @@ def get_experiment(experiment_id: int) -> Stored_Experiment:
 @archiveRouter.put(
     "/experiment/{experiment_id}", dependencies=[Depends(validate_ip)], status_code=200
 )
-def update_experiment_date(
-    experiment_id: int, date: datetime, date_format: str
-) -> dict[str, int]:
+def update_experiment_date(experiment_id: int, date: datetime) -> dict[str, int]:
     """
     MIGRATION
     Update the date of an experiment.
@@ -201,7 +199,7 @@ def update_experiment_date(
         SET timestamp = ?
         WHERE id = ?
         """,
-            (datetime.strptime(date, date_format), experiment_id),
+            (date, experiment_id),
         )
 
         conn.commit()
