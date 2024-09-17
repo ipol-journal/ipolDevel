@@ -144,6 +144,30 @@ def create_demo(demo_id, host, title, state):
         print(f"Could not create demo {demo_id}")
 
 
+def update_ddl(demos):
+    """
+    Update the build.url field in a DDL
+    """
+
+    for editorsdemoid in demos:
+        try:
+            # Open the JSON file and load its content
+            with open("DDLs/" + str(editorsdemoid) + ".json", "r") as file:
+                ddl = json.load(file)
+
+            # Update the build.url field
+            if 'build' in ddl and 'url' in ddl['build']:
+                print(f"Original build URL for {editorsdemoid}: {ddl['build']['url']}")
+                ddl['build']['url'] = f"git@github.com:ipol-journal/{editorsdemoid}.git"
+                print(f"Updated build URL for {editorsdemoid}: {ddl['build']['url']}")
+            
+            # Write the updated content back to the file
+            with open("DDLs/" + str(editorsdemoid) + ".json", 'w') as file:
+                json.dump(ddl, file, indent=4)
+        except Exception as ex:
+            print("ERROR: Failed to update the DDL {} - {}".format(editorsdemoid, ex))
+
+
 # Parse program arguments
 LOCAL_IP = "127.0.0.1"
 
@@ -184,5 +208,9 @@ elif command == "write" or command == "put":
     do_write(args.command[1:], host)
 elif command == "writeall" or command == "putall":
     do_write_all(host)
+elif command == "update":
+    do_read(args.command[1:], host)
+    update_ddl(args.command[1:])
+    do_write(args.command[1:], host)
 else:
     print(f"Error: unknown command '{command}'")
