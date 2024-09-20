@@ -157,9 +157,10 @@ def update_ddl(demos):
 
             # Update the build.url field
             if 'build' in ddl and 'url' in ddl['build']:
-                print(f"Original build URL for {editorsdemoid}: {ddl['build']['url']}")
-                ddl['build']['url'] = f"git@github.com:ipol-journal/{editorsdemoid}.git"
-                print(f"Updated build URL for {editorsdemoid}: {ddl['build']['url']}")
+                if ddl['build']['url'] == f"git@github.com:mlbriefs/{editorsdemoid}.git":
+                    print(f"Original build URL for {editorsdemoid}: {ddl['build']['url']}")
+                    ddl['build']['url'] = f"git@github.com:ipol-journal/{editorsdemoid}.git"
+                    print(f"Updated build URL for {editorsdemoid}: {ddl['build']['url']}")
             
             # Write the updated content back to the file
             with open("DDLs/" + str(editorsdemoid) + ".json", 'w') as file:
@@ -208,7 +209,7 @@ elif command == "write" or command == "put":
     do_write(args.command[1:], host)
 elif command == "writeall" or command == "putall":
     do_write_all(host)
-elif command == "update":
+elif command == "update_git_url":
     do_read(args.command[1:], host)
     update_ddl(args.command[1:])
     do_write(args.command[1:], host)
