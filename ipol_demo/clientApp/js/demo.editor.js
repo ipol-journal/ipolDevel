@@ -161,7 +161,16 @@ function displayCrop($img){
 }
 
 function setNaturalZoom() {
-  $("#editor-blob-left").cropper('zoomTo', 1);
+  var imageData = $("#editor-blob-left").cropper("getImageData");
+  var containerData = $("#editor-blob-left").cropper("getContainerData");
+  
+  const scale = Math.min(
+    containerData.width / imageData.naturalWidth,
+    containerData.height / imageData.naturalHeight
+  );
+    
+  $("#editor-blob-left").cropper('zoomTo', scale);
+
 }
 
 function getData() {
