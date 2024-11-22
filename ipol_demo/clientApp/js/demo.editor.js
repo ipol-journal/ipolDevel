@@ -161,7 +161,6 @@ function displayCrop($img){
 }
 
 function setNaturalZoom() {
-  // $("#editor-blob-left").cropper('zoomTo', 1);
   var imageData = $("#editor-blob-left").cropper("getImageData");
   var containerData = $("#editor-blob-left").cropper("getContainerData");
   
