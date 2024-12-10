@@ -87,6 +87,8 @@ body#DemoList header {
     position: absolute;
     overflow: auto;
     box-shadow: #63636333 0px 15px 25px 0px;
+    backdrop-filter: blur(1rem);
+    border-radius: 1rem;
 }
 
 .dropdown > button {
@@ -94,6 +96,7 @@ body#DemoList header {
     font-weight: var(--fw-medium);
     border: 0;
     background: none;
+    padding-block: 1rem;
 }
 
 .dropdown:hover .dropdown-content {
