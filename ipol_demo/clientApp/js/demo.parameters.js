@@ -77,9 +77,11 @@ parameters.setParametersValues = function(params_values){
     }
     if(param.type == "selection_radio"){
       var values_keys = Object.keys(param.values);
-      for (let j = 0; j < values_keys.length; j++)
-        if(param.values[values_keys[j]] == params_values[param.id])
-          $('#' + param.id + '_' + j).prop('checked', true);
+      for (let j = 0; j < values_keys.length; j++){
+        if(param.values[values_keys[j]] == params_values[param.id]){
+          $('#selection_radio_' + param.id + '_' + j).prop('checked', true);
+        }
+      }
     }
     if(param.type == "selection_collapsed"){
       $('#selection_collapsed_' + param.id).val(params_values[param.id]);
