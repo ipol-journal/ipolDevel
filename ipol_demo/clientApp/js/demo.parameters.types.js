@@ -46,7 +46,7 @@ $.fn.selection_radio = function(param, index) {
     $('#param-' + param.id).append('<div class="radio-option-' + i + '"></div>')
     $('#param-' + param.id + " > .radio-option-" + i).append(`<input class=hand type=radio name=${param.id} id=selection_radio_${param.id}_${i} value="${values[i]}">`)
     $('#param-' + param.id + " > .radio-option-" + i).append(`<label class=hand for=selection_radio_${param.id}_${i}>${keys[i]}</label>`);
-    if (index == i) $(`#selection_radio_${param.id}_${i}`).prop('checked', true);
+    if (param.default_value == values[i]) $(`#selection_radio_${param.id}_${i}`).prop('checked', true);
   }
   $('#param-' + param.id + ' > label').addClass('m-r-10');
   if (vertical) $(`#param-${param.id}`).addClass('flex-vertical');
