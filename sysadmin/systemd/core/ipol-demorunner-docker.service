@@ -1,0 +1,18 @@
+[Unit]
+Description=Run demorunner-docker (for core)
+After=network.target
+
+[Service]
+ExecStart=/home/ipol/ipolDevel/ipol_demo/modules/demorunner-docker/bin/ipol-demorunner
+ExecStartPre=-/home/ipol/.cargo/bin/cargo install --git https://github.com/ipol-journal/ipol-demorunner.git --rev ee2039a8980d199e15cb4f59970c63c335d8c743 --root . --target-dir target --debug --force --locked
+TimeoutStartSec=300
+WorkingDirectory=/home/ipol/ipolDevel/ipol_demo/modules/demorunner-docker/
+Environment=ROCKET_PROFILE=ipol-ipolcore
+Environment=ROCKET_ADDRESS=0.0.0.0
+Environment=RUST_LOG=info,ipol_demorunner=debug
+RestartSec=10
+Restart=always
+SyslogIdentifier=demorunner-docker
+
+[Install]
+WantedBy=default.target
