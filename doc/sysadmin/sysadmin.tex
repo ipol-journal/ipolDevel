@@ -209,11 +209,11 @@ To run the demorunner without having to install all its dependency on the host, 
 If the python line {\tt import mimetypes; print(mimetypes.guess\_extension("image/webp"))} prints None, then add the {\tt image/webp webp} to the file {\tt /usr/local/etc/mime.types}.
 
 \subsection{External repositories}
-Some packages as for example Intel's IPP are not directly in the Debian Stable distribution and therefore they need to be added to APT manually. Normally it implies just adding the repository's \emph{.list} file to {\tt /etc/apt/sources.list.d}.
+Some packages as for example Intel's IPP are not directly in the Debian Stable distribution, and therefore they need to be added to APT manually. Normally it implies just adding the repository's \emph{.list} file to {\tt /etc/apt/sources.list.d}.
 For Intel IPP, it is described in their website\footnote{\url{https://software.intel.com/en-us/articles/installing-intel-free-libs-and-python-apt-repo}}.
 
 \subsection{IPv6 in OVH}
-Some of the OS images for the dedicated servers in OVH do not include the IPv6 configuration and it needs to be added manually to {\tt /etc/network/interfaces}.
+Some of the OS images for the dedicated servers in OVH do not include the IPv6 configuration, and it needs to be added manually to {\tt /etc/network/interfaces}.
 For example, for a machine with {\tt IPv4=5.196.85.84} and {\tt IPv6=2001:41d0:a:7654::1}, the following configuration needs to be added:
 
 \begin{verbatim}
@@ -441,8 +441,8 @@ To operate the Control Panel (CP) in a production environment is necessary to in
     These resources are then returned to the client as if they originated from the proxy server itself. The reverse proxy in this case is
     implemented with NGINX and is used to redirect requests from port 80 to the CP listening port.
     \item \textbf{WSGI} is a specification to connect web servers with web applications or frameworks for the Python programming language.
-    In this case the Gunicorn is the responsible of this purpose.
-    \item \textbf{Web Application} is a is a client–server software application in which the client runs in a web browser. In the CP this
+    In this case the Gunicorn is the responsible for this purpose.
+    \item \textbf{Web Application} is a client–server software application in which the client runs in a web browser. In the CP this
     is implemented with Django.
 \end{itemize}
 
@@ -450,9 +450,9 @@ To operate the Control Panel (CP) in a production environment is necessary to in
 The communication between the client and the CP varies according to the environment in which it is performed.
 The differences between them are described below.
 
-The communication between the client and the CP in local is stablished by a reverse proxy. This reverse proxy is implemented with
+The communication between the client and the CP in local is established by a reverse proxy. This reverse proxy is implemented with
 NGINX and allows the client to do the requests in the 80 port. That request is intercepted by NGINX and send to the 8000
-port where Django is running. The other purpose of NGINX is to serve the static content and remove that responsability from Django.
+port where Django is running. The other purpose of NGINX is to serve the static content and remove that responsibility from Django.
 The diagram of this configuration is represented by Figure ~\ref{fig:local_architecture}.
 
 \begin{figure}[!ht]
@@ -463,7 +463,7 @@ The diagram of this configuration is represented by Figure ~\ref{fig:local_archi
 \end{figure}
 
 In the production and integration servers is where is located the most complete connection. As in the local server, a reverse proxy is needed to
-make the redirections to hide to the client in wich port is Django running and to provide all the static files. In addition, in the production
+make the redirections to hide to the client in which port is Django running and to provide all the static files. In addition, in the production
 and integration servers a WSGI is also needed to receive the http request and send them to Django. This WSGI is implemented with Gunicorn and
 communicates with the NGINX through a UNIX socket. The diagram of this configuration is represented by Figure ~\ref{fig:prod_int_architecture}.
 
@@ -521,7 +521,7 @@ To access the CP the users need to go to \url{http://ipolcore.ipol.im/cp/} and l
 
 
 \section{Docker}
-A docker image is available to develop and run the IPOL demo system in any enviroment (say, MacOS and others).
+A docker image is available to develop and run the IPOL demo system in any environment (say, macOS and others).
 The necessary commands to work with Docker are described in Section~\ref{sec:docker_commands}.
 
 First, add your user to the {\tt docker} group with the commando {\tt usermod -a -G docker user}.
@@ -548,7 +548,7 @@ To make it easier to use, the container has some predefined alias which can be u
  	\item {\tt cp2}: launches the CP application at 127.0.0.1 on port 8000.
  	\item {\tt collectstatic}: collects all the static files for the CP
  	\item {\tt runtest}: runs all the tests for each module
- 	\item {\tt<module>}: There is an alias for every module to excecute them separatelly. e.g. blobs.
+ 	\item {\tt<module>}: There is an alias for every module to execute them separately. e.g. blobs.
  	\item {\tt rund}: change directory to the run folder
  \end{itemize}
 
@@ -564,7 +564,7 @@ Run this command inside the ipolDevel repository you previously cloned.
   $ docker build . -t ipol -f ./docker/Dockerfile
 \end{verbatim}
 
-With this command we will create a Docker image from the IPOL's Dockerfile. It will go through the creation and configuration of the development envirorment. This command has to be executed from inside the project root folder. Explanation:
+With this command we will create a Docker image from the IPOL's Dockerfile. It will go through the creation and configuration of the development environment. This command has to be executed from inside the project root folder. Explanation:
 \begin{itemize}
   \item docker build: command to build an image
   \item {\tt .}: the context of the image. Here, the current folder is ipolDevel's repository root.
@@ -586,7 +586,7 @@ This command will create a container and log us in the terminal. Explanation:
   \item docker run: command to create a container
   \item -it: makes the container interactive and attaches to a tty or terminal.
   \item ipolDevel volume (-v): first -v parameter creates a volume to share the project folder between the container and the host machine.
-  As docker run does not accept relative paths, we use \$(pwd) to get back the currect directory: ipolDevel's repository root as always. If you are on
+  As docker run does not accept relative paths, we use \$(pwd) to get back the current directory: ipolDevel's repository root as always. If you are on
   Windows, you can use \%cd\% to get back the current path. 
   \item authorized\_patterns.conf volume (-v): this second -v parameter adds a volume which essentially creates the authorized\_patterns.conf file at the 
   needed location on container creation. 
@@ -599,7 +599,7 @@ This command will create a container and log us in the terminal. Explanation:
 \end{itemize}
 
 After this command we will be inside the container's TTY. This command should be used each time after a docker build is done,
-otherwise if the container is already exists, it will have to be removed or attached to. The orders to control containers and images are:
+otherwise if the container is already existing, it will have to be removed or attached to. The orders to control containers and images are:
 
 \textbf{Docker start}
 
@@ -671,7 +671,7 @@ Start all modules
 \begin{verbatim}
   IPOL> startall
 \end{verbatim}
-If the process is stuck when starting a module, press ctrl+c and it should continue.
+If the process is stuck when starting a module, press ctrl+c, and it should continue.
 
 When you ping them all, they should be marked "OK"
 \begin{verbatim}
@@ -703,13 +703,13 @@ Choose a username, email address, and a password of your choice.
 
 You can now run the CP. To develop in local within the Docker image use {\tt cp2devel}, and to run it in production use {\tt cp2}.
 
-In the local environment you can access it at {\tt http://localhost/cp2/}. Use the credentials of the super user you created
+In the local environment you can access it at {\tt http://localhost/cp2/}. Use the credentials of the superuser you created
 before.
 
 The list of demos is available at {\tt http://<server>/demo/}. Change {\tt <server>} to {\tt localhost} if running locally, or change by the address of the server on the Internet.
 
 \subsection{Registry}
-The IPOL docker regitry is used to host base docker image \url{https://github.com/centreborelli/ipol-docker-images} and potentially the demos images.
+The IPOL docker registry is used to host base docker image \url{https://github.com/centreborelli/ipol-docker-images} and potentially the demos images.
 Since users might want to try to build their demos using docker, the registry is public to read. Write access is only permitted from within the system, on an IP basis.
 The registry is started using {\tt systemctl enable --now docker-registry}, with its default configuration and installed using apt.
 
@@ -766,7 +766,7 @@ server {
 The backups are done by this script: {\tt ipolDevel/sysadmin/backup.sh}
 We execute the backup script as root (use {\tt sudo crontab -e}) to avoid any read permission problems.
 
-This script synchonizes a copy of the {\tt ipolDevel/} folder and takes care of exporting all the SQLite database files.This allows recovering important data in the case of a fatal disk failure or any major problem.
+This script synchronizes a copy of the {\tt ipolDevel/} folder and takes care of exporting all the SQLite database files.This allows recovering important data in the case of a fatal disk failure or any major problem.
 
 We use the following line to run the backup script once per week at 3:00 AM on Mondays:
 
@@ -824,7 +824,7 @@ Manually execute unattended upgrade:
   $ sudo unattended-upgrade -d
 \end{verbatim}
 
-Some package updates require user input to decide wether to keep or renew the possible modified config files. To keep our older modified configurations for a package we use the following option in the unattended upgrades configuration:
+Some package updates require user input to decide whether to keep or renew the possible modified config files. To keep our older modified configurations for a package we use the following option in the unattended upgrades configuration:
 
 \begin{verbatim}[firstnumber=1,breaklines]
   Dpkg::Options {
@@ -877,12 +877,12 @@ PersistentKeepalive = 20  # fixes issues with some NAT
 
 \textbf{After a new release of Debian Stable the binaries of the demos no longer work}
 
-Probably it is because the binaries where staticly compiled againts libraries whose versions are no longer installed in our servers. Remove the directory {\tt ipolDevel/ipol\_demo/modules/demorunner/binaries} of all the machines where a demoRunner module has been installed.
+Probably it is because the binaries where statically compiled against libraries whose versions are no longer installed in our servers. Remove the directory {\tt ipolDevel/ipol\_demo/modules/demorunner/binaries} of all the machines where a demoRunner module has been installed.
 \vspace{0.5cm}
 
-\textbf{It installed a package but it does not seem to be installed}
+\textbf{It installed a package, but it does not seem to be installed}
 
-It is possible that you installed a Python 3 package and you are looking for the Python 2 version, or the opposite. Pay attention to use the right package according to the Python version when installing with {\tt apt}. With {\tt pip} write explicitly {\tt pip2} or {\tt pip3} when installing.
+It is possible that you installed a Python 3 package, and you are looking for the Python 2 version, or the opposite. Pay attention to use the right package according to the Python version when installing with {\tt apt}. With {\tt pip} write explicitly {\tt pip2} or {\tt pip3} when installing.
 \vspace{0.5cm}
 
 
@@ -893,7 +893,7 @@ It needs to generate a header in a directory at which only root can write. Thus,
 
 \textbf{After uploading a package Python complains about not being able to import a package because a system library is not at the correct version, even if I uninstall/install the package with {\tt pip}.}
 
-Normally the reason is that pip is not managing the cache correctly and it is installing an old version of the package which needs an old version of the system library. Remove the pip cache: {\tt rm -rf /root/.cache/pip}.
+Normally the reason is that pip is not managing the cache correctly, and it is installing an old version of the package which needs an old version of the system library. Remove the pip cache: {\tt rm -rf /root/.cache/pip}.
 \vspace{0.5cm}
 
 \textbf{Even though, some packages can not be installed.}
@@ -919,7 +919,7 @@ pip2 install numpy tensorflow opencv-python netcdf
 \textbf{VirtualBox does not work.}
 
 Check that you have installed the needed VirtualBox packages, specially the kernel module (virtualbox-guest-dkms).
-If you have everything installed and it is still not working, then execute {\tt dpkg-reconfigure virtualbox-guest-dkms} to force the re-compilation of the kernel module.
+If you have everything installed, and it is still not working, then execute {\tt dpkg-reconfigure virtualbox-guest-dkms} to force the re-compilation of the kernel module.
 
 If still does not work, then purge the packages and re-install:
 
@@ -931,7 +931,7 @@ apt install linux-headers-amd64 virtualbox-5.1
 
 \textbf{When I try to run a Python script I get the following error message: \emph{[Errno 8] Exec format error - errno=8}.}
 
-Probably you are editing the Python script in windows and it finished the line with {\tt CR LR} instead of just {\tt LF}, as used in Linux systems. This causes the shebang line to have an incorrect name for the interpreter: {\tt \#!/usr/bin/env python3<CR>}. To fix it, configure your editor you use {\tt LF} ({\tt \textbackslash n}) when saving the file.
+Probably you are editing the Python script in Windows, and it finished the line with {\tt CR LR} instead of just {\tt LF}, as used in Linux systems. This causes the shebang line to have an incorrect name for the interpreter: {\tt \#!/usr/bin/env python3<CR>}. To fix it, configure your editor you use {\tt LF} ({\tt \textbackslash n}) when saving the file.
 \vspace{0.5cm}
 
 \textbf{A docker container will not run after a daemon fails to start}
@@ -944,7 +944,7 @@ docker cp correct_config ipol:/path_to_broken_config
 
 \textbf{When updating nginx with apt I get the following error: systemd[1]: nginx.service: Control process exited. dpkg: error processing package nginx-full (--configure):  subprocess installed post-installation script returned error exit status 1 Errors were encountered while processing:  nginx-full}
 
-It happens sometimes is a previous version of nginx is running and the system can't stop it before installing over the new one. Try {\tt sudo nginx -s stop} or it this fails directly kill the process with {\tt sudo killall nginx}.
+It happens sometimes is a previous version of nginx is running, and the system can't stop it before installing over the new one. Try {\tt sudo nginx -s stop} or it this fails directly kill the process with {\tt sudo killall nginx}.
 \vspace{0.5cm}
 
 \textbf{I can only access the server's pages or API services using the IP in the URL, but not its domain server. I have also messages in {\tt /var/log/nginx/error.log} about not being able to resolve localhost...}
@@ -958,7 +958,7 @@ It happens sometimes is a previous version of nginx is running and the system ca
 
 
 
-Nginx checks if the FQDN specified in the URL corresponds to the current server. To do it, it needs to make a request to a DNS server (localhost by default, or specified as {\tt resolver <IP address>;}. The bind9 DNS server needs to be installed in the machine (no configuration change is needed, it should work out of the box).
+Nginx checks if the FQDN specified in the URL corresponds to the current server. To do it, it needs to make a request to a DNS server (localhost by default, or specified as {\tt resolver <IP address>;}). The bind9 DNS server needs to be installed in the machine (no configuration change is needed, it should work out of the box).
 \vspace{0.5cm}
 
 \textbf{Modules and tests fail to execute}
@@ -977,7 +977,7 @@ The reason is likely to be an incompatibility with a recently updated Python ver
 
 \textbf{DemoExtras executing ffmpeg blocks access to file when redirecting output}
 
-When redirecting all standard output of the {\tt ffmpeg} command, the resulting file might stay blocked for a short period of time where the Python script that run the {\tt ffmpeg} command might continue its execution. This might be a problem as the file continues blocked but the execution of the script continues and might need access to the file.
+When redirecting all standard output of the {\tt ffmpeg} command, the resulting file might stay blocked for a short period of time when the Python script that run the {\tt ffmpeg} command might continue its execution. This might be a problem as the file continues blocked, but the execution of the script continues and might need access to the file.
 
 Example of the problem:
 
@@ -993,13 +993,13 @@ Check with {\tt gdal-config --version} the version installed in the server and t
 
 \textbf{Bash script virtualenv activation fails while using set -u}
 
-When a demo has a virtualenv, to execute Python code it needs to be activated from a Bash script inside the demoExtras. If the bash script uses set -u it will fail when activating virtualenv because of a bug in the activation script throwing 'PS1: unbound variable'. This bug has been known for years and the solution still hasn't reached production versions of the package in some linux distributions. To fix this we can simply define the following variable as a patch while the official virtualenv fix reaches production:
+When a demo has a virtualenv, to execute Python code it needs to be activated from a Bash script inside the demoExtras. If the bash script uses set -u it will fail when activating virtualenv because of a bug in the activation script throwing 'PS1: unbound variable'. This bug has been known for years and the solution still hasn't reached production versions of the package in some Linux distributions. To fix this we can simply define the following variable as a patch while the official virtualenv fix reaches production:
 
 {\tt VIRTUAL\_ENV\_DISABLE\_PROMPT=true}
 
 \textbf{Virtualenv is created with old pip version}
 
-Every GNU/Linux distribution manages packages shipped differently, a new release will most probably come with a version of Python which is not the latest. Since the virtualenv package is independent from the Python language release cycle most probably the version of pip installed within a virtualenv is outdated. This will cause a warning on every installation within a virtualenv, just because the Python version comes by default with an outdated pip version. Even if the system has an up-to-date version of pip, virtualenvs will still be created with a different (outdated) one.
+Every GNU/Linux distribution manages packages shipped differently, a new release will most probably come with a version of Python which is not the latest. Since the virtualenv package is independent of the Python language release cycle most probably the version of pip installed within a virtualenv is outdated. This will cause a warning on every installation within a virtualenv, just because the Python version comes by default with an outdated pip version. Even if the system has an up-to-date version of pip, virtualenvs will still be created with a different (outdated) one.
 
 \textbf{A commit was made directly to the master branch by mistake and now the merge is not automatic}
 
@@ -1007,13 +1007,13 @@ Execute the following in the devel branch to re-synchronize the two branches: {\
 
 \textbf{The command {\tt apt dist-upgrade} cannot be executed because not enough free space on disk is available. It fails with the message \emph{E: You don't have enough free space in /var/cache/apt/archives/.}}
 
-To avoid resizing the root partition, a simply solution is to move {\tt /var/cache/apt/} to the home directory.
+To avoid resizing the root partition, a simple solution is to move {\tt /var/cache/apt/} to the home directory.
 Create a new folder {\tt /home/system/} and copy {\tt /var/cache/apt/} inside. Then remove {\tt /var/cache/apt/} and create a symlink {\tt /var/cache/apt/ -> /home/system/apt/}
-Do never to the same with directories containing libraries!
+Never do to the same with directories containing libraries!
 
 \textbf{DR (or any other modules) fails to install its own venv with a message similar to \emph{ERROR: Could not build wheels for scipy which use PEP 517 and cannot be installed directly}.}
 
-Most probably the {\tt setuptools} and {\tt wheel} packages are not installed or outdates. They are needed to create virtual environments, and therefore they need to be installed or updated before. Install them with
+Most probably the {\tt setuptools} and {\tt wheel} packages are not installed or outdated. They are needed to create virtual environments, and therefore they need to be installed or updated before. Install them with
 
 {\tt pip3 install --user --upgrade pip setuptools wheel}.
 
