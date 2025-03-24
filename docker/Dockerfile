@@ -11,8 +11,6 @@ WORKDIR /home/ipol
 COPY ./docker/pkglist /home/ipol/pkglist
 RUN apt update && apt install -y $(cat pkglist)
 
-RUN pip install virtualenv && pip3 install requests virtualenv ipython
-
 COPY ./docker/zsh_conf /home/ipol/zsh_conf
 
 # Nginx config file generation
@@ -27,4 +25,4 @@ USER root
 
 EXPOSE 80
 
-ENTRYPOINT service ssh start && service named start && nginx && zsh
+ENTRYPOINT ["/bin/bash", "-c", "service ssh start && service named start && nginx && exec zsh"]
