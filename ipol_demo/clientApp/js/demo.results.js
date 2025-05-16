@@ -149,3 +149,28 @@ $.fn.message = function (result, index) {
     color: result.textColor
   });
 }
+
+$.fn.three_d = function (result, index) {
+  let containerId = "three_d_container_" + index;
+
+  console.log("Result Object:", result); // Print full result object
+  console.log("Result Contents:", result.contents); // Print just the contents
+
+  // Add the 3D viewer container to the results
+  $('.result_' + index).append(`<h3>${result.label}</h3>`);
+  $('.result_' + index).append(`<div id="${containerId}" class="three_d_viewer"></div>`);
+  
+  // Create a new viewer instance
+  let viewer = new OV.EmbeddedViewer(document.getElementById(containerId), {
+    backgroundColor: "#f0f0f0"
+  });
+
+  // Load the 3D model
+  let fileUrl = getFileURL(result.contents);
+  console.log("File URL:", fileUrl);
+  if (fileUrl) {
+    viewer.LoadModelFromUrlList([fileUrl]);
+  } else {
+    console.error("Invalid file URL for 3D model.");
+  }
+}
