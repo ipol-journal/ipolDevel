@@ -149,3 +149,63 @@ $.fn.message = function (result, index) {
     color: result.textColor
   });
 }
+
+
+$.fn.three_d = function (result, index) {
+  let containerId = "three_d_container_" + index;
+
+  console.log("Result Object:", result);
+  console.log("Result Contents:", result.contents);
+
+  // Helper function to load o3dv.min.js only once
+  function loadScriptOnce(url) {
+    return new Promise((resolve, reject) => {
+      // If OV is already loaded, resolve immediately
+      if (window.OV) {
+        resolve();
+        return;
+      }
+
+      // If script is already in the DOM, listen for its load
+      const existingScript = document.querySelector(`script[src="${url}"]`);
+      if (existingScript) {
+        existingScript.addEventListener('load', resolve);
+        existingScript.addEventListener('error', reject);
+        return;
+      }
+
+      // Otherwise, add the script to the document
+      const script = document.createElement('script');
+      script.src = url;
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  }
+
+  // Load o3dv.min.js dynamically and initialize the viewer
+  const O3DV_PATH = 'externalModules/Online3DViewer/o3dv.min.js';
+  loadScriptOnce(O3DV_PATH)
+    .then(() => {
+      // Add the viewer container
+      $('.result_' + index).append(`<h3>${result.label}</h3>`);
+      $('.result_' + index).append(`<div id="${containerId}" class="three_d_viewer"></div>`);
+
+      // Create the viewer
+      let viewer = new OV.EmbeddedViewer(document.getElementById(containerId), {
+        backgroundColor: "#f0f0f0"
+      });
+
+      // Load the 3D model
+      let fileUrl = getFileURL(result.contents);
+      console.log("File URL:", fileUrl);
+      if (fileUrl) {
+        viewer.LoadModelFromUrlList([fileUrl]);
+      } else {
+        console.error("Invalid file URL for 3D model.");
+      }
+    })
+    .catch((err) => {
+      console.error('Failed to load o3dv.min.js:', err);
+    });
+};
