@@ -328,13 +328,27 @@ Copy your configurations to {\tt /etc/nginx/sites-enabled} and leave {\tt /etc/n
 As a good practice we enable Nginx gzip compression for static files. An example of this configuration part is located at the project repository in the nginx.conf file under the sysadmin folder.
 
 \subsubsection{SSL on production}
-The files included in the snippets will configure SSL. Test with {\tt nginx -t} that your configuration is correct. Indeed, you will have to copy the following files:
-\begin{itemize}
-    \item /etc/ssl/certs/ipolcore\_ipol\_im\_chain.crt
-    \item /etc/ssl/private/ipolcore.key
-    \item /etc/ssl/certs/dhparam.pem
-\end{itemize}
-
+The server now uses Let’s Encrypt to provision and manage SSL certificates automatically using Certbot with the NGINX plugin.
+\begin{enumerate}
+    \item Issue and configure the certificate:
+     
+     This command automatically requests and installs a valid certificate as well as updates the NGINX configuration to use the certificate.
+    \begin{verbatim}[language=Bash]
+     sudo certbot --nginx -d ipolcore.ipol.im
+    \end{verbatim}
+    \item Validate configuration and restart Nginx:
+    \begin{verbatim}[language=Bash]
+     sudo nginx -t && sudo nginx -s reload
+    \end{verbatim}
+    \item Renew the Certificate
+    \begin{verbatim}[language=Bash]
+     sudo systemctl enable --now certbot.timer
+    \end{verbatim}
+    \item Verify auto-renewal is scheduled:
+    \begin{verbatim}[language=Bash]
+     systemctl list-timers | grep certbot
+    \end{verbatim}
+\end{enumerate}
 
 
 \subsubsection{SSL on the integration}
