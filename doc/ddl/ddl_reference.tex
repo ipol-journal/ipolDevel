@@ -902,3 +902,29 @@ used for warning or error messages.
     "visible": "info.sizeX * info.sizeY < 42000" 
 }
 \end{lstlisting}
+
+
+%------ three_d  ------
+\subsection{three\_d}
+
+The result type \emph{three\_d} displays a 3D output such as .obj files in an interactive viewer.
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
+\hline
+ \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
+\hline \hline
+ type       & three\_d  & yes \\ \hline
+ visible    & Javascript expression evaluated as a boolean. & no \\ \hline
+ label      & HTML label. & yes \\ \hline
+ contents   & A 3D filename to display. & yes \\ \hline
+\caption{Properties of the \emph{three\_d} type in the results section.}
+\end{longtable}
+
+\paragraph{Examples}:\\
+\begin{lstlisting}[language=json,firstnumber=1]
+{    
+    "contents": "3Dcomparison.obj", 
+    "type": "three_d", 
+    "label": "3D output file"
+}
+\end{lstlisting}
