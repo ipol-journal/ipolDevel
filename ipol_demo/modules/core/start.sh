@@ -11,4 +11,4 @@ fi
 export IPOL_HOST=$(hostname -f)
 export IPOL_URL=http://$(hostname -f)
 
-uvicorn app:app --reload --host 0.0.0.0 --port 8080
+uvicorn app:app --reload --host 127.0.0.1 --port 8080
