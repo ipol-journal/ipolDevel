@@ -26,10 +26,10 @@
     <serviceName>ipol-demorunner --user</serviceName>
   </demorunner>
 
-  <demorunner name="dr-limule">
+  <demorunner name="dr-core-docker">
     <module>demorunner</module>
-    <capability>test-dr-limule</capability>
-    <serverSSH>ipol_limule</serverSSH>
+    <capability>docker!</capability>
+    <serverSSH>ipol_core</serverSSH>
     <serviceName>ipol-demorunner --user</serviceName>
   </demorunner>
 
