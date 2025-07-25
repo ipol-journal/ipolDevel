@@ -4,7 +4,7 @@ cd `dirname $0`
 
 if [ ! -d "venv" ]; then
   echo "Demorunner module virtualenv not found, installing..."
-  python3 -m virtualenv venv
+  python3.9 -m virtualenv venv
   ./venv/bin/pip install -r requirements.txt
 fi
 
