@@ -16,7 +16,7 @@ function send_email () {
 }
 
 if [ ! -d "/home/${user}/ipolDevel/ci_tests/venv" ]; then
-    python3 -m virtualenv ci_tests/venv
+    python3.9 -m virtualenv ci_tests/venv
     source ci_tests/venv/bin/activate
     pip install -r ci_tests/requirements.txt
 fi

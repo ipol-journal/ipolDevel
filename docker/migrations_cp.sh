@@ -7,7 +7,7 @@ python manage.py migrate && \
 python manage.py collectstatic
 
 cd /home/ipol/ipolDevel/cp2 && \
-python3 -m virtualenv cp2 && \
+python3.9 -m virtualenv cp2 && \
 source cp2/bin/activate && \
 pip3 install -r requirements.txt && \
 cd ControlPanel && python3 manage.py migrate && deactivate
