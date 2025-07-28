@@ -11,3 +11,6 @@ Pillow==9.3.0
 psutil==5.9.5
 requests==2.26.0
 virtualenv==20.26.6
+
+# used by some demos in their demoextras:
+python-magic==0.4.27
