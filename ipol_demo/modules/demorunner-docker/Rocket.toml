@@ -8,15 +8,23 @@ gpus = []
 env_vars = {"IPOL_URL"="https://ipolcore.ipol.im"}
 max_timeout = 600
 limits = {"file"="500MB", "data-form"="500MB"}
+exec_network_mode = "bridge"
+build_network_mode = "bridge"
 
 [ipol-ipolcore]
 port = 3000
 user_uid_gid = "1001:1001"
+# for ipolcore and integration, we need to avoid collision so we run in separate subnets
+exec_network_mode = "prod"
+build_network_mode = "prod"
 
 [ipol-integration]
 port = 10010
 user_uid_gid = "1005:1005"
 env_vars = {"IPOL_URL"="https://integration.ipol.im"}
+# for ipolcore and integration, we need to avoid collision so we run in separate subnets
+exec_network_mode = "integration"
+build_network_mode = "integration"
 
 [ipol-limule]
 port = 3000

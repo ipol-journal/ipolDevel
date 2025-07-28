@@ -4,7 +4,7 @@ After=docker.service
 
 [Service]
 # ~/.local for uv python install, which the venv points to
-ExecStart=/usr/bin/docker run --rm --name ipol-demorunner --network=host --log-driver=journald --env HOME=/home/ipol --user 1001:1001 -v /home/ipol/ipolDevel:/home/ipol/ipolDevel -v /home/ipol/.local/:/home/ipol/.local/ --workdir /home/ipol/ipolDevel/ipol_demo/modules/demorunner/ registry.ipol.im/ipol-debian-demorunner ./venv/bin/uvicorn demorunner:app --host 127.0.0.1 --port 9003
+ExecStart=/usr/bin/docker run --rm --name ipol-demorunner --network=host --log-driver=journald --env HOME=/home/ipol --user 1001:1001 -v /home/ipol/ipolDevel:/home/ipol/ipolDevel -v /home/ipol/.local/:/home/ipol/.local/ --workdir /home/ipol/ipolDevel/ipol_demo/modules/demorunner/ registry.ipol.im/ipol-debian-demorunner ./venv/bin/uvicorn demorunner:app --host 127.0.0.1 --port 9003 --workers 10
 TimeoutStartSec=300
 ExecStop=/usr/bin/docker stop ipol-demorunner
 SyslogIdentifier=demorunner
