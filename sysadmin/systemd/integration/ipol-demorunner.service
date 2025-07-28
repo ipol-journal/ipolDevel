@@ -1,12 +1,14 @@
 [Unit]
-Description=Run demorunner
-After=network.target
+Description=Run legacy demorunner (for integration, under docker)
+After=docker-integration.service
 
 [Service]
-ExecStart=/bin/bash -c "source ./venv/bin/activate && uvicorn demorunner:app --host 127.0.0.1 --port 10004 --workers 6"
+# ~/.local for uv python install, which the venv points to
+# this one is a bit complex because the demorunner has some dependency on $HOME/$USER
+ExecStart=/usr/bin/docker run --rm --name ipol-demorunner --network=host --log-driver=journald --env HOME=/home/integration --user 1005:1005 -v /home/integration/ipolDevel:/home/integration/ipolDevel -v /home/integration/.local/:/home/integration/.local/ -v /home/integration/.cache:/home/integration/.cache --workdir /home/integration/ipolDevel/ipol_demo/modules/demorunner/ registry.ipol.im/ipol-debian-demorunner ./venv/bin/uvicorn demorunner:app --host 127.0.0.1 --port 10004
+ExecStop=/usr/bin/docker stop ipol-demorunner
 WorkingDirectory=/home/integration/ipolDevel/ipol_demo/modules/demorunner/
-Environment=IPOL_HOST=integration.ipol.im
-Environment=IPOL_URL=https://integration.ipol.im
+Environment=DOCKER_HOST=unix:///var/run/docker-integration.sock
 RestartSec=10
 Restart=always
 SyslogIdentifier=ipol-demorunner
