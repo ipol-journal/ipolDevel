@@ -1,4 +1,15 @@
-function printMapPanel(center) {
+async function printMapPanel(center) {
+    await loadCss('externalModules/maplibre/maplibre-gl.css');
+    await loadCss('externalModules/mapbox-gl-draw/mapbox-gl-draw.css');
+
+    await loadJs('externalModules/maplibre/maplibre-gl.js');
+    await loadJs('externalModules/turf/turf.min.js');
+    await loadJs('externalModules/mapbox-gl-draw/mapbox-gl-draw.js');
+
+    initMap(center);
+}
+
+function initMap(center) {
    $('#map-container').removeClass('di-none');
     $('#map-container').addClass('map-container');
     const style = {
