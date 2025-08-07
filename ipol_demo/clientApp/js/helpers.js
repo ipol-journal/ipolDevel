@@ -51,3 +51,24 @@ clientApp.helpers.getOrigin = function() {
 $.fn.exists = function () {
     return this.length !== 0;
 }
+
+function loadJs(url) {
+    return new Promise(function(resolve, reject) {
+        var script = document.createElement('script');
+        script.src = url;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+};
+
+function loadCss(url) {
+    return new Promise(function(resolve, reject) {
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = url;
+        link.onload = resolve;
+        link.onerror = reject;
+        document.head.appendChild(link);
+    });
+};
