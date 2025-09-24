@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import math
 import os
 import sqlite3
@@ -15,8 +16,7 @@ def get_blob_sizes(db_path, table_name, hash_column, type_column, file_directory
     # Connect to the SQLite database
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    print(conn)
-    # Query to get the hash and type of each blob
+
     _validate_identifiers(table_name, hash_column, type_column)
     query = f"SELECT {hash_column}, {type_column} FROM {table_name}"
     cursor.execute(query)
@@ -45,7 +45,7 @@ def get_blob_sizes(db_path, table_name, hash_column, type_column, file_directory
     # Print the sorted blob information
     for filename, size_mb in blob_info:
         if size_mb is not None:
-            if size_mb > 1:
+            if size_mb >= min_size:
                 print(f"Blob Name: {filename}, Size: {size_mb} MB")
         else:
             print(f"Blob Name: {filename} not found")
@@ -61,5 +61,15 @@ if __name__ == "__main__":
     hash_column = "hash"
     type_column = "type"
     file_directory = os.path.join(core, "staticData", "archive_blobs")
+    min_size = 0  # Default minimum size in MB
+
+    parser = argparse.ArgumentParser(
+        description="Inspect archive blobs and their sizes."
+    )
+    parser.add_argument(
+        "--min-size", type=int, default=0, help="Minimum blob size in MB to display"
+    )
+    args = parser.parse_args()
+    min_size = args.min_size
 
     get_blob_sizes(db_path, table_name, hash_column, type_column, file_directory)
