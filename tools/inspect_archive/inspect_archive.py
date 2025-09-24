@@ -46,7 +46,9 @@ def get_blob_sizes(db_path, table_name, hash_column, type_column, file_directory
 
     for filename, size_mb in blob_info:
         if size_mb is not None and size_mb >= min_size:
-            print(f"Blob Name: {filename}, Size: {size_mb} MB")
+            print(
+                f"Blob Name: {os.path.join(file_directory, filename)}, Size: {size_mb} MB"
+            )
         elif size_mb is None:
             print(f"Blob Name: {filename} not found")
 
