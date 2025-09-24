@@ -13,44 +13,43 @@ def _validate_identifiers(*names):
 
 
 def get_blob_sizes(db_path, table_name, hash_column, type_column, file_directory):
-    # Connect to the SQLite database
-    conn = sqlite3.connect(db_path)
+    # Connect to the SQLite database in read-only mode to reduce writer contention
+    # (requires sqlite >= 3.7.0 and that the file is accessible)
+    conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
     cursor = conn.cursor()
 
     _validate_identifiers(table_name, hash_column, type_column)
     query = f"SELECT {hash_column}, {type_column} FROM {table_name}"
     cursor.execute(query)
 
-    # List to store blob information
     blob_info = []
+    batch_size = 1000
 
-    # Collect the hash, type, and size of each blob
-    for hash_value, type_value in cursor:
-        filename = f"{hash_value}.{type_value}"
-        subdir1 = hash_value[:1]
-        subdir2 = hash_value[1:2]
-        filepath = os.path.join(file_directory, subdir1, subdir2, filename)
-        if os.path.exists(filepath):
-            size = os.path.getsize(filepath)
-            size_mb = math.ceil(
-                size / (1024 * 1024)
-            )  # Convert bytes to megabytes and round up
-            blob_info.append((filename, size_mb))
-        else:
-            blob_info.append((filename, None))
+    while True:
+        rows = cursor.fetchmany(batch_size)
+        if not rows:
+            break
 
-    # Sort the blobs by size in descending order
+        for hash_value, type_value in rows:
+            filename = f"{hash_value}.{type_value}"
+            subdir1 = hash_value[:1]
+            subdir2 = hash_value[1:2]
+            filepath = os.path.join(file_directory, subdir1, subdir2, filename)
+            if os.path.exists(filepath):
+                size_mb = math.ceil(os.path.getsize(filepath) / (1024 * 1024))
+                blob_info.append((filename, size_mb))
+            else:
+                blob_info.append((filename, None))
+
+    # Sort and print as before
     blob_info.sort(key=lambda x: x[1] if x[1] is not None else -1, reverse=True)
 
-    # Print the sorted blob information
     for filename, size_mb in blob_info:
-        if size_mb is not None:
-            if size_mb >= min_size:
-                print(f"Blob Name: {filename}, Size: {size_mb} MB")
-        else:
+        if size_mb is not None and size_mb >= min_size:
+            print(f"Blob Name: {filename}, Size: {size_mb} MB")
+        elif size_mb is None:
             print(f"Blob Name: {filename} not found")
 
-    # Close the connection
     conn.close()
 
 
