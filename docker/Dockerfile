@@ -1,4 +1,4 @@
-FROM debian:latest
+FROM debian:bullseye
 
 # ipol user config
 RUN useradd -ms /bin/zsh ipol
@@ -11,7 +11,9 @@ WORKDIR /home/ipol
 COPY ./docker/pkglist /home/ipol/pkglist
 RUN apt update && apt install -y $(cat pkglist)
 
-RUN pip install virtualenv && pip3 install requests virtualenv ipython
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:0.8.4 /uv /uvx /bin/
+# RUN pip install virtualenv && pip3 install requests virtualenv ipython
 
 COPY ./docker/zsh_conf /home/ipol/zsh_conf
 
