@@ -12,9 +12,6 @@ source $ZSH/oh-my-zsh.sh
 ##################
 #     Alias      #
 ##################
-
-# IPOL Terminal 
-alias terminal="cd ~/ipolDevel/tools/terminal && ./terminal.py"
 # Control Panel
 alias cp2="cd ~/ipolDevel/cp2 && ./gunicorn_start_cp2"
 alias cp2devel="cd ~/ipolDevel/cp2 && source venv/bin/activate && python ControlPanel/manage.py runserver 127.0.0.1:8002"
@@ -38,5 +35,5 @@ function demo_copy() {
 
 
 # Modules start
-alias core="cd ~/ipolDevel/ipol_demo/modules/core && source venv/bin/activate && ./start.sh"
-alias demorunner="cd ~/ipolDevel/ipol_demo/modules/demorunner && source venv/bin/activate && ./start.sh"
+alias core="cd ~/ipolDevel/ipol_demo/modules/core && uv run ./start.sh"
+alias demorunner="cd ~/ipolDevel/ipol_demo/modules/demorunner && uv run ./start.sh"
