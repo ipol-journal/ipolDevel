@@ -21,6 +21,10 @@ COPY ./docker/zsh_conf /home/ipol/zsh_conf
 COPY ./sysadmin/configs/nginx/default-docker /etc/nginx/sites-available/default
 
 USER ipol
+
+ENV IPOL_URL=http://localhost
+ENV IPOL_HOST=localhost
+
 RUN bash -c "$(wget https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O -)" && \
     cp /home/ipol/zsh_conf ~/.zshrc
 
