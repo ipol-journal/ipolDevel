@@ -10,7 +10,7 @@ python-magic==0.4.24
 requests==2.26.0
 tifffile==2021.8.8
 result==0.8.0
-imagecodecs==2021.8.26
+imagecodecs==2024.12.30
 cryptography==37.0.4
 python-multipart==0.0.19
 lxml==5.1.0
