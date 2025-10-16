@@ -36,4 +36,4 @@ function demo_copy() {
 
 # Modules start
 alias core="cd ~/ipolDevel/ipol_demo/modules/core && uv run uvicorn app:app --reload --host 127.0.0.1 --port 8080"
-alias demorunner="cd ~/ipolDevel/ipol_demo/modules/demorunner && uv run uvicorn app:app --reload --host 0.0.0.0 --port 9004"
+alias demorunner="cd ~/ipolDevel/ipol_demo/modules/demorunner && uv run uvicorn demorunner:app --reload --host 0.0.0.0 --port 9004"
