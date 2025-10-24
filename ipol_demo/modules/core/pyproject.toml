@@ -1,0 +1,24 @@
+[project]
+name = "core"
+version = "0.1.0"
+description = "Ipol Core module"
+readme = "README.md"
+requires-python = "==3.9.*"
+dependencies = [
+    "cryptography==37.0.4",
+    "fastapi==0.92.0",
+    "imagecodecs==2024.12.30",
+    "imageio==2.9.0",
+    "ipython==7.31.1",
+    "lxml==5.1.0",
+    "numpy==1.22.0",
+    "opencv-python==4.5.3.56",
+    "pillow==9.3.0",
+    "pydantic==1.10.4",
+    "python-magic==0.4.24",
+    "python-multipart==0.0.19",
+    "requests==2.26.0",
+    "result==0.8.0",
+    "tifffile==2021.8.8",
+    "uvicorn==0.20.0",
+]

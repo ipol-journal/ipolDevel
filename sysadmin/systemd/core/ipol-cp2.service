@@ -3,7 +3,7 @@ Description=Run cp2
 After=network.target
 
 [Service]
-ExecStart=/bin/bash -c "source venv/bin/activate && ./gunicorn_start_cp2"
+ExecStart=/bin/bash -c "uv run ./gunicorn_start_cp2"
 WorkingDirectory=/home/ipol/ipolDevel/cp2/
 Environment=IPOL_HOST=ipolcore.ipol.im
 Environment=IPOL_URL=https://ipolcore.ipol.im

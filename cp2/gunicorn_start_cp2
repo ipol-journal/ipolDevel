@@ -1,15 +1,5 @@
 #!/bin/bash
 
-virtualenv=venv/bin/activate
-
-if [ ! -d 'venv' ]; then
-  python3.9 -m virtualenv venv
-  source $virtualenv
-  pip install -r requirements.txt
-fi
-
-source $virtualenv
-
 NAME="cp2"                                  # Name of the application
 USER=$USER                                        # the user to run as
 PORT="${CP2_PORT:-8002}"
