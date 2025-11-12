@@ -10,8 +10,8 @@ dependencies = [
     "django==4.2.26",
     "django-utils-six==2.0",
     "gunicorn==23.0.0",
-    "idna==2.6",
+    "idna==3.11",
     "pytz==2018.4",
-    "requests==2.20.0",
+    "requests==2.32.5",
     "urllib3>=1.24.2",
 ]
