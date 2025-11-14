@@ -1,7 +1,12 @@
 FROM registry.ipol.im/ipol-debian
 
-COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt && rm requirements.txt
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:0.8.4 /uv /uvx /bin/
+
+COPY pyproject.toml .
+COPY uv.lock .
+
+RUN uv sync --locked
 
 # needed since the DR raises exception when this is not defined
 # this is probably a bug
