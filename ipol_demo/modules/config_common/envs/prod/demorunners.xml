@@ -21,6 +21,7 @@
     <capability>Matlab</capability>
     <capability>DEBIAN_STABLE</capability>
     <capability>GREEN</capability>
+    <capability>mkdocker</capability>
     <serverSSH>ipol_green_dr</serverSSH>
     <serviceName>ipol-demorunner --user</serviceName>
   </demorunner>
