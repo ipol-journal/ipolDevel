@@ -134,7 +134,7 @@ requires-dist = [
     { name = "python-multipart", specifier = "==0.0.19" },
     { name = "requests", specifier = "==2.32.5" },
     { name = "result", specifier = "==0.8.0" },
-    { name = "tifffile", specifier = "==2021.8.8" },
+    { name = "tifffile", specifier = "==2025.1.10" },
     { name = "uvicorn", specifier = "==0.38.0" },
 ]
 
@@ -479,14 +479,14 @@ wheels = [
 
 [[package]]
 name = "tifffile"
-version = "2021.8.8"
+version = "2025.1.10"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/54/48/684c73f4db1e44068ea58609a2bd93c5cc6b74adc9a9891691605bf1597a/tifffile-2021.8.8.tar.gz", hash = "sha256:8260f31c4700143e8374ff6cde5cef7fe54fc9b7313afe88329f407881901dc5", size = 257047, upload-time = "2021-08-09T07:21:14.279Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d5/fc/697d8dac6936a81eda88e7d4653d567fcb0d504efad3fd28f5272f96fcf9/tifffile-2025.1.10.tar.gz", hash = "sha256:baaf0a3b87bf7ec375fa1537503353f70497eabe1bdde590f2e41cc0346e612f", size = 365585, upload-time = "2025-01-10T19:55:24.166Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3f/81/7b43b2a15cae47aca83734a39cc3fff178175ffb1ab155e0ae7406ea60e1/tifffile-2021.8.8-py3-none-any.whl", hash = "sha256:1309d1f5cc2ee2e8274916dc609922cb2364f947a9d09b388069c63180710dfd", size = 171815, upload-time = "2021-08-09T07:21:12.522Z" },
+    { url = "https://files.pythonhosted.org/packages/59/50/7bef6a1259a2c4b81823653a69d2d51074f7b8095db2abae5abee962ab87/tifffile-2025.1.10-py3-none-any.whl", hash = "sha256:ed24cf4c99fb13b4f5fb29f8a0d5605e60558c950bccbdca2a6470732a27cfb3", size = 227551, upload-time = "2025-01-10T19:55:21.055Z" },
 ]
 
 [[package]]
