@@ -198,8 +198,8 @@ class ArchiveTests(unittest.TestCase):
             self.delete_experiment(id_experiment)
         finally:
             self.assertEqual(status, 200)
-        self.assertTrue(isinstance(demo_list, list))
-        self.assertTrue(len(demo_list) > 0)
+            self.assertTrue(isinstance(demo_list, list))
+            self.assertTrue(len(demo_list) > 0)
 
     def test_update_demo_id(self):
         """
