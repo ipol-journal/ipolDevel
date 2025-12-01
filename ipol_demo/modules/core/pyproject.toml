@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = "==3.13.*"
 dependencies = [
     "cryptography==46.0.0",
-    "fastapi==0.121.2",
+    "fastapi==0.123.0",
     "imagecodecs==2025.11.11",
     "imageio==2.9.0",
     "lxml==6.0.2",
@@ -21,4 +21,9 @@ dependencies = [
     "result==0.8.0",
     "tifffile==2025.1.10",
     "uvicorn==0.38.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.1",
 ]
