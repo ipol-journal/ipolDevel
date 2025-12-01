@@ -38,7 +38,7 @@ jobs:
       - name: Test core
         run: |
           cd ipol_demo/modules/core
-          uv run python -m pytest tests
+          uv run pytest tests
 
   style-check:
     runs-on: ubuntu-latest
