@@ -486,9 +486,9 @@ class Archive:
         """
         meta_info = {}
 
-        meta_info["number_of_experiments_in_a_page"] = (
-            settings.number_of_experiments_by_pages
-        )
+        meta_info[
+            "number_of_experiments_in_a_page"
+        ] = settings.number_of_experiments_by_pages
 
         cursor_db = conn.cursor()
 
