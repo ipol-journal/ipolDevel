@@ -8,6 +8,7 @@ import os.path
 import shutil
 import sqlite3 as lite
 from collections import OrderedDict
+from contextlib import closing
 from datetime import datetime
 
 import magic
@@ -26,21 +27,20 @@ class Archive:
         """
         try:
             # Get all experiments for this demo
-            conn = lite.connect(settings.database_file)
-            cursor_db = conn.cursor()
-            cursor_db.execute(
-                "SELECT DISTINCT id FROM experiments WHERE id_demo = ?", (demo_id,)
-            )
+            with closing(lite.connect(settings.database_file)) as conn:
+                cursor_db = conn.cursor()
+                cursor_db.execute(
+                    "SELECT DISTINCT id FROM experiments WHERE id_demo = ?", (demo_id,)
+                )
 
-            experiment_id_list = cursor_db.fetchall()
-            if not experiment_id_list:
-                return Ok
+                experiment_id_list = cursor_db.fetchall()
+                if not experiment_id_list:
+                    return Ok
 
-            # Delete experiments and files
-            for experiment_id in experiment_id_list:
-                self.delete_exp_w_deps(conn, experiment_id[0])
-            conn.commit()
-            conn.close()
+                # Delete experiments and files
+                for experiment_id in experiment_id_list:
+                    self.delete_exp_w_deps(conn, experiment_id[0])
+                conn.commit()
 
         except Exception:
             message = f"Error deleting demo #{demo_id}"
@@ -172,13 +172,14 @@ class Archive:
         # # initialize list of copied files, to delete them in case of exception
         copied_files_list = []
         try:
-            conn = lite.connect(settings.database_file)
-            id_experiment = self.update_exp_table(conn, demo_id, parameters, execution)
-            dict_corresp = []
-            dict_corresp = self.update_blob(conn, blobs, copied_files_list)
-            self.update_correspondence_table(conn, id_experiment, dict_corresp)
-            conn.commit()
-            conn.close()
+            with closing(lite.connect(settings.database_file)) as conn:
+                id_experiment = self.update_exp_table(
+                    conn, demo_id, parameters, execution
+                )
+                dict_corresp = []
+                dict_corresp = self.update_blob(conn, blobs, copied_files_list)
+                self.update_correspondence_table(conn, id_experiment, dict_corresp)
+                conn.commit()
             return Ok({"experiment_id": id_experiment})
 
         except Exception as ex:
@@ -192,9 +193,9 @@ class Archive:
                 # Execute deletion of copied files
                 for copied_file in copied_files_list:
                     os.remove(copied_file)
-                return Err({"experiment_id": id_experiment})
+                return Err({"message": "DB access locked"})
             except Exception:
-                return Err({"experiment_id": id_experiment})
+                return Err({"message": "DB access locked"})
 
     def get_new_path(
         self, main_directory: str, hash_name: str, file_extension: str, depth: int = 2
@@ -551,24 +552,23 @@ class Archive:
 
         if not os.path.isfile(settings.database_file):
             try:
-                conn = lite.connect(settings.database_file)
-                cursor_db = conn.cursor()
+                with closing(lite.connect(settings.database_file)) as conn:
+                    cursor_db = conn.cursor()
 
-                sql_buffer = ""
+                    sql_buffer = ""
 
-                curdir = os.path.dirname(__file__)
-                with open(
-                    os.path.join(curdir, "drop_create_db_schema.sql"), "r"
-                ) as sql_file:
-                    for line in sql_file:
-                        sql_buffer += line
-                        if lite.complete_statement(sql_buffer):
-                            sql_buffer = sql_buffer.strip()
-                            cursor_db.execute(sql_buffer)
-                            sql_buffer = ""
+                    curdir = os.path.dirname(__file__)
+                    with open(
+                        os.path.join(curdir, "drop_create_db_schema.sql"), "r"
+                    ) as sql_file:
+                        for line in sql_file:
+                            sql_buffer += line
+                            if lite.complete_statement(sql_buffer):
+                                sql_buffer = sql_buffer.strip()
+                                cursor_db.execute(sql_buffer)
+                                sql_buffer = ""
 
-                conn.commit()
-                conn.close()
+                    conn.commit()
 
             except Exception as ex:
                 message = "Error in init_database. Error = {}".format(ex)

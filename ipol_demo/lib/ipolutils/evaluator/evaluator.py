@@ -19,8 +19,8 @@ def evaluate(expression):
     """
     try:
         node = ast.parse(str(expression), mode="eval")
-        if isinstance(node.body, ast.Num):
-            return float(node.body.n)
+        if isinstance(node.body, ast.Constant):
+            return float(node.body.value)
         return _evaluate(node)
     except Exception:
         raise IPOLEvaluateError(expression)
@@ -30,8 +30,8 @@ def _evaluate(node):
     """
     Iterates the Abstract Syntax Tree
     """
-    if isinstance(node, ast.Num):
-        return float(node.n)
+    if isinstance(node, ast.Constant):
+        return float(node.value)
     elif isinstance(node, ast.BinOp):
         return _operate(node.op, _evaluate(node.left), _evaluate(node.right))
     elif isinstance(node, ast.UnaryOp):

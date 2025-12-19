@@ -1,6 +1,7 @@
 import logging
 import sqlite3 as lite
 import traceback
+from contextlib import closing
 from datetime import datetime
 from typing import Union
 
@@ -51,26 +52,23 @@ def stats() -> dict[str, int]:
     data = {}
     conn = None
     try:
-        conn = lite.connect(settings.database_file)
-        cursor_db = conn.cursor()
+        with closing(lite.connect(settings.database_file)) as conn:
+            cursor_db = conn.cursor()
 
-        cursor_db.execute(
-            """
-            SELECT
-            (SELECT COUNT(*) FROM experiments),
-            (SELECT COUNT(*) FROM blobs)
-            """
-        )
-        results = cursor_db.fetchall()
-        data["nb_experiments"] = results[0][0]
-        data["nb_blobs"] = results[0][1]
+            cursor_db.execute(
+                """
+                SELECT
+                (SELECT COUNT(*) FROM experiments),
+                (SELECT COUNT(*) FROM blobs)
+                """
+            )
+            results = cursor_db.fetchall()
+            data["nb_experiments"] = results[0][0]
+            data["nb_blobs"] = results[0][1]
 
     except Exception as ex:
         message = "Failure in stats function. Error: {}".format(ex)
         logging.exception(message)
-    finally:
-        if conn is not None:
-            conn.close()
 
     return data
 
@@ -82,24 +80,21 @@ def executions_per_demo() -> dict[str, int]:
     """
     conn = None
     try:
-        conn = lite.connect(settings.database_file)
-        cursor_db = conn.cursor()
+        with closing(lite.connect(settings.database_file)) as conn:
+            cursor_db = conn.cursor()
 
-        cursor_db.execute(
+            cursor_db.execute(
+                """
+                SELECT id_demo, COUNT(*)
+                FROM experiments
+                GROUP BY id_demo
             """
-            SELECT id_demo, COUNT(*)
-            FROM experiments
-            GROUP BY id_demo
-        """
-        )
-        data = {id: nb for id, nb in cursor_db.fetchall()}
+            )
+            data = {id: nb for id, nb in cursor_db.fetchall()}
 
     except Exception as ex:
         message = "Failure in stats function. Error: {}".format(ex)
         logging.exception(message)
-    finally:
-        if conn is not None:
-            conn.close()
 
     return data
 
@@ -112,18 +107,17 @@ def demo_list() -> dict[str, list]:
     """
     demo_list = []
     try:
-        conn = lite.connect(settings.database_file)
-        cursor_db = conn.cursor()
-        cursor_db.execute(
-            """
-        SELECT DISTINCT id_demo FROM experiments"""
-        )
+        with closing(lite.connect(settings.database_file)) as conn:
+            cursor_db = conn.cursor()
+            cursor_db.execute(
+                """
+            SELECT DISTINCT id_demo FROM experiments"""
+            )
 
-        for row in cursor_db.fetchall():
-            demoid = row[0]
-            demo_list.append(demoid)
+            for row in cursor_db.fetchall():
+                demoid = row[0]
+                demo_list.append(demoid)
 
-        conn.close()
     except Exception as ex:
         message = "Failure in demo_list. Error = {}".format(ex)
         logging.exception(message)
@@ -152,29 +146,24 @@ def get_experiment(experiment_id: int) -> Stored_Experiment:
     """
     Get a single experiment
     """
-    conn = None
     try:
-        conn = lite.connect(settings.database_file)
-        cursor_db = conn.cursor()
-        cursor_db.execute(
-            """SELECT params, execution, timestamp
-            FROM experiments WHERE id = ?""",
-            (experiment_id,),
-        )
-        row = cursor_db.fetchone()
-        if row:
-            experiment = archive.get_data_experiment(
-                conn, experiment_id, row[0], row[1], row[2]
+        with closing(lite.connect(settings.database_file)) as conn:
+            cursor_db = conn.cursor()
+            cursor_db.execute(
+                """SELECT params, execution, timestamp
+                FROM experiments WHERE id = ?""",
+                (experiment_id,),
             )
-        else:
-            message = "Experiment not found"
-            raise HTTPException(status_code=404, detail=message)
-        conn.close()
+            row = cursor_db.fetchone()
+            if row:
+                experiment = archive.get_data_experiment(
+                    conn, experiment_id, row[0], row[1], row[2]
+                )
+            else:
+                message = "Experiment not found"
+                raise HTTPException(status_code=404, detail=message)
     except Exception:
         logging.exception("Error getting experiment #{}".format(experiment_id))
-
-        if conn is not None:
-            conn.close()
         raise HTTPException(status_code=404, detail=message)
 
     return experiment
@@ -225,23 +214,18 @@ def get_page(demo_id: int, page: int = 0) -> dict:
     the last page is used
     """
     try:
-        conn = lite.connect(settings.database_file)
-        meta_info = archive.get_meta_info(conn, demo_id)
-        meta_info["id_demo"] = demo_id
+        with closing(lite.connect(settings.database_file)) as conn:
+            meta_info = archive.get_meta_info(conn, demo_id)
+            meta_info["id_demo"] = demo_id
 
-        if meta_info["number_of_experiments"] == 0:
-            return {"meta_info": meta_info, "experiments": {}}
-        if page > meta_info["number_of_pages"] or page <= 0:
-            page = meta_info["number_of_pages"]
-        experiments = archive.get_experiment_page(conn, demo_id, page)
+            if meta_info["number_of_experiments"] == 0:
+                return {"meta_info": meta_info, "experiments": {}}
+            if page > meta_info["number_of_pages"] or page <= 0:
+                page = meta_info["number_of_pages"]
+            experiments = archive.get_experiment_page(conn, demo_id, page)
 
-        conn.close()
     except Exception:
         logging.exception("Error getting page #{} from demo #{}".format(demo_id, page))
-        try:
-            conn.close()
-        except Exception:
-            pass
 
     return {"meta_info": meta_info, "experiments": experiments}
 
@@ -254,10 +238,9 @@ def delete_experiment(experiment_id: int) -> None:
     Remove an experiment
     """
     try:
-        conn = lite.connect(settings.database_file)
-        if archive.delete_exp_w_deps(conn, experiment_id) > 0:
-            conn.commit()
-            conn.close()
+        with closing(lite.connect(settings.database_file)) as conn:
+            if archive.delete_exp_w_deps(conn, experiment_id) > 0:
+                conn.commit()
 
     except Exception:
         logging.exception("Error deleting experiment #{}".format(experiment_id))
@@ -278,23 +261,22 @@ def delete_blob_w_deps(blob_id: int) -> None:
     Remove a blob
     """
     try:
-        conn = lite.connect(settings.database_file)
-        cursor_db = conn.cursor()
-        list_tmp = []
+        with closing(lite.connect(settings.database_file)) as conn:
+            cursor_db = conn.cursor()
+            list_tmp = []
 
-        for row in cursor_db.execute(
-            """
-            SELECT id_experiment FROM correspondence WHERE id_blob = ?""",
-            (blob_id,),
-        ):
-            tmp = row[0]
-            list_tmp.append(tmp)
+            for row in cursor_db.execute(
+                """
+                SELECT id_experiment FROM correspondence WHERE id_blob = ?""",
+                (blob_id,),
+            ):
+                tmp = row[0]
+                list_tmp.append(tmp)
 
-        for value in list_tmp:
-            archive.delete_exp_w_deps(conn, value)
+            for value in list_tmp:
+                archive.delete_exp_w_deps(conn, value)
 
-        conn.commit()
-        conn.close()
+            conn.commit()
     except Exception:
         logging.exception(
             "Error deleting experiment with dependencies #{}".format(blob_id)
@@ -321,22 +303,20 @@ def update_demo_id(demo_id: int, new_demo_id: int) -> None:
     """
     Change the given old demo ID by the new demo ID
     """
-    conn = None
     try:
         if demo_id != new_demo_id:
-            conn = lite.connect(settings.database_file)
-            cursor_db = conn.cursor()
-            cursor_db.execute(
-                """
-            UPDATE experiments
-            SET id_demo = ?
-            WHERE id_demo = ?
-            """,
-                (new_demo_id, demo_id),
-            )
+            with closing(lite.connect(settings.database_file)) as conn:
+                cursor_db = conn.cursor()
+                cursor_db.execute(
+                    """
+                UPDATE experiments
+                SET id_demo = ?
+                WHERE id_demo = ?
+                """,
+                    (new_demo_id, demo_id),
+                )
 
-            conn.commit()
-            conn.close()
+                conn.commit()
         return None
 
     except Exception as ex:

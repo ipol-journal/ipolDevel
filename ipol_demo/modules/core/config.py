@@ -1,6 +1,7 @@
 import os
+import socket
 
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -12,23 +13,23 @@ class Settings(BaseSettings):
     )
     authorized_patterns: str = f"{config_common_dir}/authorized_patterns.conf"
 
-    base_url: str = os.environ["IPOL_URL"]
+    base_url: str = os.environ.get("IPOL_URL", f"http://{socket.gethostname()}")
 
-    project_folder = os.path.expanduser("~") + "/ipolDevel"
+    project_folder: str = os.path.expanduser("~") + "/ipolDevel"
 
     shared_folder_rel: str = "shared_folder/"
-    shared_folder_abs = os.path.join(project_folder, shared_folder_rel)
-    # demo_extras_main_dir = os.path.join(shared_folder_abs, "demoExtras/")
-    # dl_extras_dir = os.path.join(shared_folder_abs, "dl_extras/")
+    shared_folder_abs: str = os.path.join(project_folder, shared_folder_rel)
+    demo_extras_main_dir: str = os.path.join(shared_folder_abs, "demoExtras/")
+    dl_extras_dir: str = os.path.join(shared_folder_abs, "dl_extras/")
     share_run_dir_rel: str = "run/"
-    share_run_dir_abs = os.path.join(shared_folder_abs, share_run_dir_rel)
+    share_run_dir_abs: str = os.path.join(shared_folder_abs, share_run_dir_rel)
 
     # demoinfo
     demoinfo_db: str = "db/demoinfo.db"
     demoinfo_dl_extras_dir: str = "staticData/demoExtras"
 
     # dispatcher
-    demorunners_path = (
+    demorunners_path: str = (
         os.path.expanduser("~")
         + "/ipolDevel/ipol_demo/modules/config_common/demorunners.xml"
     )

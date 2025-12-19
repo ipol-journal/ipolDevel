@@ -13,7 +13,7 @@ jobs:
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: 3.13
 
       - name: Install system dependencies
         run: |
@@ -32,13 +32,13 @@ jobs:
 
       - name: Install python dependencies
         run: |
-          uv pip install pytest
           uv pip install -r ipol_demo/modules/core/pyproject.toml
+          uv pip install pytest
 
       - name: Test core
         run: |
           cd ipol_demo/modules/core
-          python -m pytest tests
+          uv run pytest tests
 
   style-check:
     runs-on: ubuntu-latest

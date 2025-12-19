@@ -136,7 +136,7 @@ class Image(object):
             raise OSError(errno.ENOENT, "Folder not found", dst_dir)
         mime_type, _ = mimetypes.guess_type(dst_file)
         if mime_type == "image/tiff":
-            tifffile.imsave(
+            tifffile.imwrite(
                 dst_file,
                 self.reverse_channels_order() if self.is_tiff_image() else self.data,
             )
@@ -285,13 +285,18 @@ class Image(object):
                 self.data = self.data.astype(dst_dtype, copy=False)
             # float -> int
             else:
+                self.data = self.data.astype(np.float64, copy=False)
                 src_min, src_max = np.min(self.data), np.max(self.data)
                 # normalize to range [0, 1] and multiply to max for int format
-                self.data = (
-                    (self.data - src_min)
-                    / float(src_max - src_min)
-                    * np.iinfo(dst_dtype).max
-                )
+                if src_max > src_min:
+                    self.data = (
+                        (self.data - src_min)
+                        / float(src_max - src_min)
+                        * np.iinfo(dst_dtype).max
+                    )
+                else:
+                    # All pixels have the same value, set to 0
+                    self.data = np.zeros_like(self.data)
                 self.data = self.data.astype(dst_dtype, copy=False)
 
         # int -> int

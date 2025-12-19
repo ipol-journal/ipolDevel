@@ -3,15 +3,15 @@ name = "cp2"
 version = "0.1.0"
 description = "IPOL CP"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = "==3.12.*"
 dependencies = [
-    "certifi==2018.4.16",
+    "certifi==2025.10.5",
     "chardet==3.0.4",
-    "django==4.1.2",
+    "django==4.2.26",
     "django-utils-six==2.0",
     "gunicorn==23.0.0",
-    "idna==2.6",
+    "idna==3.11",
     "pytz==2018.4",
-    "requests==2.20.0",
-    "urllib3>=1.24.2",
+    "requests==2.32.5",
+    "urllib3>=2.5.0",
 ]

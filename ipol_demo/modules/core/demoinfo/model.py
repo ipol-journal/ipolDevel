@@ -16,6 +16,23 @@ import sqlite3 as lite
 #####################
 
 
+# SQLite does not have a native datetime type.
+# We need to register adapters and converters
+# to store/retrieve datetime objects.
+# Adaptador: datetime -> string ISO
+def adapt_datetime(ts):
+    return ts.isoformat()
+
+
+# Conversor: string ISO -> datetime
+def convert_datetime(s):
+    return datetime.datetime.fromisoformat(s.decode())
+
+
+lite.register_adapter(datetime.datetime, adapt_datetime)
+lite.register_converter("timestamp", convert_datetime)
+
+
 class Demo:
     editorsdemoid: int
     title: str
