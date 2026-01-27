@@ -54,7 +54,7 @@ def run_tests():
     """
     core_dir = os.path.dirname("core")
     for test in tests:
-        python_dir = os.path.join(core_dir, "venv/bin/python")
+        python_dir = os.path.join(core_dir, ".venv/bin/python")
 
         # Execute test
         cmd = shlex.split(
