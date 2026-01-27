@@ -14,7 +14,7 @@ dependencies = [
     "psutil==5.9.5",
     "pydantic==1.10.9",
     "python-magic==0.4.27",
-    "python-multipart==0.0.22",
+    "python-multipart==0.0.19",
     "requests==2.32.5",
     "uvicorn==0.22.0",
     "virtualenv==20.26.6",
