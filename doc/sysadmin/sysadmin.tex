@@ -505,6 +505,34 @@ uv sync
 \texttt{uv self update} & Update \texttt{uv} to the latest version. \\ \hline
 \end{longtable}
 
+\subsection{Component Usage}
+This section details how \texttt{uv} is configured and used for each specific component of the IPOL system.
+
+\begin{itemize}
+    \item \textbf{Core}: The core module is managed via a \texttt{pyproject.toml} file. The systemd service \texttt{ipol-core.service} executes the application using:
+    \begin{verbatim}
+    ~/.local/bin/uv run uvicorn app:app --host 127.0.0.1 --port 10080 --workers 8
+    \end{verbatim}
+
+    \item \textbf{Demorunner}: The demorunner operates within a Docker container. The Dockerfile installs \texttt{uv} and sets up the environment using:
+    \begin{verbatim}
+    COPY pyproject.toml .
+    COPY uv.lock .
+    RUN uv sync --locked
+    \end{verbatim}
+    The \texttt{ipol-demorunner.service} then runs the Docker container, which invokes \texttt{uvicorn} from the virtual environment.
+
+    \item \textbf{Control Panel (CP2)}: The Control Panel also uses a \texttt{pyproject.toml} file. The systemd service \texttt{ipol-cp2.service} starts the application with:
+    \begin{verbatim}
+    ~/.local/bin/uv run ./gunicorn_start_cp2
+    \end{verbatim}
+
+    \item \textbf{CI Tests}: The continuous integration tests located in \texttt{ci\_tests} are managed via a \texttt{pyproject.toml} file. The tests are executed in a managed environment using a script:
+    \begin{verbatim}
+    ./all.py
+    \end{verbatim}
+\end{itemize}
+
 \section{Control Panel}
 To operate the Control Panel (CP) in a production environment is necessary to install and configure some extra dependencies. In our case we use Gunicorn and Nginx. The first is the application server and the second is a reverse proxy.
 
