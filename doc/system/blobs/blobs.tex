@@ -3,12 +3,12 @@
 Note: to avoid confusion, we refer the modules of the IPOL system as ``ipol modules'' and Python modules (files containing Python code) as ``Python modules''.
 
 \subsection{Introduction}
-Each demo of IPOL offers to the user a set of defaults blobs (\textbf{b}inary \textbf{l}arge \textbf{o}bjects). Thus, the users are not forced to supply their own files for the executions of the algorithms. These defaults blobs can be tagged and linked to differents demos.
+Each demo of IPOL offers to the user a set of default blobs (\textbf{b}inary \textbf{l}arge \textbf{o}bjects). Thus, the users are not forced to supply their own files for the executions of the algorithms. These default blobs can be tagged and linked to different demos.
 
-The blobs module is composed of several Python modules. It is composed of the same technical stack as the rest of the rest of the IPOL modules: written in Python, with fastAPI, mounts a router for every endpoind, a database, and using templates for generating HTML responses for webservices destinated to humans.
+The blobs module is composed of several Python modules. It is composed of the same technical stack as the rest of the rest of the IPOL modules: written in Python, with FastAPI, mounts a router for every endpoint, a database, and using templates for generating HTML responses for webservices destined to humans.
 
 \subsection{Router}
-Blobs router is mounted in ``app.py'' and depends on the Core module in order to run. This router will listen to all http requests  destinated to blobs api.
+Blobs router is mounted in ``app.py'' and depends on the Core module in order to run. This router will listen to all http requests  destined to blobs api.
 
 \subsection{Error control}
 This module describes the errors issued by the Blobs IPOL module and adds color to the error messages printed in the terminal.
@@ -27,18 +27,18 @@ In the figure~\ref{fig:blobs_database}, id fields are the primary keys (it is wo
 Three tables, demo, blob and tag, contains the information about referenced demos, blobs, and tags relating to blobs. Two junction tables link this information together, referencing the blobs standards to a demo, and the tags owned by each blobs.
 
 \subsubsection{Database access}
-This module offers an interface for accessing the database. One object of the class Database should be instanciated for each operation modifying it. Even if it has function for connecting and closing, they should not be used as such, for flow control issues (for example, an exception leaving a connection open). A very simple abstraction, the DatabaseConnection class, is present in the blobs Python module for the task of managing the connection. It allow a scope-controlled connection to the database, ensuring that it will be closed no matter what once the execution flow leave the scope where it was open, even when an exception is thrown.
+This module offers an interface for accessing the database. One object of the class Database should be instantiated for each operation modifying it. Even if it has function for connecting and closing, they should not be used as such, for flow control issues (for example, an exception leaving a connection open). A very simple abstraction, the DatabaseConnection class, is present in the blobs Python module for the task of managing the connection. It allow a scope-controlled connection to the database, ensuring that it will be closed no matter what once the execution flow leave the scope where it was open, even when an exception is thrown.
 
-Otherwise, this Python module offers us simple methods for interacting with the database, or obtaining metrics of it, such as the total number of blobs. They generally return the information asked if such case apply. For the format of the responses and the different function, we refer the reader to the code of the module itself. It is worth noting that one webservice, delete\_blob\_from\_demo, recompute the positions of the blobs in a set in which a blob was deleted. If this function is accessed concurrently by multiple threads (the most likely case is if a webservice calling this function is accessed several times in a very short span), the blobs can end up with miscalculated positions. Non-concurrential access should be enforced by locking the scope where this webservice is called. Such a lock is used in the delete\_blob\_ws webservice in the blobs Python module.
+Otherwise, this Python module offers us simple methods for interacting with the database, or obtaining metrics of it, such as the total number of blobs. They generally return the information asked if such case apply. For the format of the responses and the different function, we refer the reader to the code of the module itself. It is worth noting that one webservice, delete\_blob\_from\_demo, recompute the positions of the blobs in a set in which a blob was deleted. If this function is accessed concurrently by multiple threads (the most likely case is if a webservice calling this function is accessed several times in a very short span), the blobs can end up with miscalculated positions. Non-concurrent access should be enforced by locking the scope where this webservice is called. Such a lock is used in the delete\_blob\_ws webservice in the blobs Python module.
 
 \subsection{The Blobs module}
-The blobs Python module is the core of this. It implement three classes, DatabaseConnection as referenced earlier in the present documentation, and MyFieldStorage, for intermediate storage of the uploaded blobs in the /tmp/ directory, and Blobs as an encapsulation of the webservices and the data they use. It also has some utilitary function.
+The blobs Python module is the core of this. It implement three classes, DatabaseConnection as referenced earlier in the present documentation, and MyFieldStorage, for intermediate storage of the uploaded blobs in the /tmp/ directory, and Blobs as an encapsulation of the webservices and the data they use. It also has some utility function.
 
 The Blobs class implements all methods needed to create, update and remove blobs and templates in relation to demos.
 
-The webservices of the module access the database via instanciations of Database objects managed by the DatabaseConnection class. Some read information, and some modify the database by adding or removing information. For handling a webservice automatically and charging his JSON response as a Python object, the utilitary function use\_web\_service is used.
+The webservices of the module access the database via instantiations of Database objects managed by the DatabaseConnection class. Some read information, and some modify the database by adding or removing information. For handling a webservice automatically and charging his JSON response as a Python object, the utility function use\_web\_service is used.
 
-Logging is utilized as a mean to retrieve the errors occuring in the system. The logger implemented in the blobs Python module handle all the errors of the module. It is passed to each Database object instanciation.
+Logging is utilized as a mean to retrieve the errors occurring in the system. The logger implemented in the blobs Python module handle all the errors of the module. It is passed to each Database object instantiation.
 
 \subsection{Visual Representations}
 Each blob is associated with a thumbnail that is used by the web interface to represent it (see figure~\ref{fig:blob_thumbnail_example}). This thumbnail is created during the upload of the blob.  
@@ -75,5 +75,3 @@ A demo editor can avoid this situation by uploading an image as the visual repre
 \label{fig:visual_representation}
 \end{figure}
 %
-
-

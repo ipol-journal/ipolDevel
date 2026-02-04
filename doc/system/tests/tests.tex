@@ -2,12 +2,12 @@
 \label{sec:Tests}
 \subsection{Introduction}
 
-The objective of the tests is to analyze automatically if the system fits the intended use. For that purpose the system is analized with two
+The objective of the tests is to analyze automatically if the system fits the intended use. For that purpose the system is analyzed with two
 types of tests, the first one are the Integration Tests in which individual software modules are combined and tested as a group, this implies from
 the creation of a demo to its execution. The second one are the Unit Tests that are executed for each module and checks the response of all the
 exposed methods.
 
-Those tests are automatically executed in the integration and production enviroments every day by the crontab and every time a pull is made by 
+Those tests are automatically executed in the integration and production environments every day by the crontab and every time a pull is made by 
 the terminal.py script. If any of those test fail, an email is sent to all the emails listed in the /ci\_tests/send\_to.txt file.
 
 
@@ -44,5 +44,5 @@ will be send to the email list reporting the failure.
 This script is executed periodically every day at 10:00 am by the following instruction in the crontab: \begin{lstlisting}[language=Bash]
  0 10 * * * /home/ipol/ipolDevel/ci_tests/pull.sh
 \end{lstlisting} in order to detect possible failures in the integration and production
-enviroments, e.g. down modules, lack of disk memory, etc. Or every time a pull is made from the terminal.py script to check if the added cahnges do not
+environments, e.g. down modules, lack of disk memory, etc. Or every time a pull is made from the terminal.py script to check if the added changes do not
 damage the system.

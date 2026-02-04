@@ -9,7 +9,7 @@ When new members arrive at the development team they need to set up their enviro
     \item Sign up in our Demo Editing group in Google Groups
     \item Create a new RSA key with {\tt ssh-keygen}
     \item Clone the repository from GitHub: {\tt git clone git@github.com:ipol-journal/ipolDevel.git}
-    \item Download a good Python IDE. For example: Pycharm.
+    \item Download a good Python IDE. For example: PyCharm.
 \end{itemize}
 
 \paragraph{SSH} \hspace{0pt} \\
@@ -63,7 +63,7 @@ The following command creates {\tt server.csr}. It will ask for a challenge pass
 
 {\tt openssl req -new -newkey rsa:2048 -nodes -keyout server.key -out server.csr}.
 
-Once created, the CSR must be sent to the Certification Authority, which will responde the request with a set of files. In our case, it was:
+Once created, the CSR must be sent to the Certification Authority, which will respond the request with a set of files. In our case, it was:
 \begin{itemize}
     \item ipolcore\_ipol\_im.ca-bundle: public keys of the CAs;
     \item ipolcore\_ipol\_im.crt: public key of the SSL certificate;
