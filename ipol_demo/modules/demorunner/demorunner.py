@@ -638,12 +638,8 @@ async def exec_and_wait(
         stderr_content = read_workdir_file(work_dir, "stderr.txt")
         stdout_content = read_workdir_file(work_dir, "stdout.txt")
         # Put them in the message for the web interface
-        res_data["algo_info"]["error_message"] = (
-            "Runtime error\n\
-stderr: {}\nstdout: {}".format(
-                stderr_content, stdout_content
-            )
-        )
+        res_data["algo_info"]["error_message"] = "Runtime error\n\
+stderr: {}\nstdout: {}".format(stderr_content, stdout_content)
         res_data["error"] = str(ex)
         logger.error(res_data)
 
@@ -701,10 +697,8 @@ def read_authorized_patterns() -> list:
         settings.config_common_dir, settings.authorized_patterns
     )
     if not os.path.isfile(authorized_patterns_path):
-        logger.exception(
-            f"read_authorized_patterns: \
-                      File {authorized_patterns_path} doesn't exist"
-        )
+        logger.exception(f"read_authorized_patterns: \
+                      File {authorized_patterns_path} doesn't exist")
         return []
 
     # Read config file
