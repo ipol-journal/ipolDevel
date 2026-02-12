@@ -305,8 +305,7 @@ def get_ssh_keys(demo_id: int):
     if isinstance(result, Ok):
         pubkey, privkey = result.value
         data = {
-            "pubkey": pubkey,
-            "privkey": privkey,
+            "pubkey": pubkey
         }
     else:
         data = {"error": result.value}
