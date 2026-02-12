@@ -17,5 +17,5 @@ dependencies = [
     "python-multipart==0.0.19",
     "requests==2.32.5",
     "uvicorn==0.22.0",
-    "virtualenv==20.26.6",
+    "virtualenv==20.36.1",
 ]
