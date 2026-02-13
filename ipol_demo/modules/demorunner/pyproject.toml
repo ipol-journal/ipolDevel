@@ -22,5 +22,5 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "black>=23.0.0",
+    "black~=23.0",
 ]
