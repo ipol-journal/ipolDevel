@@ -23,7 +23,6 @@ import tempfile
 import time
 import urllib.error
 import urllib.parse
-import urllib.request
 import zipfile
 from string import Template
 from subprocess import PIPE, Popen
@@ -636,15 +635,11 @@ async def exec_and_wait(
         logger.error(f"exec_and_wait IPOLTimeoutError, demo_id={demo_id}")
     except RuntimeError as ex:
         # Read stderr and stdout
-        stderr_content = read_workdir_file(work_dir, "stderr.txt")
-        stdout_content = read_workdir_file(work_dir, "stdout.txt")
+        stderr_txt = read_workdir_file(work_dir, "stderr.txt")
+        stdout_txt = read_workdir_file(work_dir, "stdout.txt")
         # Put them in the message for the web interface
-        res_data["algo_info"][
-            "error_message"
-        ] = "Runtime error\n\
-stderr: {}\nstdout: {}".format(
-            stderr_content, stdout_content
-        )
+        error_message = f"Runtime error\nstderr: {stderr_txt}\nstdout: {stdout_txt}"
+        res_data["algo_info"]["error_message"] = error_message
         res_data["error"] = str(ex)
         logger.error(res_data)
 
