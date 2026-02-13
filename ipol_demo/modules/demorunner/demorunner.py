@@ -697,10 +697,8 @@ def read_authorized_patterns() -> list:
         settings.config_common_dir, settings.authorized_patterns
     )
     if not os.path.isfile(authorized_patterns_path):
-        logger.exception(
-            f"read_authorized_patterns: \
-                      File {authorized_patterns_path} doesn't exist"
-        )
+        logger.exception(f"read_authorized_patterns: \
+                      File {authorized_patterns_path} doesn't exist")
         return []
 
     # Read config file
