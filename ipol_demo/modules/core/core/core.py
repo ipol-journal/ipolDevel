@@ -853,12 +853,31 @@ class Core:
         if not emails:
             return
 
-        # Attach experiment in zip file and send the email
-        text = "This is the IPOL Core machine.\n\n\
-    The execution with key={} of demo #{} on {} has failed.\nProblem: {}.\nPlease find \
-    attached the failed experiment data.".format(
-            key, demo_id, demorunner, message
-        )
+        # Create persistent error archive directory
+        error_dir = os.path.join(self.shared_folder_abs, "error_archives")
+        os.makedirs(error_dir, exist_ok=True)
+
+        zip_filename = os.path.join(error_dir, "{}.zip".format(key))
+
+        # Zip the contents of the failed experiment
+        zipf = zipfile.ZipFile(zip_filename, "w", zipfile.ZIP_DEFLATED)
+        run_path = os.path.join(self.shared_folder_abs, "run", str(demo_id), key)
+        self.zipdir(run_path, zipf)
+        zipf.close()
+
+        logger.info(f"Persistent ZIP created at: {zip_filename}")
+
+        # Generate download link
+        download_url = f"{self.base_url}/api/core/error-archive/{key}.zip"
+
+        text = f"""This is the IPOL Core machine.
+        
+        The execution with key={key} of demo #{demo_id} on {demorunner} has failed.
+        Problem: {message}.
+        
+        The failed experiment archive can be downloaded here:
+        {download_url}
+        """
 
         if self.server_environment == "production":
             machine = "Core"
@@ -867,12 +886,6 @@ class Core:
 
         subject = "[IPOL {}] Demo #{} execution failure".format(machine, demo_id)
 
-        # Zip the contents of the tmp/ directory of the failed experiment
-        zip_filename = "/tmp/{}.zip".format(key)
-        zipf = zipfile.ZipFile(zip_filename, "w", zipfile.ZIP_DEFLATED)
-        self.zipdir("{}/run/{}/{}".format(self.shared_folder_abs, demo_id, key), zipf)
-        zipf.close()
-
         # Send email only if the demo is not in the ignored id list
         if demo_id not in id_list:
             self.send_email(
@@ -880,12 +893,7 @@ class Core:
                 text,
                 emails,
                 config_emails["sender"],
-                zip_filename=zip_filename,
             )
-        try:
-            os.remove(zip_filename)
-        except OSError:
-            pass
 
     def send_demorunner_unresponsive_email(self, unresponsive_demorunners):
         """
