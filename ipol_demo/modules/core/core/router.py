@@ -24,8 +24,7 @@ from core.errors import (
 )
 from demoinfo import demoinfo
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import HTMLResponse
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from guards import validate_ip
 from ipolutils.evaluator.evaluator import IPOLEvaluateError
 from logger import logger
