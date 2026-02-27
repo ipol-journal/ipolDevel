@@ -447,6 +447,92 @@ For the integration server we use certbot to generate and automatically renew SS
 \end{itemize}
 
 
+
+\section{Python Management with uv}
+The IPOL Demo System is moving towards using \texttt{uv} for Python package and environment management. \texttt{uv} is an extremely fast Python package manager written in Rust, designed as a drop-in replacement for \texttt{pip} and \texttt{virtualenv}.
+
+\subsection{Installation}
+To install \texttt{uv} on a server, run the following command:
+\begin{verbatim}
+curl -LsSf https://astral.sh/uv/install.sh | sh
+\end{verbatim}
+Alternatively, it can be installed via \texttt{pip} (though the script above is preferred for standalone usage):
+\begin{verbatim}
+pip install uv
+\end{verbatim}
+
+\subsection{Why use uv?}
+\begin{itemize}
+    \item \textbf{Speed}: Much faster than \texttt{pip} by caching and parallel download of packages and using rust as a programming language.
+    \item \textbf{Unified Tooling}: Replaces \texttt{pip}, \texttt{venv} and \texttt{pyenv}.
+    \item \textbf{Reproducibility}: Better handling of lockfiles and dependency resolution.
+    \item \textbf{No Python required}: It is a standalone binary that can manage Python versions.
+\end{itemize}
+
+\subsection{Migrating from pip/virtualenv}
+Instead of the traditional workflow:
+\begin{verbatim}
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+\end{verbatim}
+Use \texttt{uv}:
+\begin{verbatim}
+uv venv
+uv pip install -r requirements.txt
+\end{verbatim}
+Or even better, if a \texttt{pyproject.toml} exists:
+\begin{verbatim}
+uv sync
+\end{verbatim}
+
+\subsection{Useful Commands (Cheatsheet)}
+
+\begin{longtable}{|p{6cm}|p{8cm}|}
+\hline
+\textbf{Command} & \textbf{Description} \\ \hline
+\endfirsthead
+\hline
+\textbf{Command} & \textbf{Description} \\ \hline
+\endhead
+\texttt{uv python install 3.14} & Install a specific Python version. \\ \hline
+\texttt{uv venv} & Create a virtual environment in \texttt{.venv/}. \\ \hline
+\texttt{uv pip install flask} & Install a specific package. \\ \hline
+\texttt{uv pip install -r reqs.txt} & Install packages from a file. \\ \hline
+\texttt{uv pip compile pyproject.toml -o requirements.txt} & Generate a lockfile from dependencies. \\ \hline
+\texttt{uv run script.py} & Run a script in an ephemeral or managed environment. \\ \hline
+\texttt{uv sync} & Install dependencies and setup project (requires \texttt{pyproject.toml}). \\ \hline
+\texttt{uv self update} & Update \texttt{uv} to the latest version. \\ \hline
+\end{longtable}
+
+\subsection{Component Usage}
+This section details how \texttt{uv} is configured and used for each specific component of the IPOL system.
+
+\begin{itemize}
+    \item \textbf{Core}: The core module is managed via a \texttt{pyproject.toml} file. The systemd service \texttt{ipol-core.service} executes the application using:
+    \begin{verbatim}
+    ~/.local/bin/uv run uvicorn app:app --host 127.0.0.1 --port 10080 --workers 8
+    \end{verbatim}
+
+    \item \textbf{Demorunner}: The demorunner operates within a Docker container. The Dockerfile installs \texttt{uv} and sets up the environment using:
+    \begin{verbatim}
+    COPY pyproject.toml .
+    COPY uv.lock .
+    RUN uv sync --locked
+    \end{verbatim}
+    The \texttt{ipol-demorunner.service} then runs the Docker container, which invokes \texttt{uvicorn} from the virtual environment.
+
+    \item \textbf{Control Panel (CP2)}: The Control Panel also uses a \texttt{pyproject.toml} file. The systemd service \texttt{ipol-cp2.service} starts the application with:
+    \begin{verbatim}
+    ~/.local/bin/uv run ./gunicorn_start_cp2
+    \end{verbatim}
+
+    \item \textbf{CI Tests}: The continuous integration tests located in \texttt{ci\_tests} are managed via a \texttt{pyproject.toml} file. The tests are executed in a managed environment using a script:
+    \begin{verbatim}
+    ./all.py
+    \end{verbatim}
+\end{itemize}
+
 \section{Control Panel}
 To operate the Control Panel (CP) in a production environment is necessary to install and configure some extra dependencies. In our case we use Gunicorn and Nginx. The first is the application server and the second is a reverse proxy.
 
