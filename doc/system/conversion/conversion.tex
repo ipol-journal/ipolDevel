@@ -39,7 +39,7 @@ Many libraries have been tested, the final choice has been OpenCV. OpenCV (Open 
 Tifffile is a Python wrapper for the C libtiff library providing a numpy access to image data. This library seems actually the more robust, no bug has been found yet.
 
 \paragraph{libtiff} \hspace{0pt} \\
-Libtiff is a Python wrapper for the C libtiff library, providing numpy.memmap view of tiff data. This library is quite robust but a bug has been observed on reading images with endianess equals to ``MSB''.
+Libtiff is a Python wrapper for the C libtiff library, providing numpy.memmap view of tiff data. This library is quite robust but a bug has been observed on reading images with endianness equals to ``MSB''.
 
 \paragraph{pillow} \hspace{0pt} \\
 Pillow is the most common Python library for images. It is well documented with a simple API, but, it does not support other formats than the common integer 8 bits.
@@ -57,10 +57,9 @@ ITK is a C++ library to process medical images. SimpleITK is a layer on ITK, sup
 PyPNG is a pure Python library, handling the PNG format. It could be very slow (40 times more than OpenCV to read big images). 
 
 \paragraph{imageio} \hspace{0pt} \\
-Imageio is a Python library that provides an interface to read and write a wide range of image data for numpy. But it has no original code, it silently choses among plugins like Pillow, OpenCV or SimpleITK, according to the extension, but without access to all the options of the original libraries.
+Imageio is a Python library that provides an interface to read and write a wide range of image data for numpy. But it has no original code, it silently chooses among plugins like Pillow, OpenCV or SimpleITK, according to the extension, but without access to all the options of the original libraries.
 
 \paragraph{scikit-image} \hspace{0pt} \\
 Scikit is a Python library for image processing, designed to interoperate with scipy and numpy. It uses OpenCV behind the API.
-
 
 

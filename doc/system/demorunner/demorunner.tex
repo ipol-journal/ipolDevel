@@ -17,7 +17,7 @@ The DemoRunner module executes the experiment according to this workflow:
 
 This step ensures that IPOL always uses the last version of the source codes provided by the authors. 
 
-The first time that a demo is executed, the module downloads, extracts, and compiles the source codes from the URL specified at the DDL. This URL is the link where the author's codes are stored. The, the specified files (say, the binaries or scripts) are moved to the binaries directory.
+The first time that a demo is executed, the module downloads, extracts, and compiles the source codes from the URL specified at the DDL. This URL is the link where the author's codes are stored. Then, the specified files (say, the binaries or scripts) are moved to the binaries directory.
 
 Therefore, DemoRunner will compare differences between the information from the HTTP header of the remote file with its local copy. If there have been any modifications in the size or the dates, the system will consider the local copy out of day and it will download and compile the sources again. 
 
@@ -56,4 +56,4 @@ This module provides a mechanism that allows the caller to recover information a
 
 The module takes care of stopping the demo execution if a problem is detected. It can be in the preparation of the execution (not supported inputs for the demo, a runtime error, incorrect syntax in the run section at the DDL, for example). In these cases, the module notifies the caller about the causes of the failure.
 
-Another reason for stopping an execution is when a demo exceeds a configured running time. It can be because of a malfunction in the author's program that makes it never finish or simply because the execution time is too long (a timeout). The demo editors can configure a maximum timeout in the DDLs. In any cae, the DemoRunner has its own maximum timeout which can override what the user configured in case that was too short or too long.
+Another reason for stopping an execution is when a demo exceeds a configured running time. It can be because of a malfunction in the author's program that makes it never finish or simply because the execution time is too long (a timeout). The demo editors can configure a maximum timeout in the DDLs. In any case, the DemoRunner has its own maximum timeout which can override what the user configured in case that was too short or too long.

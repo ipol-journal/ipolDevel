@@ -3,7 +3,7 @@
 The Control Terminal is an standalone application intended for system administration which allows to start, stop, and query the status of each of the IPOL modules. It reads the IPOL configuration from the XML files at {\tt ipolDevel/ipol\_demo/modules/config\_common}.
 
 \subsubsection{Structure}
-The Control Terminal is a command-line application to control the IPOL modules at each environment. The terminal is set to particular  enviroment to send the commands to the server in that environment. For example, the local, integration, or production environments. The current environment can be get or set with the {\tt env} command.
+The Control Terminal is a command-line application to control the IPOL modules at each environment. The terminal is set to particular environment to send the commands to the server in that environment. For example, the local, integration, or production environments. The current environment can be get or set with the {\tt env} command.
 
 \paragraph{XML files} \hspace{0pt} \\
 The XML files {\tt modules.xml} and {\tt demorunners.xml} are used by the IPOL modules when started. The Terminal reads these configuration files when started or when the environment is changed.
@@ -17,7 +17,7 @@ In {\tt modules.xml} the fields are:
     \item command: it declares a command that the module is able to execute
 \end{itemize}
 
-The {\tt demorunners.xml} lists and configures each of the demoRunners in that enviroment.
+The {\tt demorunners.xml} lists and configures each of the demoRunners in that environment.
 
 \subsubsection{Commands}
 \paragraph{start} \hspace{0pt} \\
@@ -49,7 +49,7 @@ It displays the list of the modules in the IPOL system.
 \paragraph{env} \hspace{0pt} \\
 Usage: {\tt env <environment>}
 
-It prints the current enviroment when called without any parameters, or sets the specified enviroment.
+It prints the current environment when called without any parameters, or sets the specified environment.
 
 \paragraph{help} \hspace{0pt} \\
 Usage: {\tt help}

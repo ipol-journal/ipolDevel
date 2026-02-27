@@ -27,13 +27,13 @@ The possible results from the check are:
 \end{itemize}
 
 \subsubsection{Serving static content}
-The {\tt html} directory of the demoExtras is served staticly by the system to allow the web interface access this data. It can be useful to show extra graphics or videos, or to allow the download of datasets in some especial demos.
+The {\tt html} directory of the demoExtras is served statically by the system to allow the web interface access this data. It can be useful to show extra graphics or videos, or to allow the download of datasets in some special demos.
 
 For example, if in the demoExtras package of demo \#125 it exists a file ``image.png", it will be served from \url{http://ipolcore.ipol.im/demo/clientApp/static/125/image.png}
 
 
 \subsection{Editor-controlled demo failures}
-The Editor has the possibility to detect that some conditions are not met and notify the system that the execution of the demo failed, even if the program did not crash or the running script exited with a sucessful exit code. Indeed, a demoExtras script in the demo could check, for example, if the aspect ratio of the image is what the algorithm excepts, and prevent the actual execution.
+The Editor has the possibility to detect that some conditions are not met and notify the system that the execution of the demo failed, even if the program did not crash or the running script exited with a successful exit code. Indeed, a demoExtras script in the demo could check, for example, if the aspect ratio of the image is what the algorithm expects, and prevent the actual execution.
 
 The mechanism is simple: the editors can write a "demo\_failure.txt" file and stop the execution with an exit
 code 0. The Core interprets the presence of this file as the demo itself signalling a problem.

@@ -2,7 +2,7 @@
 \label{sec:Dispatcher}
 \subsection{Introduction}
 In order to distribute the load in several machines, this module is responsible to assign a demorunner according to a policy and the given requirements. 
-The demorunners list is provided by the core module wich is in charge of reading the demorunners.xml where all the demorunners are. If the 
+The demorunners list is provided by the core module which is in charge of reading the demorunners.xml where all the demorunners are. If the
 demorunner.xml file changes, there are two ways for reload the list loaded in memory, the first one is calling the function refresh\_demorunners
 in the core and the other one is reloading the core and dispatcher module.
 
@@ -29,4 +29,3 @@ Until now the implemented policies are:
 When computing the policies, the requirements of the demo are compared to the capabilities of the demorunner.
 If a demo has a requirement "x", then the demorunner has to have the capability "x" or "x!". This allows to exclude GPU demos to non-GPU demorunners.
 If a capability is of the form "x!", then the demo has to have the requirement "x". For example, this allows to exclude non-GPU demos to GPU demorunners
-
