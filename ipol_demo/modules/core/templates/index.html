@@ -278,6 +278,7 @@
             }
 
             // Render each state
+            let htmlChunks = [];
             Object.keys(demosByState).forEach(state => {
                 const stateDemos = demosByState[state];
                 // Sort by demo ID descending
@@ -287,42 +288,38 @@
                     return idB - idA;
                 });
 
-                // Create Header
-                const h2 = document.createElement('h2');
-                h2.id = state;
-                h2.textContent = state;
-                container.appendChild(h2);
-
-                // Create Group
-                const groupDiv = document.createElement('div');
-                groupDiv.className = 'demo-group';
+                let groupHtml = `<h2 id="${state}">${state}</h2><div class="demo-group">`;
 
                 stateDemos.forEach(demo => {
                     const demoIdStr = String(demo.editorsdemoid);
                     const isPrivate = demoIdStr.startsWith('33333');
                     const privateBadge = isPrivate ? " <span class='badge private'>(private)</span>" : "";
 
-                    const itemDiv = document.createElement('a');
-                    itemDiv.className = 'demo-item';
-                    itemDiv.href = `/demo/clientApp/demo.html?id=${demo.editorsdemoid}`;
-                    itemDiv.target = '_blank';
-                    itemDiv.innerHTML = `
-                        <span class='demo-id'>Demo #${demo.editorsdemoid}</span>${privateBadge}: 
-                        <span class='demo-title'>${demo.title}</span>
+                    groupHtml += `
+                        <a class="demo-item" href="/demo/clientApp/demo.html?id=${demo.editorsdemoid}" target="_blank">
+                            <span class="demo-id">Demo #${demo.editorsdemoid}</span>${privateBadge}: 
+                            <span class="demo-title">${demo.title}</span>
+                        </a>
                     `;
-                    groupDiv.appendChild(itemDiv);
                 });
 
-                container.appendChild(groupDiv);
+                groupHtml += `</div>`;
+                htmlChunks.push(groupHtml);
             });
+
+            container.innerHTML = htmlChunks.join('');
         }
 
-        // Attach event listener for filtering
+        // Attach event listener for filtering (debounced)
+        let searchTimeout;
         searchInput.addEventListener('input', (e) => {
-            renderDemos(e.target.value);
-            // Reset focus when typing
-            currentFocusIndex = -1;
-            updateFocus();
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                renderDemos(e.target.value);
+                // Reset focus when typing
+                currentFocusIndex = -1;
+                updateFocus();
+            }, 150);
         });
 
         // Keyboard navigation state
