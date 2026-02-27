@@ -20,7 +20,6 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import zipfile
-from collections import OrderedDict
 from datetime import datetime
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
@@ -125,15 +124,15 @@ class Core:
         Index page
         """
         result = self.demoinfo.demo_list()
-        
+
         if result.is_err():
             self.send_internal_error_email("Unable to get the list of demos")
             return (
                 "<!DOCTYPE html>\n"
-                "<html lang=\"en\">\n"
+                '<html lang="en">\n'
                 "<head>\n"
-                "    <meta charset=\"utf-8\">\n"
-                "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
+                '    <meta charset="utf-8">\n'
+                '    <meta name="viewport" content="width=device-width, initial-scale=1">\n'
                 "    <title>IPOL demos</title>\n"
                 "    <style>\n"
                 "        body { font-family: system-ui, -apple-system, sans-serif; text-align: center; margin-top: 50px; color: #333; }\n"
@@ -154,20 +153,24 @@ class Core:
             editorsdemoid = demo["editorsdemoid"]
             if code_starts and not str(editorsdemoid).startswith(code_starts):
                 continue
-            
-            filtered_demos.append({
-                "editorsdemoid": editorsdemoid,
-                "title": demo["title"],
-                "state": demo["state"]
-            })
 
-        template_path = os.path.join(os.path.dirname(__file__), "..", "templates", "index.html")
+            filtered_demos.append(
+                {
+                    "editorsdemoid": editorsdemoid,
+                    "title": demo["title"],
+                    "state": demo["state"],
+                }
+            )
+
+        template_path = os.path.join(
+            os.path.dirname(__file__), "..", "templates", "index.html"
+        )
         with open(template_path, "r", encoding="utf-8") as f:
             template_content = f.read()
 
         return string.Template(template_content).safe_substitute(
             demos_json=json.dumps(filtered_demos),
-            show_info="true" if not code_starts else "false"
+            show_info="true" if not code_starts else "false",
         )
 
     @staticmethod
