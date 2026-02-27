@@ -94,10 +94,16 @@
             border-radius: 6px;
         }
 
-        .demo-item:hover {
+        .demo-item:hover,
+        .demo-item.keyboard-focused {
             background-color: #f8f9fa;
             transform: translateX(4px);
             box-shadow: -4px 0 0 var(--link-color);
+            outline: none;
+        }
+
+        .demo-item:focus {
+            outline: none;
         }
 
         .demo-item:last-child {
@@ -289,20 +295,75 @@
             });
         }
 
-        // Attach event listener
+        // Attach event listener for filtering
         searchInput.addEventListener('input', (e) => {
             renderDemos(e.target.value);
+            // Reset focus when typing
+            currentFocusIndex = -1;
+            updateFocus();
         });
 
-        // Global hotkey to focus search '/'
-        document.addEventListener('keydown', (e) => {
-            if (e.key === '/') {
-                // If they are already focused in an input/textarea, do nothing so they can actually type '/'
-                if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
-                    return;
+        // Keyboard navigation state
+        let currentFocusIndex = -1;
+
+        function updateFocus() {
+            const items = Array.from(document.querySelectorAll('.demo-item'));
+            items.forEach((item, index) => {
+                if (index === currentFocusIndex) {
+                    item.classList.add('keyboard-focused');
+                    // Scroll into view if needed
+                    item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else {
+                    item.classList.remove('keyboard-focused');
                 }
+            });
+        }
+
+        // Global hotkey to focus search '/' and handle arrow keys
+        document.addEventListener('keydown', (e) => {
+            const isInputFocused = document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA';
+            const items = Array.from(document.querySelectorAll('.demo-item'));
+
+            if (e.key === '/') {
+                if (isInputFocused) return;
                 e.preventDefault();
                 searchInput.focus();
+                return;
+            }
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (items.length > 0) {
+                    currentFocusIndex = Math.min(currentFocusIndex + 1, items.length - 1);
+                    updateFocus();
+                    // Blur search to prevent input cursor from moving
+                    if (isInputFocused) searchInput.blur();
+                }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (items.length > 0) {
+                    currentFocusIndex = Math.max(currentFocusIndex - 1, -1);
+                    if (currentFocusIndex === -1) {
+                        // Focus back onto the search input
+                        updateFocus();
+                        searchInput.focus();
+                        // Put cursor at end of input
+                        const val = searchInput.value;
+                        searchInput.value = '';
+                        searchInput.value = val;
+                    } else {
+                        updateFocus();
+                    }
+                }
+            } else if (e.key === 'Enter') {
+                if (currentFocusIndex >= 0 && currentFocusIndex < items.length) {
+                    e.preventDefault();
+                    items[currentFocusIndex].click();
+                }
+            } else if (e.key === 'Escape') {
+                if (isInputFocused) searchInput.blur();
+                currentFocusIndex = -1;
+                updateFocus();
             }
         });
 
