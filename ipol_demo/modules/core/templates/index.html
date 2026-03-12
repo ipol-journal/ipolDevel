@@ -150,25 +150,26 @@
         .search-input-wrapper {
             position: relative;
             width: 100%;
-            max-width: 600px;
+            max-width: 100%;
         }
 
         .search-input {
             width: 100%;
-            padding: 0.8rem 1.2rem;
-            padding-right: 3rem;
+            padding: 1rem 1.5rem;
+            padding-right: 3.5rem;
             /* Make room for the shortcut visual */
-            font-size: 1rem;
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
+            font-size: 1.1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 24px;
             outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
             box-sizing: border-box;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
         }
 
         .search-input:focus {
             border-color: var(--link-color);
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.18);
         }
 
         .slash-shortcut {
@@ -211,6 +212,44 @@
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
+
+        .stats-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            padding: 0.4rem 0.9rem;
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 0.4rem;
+            flex: 1;
+            min-width: 70px;
+        }
+
+        .stats-card .stats-number {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            line-height: 1;
+        }
+
+        .stats-card .stats-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #6c757d;
+        }
+
+        .stats-card.stats-total .stats-number {
+            color: var(--link-color);
+        }
     </style>
 </head>
 
@@ -228,6 +267,7 @@
         </div>
     </div>
     <div id="info-container"></div>
+    <div class="stats-bar" id="stats-bar"></div>
     <div id="demos-container"></div>
 
     <script>
@@ -272,6 +312,8 @@
                 matchCount++;
             });
 
+
+
             if (matchCount === 0) {
                 container.innerHTML = '<div class="no-results">No demos found matching your search.</div>';
                 return;
@@ -308,6 +350,20 @@
             });
 
             container.innerHTML = htmlChunks.join('');
+        }
+
+        function initStatsBar() {
+            const allByState = {};
+            demos.forEach(demo => {
+                if (!allByState[demo.state]) allByState[demo.state] = 0;
+                allByState[demo.state]++;
+            });
+            const statsBar = document.getElementById('stats-bar');
+            let statsHtml = `<div class="stats-card stats-total"><span class="stats-number">${demos.length}</span><span class="stats-label">total</span></div>`;
+            Object.keys(allByState).forEach(state => {
+                statsHtml += `<div class="stats-card"><span class="stats-number">${allByState[state]}</span><span class="stats-label">${state}</span></div>`;
+            });
+            statsBar.innerHTML = statsHtml;
         }
 
         // Attach event listener for filtering (debounced)
@@ -389,6 +445,7 @@
         });
 
         // Initial render
+        initStatsBar();
         renderDemos();
     </script>
 </body>
