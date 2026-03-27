@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>List of IPOL demos</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --link-color: #3498db;
+            --hover-color: #2980b9;
+            --bg-color: #f8f9fa;
+            --text-color: #333;
+            --border-color: #e9ecef;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-top: 2.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.3rem;
+            font-size: 1.5rem;
+        }
+
+        a {
+            color: var(--link-color);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        a:hover {
+            color: var(--hover-color);
+            text-decoration: underline;
+        }
+
+        .info-box {
+            background-color: #e8f4f8;
+            border-left: 4px solid var(--link-color);
+            padding: 1.2rem;
+            margin-bottom: 2rem;
+            border-radius: 0 6px 6px 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .info-box p {
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        .info-box.warning {
+            background-color: #fff8e1;
+            border-left-color: #ffc107;
+        }
+
+        .info-box.warning p {
+            color: #856404;
+        }
+
+        .demo-group {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .demo-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: baseline;
+            gap: 0.8rem;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s ease;
+            border-radius: 6px;
+        }
+
+        .demo-item:hover,
+        .demo-item.keyboard-focused {
+            background-color: #f8f9fa;
+            transform: translateX(4px);
+            box-shadow: -4px 0 0 var(--link-color);
+            outline: none;
+        }
+
+        .demo-item:focus {
+            outline: none;
+        }
+
+        .demo-item:last-child {
+            border-bottom: none;
+        }
+
+        /* The title text inside the row */
+        .demo-title {
+            color: var(--link-color);
+            font-weight: 500;
+        }
+
+        .demo-id {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            color: #6c757d;
+            font-size: 0.9em;
+            background: #f8f9fa;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            border: 1px solid #e9ecef;
+        }
+
+        .badge {
+            font-size: 0.75em;
+            padding: 0.25em 0.6em;
+            border-radius: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge.private {
+            background-color: #ffe4e6;
+            color: #e11d48;
+        }
+
+        .search-container {
+            margin-bottom: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            padding-right: 3.5rem;
+            /* Make room for the shortcut visual */
+            font-size: 1.1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 24px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+        }
+
+        .search-input:focus {
+            border-color: var(--link-color);
+            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.18);
+        }
+
+        .slash-shortcut {
+            position: absolute;
+            right: 1.2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #e9ecef;
+            color: #6c757d;
+            border-radius: 4px;
+            padding: 0.1rem 0.5rem;
+            font-size: 0.85rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            pointer-events: none;
+            border: 1px solid #dee2e6;
+        }
+
+        .search-helper {
+            margin-top: 0.6rem;
+            font-size: 0.85rem;
+            color: #6c757d;
+            opacity: 0.8;
+        }
+
+        .search-helper kbd {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 3px;
+            padding: 0.1rem 0.3rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8em;
+        }
+
+        .no-results {
+            text-align: center;
+            color: #6c757d;
+            padding: 2rem;
+            font-style: italic;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .stats-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            padding: 0.4rem 0.9rem;
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 0.4rem;
+            flex: 1;
+            min-width: 70px;
+        }
+
+        .stats-card .stats-number {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            line-height: 1;
+        }
+
+        .stats-card .stats-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #6c757d;
+        }
+
+        .stats-card.stats-total .stats-number {
+            color: var(--link-color);
+        }
+    </style>
+</head>
+
+<body>
+    <h1>IPOL Demos</h1>
+    <div class="search-container">
+        <div class="search-input-wrapper">
+            <input type="text" id="search-input" class="search-input" autocomplete="off"
+                placeholder="Search by name, ID, or category...">
+            <kbd class="slash-shortcut">/</kbd>
+        </div>
+        <div class="search-helper">
+            Shortcuts: <kbd>/</kbd> focus search, <kbd>↑</kbd> <kbd>↓</kbd> navigate, <kbd>Enter</kbd> open,
+            <kbd>Esc</kbd> clear
+        </div>
+    </div>
+    <div id="info-container"></div>
+    <div class="stats-bar" id="stats-bar"></div>
+    <div id="demos-container"></div>
+
+    <script>
+        const demos = $demos_json;
+        const showInfo = $show_info;
+
+        if (showInfo) {
+            document.getElementById('info-container').innerHTML = `
+                <div class='info-box'>
+                    <p>The demos whose ID begins with <strong>'77777'</strong> are public workshops and those with <strong>'33333'</strong> are private.<br>
+                    Example demos begin with <strong>'11111'</strong>.</p>
+                </div>
+                <div class='info-box warning'>
+                    <p><strong>Note:</strong> Test demos begin with <strong>'55555'</strong>. These are intended for brief usage and evaluation, and will be automatically removed after a period of inactivity.</p>
+                </div>
+            `;
+        }
+
+        const container = document.getElementById('demos-container');
+        const searchInput = document.getElementById('search-input');
+
+        function renderDemos(filterText = '') {
+            container.innerHTML = ''; // Clear container
+            const lowerFilter = filterText.toLowerCase();
+
+            // Group by state
+            const demosByState = {};
+            let matchCount = 0;
+
+            demos.forEach(demo => {
+                const searchStr = `${demo.title} ${demo.editorsdemoid} ${demo.state}`.toLowerCase();
+
+                // If there's a filter and it isn't found in the text, skip it
+                if (lowerFilter && !searchStr.includes(lowerFilter)) {
+                    return;
+                }
+
+                if (!demosByState[demo.state]) {
+                    demosByState[demo.state] = [];
+                }
+                demosByState[demo.state].push(demo);
+                matchCount++;
+            });
+
+
+
+            if (matchCount === 0) {
+                container.innerHTML = '<div class="no-results">No demos found matching your search.</div>';
+                return;
+            }
+
+            // Render each state
+            let htmlChunks = [];
+            Object.keys(demosByState).forEach(state => {
+                const stateDemos = demosByState[state];
+                // Sort by demo ID descending
+                stateDemos.sort((a, b) => {
+                    const idA = parseInt(a.editorsdemoid, 10) || 0;
+                    const idB = parseInt(b.editorsdemoid, 10) || 0;
+                    return idB - idA;
+                });
+
+                let groupHtml = `<h2 id="${state}">${state}</h2><div class="demo-group">`;
+
+                stateDemos.forEach(demo => {
+                    const demoIdStr = String(demo.editorsdemoid);
+                    const isPrivate = demoIdStr.startsWith('33333');
+                    const privateBadge = isPrivate ? " <span class='badge private'>(private)</span>" : "";
+
+                    groupHtml += `
+                        <a class="demo-item" href="/demo/clientApp/demo.html?id=${demo.editorsdemoid}" target="_blank">
+                            <span class="demo-id">Demo #${demo.editorsdemoid}</span>${privateBadge}: 
+                            <span class="demo-title">${demo.title}</span>
+                        </a>
+                    `;
+                });
+
+                groupHtml += `</div>`;
+                htmlChunks.push(groupHtml);
+            });
+
+            container.innerHTML = htmlChunks.join('');
+        }
+
+        function initStatsBar() {
+            const allByState = {};
+            demos.forEach(demo => {
+                if (!allByState[demo.state]) allByState[demo.state] = 0;
+                allByState[demo.state]++;
+            });
+            const statsBar = document.getElementById('stats-bar');
+            let statsHtml = `<div class="stats-card stats-total"><span class="stats-number">${demos.length}</span><span class="stats-label">total</span></div>`;
+            Object.keys(allByState).forEach(state => {
+                statsHtml += `<div class="stats-card"><span class="stats-number">${allByState[state]}</span><span class="stats-label">${state}</span></div>`;
+            });
+            statsBar.innerHTML = statsHtml;
+        }
+
+        // Attach event listener for filtering (debounced)
+        let searchTimeout;
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                renderDemos(e.target.value);
+                // Reset focus when typing
+                currentFocusIndex = -1;
+                updateFocus();
+            }, 150);
+        });
+
+        // Keyboard navigation state
+        let currentFocusIndex = -1;
+
+        function updateFocus() {
+            const items = Array.from(document.querySelectorAll('.demo-item'));
+            items.forEach((item, index) => {
+                if (index === currentFocusIndex) {
+                    item.classList.add('keyboard-focused');
+                    // Scroll into view if needed
+                    item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else {
+                    item.classList.remove('keyboard-focused');
+                }
+            });
+        }
+
+        // Global hotkey to focus search '/' and handle arrow keys
+        document.addEventListener('keydown', (e) => {
+            const isInputFocused = document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA';
+            const items = Array.from(document.querySelectorAll('.demo-item'));
+
+            if (e.key === '/') {
+                if (isInputFocused) return;
+                e.preventDefault();
+                searchInput.focus();
+                return;
+            }
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (items.length > 0) {
+                    currentFocusIndex = Math.min(currentFocusIndex + 1, items.length - 1);
+                    updateFocus();
+                    // Blur search to prevent input cursor from moving
+                    if (isInputFocused) searchInput.blur();
+                }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (items.length > 0) {
+                    currentFocusIndex = Math.max(currentFocusIndex - 1, -1);
+                    if (currentFocusIndex === -1) {
+                        // Focus back onto the search input
+                        updateFocus();
+                        searchInput.focus();
+                        // Put cursor at end of input
+                        const val = searchInput.value;
+                        searchInput.value = '';
+                        searchInput.value = val;
+                    } else {
+                        updateFocus();
+                    }
+                }
+            } else if (e.key === 'Enter') {
+                if (currentFocusIndex >= 0 && currentFocusIndex < items.length) {
+                    e.preventDefault();
+                    items[currentFocusIndex].click();
+                }
+            } else if (e.key === 'Escape') {
+                if (isInputFocused) searchInput.blur();
+                searchInput.value = '';
+                currentFocusIndex = -1;
+                renderDemos();
+                updateFocus();
+            }
+        });
+
+        // Initial render
+        initStatsBar();
+        renderDemos();
+    </script>
+</body>
+
+</html>

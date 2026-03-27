@@ -13,13 +13,13 @@ import os
 import shutil
 import smtplib
 import socket
+import string
 import tarfile
 import traceback
 import urllib.error
 import urllib.parse
 import urllib.request
 import zipfile
-from collections import OrderedDict
 from datetime import datetime
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
@@ -127,87 +127,51 @@ class Core:
 
         if result.is_err():
             self.send_internal_error_email("Unable to get the list of demos")
-            html_content = """
-                    <!DOCTYPE html>
-                    <html lang="en">
-                    <head>
-                    <meta charset="utf-8">
-                    <title>IPOL demos</title>
-                    </head>
-                    <body>
-                    <h2>IPOL internal error: unable to get the list of demos</h2><br>
-                    </body>
-                    </html>
-                    """
-            return html_content
+            return (
+                "<!DOCTYPE html>\n"
+                '<html lang="en">\n'
+                "<head>\n"
+                '    <meta charset="utf-8">\n'
+                '    <meta name="viewport" content="width=device-width, initial-scale=1">\n'
+                "    <title>IPOL demos</title>\n"
+                "    <style>\n"
+                "        body { font-family: system-ui, -apple-system, sans-serif; text-align: center; margin-top: 50px; color: #333; }\n"
+                "        h2 { color: #e74c3c; }\n"
+                "    </style>\n"
+                "</head>\n"
+                "<body>\n"
+                "    <h2>IPOL internal error: unable to get the list of demos</h2>\n"
+                "</body>\n"
+                "</html>"
+            )
 
         demo_list = result.value
 
-        # Get all publication states
-        demos_by_state = OrderedDict()
+        # Filter by code_starts if provided
+        filtered_demos = []
         for demo in demo_list:
             editorsdemoid = demo["editorsdemoid"]
-
-            # If the user specified a demo code prefix, then ignore the
-            # demos which don't start with that prefix.
             if code_starts and not str(editorsdemoid).startswith(code_starts):
                 continue
 
-            publication_state = demo["state"]
-            if publication_state not in demos_by_state:
-                demos_by_state[publication_state] = []
-
-            demos_by_state[publication_state].append(
-                {"editorsdemoid": editorsdemoid, "title": demo["title"]}
+            filtered_demos.append(
+                {
+                    "editorsdemoid": editorsdemoid,
+                    "title": demo["title"],
+                    "state": demo["state"],
+                }
             )
 
-        demos_string = ""
-
-        # Show demos according to their state
-        for publication_state in demos_by_state:
-            # Sort demo list by demo ID
-            demos_by_state[publication_state] = sorted(
-                demos_by_state[publication_state],
-                key=lambda d: (d["editorsdemoid"]),
-                reverse=True,
-            )
-
-            if demos_by_state[publication_state]:
-                demos_string += "<h2 id='{0}'>{0}</h2>".format(publication_state)
-            #
-            for demo_data in demos_by_state[publication_state]:
-                editorsdemoid = str(demo_data["editorsdemoid"])
-
-                demos_string += "Demo #{0}{1}: <a href='/demo/clientApp/demo.html?id={0}' target='_blank'>{2}</a><br>".format(
-                    editorsdemoid,
-                    " (private)" if editorsdemoid.startswith("33333") else "",
-                    demo_data["title"],
-                )
-
-        html_content = """
-                    <!DOCTYPE html>
-                    <html lang="en">
-                    <head>
-                    <meta charset="utf-8">
-                    <title>IPOL demos</title>
-                    </head>
-                    <body>
-                    <h1>List of demos</h1>
-                    """
-        # Only show the message if the user didn't specify a code start
-        if not code_starts:
-            html_content += """
-                        <h3>The demos whose ID begins with '77777' are public workshops and those with '33333' are private.
-                        Test demos begin with '55555' whereas Example demos begin with '11111'.</h3><br>
-                        """
-        html_content += """
-                    {}
-                    </body>
-                    </html>
-                    """.format(
-            demos_string
+        template_path = os.path.join(
+            os.path.dirname(__file__), "..", "templates", "index.html"
         )
-        return html_content
+        with open(template_path, "r", encoding="utf-8") as f:
+            template_content = f.read()
+
+        return string.Template(template_content).safe_substitute(
+            demos_json=json.dumps(filtered_demos),
+            show_info="true" if not code_starts else "false",
+        )
 
     @staticmethod
     def input_upload(work_dir, blobs, inputs_desc):
