@@ -98,25 +98,54 @@ git checkout devel
 \end{verbatim}
 
 
-\section{Crontab scripts}
-The system needs to periodically execute administration script, to create backups, clean up old data, or to perform continuous integration tests. This section describes these scripts.
+\section{Cron Scripts}
 
-To modify the crontab configuration, the command is {\tt crontab -e}. The format of the crontab lines is: minute (m), hour (h), day of month (dom), month (mon), and day of week (dow), or use '*' in these fields (for 'any').
+Administrative scripts are available in the system for tasks such as backups, data cleanup, and continuous integration.Some of these are executed via cron.
 
 \begin{itemize}
-    \item \textbf{Backups}: they are done by this script: {\tt ipolDevel/sysadmin/backup.sh}. See Sec.~\ref{sec:backups}.
 
-    \item \textbf{Cleanup}: the script {\tt ipolDevel/sysadmin/cleanup.sh} does a cleanup of all temporary files older than one month.
+    \item \textbf{\texttt{backup.sh}} (\texttt{ipolDevel/sysadmin/backup.sh}): Creates backups of the \texttt{ipolDevel} directory and associated data (see Section~\ref{sec:backups}).
 
-    {\tt 0 5 * * 1 /home/ipol/ipolDevel/sysadmin/cleanup.sh}
+    \item \textbf{\texttt{cleanup.sh}} (\texttt{ipolDevel/sysadmin/cleanup.sh}): Removes temporary files older than one month from the system.
 
-    \item \textbf{pdflatex report}: the script {\tt ipolDevel/ci\_tests/pdflatex.sh} checks if the LaTeX documentation of the project compiles and sends an email otherwise.
+    \item \textbf{\texttt{pull.sh}} (\texttt{ipolDevel/ci\_tests/pull.sh}): Pulls the latest repository changes for continuous integration tasks.
 
-    {\tt 0 15 * * 2 sudo -u ipol /home/ipol/ipolDevel/ci\_tests/pdflatex.sh}
+    \item \textbf{\texttt{published\_codes\_compilation\_test.sh}} (\path{ipolDevel/ci_tests/published_codes_compilation_test.sh}): Executes compilation tests for published code artifacts.
 
-    \item \textbf{Reboot}: the script {\tt ipolDevel/sysadmin/on\_reboot.sh} starts all IPOL modules, nginx and the shared folder in the production machines, and sends a warning email. To execute it, the following line needs to be added with {\tt crontab -e} as root.
+    \item \textbf{\texttt{backup\_sync.sh}} (\texttt{ipolDevel/sysadmin/backup\_sync.sh}): Synchronizes backup data to a remote server.
 
-    {\tt @reboot ipolDevel/sysadmin/on\_reboot.sh}
+    \item \textbf{\texttt{pdflatex.sh}} (\texttt{ipolDevel/ci\_tests/pdflatex.sh}): Checks whether the LaTeX documentation compiles successfully and sends an email if it fails.
+
+    \item \textbf{\texttt{on\_reboot.sh}} (\texttt{ipolDevel/sysadmin/on\_reboot.sh}): Starts IPOL modules, Nginx, and shared services on system startup, and sends a notification email.
+
+\end{itemize}
+
+
+\section{Cron Jobs}
+
+This section defines the active cron configuration of the system.
+
+\subsection{Crontab}
+
+Cron entries use the standard five-field scheduling format (minute, hour, day of month, month, day of week).
+
+\begin{verbatim}
+# User crontab (crontab -l)
+30 10 * * * /home/ipol/ipolDevel/ci_tests/pull.sh > /dev/null
+0 5 * * 1 /home/ipol/ipolDevel/sysadmin/cleanup.sh > /dev/null
+0 11 * * * /home/ipol/ipolDevel/ci_tests/published_codes_compilation_test.sh
+
+# System crontab (/etc/crontab)
+0 1 * * 4 root /bin/sh /root/backup_sync.sh
+\end{verbatim}
+
+\subsection{Notes}
+
+\begin{itemize}
+    \item Only active cron jobs are listed.
+    \item Cron Jobs are defined in either the user crontab or the system crontab.
+    \item Output redirection (e.g. \texttt{> /dev/null}) suppresses logs.
+    \item See Section~2 for script definitions.
 \end{itemize}
 
 \section{GitHub deploy key}
