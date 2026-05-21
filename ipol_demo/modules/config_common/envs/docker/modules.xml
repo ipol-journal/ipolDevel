@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data>
+
+  <baseURL>http://localhost/</baseURL>
+
+  <module name="archive">
+    <module>archive</module>
+    <server>127.0.0.1</server>
+    <serverSSH>localhost</serverSSH>
+    <path>~/ipolDevel/ipol_demo/modules/archive/</path>
+    <command>start</command>
+    <command>stop</command>
+    <command>restart</command>
+    <command>ping</command>
+  </module>
+
+  <module name="blobs">
+    <module>blobs</module>
+    <server>127.0.0.1</server>
+    <serverSSH>localhost</serverSSH>
+    <path>~/ipolDevel/ipol_demo/modules/blobs/</path>
+    <command>start</command>
+    <command>stop</command>
+    <command>restart</command>
+    <command>ping</command>
+  </module>
+
+  <module name="core">
+    <module>core</module>
+    <server>127.0.0.1</server>
+    <serverSSH>localhost</serverSSH>
+    <path>~/ipolDevel/ipol_demo/modules/core/</path>
+    <command>start</command>
+    <command>stop</command>
+    <command>restart</command>
+    <command>ping</command>
+  </module>
+
+</data>

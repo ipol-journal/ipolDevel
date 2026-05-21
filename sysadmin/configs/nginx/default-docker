@@ -9,7 +9,10 @@ upstream cp2_socket {
 server {
 	listen [::]:80 default_server;
 	listen *:80 default_server;
-	resolver 127.0.0.1;
+	# 127.0.0.11 is the Docker internal DNS. It is required here because we use 
+	# variables in proxy_pass (which triggers runtime DNS resolution). 
+	# 'valid' ensures Nginx picks up new container IPs quickly if they restart.
+	resolver 127.0.0.11 valid=30s;
 	proxy_send_timeout          600;
 	proxy_read_timeout          600;
 	send_timeout                600;
@@ -20,8 +23,12 @@ server {
     # listen *:443 ssl http2 default_server;
     # listen [::]:443 ssl http2 default_server;
 	
+	proxy_set_header Host $http_host;
 	proxy_set_header X-Real-IP $remote_addr;
 	proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+	proxy_set_header X-Forwarded-Proto $scheme;
+	proxy_set_header X-Forwarded-Host $host;
+	proxy_set_header X-Forwarded-Port $server_port;
 
 	# Change this variable with your own user name
 	set $my_user ipol;
@@ -46,7 +53,7 @@ server {
         # default-src 'self' data: https: blob: 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval' https: code.jquery.com cdnjs.cloudflare.com;
         # MapLibre:
         # worker-src blob: ; child-src blob: ; frame-src * data: blob: ; 
-        add_header 'Content-Security-Policy' "default-src 'self' data: https: blob: 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval' https: code.jquery.com cdnjs.cloudflare.com; worker-src blob: ; child-src blob: ; frame-src * data: blob: ; ";
+        add_header 'Content-Security-Policy' "default-src 'self' data: https: blob: 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https: http: code.jquery.com cdnjs.cloudflare.com; worker-src blob: ; child-src blob: ; frame-src * data: blob: ; ";
         add_header 'Access-Control-Allow-Origin' '*';
 
         alias  /home/$my_user/ipolDevel/ipol_demo/clientApp/;
@@ -57,7 +64,6 @@ server {
 	}
 
 	location /cp2/ {
-		resolver 127.0.0.1;
 		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 		proxy_set_header Host $http_host;
 		proxy_redirect off;
@@ -67,7 +73,8 @@ server {
 		# 	proxy_pass http://cp2_socket;
 		# 	break;
 		# }
-		proxy_pass http://$host:8002;
+		set $upstream_cp2 cp2;
+		proxy_pass http://$upstream_cp2:8002;
 	}
 
 	# DEMOS
@@ -75,34 +82,35 @@ server {
 		# If you want to see the value of a variable, the easiest way is 
 		# adding a header like the example below
 		# add_header X-debug-message "$host" always;
-		rewrite ^/(.*) /core/$1 break;
-		proxy_pass  http://$host:8080;
+		set $upstream_core core;
+		rewrite ^/demo(/?.*)$ /api/core/demo$1 break;
+		proxy_pass  http://$upstream_core:8080;
 	}
 
 	# CORE
 	location /api/core/{
-		rewrite ^/api/(.*) /$1 break;
-		proxy_pass  http://$host:8080;
+		set $upstream_core core;
+		proxy_pass  http://$upstream_core:8080;
 	}
 	location /api/dispatcher/ {
-		rewrite ^/api/(.*) /$1 break;
-		proxy_pass  http://$host:8080;
+		set $upstream_core core;
+		proxy_pass  http://$upstream_core:8080;
 	}
 	location /api/conversion/ {
-		rewrite ^/api/(.*) /$1 break;
-		proxy_pass  http://$host:8080;
+		set $upstream_core core;
+		proxy_pass  http://$upstream_core:8080;
 	}
 	location /api/demoinfo/ {
-		rewrite ^/api/(.*) /$1 break;
-		proxy_pass  http://$host:8080;
+		set $upstream_core core;
+		proxy_pass  http://$upstream_core:8080;
 	}
 	location /api/archive/ {
-		rewrite ^/api/(.*) /$1 break;
-		proxy_pass  http://$host:8080;
+		set $upstream_core core;
+		proxy_pass  http://$upstream_core:8080;
 	}
 	location /api/blobs/ {
-		rewrite ^/api/(.*) /$1 break;
-		proxy_pass  http://$host:8080;
+		set $upstream_core core;
+		proxy_pass  http://$upstream_core:8080;
 	}
 
 	# shared_folder, run static data
@@ -138,12 +146,23 @@ server {
 		alias  /home/ipol/ipolDevel/ipol_demo/modules/core/staticData/;
 	}
 
-	# DEMORUNNER
+	# Rust DEMORUNNER
 	location /api/demorunner/dr/ {
+		set $upstream_demorunner ipol-demorunner;
 		rewrite ^/api/demorunner/dr/(.*) /$1 break;
 		# If the distribution is Debian you need the resolver		
 		# resolver 127.0.0.1;
-		proxy_pass   http://$host:9004;
+		proxy_pass   http://$upstream_demorunner:9003;
+		proxy_buffering off;
+	}
+
+	# Python DEMORUNNER
+	location /api/demorunner/dr-python/ {
+		set $upstream_demorunner demorunner;
+		rewrite ^/api/demorunner/dr-python/(.*) /$1 break;
+		# If the distribution is Debian you need the resolver		
+		# resolver 127.0.0.1;
+		proxy_pass   http://$upstream_demorunner:9004;
 		proxy_buffering off;
 	}
 
