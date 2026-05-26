@@ -7,7 +7,7 @@ requires-python = "==3.12.*"
 dependencies = [
     "certifi==2025.10.5",
     "chardet==3.0.4",
-    "django==4.2.29",
+    "django==4.2.30",
     "django-utils-six==2.0",
     "gunicorn==23.0.0",
     "idna==3.11",

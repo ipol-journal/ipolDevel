@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import traceback
 
 from archive import archive
@@ -23,7 +24,7 @@ from core.errors import (
 )
 from demoinfo import demoinfo
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from guards import validate_ip
 from ipolutils.evaluator.evaluator import IPOLEvaluateError
 from logger import logger
@@ -57,6 +58,31 @@ def ping():
     Ping: answer with a PONG.
     """
     return {"status": "OK", "ping": "pong"}
+
+
+@coreRouter.get("/error-archive/{filename}")
+def download_error_archive(filename: str):
+    """
+    Serve runtime error archive (ZIP file).
+    """
+    # Validate filename format (32 uppercase hex chars + .zip)
+    if not re.match(r"^[A-F0-9]{32}\.zip$", filename):
+        raise HTTPException(status_code=400, detail="Invalid filename")
+
+    error_dir = os.path.join(core.shared_folder_abs, "error_archives")
+    file_path = os.path.join(error_dir, filename)
+
+    # Security: prevent path traversal
+    abs_error_dir = os.path.abspath(error_dir)
+    abs_file_path = os.path.abspath(file_path)
+
+    if not abs_file_path.startswith(abs_error_dir):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    if not os.path.exists(abs_file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+
+    return FileResponse(abs_file_path, media_type="application/zip", filename=filename)
 
 
 @coreRouter.on_event("shutdown")
