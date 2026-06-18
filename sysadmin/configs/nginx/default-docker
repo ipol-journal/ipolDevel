@@ -148,7 +148,7 @@ server {
 
 	# Rust DEMORUNNER
 	location /api/demorunner/dr/ {
-		set $upstream_demorunner ipol-demorunner;
+		set $upstream_demorunner rust-demorunner;
 		rewrite ^/api/demorunner/dr/(.*) /$1 break;
 		# If the distribution is Debian you need the resolver		
 		# resolver 127.0.0.1;

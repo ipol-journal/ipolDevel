@@ -30,9 +30,10 @@ services:
     stdin_open: true
 
   rust-demorunner:
-    platform: linux/amd64
-    container_name: ipol-demorunner
-    image: registry.ipol.im/ipol-debian-demorunner
+    container_name: rust-demorunner
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.rust-demorunner
     restart: unless-stopped
     ports:
       - "9003:9003"
