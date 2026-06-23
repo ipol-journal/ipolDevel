@@ -1,0 +1,17 @@
+{
+  "name": "ddl-doc-site",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "IPOL DDL Documentation Site",
+  "scripts": {
+    "docs:dev": "vitepress dev",
+    "docs:build": "vitepress build",
+    "docs:preview": "vitepress preview",
+    "docs:generate": "node scripts/converter.js",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitepress": "2.0.0-alpha.17",
+    "vitest": "^1.0.0"
+  }
+}
