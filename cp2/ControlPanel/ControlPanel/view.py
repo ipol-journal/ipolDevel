@@ -62,12 +62,12 @@ def homepage(request):
 def status(request):
     return render(request, "status.html")
 
+
 # serve ddl docs page content from static files
 @login_required(login_url="login")
 def ddl_doc(request, path="index.html"):
     document_root = os.path.join(settings.CP2_DIR, "static_cp", "ddl_doc")
     return serve(request, path, document_root=document_root)
-
 
 
 @login_required(login_url="login")
