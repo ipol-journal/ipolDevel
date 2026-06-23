@@ -5,7 +5,7 @@
   "description": "IPOL DDL Documentation Site",
   "scripts": {
     "docs:dev": "vitepress dev",
-    "docs:build": "vitepress build",
+    "docs:build": "vitepress build && rm -f ../../cp2/ControlPanel/static_cp/ddl_doc/hashmap.json",
     "docs:preview": "vitepress preview",
     "docs:generate": "node scripts/converter.js",
     "test": "vitest run"

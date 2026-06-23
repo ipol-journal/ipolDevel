@@ -5,6 +5,25 @@ export default defineConfig({
   description: "Demo Description Lines (DDL) for IPOL Demo System",
   base: '/cp2/guide/',
   outDir: '../../cp2/ControlPanel/static_cp/ddl_doc',
+  mpa: true,
+  vite: {
+    build: {
+      assetsInlineLimit: 16384, // inline assets < 16kb
+      chunkSizeWarningLimit: 2000,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              return 'vendor';
+            }
+            if (id.includes('.md')) {
+              return 'pages';
+            }
+          }
+        }
+      }
+    }
+  },
   
   themeConfig: {
     nav: [
@@ -45,7 +64,9 @@ export default defineConfig({
       }
     ],
 
-    socialLinks: [],
+    socialLinks: [
+      { icon: 'github', link: 'https://github.com/ipol-journal/ipolDevel' }
+    ],
     
     footer: {
       copyright: 'Copyright © 2026 IPOL'
