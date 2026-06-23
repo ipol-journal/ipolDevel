@@ -1,16 +1,16 @@
-import os
 import json
 import logging
+import os
 import urllib
 from datetime import datetime
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
-from django.conf import settings
 from django.views.static import serve
 
 from .utils import api_post, user_can_edit_demo
