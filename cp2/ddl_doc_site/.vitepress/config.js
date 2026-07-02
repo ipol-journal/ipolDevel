@@ -5,11 +5,12 @@ export default defineConfig({
   description: "Demo Description Lines (DDL) for IPOL Demo System",
   base: '/cp2/guide/',
   outDir: '../../cp2/ControlPanel/static_cp/ddl_doc',
-  mpa: true,
+  mpa: false,
   vite: {
     build: {
       assetsInlineLimit: 16384, // inline assets < 16kb
       chunkSizeWarningLimit: 2000,
+      mpa: true,
       rollupOptions: {
         output: {
           manualChunks(id) {
