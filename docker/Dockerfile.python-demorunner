@@ -1,0 +1,25 @@
+FROM debian:bullseye
+
+# ipol user config
+RUN useradd -ms /bin/zsh ipol
+RUN adduser ipol sudo
+RUN echo 'ipol:ipol' | chpasswd
+
+WORKDIR /home/ipol/ipolDevel/ipol_demo/modules/demorunner
+
+# Apt and pip packages installation
+COPY ./docker/pkglist_demorunner /home/ipol/pkglist_demorunner
+RUN apt update && apt install -y $(cat /home/ipol/pkglist_demorunner)
+
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+# RUN pip install virtualenv && pip3 install requests virtualenv ipython
+
+USER ipol
+
+ENV HOST=0.0.0.0
+ENV PORT=9004
+
+EXPOSE 9004
+
+CMD ["uv", "run", "uvicorn", "demorunner:app", "--host", "0.0.0.0", "--port", "9004", "--reload"]

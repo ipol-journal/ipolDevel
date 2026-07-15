@@ -12,6 +12,6 @@ dependencies = [
     "gunicorn==23.0.0",
     "idna==3.11",
     "pytz==2018.4",
-    "requests==2.32.5",
-    "urllib3>=2.6.3",
+    "requests==2.34.2",
+    "urllib3>=2.7.0",
 ]
