@@ -1,14 +1,17 @@
 import json
 import logging
+import os
 import urllib
 from datetime import datetime
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
+from django.views.static import serve
 
 from .utils import api_post, user_can_edit_demo
 
@@ -58,6 +61,13 @@ def homepage(request):
 @csrf_protect
 def status(request):
     return render(request, "status.html")
+
+
+# serve ddl docs page content from static files
+@login_required(login_url="login")
+def ddl_doc(request, path="index.html"):
+    document_root = os.path.join(settings.CP2_DIR, "static_cp", "ddl_doc")
+    return serve(request, path, document_root=document_root)
 
 
 @login_required(login_url="login")

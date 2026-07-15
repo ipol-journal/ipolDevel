@@ -56,6 +56,8 @@ urlpatterns = [
                 path("signout", signout),
                 path("logout", logout),
                 path("status", status),
+                path("guide/", ddl_doc, name="ddl_doc"),
+                path("guide/<path:path>", ddl_doc),
                 path("profile", profile, name="profile"),
                 path("save_profile", save_profile, name="save_profile"),
                 path("demo_editors", demo_editors, name="demo_editors"),

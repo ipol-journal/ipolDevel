@@ -1,0 +1,12 @@
+node_modules/
+.DS_Store
+.vscode/
+
+# VitePress cache and build output
+.vitepress/dist/
+.vitepress/cache/
+
+# pnpm store
+.pnpm_store/
+
+.fallow/

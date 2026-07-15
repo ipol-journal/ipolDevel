@@ -33,6 +33,8 @@ def loginPage(request):
     user = authenticate(request, username=username, password=password)
     if user is not None:
         loginMethod(request, user)
+        if not request.POST.get("remember"):
+            request.session.set_expiry(0)
         return HttpResponseRedirect("/cp2/")
     else:
         if username or password:
