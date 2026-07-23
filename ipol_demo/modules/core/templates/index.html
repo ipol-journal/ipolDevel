@@ -21,7 +21,7 @@
             line-height: 1.6;
             color: var(--text-color);
             background-color: var(--bg-color);
-            max-width: 900px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
         }
@@ -115,9 +115,13 @@
         .demo-title {
             color: var(--link-color);
             font-weight: 500;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
         }
 
         .demo-id {
+            flex: none;
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             color: #6c757d;
             font-size: 0.9em;
