@@ -5,13 +5,9 @@ description = "IPOL CP"
 readme = "README.md"
 requires-python = "==3.12.*"
 dependencies = [
-    "certifi==2025.10.5",
-    "chardet==3.0.4",
-    "django==4.2.30",
-    "django-utils-six==2.0",
-    "gunicorn==23.0.0",
-    "idna==3.11",
-    "pytz==2018.4",
-    "requests==2.34.2",
-    "urllib3>=2.7.0",
+    "django>=5.2.17,<6.0",
+    "gunicorn>=23.0.0",
+    "idna>=3.15",
+    "requests>=2.34.2",
+    "sqlparse>=0.6.0",
 ]
