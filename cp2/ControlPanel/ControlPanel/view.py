@@ -31,6 +31,12 @@ def homepage(request):
     demos, _ = api_post(
         "/api/demoinfo/demo_list_pagination_and_filter", method="get", params=settings
     )
+    if not isinstance(demos, dict) or "demo_list" not in demos:
+        demos = {
+            "demo_list": [],
+            "next_page_number": None,
+            "previous_page_number": None,
+        }
 
     # display the editor's demos
     if page == 1 and not qfilter:
@@ -39,19 +45,23 @@ def homepage(request):
             "get",
             params={"email": request.user.email},
         )
-        editorid = editor_info["editor"]["id"]
-        own_demos, _ = api_post(
-            f"/api/demoinfo/demo_list_by_editorid/{editorid}", method="get"
-        )
+        editorid = editor_info.get("editor", {}).get("id") if isinstance(editor_info, dict) else None
+        if editorid:
+            own_demos, _ = api_post(
+                f"/api/demoinfo/demo_list_by_editorid/{editorid}", method="get"
+            )
+            own_demos = own_demos if isinstance(own_demos, list) else own_demos.get("demo_list", []) if isinstance(own_demos, dict) else []
+        else:
+            own_demos = []
     else:
         own_demos = []
 
     context = {
-        "demos": demos["demo_list"],
+        "demos": demos.get("demo_list", []),
         "own_demos": own_demos,
         "page": page,
-        "next_page_number": demos["next_page_number"],
-        "previous_page_number": demos["previous_page_number"],
+        "next_page_number": demos.get("next_page_number"),
+        "previous_page_number": demos.get("previous_page_number"),
         "qfilter": qfilter,
     }
     return render(request, "homepage.html", context)
