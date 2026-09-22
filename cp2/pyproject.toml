@@ -11,3 +11,23 @@ dependencies = [
     "requests>=2.34.2",
     "sqlparse>=0.6.0",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-django>=4.9.0",
+    "pytest-env>=1.1.5",
+    "responses>=0.25.6",
+]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+DJANGO_SETTINGS_MODULE = "ControlPanel.test_settings"
+pythonpath = ["ControlPanel"]
+testpaths = ["ControlPanel/tests"]
+addopts = "-v --tb=short"
+env = [
+    "D:DJANGO_SETTINGS_MODULE=ControlPanel.test_settings",
+    "D:IPOL_HOST=localhost",
+    "D:IPOL_URL=http://localhost:8000",
+]
