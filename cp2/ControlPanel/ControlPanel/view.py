@@ -45,12 +45,22 @@ def homepage(request):
             "get",
             params={"email": request.user.email},
         )
-        editorid = editor_info.get("editor", {}).get("id") if isinstance(editor_info, dict) else None
+        editorid = (
+            editor_info.get("editor", {}).get("id")
+            if isinstance(editor_info, dict)
+            else None
+        )
         if editorid:
             own_demos, _ = api_post(
                 f"/api/demoinfo/demo_list_by_editorid/{editorid}", method="get"
             )
-            own_demos = own_demos if isinstance(own_demos, list) else own_demos.get("demo_list", []) if isinstance(own_demos, dict) else []
+            own_demos = (
+                own_demos
+                if isinstance(own_demos, list)
+                else own_demos.get("demo_list", [])
+                if isinstance(own_demos, dict)
+                else []
+            )
         else:
             own_demos = []
     else:

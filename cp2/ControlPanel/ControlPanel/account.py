@@ -136,9 +136,7 @@ def save_profile(request):
         params={"email": requested_email},
     )
     if status != 200:
-        messages.warning(
-            request, "Internal error: {} {}".format(status, demoinfo_editor)
-        )
+        messages.warning(request, f"Internal error: {status} {demoinfo_editor}")
         return HttpResponseRedirect("/cp2/profile")
 
     new_email_exists = "editor" in demoinfo_editor

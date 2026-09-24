@@ -1,15 +1,14 @@
 """Tests for template and blob management views in ControlPanel/view.py."""
-import json
 import os
 
 import pytest
 import responses
 from django.core.files.uploadedfile import SimpleUploadedFile
 
-
 # ==============================================================================
 # Template Views Tests
 # ==============================================================================
+
 
 @pytest.mark.django_db
 class TestTemplateViews:
@@ -84,11 +83,15 @@ class TestTemplateViews:
             status=200,
         )
 
-        response = auth_client.get("/cp2/showTemplate?template_id=1&template_name=Standard")
+        response = auth_client.get(
+            "/cp2/showTemplate?template_id=1&template_name=Standard"
+        )
         assert response.status_code == 200
         assert "showTemplate.html" in [t.name for t in response.templates]
         assert response.context["template_name"] == "Standard"
-        assert response.context["can_edit"] is False  # standard test user is not superuser
+        assert (
+            response.context["can_edit"] is False
+        )  # standard test user is not superuser
 
     def test_ajax_delete_template_success(self, auth_client, mocked_responses):
         """ajax_delete_template calls API DELETE and returns JSON status OK."""
@@ -127,6 +130,7 @@ class TestTemplateViews:
 # Blob Creation & Upload Tests
 # ==============================================================================
 
+
 @pytest.mark.django_db
 class TestBlobCreationUpload:
     def test_create_blob_demo_mode(self, auth_client, staff_user):
@@ -146,7 +150,9 @@ class TestBlobCreationUpload:
         assert response.context["template_id"] == "2"
         assert response.context["template_name"] == "Custom"
 
-    def test_ajax_add_blob_demo_authorized(self, auth_client, staff_user, mocked_responses):
+    def test_ajax_add_blob_demo_authorized(
+        self, auth_client, staff_user, mocked_responses
+    ):
         """Authorized user uploading a blob forwards file and parameters to blobs API."""
         auth_client.force_login(staff_user)
         host = os.environ.get("IPOL_URL", "http://localhost:8000")
@@ -157,7 +163,9 @@ class TestBlobCreationUpload:
             status=200,
         )
 
-        test_file = SimpleUploadedFile("sample.png", b"fake_png_data", content_type="image/png")
+        test_file = SimpleUploadedFile(
+            "sample.png", b"fake_png_data", content_type="image/png"
+        )
 
         response = auth_client.post(
             "/cp2/createBlob/demo",
@@ -203,6 +211,7 @@ class TestBlobCreationUpload:
 # ==============================================================================
 # Blob Details & Editing Tests
 # ==============================================================================
+
 
 @pytest.mark.django_db
 class TestBlobDetailsEditing:
@@ -267,7 +276,9 @@ class TestBlobDetailsEditing:
         assert response.context["blob_id"] == 99
         assert response.context["title"] == "Default Image"
 
-    def test_details_blob_template_not_found_returns_404(self, auth_client, mocked_responses):
+    def test_details_blob_template_not_found_returns_404(
+        self, auth_client, mocked_responses
+    ):
         """When requested blob position does not exist in template sets, returns 404."""
         host = os.environ.get("IPOL_URL", "http://localhost:8000")
         mocked_responses.add(
@@ -312,9 +323,12 @@ class TestBlobDetailsEditing:
 # Blob Removal & VR Management Tests
 # ==============================================================================
 
+
 @pytest.mark.django_db
 class TestBlobRemovalAndVR:
-    def test_ajax_remove_blob_from_template_success(self, auth_client, mocked_responses):
+    def test_ajax_remove_blob_from_template_success(
+        self, auth_client, mocked_responses
+    ):
         """ajax_remove_blob_from_template calls DELETE and returns JSON status OK on 201."""
         host = os.environ.get("IPOL_URL", "http://localhost:8000")
         mocked_responses.add(
@@ -330,7 +344,9 @@ class TestBlobRemovalAndVR:
         assert response.status_code == 200
         assert response.json() == {"status": "OK"}
 
-    def test_ajax_remove_blob_from_demo_unauthorized(self, auth_client, mocked_responses):
+    def test_ajax_remove_blob_from_demo_unauthorized(
+        self, auth_client, mocked_responses
+    ):
         """Non-staff user without permissions cannot remove demo blob and receives KO."""
         host = os.environ.get("IPOL_URL", "http://localhost:8000")
         mocked_responses.add(
@@ -349,7 +365,9 @@ class TestBlobRemovalAndVR:
         assert data["status"] == "KO"
         assert data["message"] == "User not allowed"
 
-    def test_ajax_remove_blob_from_demo_authorized(self, auth_client, staff_user, mocked_responses):
+    def test_ajax_remove_blob_from_demo_authorized(
+        self, auth_client, staff_user, mocked_responses
+    ):
         """Staff user successfully removes demo blob when API returns 204."""
         auth_client.force_login(staff_user)
         host = os.environ.get("IPOL_URL", "http://localhost:8000")

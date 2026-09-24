@@ -8,7 +8,7 @@ import os
 os.environ.setdefault("IPOL_HOST", "localhost")
 os.environ.setdefault("IPOL_URL", "http://localhost:8000")
 
-from ControlPanel.settings import *  # noqa: F401, F403
+from ControlPanel.settings import *
 
 # Force in-memory SQLite database so disk db.sqlite3 is never touched
 DATABASES = {

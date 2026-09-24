@@ -5,15 +5,14 @@ from unittest.mock import patch
 import pytest
 import responses
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.contrib.messages import get_messages
 from django.core import mail
 from django.core.mail import BadHeaderError
 
-
 # ==============================================================================
 # Login Page Tests
 # ==============================================================================
+
 
 @pytest.mark.django_db
 class TestLoginPage:
@@ -35,7 +34,9 @@ class TestLoginPage:
         assert response.url == "/cp2/"
         assert client.session["_auth_user_id"] == str(user.id)
 
-    def test_login_remember_me_disabled_sets_browser_session(self, client, user_factory):
+    def test_login_remember_me_disabled_sets_browser_session(
+        self, client, user_factory
+    ):
         """Without 'remember', session expiry is set to 0 (expires when browser closes)."""
         user_factory(username="validuser", password="securepassword123")
         response = client.post(
@@ -50,7 +51,11 @@ class TestLoginPage:
         user_factory(username="validuser", password="securepassword123")
         response = client.post(
             "/cp2/login",
-            {"username": "validuser", "password": "securepassword123", "remember": "on"},
+            {
+                "username": "validuser",
+                "password": "securepassword123",
+                "remember": "on",
+            },
         )
         assert response.status_code == 302
         assert client.session.get_expire_at_browser_close() is False
@@ -77,6 +82,7 @@ class TestLoginPage:
 # ==============================================================================
 # Signout & Logout Tests
 # ==============================================================================
+
 
 @pytest.mark.django_db
 class TestSignoutAndLogout:
@@ -109,6 +115,7 @@ class TestSignoutAndLogout:
 # ==============================================================================
 # Password Reset Tests
 # ==============================================================================
+
 
 @pytest.mark.django_db
 class TestPasswordReset:
@@ -170,7 +177,10 @@ class TestPasswordReset:
     def test_password_reset_bad_header_error_handled(self, client, user_factory):
         """BadHeaderError during send_mail returns specific error response."""
         user_factory(username="headeruser", email="header@example.com")
-        with patch("ControlPanel.account.send_mail", side_effect=BadHeaderError("Header injection")):
+        with patch(
+            "ControlPanel.account.send_mail",
+            side_effect=BadHeaderError("Header injection"),
+        ):
             response = client.post(
                 "/cp2/password_reset/",
                 {"email": "header@example.com"},
@@ -178,7 +188,9 @@ class TestPasswordReset:
             assert response.status_code == 200
             assert response.content == b"Invalid header found."
 
-    def test_password_reset_smtp_exception_triggers_logging_defect(self, client, user_factory):
+    def test_password_reset_smtp_exception_triggers_logging_defect(
+        self, client, user_factory
+    ):
         """
         Implementation defect assertion:
         In account.py line 94, `logger.warning('SMTP exception, error sending email: ', e)`
@@ -186,8 +198,13 @@ class TestPasswordReset:
         when an SMTPException occurs during send_mail.
         """
         user_factory(username="smtpuser", email="smtp@example.com")
-        with patch("ControlPanel.account.send_mail", side_effect=SMTPException("Connection refused")):
-            with pytest.raises(TypeError, match="not all arguments converted during string formatting"):
+        with patch(
+            "ControlPanel.account.send_mail",
+            side_effect=SMTPException("Connection refused"),
+        ):
+            with pytest.raises(
+                TypeError, match="not all arguments converted during string formatting"
+            ):
                 client.post(
                     "/cp2/password_reset/",
                     {"email": "smtp@example.com"},
@@ -197,6 +214,7 @@ class TestPasswordReset:
 # ==============================================================================
 # Profile View Tests
 # ==============================================================================
+
 
 @pytest.mark.django_db
 class TestProfileView:
@@ -219,6 +237,7 @@ class TestProfileView:
 # ==============================================================================
 # Save Profile Tests
 # ==============================================================================
+
 
 @pytest.mark.django_db
 class TestSaveProfile:
@@ -268,7 +287,9 @@ class TestSaveProfile:
         mocked_responses.add(
             responses.GET,
             f"{ipol_url}/api/demoinfo/editor",
-            json={"editor": {"id": 99, "name": "Existing", "mail": "taken@example.com"}},
+            json={
+                "editor": {"id": 99, "name": "Existing", "mail": "taken@example.com"}
+            },
             status=200,
         )
 
@@ -286,7 +307,9 @@ class TestSaveProfile:
         msg_list = list(get_messages(response.wsgi_request))
         assert any("New email is already in use." in m.message for m in msg_list)
 
-    def test_save_profile_success_without_email_change(self, auth_client, test_user, mocked_responses):
+    def test_save_profile_success_without_email_change(
+        self, auth_client, test_user, mocked_responses
+    ):
         """Updating name without changing email succeeds and updates user record."""
         ipol_url = settings.IPOL_URL.rstrip("/")
         mocked_responses.add(
@@ -308,13 +331,17 @@ class TestSaveProfile:
         assert response.status_code == 302
         assert response.url == "/cp2/profile"
         msg_list = list(get_messages(response.wsgi_request))
-        assert any("Your profile has been changed successfully." in m.message for m in msg_list)
+        assert any(
+            "Your profile has been changed successfully." in m.message for m in msg_list
+        )
 
         test_user.refresh_from_db()
         assert test_user.first_name == "NewFirst"
         assert test_user.last_name == "NewLast"
 
-    def test_save_profile_missing_post_keys_raises_key_error(self, auth_client, mocked_responses):
+    def test_save_profile_missing_post_keys_raises_key_error(
+        self, auth_client, mocked_responses
+    ):
         """
         Omitting required POST keys (username, firstName, lastName) raises KeyError in production code.
         Demoinfo returns an error without the 'editor' key so it proceeds to profile field unpacking.

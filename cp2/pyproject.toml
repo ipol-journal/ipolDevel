@@ -31,3 +31,28 @@ env = [
     "D:IPOL_HOST=localhost",
     "D:IPOL_URL=http://localhost:8000",
 ]
+
+[tool.black]
+target_version = ['py39']
+
+[tool.isort]
+profile = "black"
+py_version = 39
+
+[tool.ruff]
+line-length = 200
+ignore = [
+    # because of cp2/ControlPanel/ControlPanel/urls.py
+    "F405",
+    "F403",
+    # because we don't package the modules, so we have to do bad things with sys.path
+    "E402",
+]
+
+[tool.ruff.lint]
+ignore = [
+    "F405",
+    "F403",
+    "E402",
+]
+

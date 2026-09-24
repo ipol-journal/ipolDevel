@@ -1,6 +1,6 @@
 """Tests for api_post and user_can_edit_demo in ControlPanel/utils.py."""
 import os
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 import requests
@@ -8,10 +8,10 @@ import responses
 
 from ControlPanel.utils import api_post, user_can_edit_demo
 
-
 # ==============================================================================
 # api_post HTTP Verbs & Return Shape Tests
 # ==============================================================================
+
 
 class TestApiPostVerbs:
     def test_api_post_get_success(self, mocked_responses):
@@ -105,6 +105,7 @@ class TestApiPostVerbs:
 # api_post Resilience & Error Handling Tests
 # ==============================================================================
 
+
 class TestApiPostResilience:
     def test_api_post_malformed_json_returns_empty_dict(self, mocked_responses):
         """When response body is HTML or invalid JSON, returns ({}, status)."""
@@ -157,6 +158,7 @@ class TestApiPostResilience:
 # ==============================================================================
 # user_can_edit_demo Tests
 # ==============================================================================
+
 
 class TestUserCanEditDemo:
     def test_superuser_can_always_edit_without_api_call(self, mocked_responses):

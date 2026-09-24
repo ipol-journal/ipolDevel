@@ -8,7 +8,9 @@ def test_settings_and_db_isolation():
     """Verify that test settings are loaded and database is strictly in-memory."""
     assert "memory" in settings.DATABASES["default"]["NAME"]
     assert settings.DEBUG is False
-    assert settings.PASSWORD_HASHERS[0] == "django.contrib.auth.hashers.MD5PasswordHasher"
+    assert (
+        settings.PASSWORD_HASHERS[0] == "django.contrib.auth.hashers.MD5PasswordHasher"
+    )
 
 
 @pytest.mark.django_db
@@ -50,7 +52,9 @@ def test_authenticated_homepage_renders(auth_client, mocked_responses):
     mocked_responses.add(
         responses.GET,
         f"{ipol_url}/api/demoinfo/editor",
-        json={"editor": {"id": 10, "name": "Smoke User", "mail": "testuser@example.com"}},
+        json={
+            "editor": {"id": 10, "name": "Smoke User", "mail": "testuser@example.com"}
+        },
         status=200,
     )
     # Mock own demos endpoint

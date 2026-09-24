@@ -4,12 +4,11 @@ import os
 
 import pytest
 import responses
-from django.conf import settings
-
 
 # ==============================================================================
 # Status & DDL Doc Views
 # ==============================================================================
+
 
 @pytest.mark.django_db
 class TestStatusViews:
@@ -30,6 +29,7 @@ class TestStatusViews:
 # Demo Editors Management Views
 # ==============================================================================
 
+
 @pytest.mark.django_db
 class TestDemoEditorsViews:
     def test_demo_editors_requires_login(self, client):
@@ -38,7 +38,9 @@ class TestDemoEditorsViews:
         assert response.status_code == 302
         assert "login" in response.url
 
-    def test_demo_editors_renders_and_sorts_available(self, auth_client, mocked_responses):
+    def test_demo_editors_renders_and_sorts_available(
+        self, auth_client, mocked_responses
+    ):
         """demo_editors renders with current editors and sorts available_editors by name."""
         host = os.environ.get("IPOL_URL", "http://localhost:8000")
         mocked_responses.add(
@@ -85,7 +87,9 @@ class TestDemoEditorsViews:
         assert response.status_code == 302
         assert response.url == "/cp2/demo_editors?demo_id=100"
 
-    def test_add_demo_editor_api_failure_returns_ko(self, auth_client, staff_user, mocked_responses):
+    def test_add_demo_editor_api_failure_returns_ko(
+        self, auth_client, staff_user, mocked_responses
+    ):
         """When API rejects adding an editor, returns JSON KO response."""
         auth_client.force_login(staff_user)
         host = os.environ.get("IPOL_URL", "http://localhost:8000")
@@ -106,7 +110,9 @@ class TestDemoEditorsViews:
         assert data["status"] == "KO"
         assert data["message"] == "Editor already assigned"
 
-    def test_remove_demo_editor_success(self, auth_client, staff_user, mocked_responses):
+    def test_remove_demo_editor_success(
+        self, auth_client, staff_user, mocked_responses
+    ):
         """Staff user removing an editor calls API DELETE and returns JSON OK."""
         auth_client.force_login(staff_user)
         host = os.environ.get("IPOL_URL", "http://localhost:8000")
@@ -124,7 +130,9 @@ class TestDemoEditorsViews:
         data = response.json()
         assert data["status"] == "OK"
 
-    def test_remove_demo_editor_failure_triggers_response_defect(self, auth_client, staff_user, mocked_responses):
+    def test_remove_demo_editor_failure_triggers_response_defect(
+        self, auth_client, staff_user, mocked_responses
+    ):
         """
         Implementation defect assertion:
         In view.py line 152, remove_demo_editor calls demoinfo_response.get('error').
@@ -140,7 +148,9 @@ class TestDemoEditorsViews:
             status=400,
         )
 
-        with pytest.raises(AttributeError, match="'Response' object has no attribute 'get'"):
+        with pytest.raises(
+            AttributeError, match="'Response' object has no attribute 'get'"
+        ):
             auth_client.post(
                 "/cp2/remove_demo_editor",
                 {"demo_id": "100", "editor_id": "5"},
@@ -151,13 +161,18 @@ class TestDemoEditorsViews:
 # Demo Creation & Deletion Views
 # ==============================================================================
 
+
 @pytest.mark.django_db
 class TestDemoCreationDeletion:
     def test_ajax_add_demo_non_integer_id_returns_400(self, auth_client):
         """Submitting non-numeric demo_id returns HTTP 400 error."""
         response = auth_client.post(
             "/cp2/addDemo/ajax",
-            {"state": "work_in_progress", "title": "Test Demo", "demo_id": "not-an-int"},
+            {
+                "state": "work_in_progress",
+                "title": "Test Demo",
+                "demo_id": "not-an-int",
+            },
         )
         assert response.status_code == 400
         data = response.json()
@@ -215,6 +230,7 @@ class TestDemoCreationDeletion:
 # ==============================================================================
 # Show Demo, DDL & Metadata Views
 # ==============================================================================
+
 
 @pytest.mark.django_db
 class TestShowDemoAndDDL:

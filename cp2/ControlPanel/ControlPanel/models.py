@@ -32,10 +32,18 @@ def user_created_handler(sender, instance, *args, **kwargs):
 
     old_editor = User.objects.get(username=new_editor.username)
     logger.info(
-        "old: %s %s %s %s", old_editor, old_editor.email, old_editor.first_name, old_editor.last_name
+        "old: %s %s %s %s",
+        old_editor,
+        old_editor.email,
+        old_editor.first_name,
+        old_editor.last_name,
     )
     logger.info(
-        "new: %s %s %s %s", new_editor, new_editor.email, new_editor.first_name, new_editor.last_name
+        "new: %s %s %s %s",
+        new_editor,
+        new_editor.email,
+        new_editor.first_name,
+        new_editor.last_name,
     )
 
     # Same email means no change to make

@@ -47,6 +47,7 @@ def user_factory(db):
                 password=password,
                 **kwargs,
             )
+
     return _create_user
 
 
