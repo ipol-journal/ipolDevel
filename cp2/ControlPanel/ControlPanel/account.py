@@ -10,7 +10,7 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import BadHeaderError, send_mail
-from django.db.models.query_utils import Q
+from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
@@ -136,9 +136,7 @@ def save_profile(request):
         params={"email": requested_email},
     )
     if status != 200:
-        messages.warning(
-            request, "Internal error: {} {}".format(status, demoinfo_editor)
-        )
+        messages.warning(request, f"Internal error: {status} {demoinfo_editor}")
         return HttpResponseRedirect("/cp2/profile")
 
     new_email_exists = "editor" in demoinfo_editor

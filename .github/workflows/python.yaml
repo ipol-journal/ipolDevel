@@ -40,6 +40,29 @@ jobs:
           cd ipol_demo/modules/core
           uv run pytest tests
 
+  test-cp2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.9.3"
+
+      - name: Set up Python with uv
+        run: uv python install 3.12
+
+      - name: Test cp2
+        run: |
+          cd cp2
+          uv run pytest
+
   style-check:
     runs-on: ubuntu-latest
     env:
