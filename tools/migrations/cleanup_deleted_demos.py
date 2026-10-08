@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 """
+
 cleanup_deleted_demos.py
 
 Periodic cleanup utility for IPOL.
@@ -35,13 +36,15 @@ to preview the cleanup, or:
     python cleanup_deleted_demos.py
 
 to perform the cleanup.
+
 """
 
 import argparse
+import re
 import shutil
 import sqlite3
+import tempfile
 from pathlib import Path
-
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
@@ -63,8 +66,6 @@ DIRECTORIES = {
 ARCHIVE_BLOBS_DIR = CORE_DIR / "staticData" / "archive_blobs"
 ARCHIVE_THUMBS_DIR = CORE_DIR / "staticData" / "archive_thumbs"
 
-
-
 def check_database_exists(path):
     """Fail early if a required database is missing."""
 
@@ -73,11 +74,9 @@ def check_database_exists(path):
             f"Database not found: {path}"
         )
 
-
 def get_existing_demo_ids():
     """
     Return all demo IDs currently present in demoinfo.db.
-
     The application uses editor_demo_id as the demo ID throughout
     the system.
     """
@@ -85,6 +84,7 @@ def get_existing_demo_ids():
     connection = sqlite3.connect(DEMOINFODB)
 
     try:
+
         rows = connection.execute(
             """
             SELECT editor_demo_id
@@ -95,8 +95,8 @@ def get_existing_demo_ids():
         return {row[0] for row in rows}
 
     finally:
-        connection.close()
 
+        connection.close()
 
 #Phase 1 - demo-ID based filesystem cleanup
 
@@ -107,6 +107,7 @@ def cleanup_demo_directories(existing_demo_ids, dry_run=False):
 
     Returns:
         Number of directories removed/would be removed.
+
     """
 
     removed_count = 0
@@ -122,13 +123,12 @@ def cleanup_demo_directories(existing_demo_ids, dry_run=False):
 
         for path in sorted(base_directory.iterdir()):
 
-            if not path.is_dir():
-                continue
-
             # Only numeric directory names can represent demo IDs.
+
             try:
                 demo_id = int(path.name)
             except ValueError:
+
                 continue
 
             if demo_id in existing_demo_ids:
@@ -136,18 +136,31 @@ def cleanup_demo_directories(existing_demo_ids, dry_run=False):
 
             print(
                 f"[DELETE] {description}: {path}"
+
             )
 
-            if not dry_run:
-                shutil.rmtree(path)
+            # A symlink to a directory makes is_dir() return True, but
+            # shutil.rmtree() cannot remove directory symlinks. Remove
+            # the symlink itself instead of following it.
+
+            if path.is_symlink():
+
+                if not dry_run:
+                    path.unlink()
+
+            elif path.is_dir():
+
+                if not dry_run:
+                    shutil.rmtree(path)
+
+            else:
+                continue
 
             removed_count += 1
 
     return removed_count
 
-
 # Phase 2 - archive database
-
 def attach_demoinfo_database(connection):
     """
     Attach demoinfo.db to the archive database connection.
@@ -158,12 +171,10 @@ def attach_demoinfo_database(connection):
         (str(DEMOINFODB),),
     )
 
-
 def get_orphan_archive_data(connection):
     """
     Find archive demo IDs and experiment IDs whose demo no longer exists
     in demoinfo.db.
-
     Returns:
         (orphan_demo_ids, orphan_experiment_ids)
     """
@@ -184,6 +195,7 @@ def get_orphan_archive_data(connection):
 
     orphan_experiment_ids = {
         row[0]
+
         for row in connection.execute(
             """
             SELECT e.id
@@ -198,11 +210,9 @@ def get_orphan_archive_data(connection):
 
     return orphan_demo_ids, orphan_experiment_ids
 
-
 def create_orphan_experiment_table(connection, orphan_experiment_ids):
     """
     Store orphan experiment IDs in a temporary table.
-
     This avoids large IN (...) parameter lists and keeps the cleanup
     scalable for thousands of experiments.
     """
@@ -220,9 +230,9 @@ def create_orphan_experiment_table(connection, orphan_experiment_ids):
         INSERT INTO orphan_experiments (id)
         VALUES (?)
         """,
+
         ((experiment_id,) for experiment_id in orphan_experiment_ids),
     )
-
 
 def get_orphan_blob_ids(connection):
     """
@@ -230,7 +240,9 @@ def get_orphan_blob_ids(connection):
     """
 
     return {
+
         row[0]
+
         for row in connection.execute(
             """
             SELECT DISTINCT c.id_blob
@@ -241,44 +253,72 @@ def get_orphan_blob_ids(connection):
         )
     }
 
+def create_active_blob_table(connection):
+    """
+    Materialize blob IDs referenced by active experiments in a temporary
+    table. The primary key provides an index for fast membership checks.
+    This avoids repeatedly checking active references in correspondence
+    for every candidate blob.
+    """
+
+    connection.execute(
+        """
+        CREATE TEMP TABLE active_blob_ids (
+            id INTEGER PRIMARY KEY
+        )
+        """
+
+    )
+
+    connection.execute(
+        """
+        INSERT INTO active_blob_ids (id)
+        SELECT DISTINCT c.id_blob
+        FROM correspondence c
+        JOIN experiments e
+            ON e.id = c.id_experiment
+        JOIN demoinfo.demo d
+            ON d.editor_demo_id = e.id_demo
+        """
+
+    )
 
 def get_shared_blob_ids(connection):
+
     """
     Return blob IDs that are referenced by both:
       - an orphan experiment, and
       - an active experiment.
-
     Such blob records must not be deleted.
     """
 
     return {
+
         row[0]
+
         for row in connection.execute(
             """
             SELECT DISTINCT c.id_blob
             FROM correspondence c
             JOIN orphan_experiments oe
                 ON oe.id = c.id_experiment
-            JOIN correspondence active_c
-                ON active_c.id_blob = c.id_blob
-            JOIN experiments active_e
-                ON active_e.id = active_c.id_experiment
-            JOIN demoinfo.demo active_d
-                ON active_d.editor_demo_id = active_e.id_demo
+            JOIN active_blob_ids a
+                ON a.id = c.id_blob
             """
         )
     }
 
-
 def get_safe_blob_rows(connection):
     """
     Return blob records referenced only by orphan experiments.
-
+    Active blob IDs are materialized in a temporary table, so this uses
+    an indexed lookup against the materialized active-blob set.
     Returns:
         (blob_id, hash, type, format)
     """
 
     return connection.execute(
+
         """
         SELECT DISTINCT
             b.id,
@@ -290,229 +330,264 @@ def get_safe_blob_rows(connection):
             ON c.id_blob = b.id
         JOIN orphan_experiments oe
             ON oe.id = c.id_experiment
-        WHERE NOT EXISTS (
-            SELECT 1
-            FROM correspondence active_c
-            JOIN experiments active_e
-                ON active_e.id = active_c.id_experiment
-            JOIN demoinfo.demo active_d
-                ON active_d.editor_demo_id = active_e.id_demo
-            WHERE active_c.id_blob = b.id
-        )
+        LEFT JOIN active_blob_ids a
+            ON a.id = b.id
+        WHERE a.id IS NULL
         ORDER BY b.id
         """
     ).fetchall()
 
 
 def get_active_physical_identities(connection):
+
     """
     Return physical archive identities used by active experiments.
-
     Physical blob identity is (hash, type).
-
     This is deliberately checked independently of blob.id because
     duplicate blob records can point to the same physical file.
     """
 
     return {
+
         (row[0], row[1])
+
         for row in connection.execute(
+
             """
             SELECT DISTINCT
                 b.hash,
                 b.type
             FROM blobs b
-            JOIN correspondence c
-                ON c.id_blob = b.id
-            JOIN experiments e
-                ON e.id = c.id_experiment
-            JOIN demoinfo.demo d
-                ON d.editor_demo_id = e.id_demo
+            JOIN active_blob_ids a
+                ON a.id = b.id
             """
         )
     }
 
-
 def get_active_hashes(connection):
+
     """
     Return hashes used by active experiments.
-
     Thumbnails are identified by hash only, so a thumbnail must not be
     deleted when its hash is still used by an active archive blob.
     """
 
     return {
+
         row[0]
+
         for row in connection.execute(
+
             """
             SELECT DISTINCT b.hash
             FROM blobs b
-            JOIN correspondence c
-                ON c.id_blob = b.id
-            JOIN experiments e
-                ON e.id = c.id_experiment
-            JOIN demoinfo.demo d
-                ON d.editor_demo_id = e.id_demo
+            JOIN active_blob_ids a
+                ON a.id = b.id
             """
         )
     }
 
+def _validate_archive_component(value, name):
+
+    """
+    Validate a value used as part of an archive file path.
+    Hashes must contain only hexadecimal characters. Blob types must
+    contain only ASCII letters and digits.
+    """
+
+    if not isinstance(value, str) or not value:
+
+        raise ValueError(
+            f"Invalid archive {name}: {value!r}"
+        )
+
+    if name == "hash":
+        valid = re.fullmatch(r"[0-9a-fA-F]+", value)
+    else:
+
+        valid = re.fullmatch(r"[A-Za-z0-9]+", value)
+
+    if valid is None:
+        raise ValueError(
+            f"Invalid archive {name}: {value!r}"
+        )
+
+def _archive_path_within_directory(path, directory):
+
+    """
+    Ensure a resolved archive path remains inside its expected directory.
+    """
+
+    resolved_path = path.resolve(strict=False)
+
+    resolved_directory = directory.resolve(strict=False)
+
+    try:
+        resolved_path.relative_to(resolved_directory)
+
+    except ValueError:
+        raise ValueError(
+            f"Archive path escapes its storage directory: {path}"
+        )
+
+    return resolved_path
 
 def archive_blob_path(hash_name, blob_type):
+
     """
     Calculate the physical archive blob path without creating directories.
-
     This matches the archive storage layout:
-
         archive_blobs/<first>/<second>/<hash>.<type>
     """
 
     if hash_name is None:
+
         return None
 
+    _validate_archive_component(hash_name, "hash")
+    _validate_archive_component(blob_type, "type")
     subdirectory = Path(*hash_name[:2])
 
-    return (
+    path = (
         ARCHIVE_BLOBS_DIR
         / subdirectory
         / f"{hash_name}.{blob_type}"
     )
 
+    return _archive_path_within_directory(
+        path,
+        ARCHIVE_BLOBS_DIR,
+    )
 
 def archive_thumbnail_path(hash_name):
+
     """
     Calculate the physical archive thumbnail path.
-
     Thumbnail layout:
-
         archive_thumbs/<first>/<second>/<hash>.jpeg
     """
 
     if hash_name is None:
         return None
 
+    _validate_archive_component(hash_name, "hash")
     subdirectory = Path(*hash_name[:2])
 
-    return (
+    path = (
         ARCHIVE_THUMBS_DIR
         / subdirectory
         / f"{hash_name}.jpeg"
     )
 
+    return _archive_path_within_directory(
+        path,
+        ARCHIVE_THUMBS_DIR,
+    )
 
-def delete_archive_files(
+def quarantine_archive_files(
     physical_blobs,
     active_hashes,
-    dry_run=False,
 ):
     """
-    Delete physical archive blob files and thumbnails.
+    Copy physical archive files to a temporary quarantine directory.
 
-    physical_blobs contains unique (hash, type) identities.
-
-    A thumbnail is deleted only if its hash is not used by any
-    active experiment.
-
-    Returns:
-        (
-            blob_files_deleted,
-            thumbnail_files_deleted,
-            missing_blob_files,
-            missing_thumbnail_files,
-        )
+    Files are copied while the archive database write transaction is still
+    active. The original files remain in place until the database transaction
+    commits, so a process crash before commit cannot leave the database
+    referencing a file that has already been moved away.
     """
-
-    blob_files_deleted = 0
-    thumbnail_files_deleted = 0
+    quarantine_dir = Path(
+        tempfile.mkdtemp(
+            prefix="cleanup_archive_",
+            dir=CORE_DIR / "staticData",
+        )
+    )
+    quarantined_files = []
+    blob_files_quarantined = 0
+    thumbnail_files_quarantined = 0
     missing_blob_files = 0
     missing_thumbnail_files = 0
-
-    for hash_name, blob_type in sorted(physical_blobs):
-
-        blob_path = archive_blob_path(
-            hash_name,
-            blob_type,
-        )
-
-        thumbnail_path = archive_thumbnail_path(
-            hash_name,
-        )
-
-        # Archive blob
-
-        if blob_path is not None and blob_path.is_file():
-
-            if dry_run:
-                print(
-                    f"[DELETE] archive blob: {blob_path}"
+    try:
+        for hash_name, blob_type in sorted(physical_blobs):
+            blob_path = archive_blob_path(hash_name, blob_type)
+            thumbnail_path = archive_thumbnail_path(hash_name)
+            if blob_path is not None and blob_path.is_file():
+                destination = (
+                    quarantine_dir
+                    / "archive_blobs"
+                    / Path(*hash_name[:2])
+                    / blob_path.name
                 )
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(blob_path, destination)
+                quarantined_files.append((destination, blob_path))
+                print(f"[QUARANTINE] archive blob: {blob_path}")
+                blob_files_quarantined += 1
             else:
-                try:
-                    blob_path.unlink()
-                    print(
-                        f"[DELETE] archive blob: {blob_path}"
-                    )
-                except OSError as exc:
-                    print(
-                        f"[WARNING] Could not delete blob file "
-                        f"{blob_path}: {exc}"
-                    )
-                    continue
-
-            blob_files_deleted += 1
-
-        else:
-            missing_blob_files += 1
-
-        # Thumbnail
-
-        # The thumbnail is identified by hash only. Never delete it
-        # if the hash is still used by an active experiment.
-        if hash_name in active_hashes:
-            continue
-
-        if thumbnail_path is not None and thumbnail_path.is_file():
-
-            if dry_run:
-                print(
-                    f"[DELETE] archive thumbnail: {thumbnail_path}"
+                missing_blob_files += 1
+            if hash_name in active_hashes:
+                continue
+            if thumbnail_path is not None and thumbnail_path.is_file():
+                destination = (
+                    quarantine_dir
+                    / "archive_thumbs"
+                    / Path(*hash_name[:2])
+                    / thumbnail_path.name
                 )
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(thumbnail_path, destination)
+                quarantined_files.append((destination, thumbnail_path))
+                print(f"[QUARANTINE] archive thumbnail: {thumbnail_path}")
+                thumbnail_files_quarantined += 1
             else:
-                try:
-                    thumbnail_path.unlink()
-                    print(
-                        f"[DELETE] archive thumbnail: {thumbnail_path}"
-                    )
-                except OSError as exc:
-                    print(
-                        f"[WARNING] Could not delete thumbnail "
-                        f"{thumbnail_path}: {exc}"
-                    )
-                    continue
-
-            thumbnail_files_deleted += 1
-
-        else:
-            missing_thumbnail_files += 1
-
+                missing_thumbnail_files += 1
+    except Exception:
+        shutil.rmtree(quarantine_dir, ignore_errors=True)
+        raise
     return (
-        blob_files_deleted,
-        thumbnail_files_deleted,
+        quarantine_dir,
+        quarantined_files,
+        blob_files_quarantined,
+        thumbnail_files_quarantined,
         missing_blob_files,
         missing_thumbnail_files,
     )
 
+def delete_quarantined_originals(quarantined_files):
+    """Delete original files after the database transaction has committed."""
+    deletion_failures = []
+    for quarantine_path, original_path in quarantined_files:
+        try:
+            original_path.unlink()
+        except FileNotFoundError:
+            pass
+        except OSError as exc:
+            deletion_failures.append((original_path, exc))
+    if deletion_failures:
+        details = "; ".join(
+            f"{path}: {error}"
+            for path, error in deletion_failures
+        )
+        raise RuntimeError(
+            "Failed to delete one or more original archive files after "
+            f"archive database cleanup committed: {details}"
+        )
 
 def cleanup_archive(connection, dry_run=False):
+
     """
+
     Clean archive data belonging to demos that no longer exist.
-
-    Database operations are performed explicitly and inside one
-    transaction. SQLite foreign-key enforcement is not required.
-
-    Physical files are removed only after the database transaction
-    has successfully committed.
+    SQLite's IMMEDIATE transaction prevents another archive database writer
+    from changing the data while cleanup is determining and deleting
+    orphan records.
+    Physical files are quarantined before the database transaction
+    is committed.
     """
+
+    if not dry_run:
+
+        connection.execute("BEGIN IMMEDIATE")
 
     (
         orphan_demo_ids,
@@ -530,18 +605,21 @@ def cleanup_archive(connection, dry_run=False):
     )
 
     if not orphan_experiment_ids:
+        if not dry_run:
+            connection.commit()
+
         print("[ARCHIVE] Nothing to clean.")
         return
 
     create_orphan_experiment_table(
+
         connection,
         orphan_experiment_ids,
     )
 
+    create_active_blob_table(connection)
     orphan_blob_ids = get_orphan_blob_ids(connection)
-
     shared_blob_ids = get_shared_blob_ids(connection)
-
     safe_blob_rows = get_safe_blob_rows(connection)
 
     print(
@@ -559,8 +637,6 @@ def cleanup_archive(connection, dry_run=False):
         f"{len(safe_blob_rows)}"
     )
 
-    # Determine physical identities.
-
     safe_physical_blobs = {
         (row[1], row[2])
         for row in safe_blob_rows
@@ -570,11 +646,7 @@ def cleanup_archive(connection, dry_run=False):
         connection
     )
 
-    # An orphan blob record is not sufficient by itself to authorize
-    # physical deletion. The physical (hash, type) identity must also
-    # have no active reference.
     safe_physical_blobs -= active_physical_blobs
-
     active_hashes = get_active_hashes(connection)
 
     print(
@@ -582,27 +654,30 @@ def cleanup_archive(connection, dry_run=False):
         f"{len(safe_physical_blobs)}"
     )
 
-    # Sanity checks.
-
     if len(safe_blob_rows) != len(orphan_blob_ids) - len(shared_blob_ids):
-        raise RuntimeError(
-            "Archive blob safety check failed: "
-            "unexpected blob-record counts."
+
+        print(
+            "[WARNING] Archive blob safety check found a discrepancy: "
+            f"orphan blob IDs={len(orphan_blob_ids)}, "
+            f"shared blob IDs={len(shared_blob_ids)}, "
+            f"safe blob rows={len(safe_blob_rows)}. "
+            "This may indicate dangling correspondence references."
         )
 
-    # Dry run.
-
     if dry_run:
+
         print(
             "[ARCHIVE] DRY RUN: "
             "no archive database records or files were deleted."
         )
+
         return
 
+    quarantine_dir = None
+    quarantined_files = []
 
     try:
 
-        # Delete correspondence rows first.
         connection.execute(
             """
             DELETE FROM correspondence
@@ -611,10 +686,9 @@ def cleanup_archive(connection, dry_run=False):
                 FROM orphan_experiments
             )
             """
+
         )
 
-        # Delete only blob records that were verified to have no
-        # active references.
         if safe_blob_rows:
 
             connection.executemany(
@@ -622,14 +696,12 @@ def cleanup_archive(connection, dry_run=False):
                 DELETE FROM blobs
                 WHERE id = ?
                 """,
-                (
-                    (row[0],)
-                    for row in safe_blob_rows
-                ),
+                ((row[0],) for row in safe_blob_rows),
+
             )
 
-        # Delete the orphan experiments.
         connection.execute(
+
             """
             DELETE FROM experiments
             WHERE id IN (
@@ -637,36 +709,62 @@ def cleanup_archive(connection, dry_run=False):
                 FROM orphan_experiments
             )
             """
+
         )
 
-        # Commit all database changes together.
+        (
+
+            quarantine_dir,
+            quarantined_files,
+            quarantined_blob_files,
+            quarantined_thumbnail_files,
+            missing_blob_files,
+            missing_thumbnail_files,
+        ) = quarantine_archive_files(
+            safe_physical_blobs,
+            active_hashes,
+        )
+
         connection.commit()
 
     except Exception:
-
         connection.rollback()
-
+        if quarantine_dir is not None:
+            shutil.rmtree(
+                quarantine_dir,
+                ignore_errors=True,
+            )
         print(
             "[ERROR] Archive database cleanup failed. "
             "All archive database changes were rolled back. "
-            "No physical archive files were deleted."
+            "Original physical files were left untouched."
         )
-
         raise
 
-    # Database transaction succeeded.
-    #
-    # Physical files can now be removed.
+    if quarantine_dir is not None:
+        deletion_succeeded = True
 
-    (
-        deleted_blob_files,
-        deleted_thumbnail_files,
-        missing_blob_files,
-        missing_thumbnail_files,
-    ) = delete_archive_files(
-        safe_physical_blobs,
-        active_hashes,
-    )
+        try:
+            delete_quarantined_originals(quarantined_files)
+        except RuntimeError as exc:
+            deletion_succeeded = False
+            print(
+                "[WARNING] Archive database cleanup committed, but some "
+                "original physical files could not be deleted. The "
+                f"quarantine copy is retained at {quarantine_dir}: {exc}"
+            )
+
+        if deletion_succeeded:
+            try:
+                shutil.rmtree(
+                    quarantine_dir,
+                    ignore_errors=False,
+                )
+            except OSError as exc:
+                print(
+                    "[WARNING] Archive database cleanup committed, but the "
+                    f"quarantine directory could not be removed: {exc}"
+                )
 
     print(
         f"[ARCHIVE] Experiment records deleted: "
@@ -679,27 +777,28 @@ def cleanup_archive(connection, dry_run=False):
     )
 
     print(
-        f"[ARCHIVE] Physical blob files deleted: "
-        f"{deleted_blob_files}"
+        f"[ARCHIVE] Physical blob files quarantined: "
+        f"{quarantined_blob_files}"
     )
 
     print(
-        f"[ARCHIVE] Thumbnail files deleted: "
-        f"{deleted_thumbnail_files}"
+        f"[ARCHIVE] Thumbnail files quarantined: "
+        f"{quarantined_thumbnail_files}"
     )
 
     if missing_blob_files:
+
         print(
             f"[ARCHIVE] Blob files already missing: "
             f"{missing_blob_files}"
         )
 
     if missing_thumbnail_files:
+
         print(
             f"[ARCHIVE] Thumbnail files already missing: "
             f"{missing_thumbnail_files}"
         )
-
 
 # Main
 
@@ -727,6 +826,7 @@ def main():
             "Run only archive cleanup. "
             "Phase 1 filesystem cleanup is skipped."
         ),
+
     )
 
     args = parser.parse_args()
@@ -736,41 +836,41 @@ def main():
     )
 
     if args.dry_run:
+
         print(
             "DRY RUN: no files or database records "
             "will be deleted."
         )
+
     else:
+
         print(
             "LIVE RUN: files and database records "
             "WILL be deleted."
         )
 
     # Required database checks.
-
     check_database_exists(DEMOINFODB)
     check_database_exists(ARCHIVEDB)
 
     # IMPORTANT SAFETY GATE
-    #
     # This is performed regardless of --archive-only.
     # An empty demoinfo database must never result in mass deletion.
 
     existing_demo_ids = get_existing_demo_ids()
-
     print(
         f"Found {len(existing_demo_ids)} existing demos "
         f"in demoinfo.db."
     )
 
     if not existing_demo_ids:
+
         raise RuntimeError(
             "No demo IDs found in demoinfo.db. "
             "Cleanup aborted to prevent accidental deletion."
         )
 
     # Phase 1
-
     if not args.archive_only:
 
         print(
@@ -789,20 +889,19 @@ def main():
         )
 
     else:
-
         print(
             "\n=== Phase 1: skipped "
             "(--archive-only) ==="
         )
 
     # Phase 2
-
     print(
         "\n=== Phase 2: archive cleanup ==="
     )
 
     archive_connection = sqlite3.connect(
         ARCHIVEDB
+
     )
 
     try:
@@ -817,13 +916,10 @@ def main():
         )
 
     finally:
-
         archive_connection.close()
-
     print(
         "\nCleanup finished."
     )
-
 
 if __name__ == "__main__":
     main()
