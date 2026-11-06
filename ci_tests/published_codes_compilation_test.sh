@@ -9,9 +9,11 @@ function send_email () {
     echo -e "This is the ${host} machine. The compilation tests failed on ${today}:\n${msg}" | mutt -s "[${host}] Compilation failed" -- ${sendTo}
 }
 
+export PATH="$HOME/.local/bin:$PATH"
 ci_tests_dir=/home/ipol/ipolDevel/ci_tests
 
-out=$(python3 ${ci_tests_dir}/published_codes_compilation_test.py)
+cd ${ci_tests_dir}
+out=$(uv run python ${ci_tests_dir}/published_codes_compilation_test.py)
 if [ $? -ne 0 ];then
     send_email "$out"
 fi
