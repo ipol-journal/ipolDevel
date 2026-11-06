@@ -5,13 +5,54 @@ description = "IPOL CP"
 readme = "README.md"
 requires-python = "==3.12.*"
 dependencies = [
-    "certifi==2025.10.5",
-    "chardet==3.0.4",
-    "django==4.2.30",
-    "django-utils-six==2.0",
-    "gunicorn==23.0.0",
-    "idna==3.11",
-    "pytz==2018.4",
-    "requests==2.34.2",
-    "urllib3>=2.7.0",
+    "django>=5.2.17,<6.0",
+    "gunicorn>=23.0.0",
+    "idna>=3.15",
+    "requests>=2.34.2",
+    "sqlparse>=0.6.0",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-django>=4.9.0",
+    "pytest-env>=1.1.5",
+    "responses>=0.25.6",
+]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+DJANGO_SETTINGS_MODULE = "ControlPanel.test_settings"
+pythonpath = ["ControlPanel"]
+testpaths = ["ControlPanel/tests"]
+addopts = "-v --tb=short"
+env = [
+    "D:DJANGO_SETTINGS_MODULE=ControlPanel.test_settings",
+    "D:IPOL_HOST=localhost",
+    "D:IPOL_URL=http://localhost:8000",
+]
+
+[tool.black]
+target_version = ['py39']
+
+[tool.isort]
+profile = "black"
+py_version = 39
+
+[tool.ruff]
+line-length = 200
+ignore = [
+    # because of cp2/ControlPanel/ControlPanel/urls.py
+    "F405",
+    "F403",
+    # because we don't package the modules, so we have to do bad things with sys.path
+    "E402",
+]
+
+[tool.ruff.lint]
+ignore = [
+    "F405",
+    "F403",
+    "E402",
+]
+

@@ -10,24 +10,37 @@ logger = logging.getLogger(__name__)
 
 
 def api_post(resource, method, **kwargs):
-    host = os.environ["IPOL_URL"]
-    if method == "get":
-        response = requests.get(f"{host}{resource}", **kwargs)
-        return response.json(), response.status_code
-    elif method == "put":
-        response = requests.put(f"{host}{resource}", **kwargs)
-        return response, response.status_code
-    elif method == "patch":
-        response = requests.patch(f"{host}{resource}", **kwargs)
-        return response.json(), response.status_code
-    elif method == "post":
-        response = requests.post(f"{host}{resource}", **kwargs)
-        return response.json(), response.status_code
-    elif method == "delete":
-        response = requests.delete(f"{host}{resource}", **kwargs)
-        return response, response.status_code
-    else:
-        assert False, f"Invalid HTTP(S) method: '{method}'."
+    host = os.environ.get("IPOL_URL", "")
+    try:
+        if method == "get":
+            response = requests.get(f"{host}{resource}", **kwargs)
+            try:
+                return response.json(), response.status_code
+            except Exception:
+                return {}, response.status_code
+        elif method == "put":
+            response = requests.put(f"{host}{resource}", **kwargs)
+            return response, response.status_code
+        elif method == "patch":
+            response = requests.patch(f"{host}{resource}", **kwargs)
+            try:
+                return response.json(), response.status_code
+            except Exception:
+                return {}, response.status_code
+        elif method == "post":
+            response = requests.post(f"{host}{resource}", **kwargs)
+            try:
+                return response.json(), response.status_code
+            except Exception:
+                return {}, response.status_code
+        elif method == "delete":
+            response = requests.delete(f"{host}{resource}", **kwargs)
+            return response, response.status_code
+        else:
+            assert False, f"Invalid HTTP(S) method: '{method}'."
+    except Exception as e:
+        logger.error("Error communicating with %s%s: %s", host, resource, e)
+        return {}, 502
 
 
 def user_can_edit_demo(user, demo_id):

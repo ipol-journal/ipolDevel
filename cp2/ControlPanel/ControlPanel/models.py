@@ -21,7 +21,7 @@ def user_created_handler(sender, instance, *args, **kwargs):
     # User stored in django DB.
     # no email means nothing to look for in demoinfo
     if not new_editor.email:
-        old_editor = User.objects.filter(username=new_editor).first()
+        old_editor = User.objects.filter(username=new_editor.username).first()
         # If old_editor isn't found it means it is a new editor right before the step
         # to set up email. Return allows to create user and wait
         # for email to be set
@@ -30,12 +30,20 @@ def user_created_handler(sender, instance, *args, **kwargs):
             raise ValidationError(error)
         return
 
-    old_editor = User.objects.get(username=new_editor)
+    old_editor = User.objects.get(username=new_editor.username)
     logger.info(
-        "old", old_editor, old_editor.email, old_editor.first_name, old_editor.last_name
+        "old: %s %s %s %s",
+        old_editor,
+        old_editor.email,
+        old_editor.first_name,
+        old_editor.last_name,
     )
     logger.info(
-        "new", new_editor, new_editor.email, new_editor.first_name, new_editor.last_name
+        "new: %s %s %s %s",
+        new_editor,
+        new_editor.email,
+        new_editor.first_name,
+        new_editor.last_name,
     )
 
     # Same email means no change to make
@@ -57,7 +65,7 @@ def user_created_handler(sender, instance, *args, **kwargs):
     )
     old_editor_exists = demoinfo_editor.get("editor", None)
 
-    logger.info("old", old_editor_exists, "new", new_editor_exists)
+    logger.info("old: %s, new: %s", old_editor_exists, new_editor_exists)
     # new email not in demoinfo and an editor existed before with an email -> Update editor
     if not new_editor_exists and old_editor_exists:
         update_editor(
