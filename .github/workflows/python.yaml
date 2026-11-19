@@ -73,7 +73,7 @@ jobs:
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: 3.13
       
       - name: Install uv
         uses: astral-sh/setup-uv@v6
@@ -97,7 +97,7 @@ jobs:
       - name: isort
         if: success() || failure()
         run: |
-          isort --check cp2 ipol_demo
+          isort --check --skip-glob 'ipol_demo/modules/demorunner/binaries/**' cp2 ipol_demo
 
       - name: black
         if: success() || failure()

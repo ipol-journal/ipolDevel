@@ -1032,7 +1032,7 @@ class Core:
                 #   in case the payload sent to the DR was invalid,
                 #   the answer might be returned as html
                 #   so we clean it before forwarding it to the front
-                from lxml.html.clean import clean_html
+                from lxml_html_clean import clean_html
 
                 demorunner_response = {"detail": clean_html(dr_response.content)}
 
