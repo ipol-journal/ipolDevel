@@ -11,7 +11,16 @@
 
   <demorunner name="dr">
     <module>demorunner</module>
-    <server>http://127.0.0.1/</server>
+    <server>http://localhost/</server>
+    <capability>docker!</capability>
+    <serverSSH>localhost</serverSSH>
+    <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
+    <serviceName>ipol-demorunner-docker --user</serviceName>
+  </demorunner>
+
+  <demorunner name="dr-python">
+    <module>demorunner</module>
+    <server>http://localhost/</server>
     <capability>DEBIAN_STABLE</capability>
     <!--<capability>Matlab</capability>-->
     <serverSSH>localhost</serverSSH>

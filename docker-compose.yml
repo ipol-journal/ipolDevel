@@ -1,0 +1,78 @@
+services:
+  nginx:
+    container_name: nginx
+    image: nginx:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./sysadmin/configs/nginx/default-docker:/etc/nginx/conf.d/default.conf
+      - .:/home/ipol/ipolDevel
+      - cp2_static:/home/ipol/CP2_STATIC
+      - ./shared_folder:/home/ipol/ipolDevel/shared_folder
+
+  core:
+    container_name: core
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.core
+    volumes:
+      - .:/home/ipol/ipolDevel
+      - ./shared_folder:/home/ipol/ipolDevel/shared_folder
+    ports:
+      - "8080:8080"
+    environment:
+      - IPOL_URL=http://nginx
+      - IPOL_HOST=localhost
+    tty: true
+    stdin_open: true
+
+  rust-demorunner:
+    container_name: rust-demorunner
+    hostname: dev-rust-demorunner
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.rust-demorunner
+    restart: unless-stopped
+    ports:
+      - "9003:9003"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./shared_folder:/home/ipol/ipolDevel/shared_folder
+    environment:
+      - IPOL_URL=http://nginx
+      - IPOL_HOST=localhost
+
+  demorunner:
+    container_name: demorunner
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.python-demorunner
+    volumes:
+      - .:/home/ipol/ipolDevel
+      - ./shared_folder:/home/ipol/ipolDevel/shared_folder
+    ports:
+      - "9004:9004"
+    environment:
+      - IPOL_URL=http://nginx
+      - IPOL_HOST=localhost
+
+  cp2:
+    container_name: cp2
+    restart: unless-stopped
+    build:
+      context: ./cp2
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./cp2:/app
+      - cp2_static:/CP2_STATIC
+    environment:
+      - IPOL_URL=http://nginx
+      - IPOL_HOST=localhost
+
+volumes:
+  cp2_static:

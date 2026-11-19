@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data>
+
+  <commands>
+    <command>start</command>
+    <command>stop</command>
+    <command>restart</command>
+    <command>ping</command>
+  </commands>
+
+
+  <demorunner name="dr">
+    <module>demorunner</module>
+    <server>http://localhost/</server>
+    <capability>docker!</capability>
+    <serverSSH>localhost</serverSSH>
+    <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
+    <serviceName>ipol-demorunner-docker --user</serviceName>
+  </demorunner>
+
+  <demorunner name="dr-python">
+    <module>demorunner</module>
+    <server>http://localhost/</server>
+    <capability>DEBIAN_STABLE</capability>
+    <!--<capability>Matlab</capability>-->
+    <serverSSH>localhost</serverSSH>
+    <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
+  </demorunner>
+
+
+</data>

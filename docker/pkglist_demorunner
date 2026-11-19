@@ -2,8 +2,6 @@ debian-keyring
 debian-archive-keyring
 bash-completion
 mailutils
-cron-apt
-git
 wget
 cmake
 ccache
@@ -30,6 +28,7 @@ gnuplot-nox
 python3-yaml
 libpq-dev
 libmagic-dev
+libmagic1
 libgsl-dev
 libgsl-dbg
 libblas-dev
@@ -46,7 +45,6 @@ octave-image
 octave-linear-algebra
 octave-splines
 octave-statistics
-sshfs
 libgdal-dev
 gdal-bin
 python3-gdal
@@ -81,16 +79,13 @@ nano
 sudo
 vim
 tree
-nginx
 bc
 sqlite3
-openssh-server
-bash-completion
-mailutils
-cron-apt
-bind9
+
+build-essential
+gcc
+
 net-tools
 screen
 wget
 zip
-zsh

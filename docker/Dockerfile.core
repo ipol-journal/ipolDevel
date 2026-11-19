@@ -1,0 +1,26 @@
+FROM debian:bullseye
+
+# ipol user config
+RUN useradd -ms /bin/bash ipol
+RUN adduser ipol sudo
+RUN echo 'ipol:ipol' | chpasswd
+
+WORKDIR /home/ipol/ipolDevel/ipol_demo/modules/core
+
+# Apt and pip packages installation
+COPY ./docker/pkglist_core /home/ipol/pkglist_core
+RUN apt update && apt install -y $(cat /home/ipol/pkglist_core)
+
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+
+USER ipol
+
+# Allow FastAPI to pick up the port
+ENV HOST=0.0.0.0
+ENV PORT=8080
+
+EXPOSE 8080
+
+ENTRYPOINT ["uv", "run", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]

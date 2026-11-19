@@ -1,0 +1,61 @@
+# Stage 1: Build stage
+FROM rust:1.85-slim-bullseye AS builder
+
+WORKDIR /usr/src/app
+
+# Install git, pkg-config, SSL dev libraries for cargo compile
+RUN apt-get update && apt-get install -y \
+    git \
+    pkg-config \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install ipol-demorunner binary
+RUN cargo install --git https://github.com/ipol-journal/ipol-demorunner.git --rev f4c094312b3a89a66665c80e9c44b4868a371e6a --root /usr/local --locked
+
+# Stage 2: Runtime stage
+FROM debian:bullseye
+
+# Install runtime dependencies
+# - curl, ca-certificates for networking/HTTPS
+# - libssl1.1 since Rust binary dynamically links it on Bullseye
+# - docker.io to provide the docker client CLI
+RUN apt-get update && apt-get install -y \
+    curl \
+    ca-certificates \
+    libssl1.1 \
+    docker.io \
+    && rm -rf /var/lib/apt/lists/*
+
+# Configure ipol user
+RUN useradd -ms /bin/zsh ipol && \
+    adduser ipol sudo && \
+    echo 'ipol:ipol' | chpasswd && \
+    usermod -aG docker ipol
+
+# Create working directory
+WORKDIR /home/ipol/ipolDevel/ipol_demo/modules/demorunner-docker
+
+# Copy Rocket.toml config file
+COPY ./ipol_demo/modules/demorunner-docker/Rocket.toml ./
+
+# Copy binary from builder
+COPY --from=builder /usr/local/bin/ipol-demorunner /usr/local/bin/ipol-demorunner
+
+# Create compilation folder and set permissions
+RUN mkdir -p compilation && \
+    chown -R ipol:ipol /home/ipol/ipolDevel/ipol_demo/modules/demorunner-docker
+
+# Run as non-root user ipol
+USER ipol
+
+# Rocket environment variables
+ENV HOST=0.0.0.0
+ENV PORT=9003
+ENV ROCKET_ADDRESS=0.0.0.0
+ENV ROCKET_PORT=9003
+ENV ROCKET_PROFILE=default
+
+EXPOSE 9003
+
+CMD ["ipol-demorunner"]

@@ -116,6 +116,9 @@ __pycache__
 db.sqlite3
 media
 
+# DDL docs
+cp2/ControlPanel/static_cp/*
+
 # Visual Studio Code # 
 .vscode/* 
 !.vscode/settings.json 
