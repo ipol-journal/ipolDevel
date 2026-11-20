@@ -4,6 +4,7 @@ import getpass
 import os
 import random
 import shlex
+import sys
 import time
 from subprocess import PIPE, Popen
 
@@ -52,13 +53,10 @@ def run_tests():
     """
     Execute all the tests
     """
-    core_dir = os.path.dirname("core")
     for test in tests:
-        python_dir = os.path.join(core_dir, "venv/bin/python")
-
-        # Execute test
+        # Execute test using the active environment's Python interpreter
         cmd = shlex.split(
-            " ".join([python_dir, test, resources, demorunners, shared_folder])
+            " ".join([sys.executable, test, resources, demorunners, shared_folder])
         )
         process = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()

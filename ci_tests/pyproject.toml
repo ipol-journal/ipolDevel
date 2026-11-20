@@ -1,0 +1,9 @@
+[project]
+name = "ci-tests"
+version = "0.1.0"
+description = "IPOL CI and integration tests"
+requires-python = "==3.13.*"
+dependencies = [
+    "pillow~=13.0.0",
+    "requests~=2.34.2",
+]
